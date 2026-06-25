@@ -105,6 +105,98 @@ sdk use java 21-tem  # 또는 17
 
 ---
 
+## Git 브랜치·커밋 컨벤션
+
+### 전략: GitHub Flow 변형 (1인 학습 프로젝트 맞춤)
+
+- `main` — **항상 빌드 + 테스트 통과 상태 유지**. 직접 push 가능하지만 PR 경로 권장
+- `feature/*`, `fix/*`, `chore/*`, `refactor/*`, `docs/*` — short-lived branch
+- 작업 완료 시 self-PR → squash merge → branch 삭제
+
+### 브랜치 prefix (5종)
+
+| prefix | 용도 |
+|---|---|
+| `feature/` | 새 기능 (학습 단계 D1~D5 등) |
+| `fix/` | 버그 수정 |
+| `chore/` | 설정·인프라·DB·CI |
+| `refactor/` | 코드 정리 (동작 변경 없음) |
+| `docs/` | 문서만 변경 (CLAUDE.md, README, memory 동기화 등) |
+
+이름 패턴: `<prefix>/<단계코드 또는 영문 식별자>-<짧은 영문 설명>`
+
+예시:
+- `feature/D1-application-form` — 신청 폼 (학습 단계 D1)
+- `feature/D4-search-bar` — 헤더 검색 (학습 단계 D4)
+- `chore/supabase-setup` — Supabase 연결 셋업
+- `refactor/design-tokens` — 디자인 토큰 정리
+- `docs/git-conventions` — Git 컨벤션 문서화
+
+### 커밋 메시지 형식
+
+```
+YYMMDD_<식별자> - 한 줄 요약
+
+- 항목 1
+- 항목 2
+- 항목 3
+
+Co-Authored-By: Claude <noreply@anthropic.com>
+```
+
+식별자 예: `apply_form`, `bookmark_toggle`, `supabase_setup`, `token_cleanup`, `initial`
+요약은 화면에서 보이는 변화 위주 (라벨 변경·필드 추가·노출 조건 등)
+
+### 표준 워크플로우 (3단계)
+
+**① 시작**
+```powershell
+git checkout main
+git pull origin main
+git checkout -b feature/D1-application-form
+```
+
+**② 진행** (작은 단위로 commit + push, PC 이동 직전엔 무조건 push)
+```powershell
+git add <명시 파일들>
+git commit -m "260626_apply_form_entity - ApplicationService 1차 구조"
+git push -u origin feature/D1-application-form   # 첫 push 시 -u
+git push                                          # 이후
+```
+
+**③ 완료** (self-PR → squash merge → 정리)
+```powershell
+gh pr create --base main --title "D1: 신청 폼" --body "..."
+gh pr merge --squash --delete-branch
+git checkout main
+git pull
+```
+
+### Squash vs Merge 선택 기준
+
+- **`--squash` (권장)**: 학습 단계 1개 = 커밋 1개. main 히스토리 깔끔
+- **`--merge --no-ff`**: 중간 WIP 커밋까지 보존하고 싶을 때
+
+### 듀얼 PC (Win + Mac) 동기화
+
+- ✅ **이동 직전 반드시 push** — WIP commit 이어도 OK
+- ✅ **이동 직후 반드시** `git fetch origin && git checkout <branch>`
+- ❌ **두 PC 에서 동시에 같은 브랜치 작업 금지** — push/pull 충돌 위험
+
+### 스테이징 규칙
+
+- ❌ `git add -A` / `git add .` **사용 금지** — 우발적 시크릿·임시파일 커밋 차단
+- ✅ 명시적 파일/디렉토리만 add (`git add src/ docs/ build.gradle.kts` 등)
+- ✅ 커밋 전 `git diff --cached` 로 변경 내역 직접 검토
+- ✅ 시크릿 (`DATABASE_URL`, `password`, `API_KEY` 등) 패턴 한 번 더 검색
+
+### main 보호 정책
+
+- 현재: GitHub branch protection **미설정** (솔로 dev 마찰 회피)
+- 추후 CI 도입 시: `gradlew test` status check 필수화 검토
+
+---
+
 ## 패키지 구조 (도메인 중심)
 
 ```
