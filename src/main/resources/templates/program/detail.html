@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${program.title} + ' — youth-moa'">프로그램 상세</title>
+    <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"
+          rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+</head>
+<body>
+
+<div th:replace="~{fragments/header :: header('programs')}"></div>
+
+<main class="main-content">
+    <div class="detail-container">
+
+        <!-- 목록으로 -->
+        <a th:href="@{/programs}" class="detail-back-link">
+            <span class="arrow-left">←</span> 목록으로
+        </a>
+
+        <!-- Hero (image + info) -->
+        <section class="detail-hero">
+            <div class="detail-image">
+                <img th:if="${program.imageUrl != null}" th:src="${program.imageUrl}" alt="">
+                <div th:if="${program.imageUrl == null}" class="detail-image-placeholder">
+                    <span th:text="${program.category}">카테고리</span>
+                </div>
+            </div>
+
+            <div class="detail-info">
+                <!-- Status + category -->
+                <div class="detail-badges">
+                    <span th:class="'status-badge ' + ${program.status.cssClass}"
+                          th:text="${program.status.label}">진행중</span>
+                    <span class="detail-category" th:text="${program.category}">카테고리</span>
+                </div>
+
+                <!-- Title -->
+                <h1 class="detail-title" th:text="${program.title}">프로그램 제목</h1>
+                <p class="detail-subtitle"
+                   th:text="${program.organization + ' · ' + program.region}">기관 · 지역</p>
+
+                <!-- Status / D-day card -->
+                <div th:class="${program.status.name() == 'CLOSED'} ?
+                               'detail-status-card detail-status-card--closed' :
+                               'detail-status-card'">
+                    <div class="detail-status-card-row">
+                        <span class="detail-status-headline"
+                              th:text="${program.status.name() == 'ACTIVE' ?
+                                        '모집 중 · 마감까지 ' +
+                                        (program.daysUntilDeadline == 0 ? '오늘' : program.daysUntilDeadline + '일') :
+                                        program.status.label}">상태</span>
+                        <span class="detail-capacity" th:if="${program.capacity != null}">
+                            <strong th:text="${program.capacity}">30</strong>
+                            <span class="detail-capacity-unit">명 정원</span>
+                        </span>
+                        <span class="detail-capacity" th:if="${program.capacity == null}">
+                            정원 제한 없음
+                        </span>
+                    </div>
+                    <p class="detail-status-note" th:if="${program.status.name() == 'ACTIVE'}">
+                        현재 모집 중인 프로그램입니다. 자격 요건 확인 후 신청해주세요.
+                    </p>
+                    <p class="detail-status-note" th:if="${program.status.name() == 'UPCOMING'}">
+                        곧 시작 예정인 프로그램입니다. 오픈 알림을 신청하면 시작 시 알려드려요.
+                    </p>
+                    <p class="detail-status-note" th:if="${program.status.name() == 'CLOSED'}">
+                        모집이 마감된 프로그램입니다.
+                    </p>
+                </div>
+
+                <!-- Meta table -->
+                <dl class="detail-meta">
+                    <div class="detail-meta-row" th:if="${program.startDate != null and program.endDate != null}">
+                        <dt>진행 기간</dt>
+                        <dd th:text="${#temporals.format(program.startDate, 'yyyy.MM.dd') + ' ~ ' + #temporals.format(program.endDate, 'yyyy.MM.dd')}">
+                            기간
+                        </dd>
+                    </div>
+                    <div class="detail-meta-row">
+                        <dt>주관 기관</dt>
+                        <dd th:text="${program.organization}">기관</dd>
+                    </div>
+                    <div class="detail-meta-row">
+                        <dt>지역</dt>
+                        <dd th:text="${program.region}">지역</dd>
+                    </div>
+                    <div class="detail-meta-row">
+                        <dt>카테고리</dt>
+                        <dd th:text="${program.category}">카테고리</dd>
+                    </div>
+                    <div class="detail-meta-row" th:if="${program.capacity != null}">
+                        <dt>모집 인원</dt>
+                        <dd th:text="${program.capacity} + '명'">정원</dd>
+                    </div>
+                </dl>
+
+                <!-- Actions -->
+                <div class="detail-actions">
+                    <button type="button" class="detail-action-icon" title="즐겨찾기" disabled>
+                        <span>★</span>
+                    </button>
+                    <button type="button" class="detail-action-icon" title="링크 복사" disabled>
+                        <span>⤴</span>
+                    </button>
+                    <button th:if="${program.status.name() == 'ACTIVE'}"
+                            type="button" class="btn-primary btn-lg detail-cta" disabled>
+                        신청하기
+                    </button>
+                    <button th:if="${program.status.name() == 'UPCOMING'}"
+                            type="button" class="btn-outline-primary detail-cta" disabled>
+                        오픈 알림 받기
+                    </button>
+                    <button th:if="${program.status.name() == 'CLOSED'}"
+                            type="button" class="btn-outline-primary detail-cta" disabled>
+                        빈자리 알림 받기
+                    </button>
+                </div>
+                <p class="detail-cta-notice">
+                    ※ 신청 / 즐겨찾기 / 알림 기능은 곧 활성화됩니다.
+                </p>
+            </div>
+        </section>
+
+        <hr class="detail-divider">
+
+        <!-- Requirements -->
+        <section class="detail-section">
+            <h2 class="detail-section-title">지원 대상 · 자격 요건</h2>
+            <div class="detail-content-box" th:text="${program.requirements}">
+                자격 요건 텍스트
+            </div>
+            <div class="detail-warning">
+                <span class="detail-warning-icon">⚠</span>
+                <span class="detail-warning-text">
+                    신청 전 <strong>자격 요건을 반드시 확인</strong>해주세요.
+                    요건 미충족 시 승인이 반려될 수 있습니다.
+                </span>
+            </div>
+        </section>
+
+        <hr class="detail-divider">
+
+        <!-- Content -->
+        <section class="detail-section">
+            <h2 class="detail-section-title">프로그램 설명</h2>
+            <div class="detail-content-box" th:text="${program.content}">
+                프로그램 설명 텍스트
+            </div>
+        </section>
+    </div>
+</main>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+</body>
+</html>

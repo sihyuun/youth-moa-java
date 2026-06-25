@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<footer th:fragment="footer" class="site-footer">
+    <div class="footer-inner">
+        <a th:href="@{/}" class="footer-logo">
+            <img th:src="@{/images/logo_symbol.png}" alt="" class="footer-logo-img">
+            <span class="footer-logo-text">청년모아</span>
+        </a>
+        <div class="footer-center">
+            <div class="footer-links">
+                <a href="#">개인정보처리방침</a>
+                <a href="#">이용약관</a>
+                <a href="#">이메일주소무단수집거부</a>
+            </div>
+            <p class="footer-copy">Copyright &copy; 2025 청년모아 All Rights Reserved</p>
+        </div>
+        <div class="footer-sns">
+            <a href="#" aria-label="Instagram"><img th:src="@{/images/sns_instagram.png}" alt="Instagram"></a>
+            <a href="#" aria-label="YouTube"><img th:src="@{/images/sns_youtube.png}" alt="YouTube"></a>
+            <a href="#" aria-label="KakaoTalk"><img th:src="@{/images/sns_kakaotalk.png}" alt="KakaoTalk"></a>
+            <a href="#" aria-label="Facebook"><img th:src="@{/images/sns_facebook.png}" alt="Facebook"></a>
+        </div>
+    </div>
+</footer>
+
+</body>
+</html>

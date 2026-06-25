@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+
+<header th:fragment="header(currentPage)" class="site-header">
+    <div class="header-inner">
+
+        <!-- Logo -->
+        <a th:href="@{/}" class="header-logo">
+            <img th:src="@{/images/logo_symbol.png}" alt="" class="header-logo-img">
+            <span class="header-logo-text">청년모아</span>
+        </a>
+
+        <!-- Nav -->
+        <nav class="header-nav">
+            <a th:href="@{/programs}"
+               th:class="${currentPage == 'programs'} ? 'nav-link active' : 'nav-link'">프로그램</a>
+            <a th:href="@{/centers}"
+               th:class="${currentPage == 'centers'} ? 'nav-link active' : 'nav-link'">청년센터</a>
+            <a th:href="@{/notices}"
+               th:class="${currentPage == 'notices'} ? 'nav-link active' : 'nav-link'">공지사항</a>
+        </nav>
+
+        <!-- Right actions -->
+        <div class="header-right">
+            <!-- 로그인 상태 -->
+            <div sec:authorize="isAuthenticated()" class="header-user">
+                <span class="user-greeting">
+                    <sec:authentication property="principal.displayName"/>님
+                </span>
+                <a th:href="@{/mypage}" class="header-action-link">마이페이지</a>
+                <form th:action="@{/logout}" method="post" style="display:inline;margin:0">
+                    <button type="submit" class="header-logout-btn">로그아웃</button>
+                </form>
+            </div>
+            <!-- 비로그인 상태 -->
+            <div sec:authorize="!isAuthenticated()" class="header-guest">
+                <a th:href="@{/login}" class="header-action-link">로그인</a>
+                <a th:href="@{/signup}" class="btn-primary btn-sm">회원가입</a>
+            </div>
+        </div>
+
+    </div>
+</header>
+
+</body>
+</html>

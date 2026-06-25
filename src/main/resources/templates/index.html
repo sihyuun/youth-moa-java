@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>youth-moa — 경기도 청년센터 프로그램</title>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"
+          rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+    <script th:src="@{/webjars/htmx.org/dist/htmx.min.js}" defer></script>
+</head>
+<body>
+
+<div th:replace="~{fragments/header :: header('home')}"></div>
+
+<main class="main-content">
+    <!-- Hero -->
+    <section class="hero" th:style="'background-image: linear-gradient(135deg, rgba(52,40,207,0.85) 0%, rgba(63,48,233,0.7) 45%, rgba(120,100,233,0.55) 100%), url(' + @{/images/banner_01.png} + ');'">
+        <div class="hero-inner">
+            <div class="hero-tag">경기도 청년센터 프로그램 통합 플랫폼</div>
+            <h1 class="hero-title">경기도 청년의 내일을<br>함께 만들어갑니다</h1>
+            <p class="hero-desc">
+                취업·창업·주거·힐링 프로그램을 한 곳에서 찾고<br>
+                내게 맞는 청년 지원을 손쉽게 신청해보세요.
+            </p>
+            <div class="hero-actions">
+                <a th:href="@{/programs}" class="btn-primary btn-lg">프로그램 둘러보기</a>
+                <a th:href="@{/signup}" class="btn-outline btn-lg" sec:authorize="!isAuthenticated()">
+                    무료 회원가입
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Quick links -->
+    <section class="section container">
+        <h2 class="section-title">카테고리별 프로그램</h2>
+        <div class="category-grid">
+            <a th:href="@{/programs(category='취업')}" class="category-card">
+                <span class="category-icon">💼</span>
+                <span class="category-label">취업</span>
+            </a>
+            <a th:href="@{/programs(category='창업')}" class="category-card">
+                <span class="category-icon">🚀</span>
+                <span class="category-label">창업</span>
+            </a>
+            <a th:href="@{/programs(category='주거')}" class="category-card">
+                <span class="category-icon">🏠</span>
+                <span class="category-label">주거</span>
+            </a>
+            <a th:href="@{/programs(category='힐링')}" class="category-card">
+                <span class="category-icon">💚</span>
+                <span class="category-label">힐링</span>
+            </a>
+            <a th:href="@{/programs(category='교육')}" class="category-card">
+                <span class="category-icon">📚</span>
+                <span class="category-label">교육</span>
+            </a>
+            <a th:href="@{/programs}" class="category-card">
+                <span class="category-icon">🌐</span>
+                <span class="category-label">전체</span>
+            </a>
+        </div>
+    </section>
+
+    <!-- HTMX demo (개발 확인용) -->
+    <section class="section container">
+        <div class="card">
+            <h2>서버 연결 확인</h2>
+            <button hx-post="/api/ping"
+                    hx-target="#ping-result"
+                    hx-swap="innerHTML"
+                    class="btn-primary">
+                Ping 보내기
+            </button>
+            <div id="ping-result" class="result"></div>
+        </div>
+    </section>
+</main>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+</body>
+</html>

@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>프로그램 — youth-moa</title>
+    <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"
+          rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+</head>
+<body>
+
+<div th:replace="~{fragments/header :: header('programs')}"></div>
+
+<main class="main-content">
+
+    <!-- 페이지 타이틀 -->
+    <div class="page-title-bar">
+        <h2>프로그램</h2>
+    </div>
+
+    <div class="programs-layout container">
+
+        <!-- 사이드바: 지역 필터 -->
+        <aside class="programs-sidebar">
+            <h3 class="sidebar-title">지역</h3>
+            <ul class="sidebar-list">
+                <li>
+                    <a th:href="@{/programs(status=${filterStatus},category=${filterCategory},sort=${filterSort})}"
+                       th:class="${#strings.isEmpty(filterRegion)} ? 'sidebar-link active' : 'sidebar-link'">
+                        전체
+                    </a>
+                </li>
+                <li th:each="r : ${regions}">
+                    <a th:href="@{/programs(status=${filterStatus},region=${r},category=${filterCategory},sort=${filterSort})}"
+                       th:class="${filterRegion == r} ? 'sidebar-link active' : 'sidebar-link'"
+                       th:text="${r}">지역명</a>
+                </li>
+            </ul>
+
+            <h3 class="sidebar-title" style="margin-top:32px">카테고리</h3>
+            <ul class="sidebar-list">
+                <li>
+                    <a th:href="@{/programs(status=${filterStatus},region=${filterRegion},sort=${filterSort})}"
+                       th:class="${#strings.isEmpty(filterCategory)} ? 'sidebar-link active' : 'sidebar-link'">
+                        전체
+                    </a>
+                </li>
+                <li th:each="c : ${ {'취업','창업','주거','힐링','교육'} }">
+                    <a th:href="@{/programs(status=${filterStatus},region=${filterRegion},category=${c},sort=${filterSort})}"
+                       th:class="${filterCategory == c} ? 'sidebar-link active' : 'sidebar-link'"
+                       th:text="${c}">카테고리</a>
+                </li>
+            </ul>
+        </aside>
+
+        <!-- 메인 컨텐츠 -->
+        <section class="programs-main">
+
+            <!-- 상태 탭 + 정렬 -->
+            <div class="filter-bar">
+                <div class="status-tabs">
+                    <a th:href="@{/programs(region=${filterRegion},category=${filterCategory},sort=${filterSort})}"
+                       th:class="${#strings.isEmpty(filterStatus)} ? 'status-tab active' : 'status-tab'">
+                        전체
+                    </a>
+                    <a th:href="@{/programs(status='active',region=${filterRegion},category=${filterCategory},sort=${filterSort})}"
+                       th:class="${filterStatus == 'active'} ? 'status-tab active' : 'status-tab'">
+                        진행중
+                    </a>
+                    <a th:href="@{/programs(status='upcoming',region=${filterRegion},category=${filterCategory},sort=${filterSort})}"
+                       th:class="${filterStatus == 'upcoming'} ? 'status-tab active' : 'status-tab'">
+                        진행예정
+                    </a>
+                    <a th:href="@{/programs(status='closed',region=${filterRegion},category=${filterCategory},sort=${filterSort})}"
+                       th:class="${filterStatus == 'closed'} ? 'status-tab active' : 'status-tab'">
+                        마감
+                    </a>
+                </div>
+
+                <div class="filter-right">
+                    <span class="result-count">
+                        전체 <strong th:text="${programs.totalElements}">0</strong>건
+                    </span>
+                    <div class="sort-options">
+                        <a th:href="@{/programs(status=${filterStatus},region=${filterRegion},category=${filterCategory},sort='newest')}"
+                           th:class="${filterSort == 'newest' or #strings.isEmpty(filterSort)} ? 'sort-link active' : 'sort-link'">
+                            최신순
+                        </a>
+                        <span class="sort-sep">·</span>
+                        <a th:href="@{/programs(status=${filterStatus},region=${filterRegion},category=${filterCategory},sort='deadline')}"
+                           th:class="${filterSort == 'deadline'} ? 'sort-link active' : 'sort-link'">
+                            마감임박순
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 프로그램 카드 그리드 -->
+            <div th:if="${programs.totalElements == 0}" class="empty-state">
+                <p>조건에 맞는 프로그램이 없습니다.</p>
+            </div>
+
+            <div th:if="${programs.totalElements > 0}" class="program-grid">
+                <article th:each="p : ${programs.content}" class="program-card">
+                    <a th:href="@{/programs/{id}(id=${p.id})}" class="program-card-link">
+                        <div class="program-card-image">
+                            <img th:if="${p.imageUrl != null}" th:src="${p.imageUrl}" alt="">
+                            <div th:if="${p.imageUrl == null}" class="program-card-placeholder">
+                                <span th:text="${p.category}">카테고리</span>
+                            </div>
+                            <span class="dday-chip"
+                                  th:if="${!#strings.isEmpty(p.ddayLabel)}"
+                                  th:classappend="${p.daysUntilDeadline <= 3 and p.daysUntilDeadline >= 0} ? ' dday-chip--urgent'"
+                                  th:text="${p.ddayLabel}">D-3</span>
+                        </div>
+                        <div class="program-card-body">
+                            <div class="program-card-badges">
+                                <span th:class="'status-badge ' + ${p.status.cssClass}"
+                                      th:text="${p.status.label}">진행중</span>
+                                <span class="category-badge" th:text="${p.category}">카테고리</span>
+                            </div>
+                            <h3 class="program-card-title" th:text="${p.title}">프로그램 제목</h3>
+                            <p class="program-card-org" th:text="${p.organization + ' · ' + p.region}">기관 · 지역</p>
+                            <p class="program-card-date"
+                               th:if="${p.startDate != null and p.endDate != null}"
+                               th:text="${#temporals.format(p.startDate,'yyyy.MM.dd') + ' ~ ' + #temporals.format(p.endDate,'yyyy.MM.dd')}">
+                                기간
+                            </p>
+                            <p class="program-card-capacity" th:if="${p.capacity != null}">
+                                정원 <strong th:text="${p.capacity}">30</strong>명
+                            </p>
+                            <p class="program-card-capacity" th:if="${p.capacity == null}">
+                                정원 제한 없음
+                            </p>
+                        </div>
+                    </a>
+                </article>
+            </div>
+
+            <!-- 페이지네이션 -->
+            <nav th:if="${programs.totalPages > 1}" class="pagination">
+                <a th:if="${programs.hasPrevious()}"
+                   th:href="@{/programs(status=${filterStatus},region=${filterRegion},category=${filterCategory},sort=${filterSort},page=${programs.number - 1})}"
+                   class="page-link page-arrow">‹</a>
+                <span th:unless="${programs.hasPrevious()}" class="page-link page-arrow disabled">‹</span>
+
+                <a th:each="i : ${#numbers.sequence(0, programs.totalPages - 1)}"
+                   th:href="@{/programs(status=${filterStatus},region=${filterRegion},category=${filterCategory},sort=${filterSort},page=${i})}"
+                   th:class="${i == programs.number} ? 'page-link active' : 'page-link'"
+                   th:text="${i + 1}">1</a>
+
+                <a th:if="${programs.hasNext()}"
+                   th:href="@{/programs(status=${filterStatus},region=${filterRegion},category=${filterCategory},sort=${filterSort},page=${programs.number + 1})}"
+                   class="page-link page-arrow">›</a>
+                <span th:unless="${programs.hasNext()}" class="page-link page-arrow disabled">›</span>
+            </nav>
+        </section>
+    </div>
+</main>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+</body>
+</html>
