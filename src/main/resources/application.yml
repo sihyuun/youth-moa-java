@@ -27,12 +27,10 @@ spring:
     suffix: .html
     enabled: true
 
-  mvc:
-    static-path-pattern: /static/**
-
-  web:
-    resources:
-      static-locations: classpath:/static/
+  # 정적 리소스 매핑 = Spring Boot 기본값 (classpath:/static/ → /**)
+  # /css/**, /images/**, /webjars/** 등이 SecurityConfig 의 permitAll 매처와 일치하도록 root 매핑 유지.
+  # ❌ static-path-pattern: /static/** 로 좁히면 /css/main.css 등이 매핑 안 되어
+  #    Security anyRequest().authenticated() 에 걸려 /login 으로 302 redirect 됨.
 
 server:
   port: 8080
