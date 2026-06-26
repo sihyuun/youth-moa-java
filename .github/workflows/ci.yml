@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# 같은 브랜치에서 새 push 가 들어오면 이전 실행 자동 취소 (리소스 절약)
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    name: Build + Test (H2)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+
+      - name: Make gradlew executable
+        run: chmod +x gradlew
+
+      - name: Compile (main + test sources)
+        run: ./gradlew compileJava compileTestJava --no-daemon
+
+      - name: Run JUnit tests (H2 only — Testcontainers 제외)
+        run: |
+          ./gradlew test \
+            --tests JpaMappingTest \
+            --tests ProgramSearchTest \
+            --tests ProgramServiceTest \
+            --tests ApplicationServiceTest \
+            --no-daemon
+
+      - name: Upload test report (실패 시에만)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-report
+          path: build/reports/tests/test
+          retention-days: 7

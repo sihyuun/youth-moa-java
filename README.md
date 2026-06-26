@@ -1,5 +1,7 @@
 # youth-moa (Java)
 
+[![CI](https://github.com/sihyuun/youth-moa-java/actions/workflows/ci.yml/badge.svg)](https://github.com/sihyuuun/youth-moa-java/actions/workflows/ci.yml)
+
 기존 Next.js + TypeScript 기반 youth-moa를 **Spring Boot 4 + Java 21 + Thymeleaf + HTMX** 스택으로 재작성하는 개인 프로젝트입니다.
 
 ## 기술 스택
