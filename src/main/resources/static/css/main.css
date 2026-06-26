@@ -563,6 +563,7 @@ code {
 }
 
 .program-card {
+  position: relative;
   background: var(--color-surface);
   border: 1px solid var(--color-border-light);
   border-radius: var(--radius-lg);
@@ -909,7 +910,9 @@ code {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: border-color 0.15s, color 0.15s;
+  text-decoration: none;
+  font-family: inherit;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
 }
 .detail-action-icon:not(:disabled):hover {
   border-color: var(--color-primary);
@@ -918,6 +921,52 @@ code {
 .detail-action-icon:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* 상세 페이지의 큰 ★ (detail-action-icon 베이스) */
+.detail-action-icon.bookmark-btn.is-bookmarked {
+  border-color: var(--color-warning);
+  background: var(--color-warning-light);
+  color: var(--color-warning);
+}
+.detail-action-icon.bookmark-btn.is-bookmarked:hover {
+  border-color: var(--color-warning);
+  color: var(--color-warning);
+}
+
+/* 카드 목록의 ★ overlay — prototype: 이미지 위, 배경 없음, 흰 outline / amber fill */
+.card-bookmark-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 5;
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  transition: transform 0.15s, color 0.15s;
+  font-family: inherit;
+  padding: 0;
+}
+.card-bookmark-btn:hover {
+  transform: scale(1.15);
+  color: #fff;
+}
+.card-bookmark-btn.is-bookmarked {
+  color: #F59E0B;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+}
+.card-bookmark-btn.is-bookmarked:hover {
+  color: #F59E0B;
 }
 
 .detail-cta {

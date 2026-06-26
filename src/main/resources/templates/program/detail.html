@@ -8,6 +8,7 @@
     <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"
           rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/main.css}">
+    <script th:src="@{/webjars/htmx.org/dist/htmx.min.js}" defer></script>
 </head>
 <body>
 
@@ -103,9 +104,9 @@
 
                 <!-- Actions -->
                 <div class="detail-actions">
-                    <button type="button" class="detail-action-icon" title="즐겨찾기" disabled>
-                        <span>★</span>
-                    </button>
+                    <!-- 즐겨찾기 (HTMX 토글) -->
+                    <div th:replace="~{fragments/bookmark-button :: button(programId=${program.id}, bookmarked=${bookmarked}, styleClass='detail-action-icon')}"></div>
+
                     <button type="button" class="detail-action-icon" title="링크 복사" disabled>
                         <span>⤴</span>
                     </button>
