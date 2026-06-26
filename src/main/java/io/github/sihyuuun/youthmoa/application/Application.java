@@ -91,11 +91,4 @@ public class Application {
     public void cancel() {
         this.status = ApplicationStatus.CANCELLED;
     }
-
-    public void promoteFromWaiting() {
-        if (this.status != ApplicationStatus.WAITING) {
-            throw new IllegalStateException("WAITING 상태의 신청만 자동 승격할 수 있습니다.");
-        }
-        this.status = ApplicationStatus.PENDING;
-    }
 }
