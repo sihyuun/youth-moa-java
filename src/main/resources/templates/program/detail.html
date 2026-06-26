@@ -21,6 +21,9 @@
             <span class="arrow-left">←</span> 목록으로
         </a>
 
+        <!-- Flash messages (신청 완료 등) -->
+        <div th:if="${applySuccess}" class="alert alert-success" th:text="${applySuccess}"></div>
+
         <!-- Hero (image + info) -->
         <section class="detail-hero">
             <div class="detail-image">
@@ -106,10 +109,11 @@
                     <button type="button" class="detail-action-icon" title="링크 복사" disabled>
                         <span>⤴</span>
                     </button>
-                    <button th:if="${program.status.name() == 'ACTIVE'}"
-                            type="button" class="btn-primary btn-lg detail-cta" disabled>
+                    <a th:if="${program.status.name() == 'ACTIVE'}"
+                       th:href="@{/programs/{id}/apply(id=${program.id})}"
+                       class="btn-primary btn-lg detail-cta">
                         신청하기
-                    </button>
+                    </a>
                     <button th:if="${program.status.name() == 'UPCOMING'}"
                             type="button" class="btn-outline-primary detail-cta" disabled>
                         오픈 알림 받기
@@ -120,7 +124,7 @@
                     </button>
                 </div>
                 <p class="detail-cta-notice">
-                    ※ 신청 / 즐겨찾기 / 알림 기능은 곧 활성화됩니다.
+                    ※ 즐겨찾기 · 알림 기능은 곧 활성화됩니다.
                 </p>
             </div>
         </section>

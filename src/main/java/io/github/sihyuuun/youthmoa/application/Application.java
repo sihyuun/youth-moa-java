@@ -12,6 +12,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
@@ -53,6 +54,10 @@ public class Application {
     @Column(nullable = false, length = 20)
     private ApplicationStatus status;
 
+    @Lob
+    @Column
+    private String applyReason;
+
     @Column(length = 500)
     private String rejectReason;
 
@@ -68,10 +73,11 @@ public class Application {
     private LocalDateTime appliedAt;
 
     @Builder
-    private Application(User user, Program program, ApplicationStatus status) {
+    private Application(User user, Program program, ApplicationStatus status, String applyReason) {
         this.user = user;
         this.program = program;
         this.status = status != null ? status : ApplicationStatus.PENDING;
+        this.applyReason = applyReason;
     }
 
     public void approve(User admin) {
@@ -90,5 +96,17 @@ public class Application {
 
     public void cancel() {
         this.status = ApplicationStatus.CANCELLED;
+    }
+
+    /** CANCELLED 상태의 신청을 같은 row 로 재활성화 (DB unique constraint 우회). */
+    public void reapply(String applyReason) {
+        if (this.status != ApplicationStatus.CANCELLED) {
+            throw new IllegalStateException("취소된 신청만 다시 활성화할 수 있습니다.");
+        }
+        this.status = ApplicationStatus.PENDING;
+        this.applyReason = applyReason;
+        this.processedBy = null;
+        this.processedAt = null;
+        this.rejectReason = null;
     }
 }

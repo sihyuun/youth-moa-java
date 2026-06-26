@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${program.title} + ' 신청 — youth-moa'">프로그램 신청</title>
+    <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"
+          rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+</head>
+<body>
+
+<div th:replace="~{fragments/header :: header('programs')}"></div>
+
+<main class="main-content">
+    <div class="detail-container">
+
+        <a th:href="@{/programs/{id}(id=${program.id})}" class="detail-back-link">
+            <span class="arrow-left">←</span> 프로그램 상세로
+        </a>
+
+        <h1 class="apply-title">프로그램 신청</h1>
+
+        <!-- Program summary -->
+        <section class="apply-program-summary">
+            <div class="apply-program-image">
+                <img th:if="${program.imageUrl != null}" th:src="${program.imageUrl}" alt="">
+                <div th:if="${program.imageUrl == null}" class="apply-program-placeholder"
+                     th:text="${program.category}">카테고리</div>
+            </div>
+            <div class="apply-program-meta">
+                <span th:class="'status-badge ' + ${program.status.cssClass}"
+                      th:text="${program.status.label}">진행중</span>
+                <h2 th:text="${program.title}">프로그램 제목</h2>
+                <p th:text="${program.organization + ' · ' + program.region}">기관 · 지역</p>
+                <p class="apply-program-date"
+                   th:if="${program.startDate != null and program.endDate != null}"
+                   th:text="${#temporals.format(program.startDate, 'yyyy.MM.dd') + ' ~ ' + #temporals.format(program.endDate, 'yyyy.MM.dd')}">
+                    기간
+                </p>
+            </div>
+        </section>
+
+        <!-- Server-side error from redirect (e.g. 중복 신청) -->
+        <div th:if="${applyError}" class="alert alert-error" th:text="${applyError}"></div>
+
+        <!-- Apply form -->
+        <form th:action="@{/programs/{id}/apply(id=${program.id})}"
+              th:object="${applyRequest}" method="post" class="apply-form">
+
+            <div class="form-group" th:classappend="${#fields.hasErrors('applyReason')} ? 'has-error'">
+                <label for="applyReason">
+                    신청 사유 <span class="required">*</span>
+                </label>
+                <textarea id="applyReason" th:field="*{applyReason}"
+                          rows="8"
+                          placeholder="이 프로그램에 신청하는 이유와 기대하는 점을 자유롭게 작성해주세요. (10자 이상)"></textarea>
+                <span class="field-error" th:if="${#fields.hasErrors('applyReason')}"
+                      th:errors="*{applyReason}"></span>
+                <span class="field-hint">10자 이상 1000자 이하로 작성해주세요.</span>
+            </div>
+
+            <div class="apply-notice">
+                <strong>⚠ 신청 전 확인사항</strong>
+                <ul>
+                    <li>신청 후에는 관리자의 심사를 거쳐 승인 / 반려가 결정됩니다.</li>
+                    <li>신청 결과는 마이페이지에서 확인할 수 있습니다.</li>
+                    <li>신청 후 취소는 가능하지만, 반려된 신청은 다시 신청할 수 없습니다.</li>
+                </ul>
+            </div>
+
+            <div class="apply-actions">
+                <a th:href="@{/programs/{id}(id=${program.id})}" class="btn-cancel">취소</a>
+                <button type="submit" class="btn-primary btn-lg">신청하기</button>
+            </div>
+        </form>
+    </div>
+</main>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+</body>
+</html>

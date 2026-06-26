@@ -14,7 +14,11 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
+                        // 인증 필요 (먼저 매칭되어 permitAll 보다 우선)
+                        .requestMatchers("/programs/*/apply").authenticated()
+                        // 비인증 허용
                         .requestMatchers("/", "/api/ping", "/login", "/signup",
+                                "/programs", "/programs/**",
                                 "/css/**", "/js/**", "/images/**", "/webjars/**")
                         .permitAll()
                         .anyRequest().authenticated()
