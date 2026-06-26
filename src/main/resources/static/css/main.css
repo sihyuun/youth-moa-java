@@ -1113,7 +1113,150 @@ code {
   color: #888;
 }
 
-/* ── Auth pages (login / signup) ─────────────────────────── */
+/* ── Auth screen — prototype LoginScreen (line 1217~1254) ──── */
+.auth-page-body {
+  background: var(--color-bg);
+  min-height: 100vh;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.auth-screen {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+}
+
+.auth-screen-inner {
+  width: 400px;
+  max-width: 100%;
+  text-align: center;
+}
+
+.auth-logo-link {
+  display: inline-block;
+  margin-bottom: 28px;
+}
+
+.auth-logo-img {
+  height: 36px;
+  width: auto;
+  display: block;
+}
+
+.auth-title {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0 0 24px;
+}
+
+.auth-form-prototype {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.auth-input {
+  height: 46px;
+  border-radius: var(--radius-md);
+  border: 1.5px solid var(--color-border);
+  padding: 0 16px;
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--color-text);
+  background: var(--color-surface);
+  outline: none;
+  transition: border-color 0.15s;
+}
+.auth-input:focus {
+  border-color: var(--color-primary);
+}
+.auth-input::placeholder {
+  color: var(--color-text-tri);
+}
+
+.auth-options {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 10px 0 20px;
+  font-size: 13px;
+}
+
+.auth-checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--color-text-sec);
+  cursor: pointer;
+  user-select: none;
+}
+.auth-checkbox input[type="checkbox"] {
+  accent-color: var(--color-primary);
+  width: 14px;
+  height: 14px;
+  margin: 0;
+}
+
+.auth-help-links {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--color-text-sec);
+}
+.auth-help-links a {
+  color: var(--color-text-sec);
+  text-decoration: none;
+  cursor: pointer;
+}
+.auth-help-links a:hover {
+  color: var(--color-primary);
+}
+.auth-help-sep {
+  color: var(--color-border);
+}
+
+.auth-actions-column {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* prototype Btn size:l (height:50, padding:0 28, fontSize:16) */
+.btn-auth {
+  height: 50px;
+  padding: 0 28px;
+  border-radius: var(--radius-md);
+  font-size: 16px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  transition: filter 0.15s, transform 0.1s;
+}
+.btn-auth:hover { filter: brightness(0.95); }
+.btn-auth:active { transform: scale(0.99); }
+
+.btn-auth--primary {
+  background: var(--color-primary);
+  color: #fff;
+  border: none;
+}
+
+.btn-auth--secondary {
+  background: var(--color-surface);
+  color: var(--color-text);
+  border: 1px solid var(--color-text);
+}
+
+/* ── Legacy auth-wrapper (signup 페이지 — F0b 작업 전 임시 유지) ─ */
 .auth-wrapper {
   min-height: 100vh;
   display: flex;
