@@ -1256,7 +1256,173 @@ code {
   border: 1px solid var(--color-text);
 }
 
-/* ── Legacy auth-wrapper (signup 페이지 — F0b 작업 전 임시 유지) ─ */
+/* ── Signup screen — HANDOFF 5.7 (max-width 800px) ────────── */
+.signup-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 40px var(--content-px) 64px;
+}
+
+.signup-title {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--color-text);
+  text-align: center;
+  margin: 0 0 32px;
+}
+
+.signup-section-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-text);
+  padding-bottom: 10px;
+  border-bottom: 2px solid var(--color-text);
+  margin: 28px 0 16px;
+}
+.signup-section-title:first-of-type { margin-top: 0; }
+
+.signup-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.signup-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 10px 0;
+}
+
+.signup-label {
+  width: 140px;
+  flex-shrink: 0;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-sec);
+  padding-top: 13px;
+}
+
+.signup-field {
+  flex: 1;
+  min-width: 0;
+}
+
+.signup-input {
+  width: 100%;
+  height: 46px;
+  border-radius: var(--radius-md);
+  border: 1.5px solid var(--color-border);
+  padding: 0 14px;
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--color-text);
+  background: var(--color-surface);
+  outline: none;
+  transition: border-color 0.15s;
+}
+.signup-input:focus {
+  border-color: var(--color-primary);
+}
+.signup-input::placeholder {
+  color: var(--color-text-tri);
+}
+.signup-input--mt { margin-top: 8px; }
+.signup-input--zip { max-width: 200px; }
+
+.signup-row.has-error .signup-input {
+  border-color: var(--color-error);
+}
+
+.signup-input-with-action {
+  display: flex;
+  gap: 8px;
+}
+.signup-input-with-action .signup-input {
+  flex: 1;
+}
+
+.signup-action-btn {
+  flex-shrink: 0;
+  height: 46px;
+  padding: 0 16px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-sec);
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color 0.15s, color 0.15s;
+}
+.signup-action-btn:not(:disabled):hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+.signup-action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.signup-field-error {
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: var(--color-error);
+}
+
+.signup-terms {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  margin-top: 16px;
+  background: var(--color-primary-bg);
+  border-radius: var(--radius-md);
+  font-size: 13px;
+}
+
+.signup-terms-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--color-text);
+  cursor: pointer;
+  user-select: none;
+}
+.signup-terms-check input[type="checkbox"] {
+  accent-color: var(--color-primary);
+  width: 16px;
+  height: 16px;
+  margin: 0;
+}
+
+.signup-terms-link {
+  font-size: 13px;
+  color: var(--color-primary);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.signup-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 32px;
+}
+
+.btn-auth--ghost {
+  background: transparent;
+  color: var(--color-text-sec);
+  border: 1px solid var(--color-border);
+}
+.btn-auth--ghost:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+/* ── Legacy auth-wrapper (login 외 잔여 — 추후 정리) ─ */
 .auth-wrapper {
   min-height: 100vh;
   display: flex;

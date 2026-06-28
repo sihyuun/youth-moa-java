@@ -35,6 +35,9 @@ public class UserService implements UserDetailsService {
                 .name(request.getName())
                 .phone(request.getPhone())
                 .birthDate(request.getBirthDate())
+                .zipcode(request.getZipcode())
+                .address(request.getAddress())
+                .addressDetail(request.getAddressDetail())
                 .role(UserRole.USER)
                 .build();
         userRepository.save(user);

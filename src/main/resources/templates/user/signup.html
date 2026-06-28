@@ -3,67 +3,146 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>회원가입 — youth-moa</title>
+    <title>회원가입 — 청년모아</title>
+    <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"
+          rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/main.css}">
 </head>
 <body>
-<div class="auth-wrapper">
-    <div class="auth-card auth-card--wide">
-        <div class="auth-logo">
-            <h1>youth<span>moa</span></h1>
-            <p>회원가입</p>
+
+<!--
+  HANDOFF 5.7 기준:
+  - max-width 800px, 중앙 정렬, Header + Footer 있음
+  - 계정 정보 섹션 (2단 그리드: 라벨 140px + 필드)
+  - 개인 정보 섹션 (이름 / 핸드폰+인증요청 / 생년월일 / 주소)
+  - 이용약관 동의 (체크박스 + 약관보기 링크)
+  - 취소 (L/ghost) + 회원가입 (L/primary)
+  - 성별(gender) — User entity 에 필드 없어 미포함 (추후 entity 확장 시)
+-->
+
+<div th:replace="~{fragments/header :: header('')}"></div>
+
+<main class="main-content">
+    <div class="signup-container">
+
+        <h1 class="signup-title">회원가입</h1>
+
+        <!-- 폼 전체 에러 (cross-field 등) -->
+        <div th:if="${errorMsg}" class="alert alert-error" th:text="${errorMsg}"></div>
+        <div th:if="${#fields.hasGlobalErrors('signUpRequest')}" class="alert alert-error">
+            <div th:each="err : ${#fields.globalErrors('signUpRequest')}" th:text="${err}"></div>
         </div>
 
-        <div th:if="${errorMsg}" class="alert alert-error" th:text="${errorMsg}"></div>
+        <form th:action="@{/signup}" th:object="${signUpRequest}" method="post" class="signup-form" novalidate>
 
-        <form th:action="@{/signup}" th:object="${signUpRequest}" method="post" class="auth-form">
+            <!-- ── 계정 정보 ─────────────────────────────── -->
+            <h2 class="signup-section-title">계정 정보</h2>
 
-            <div class="form-group" th:classappend="${#fields.hasErrors('email')} ? 'has-error'">
-                <label for="email">이메일 <span class="required">*</span></label>
-                <input type="email" id="email" th:field="*{email}"
-                       placeholder="email@example.com" autocomplete="email">
-                <span class="field-error" th:if="${#fields.hasErrors('email')}"
-                      th:errors="*{email}"></span>
+            <div class="signup-row" th:classappend="${#fields.hasErrors('email')} ? 'has-error'">
+                <label for="email" class="signup-label">아이디 <span class="required">*</span></label>
+                <div class="signup-field">
+                    <div class="signup-input-with-action">
+                        <input type="email" id="email" th:field="*{email}"
+                               placeholder="이메일을 입력해주세요." autocomplete="email"
+                               class="signup-input">
+                        <button type="button" class="signup-action-btn" disabled>중복 확인</button>
+                    </div>
+                    <p class="signup-field-error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></p>
+                </div>
             </div>
 
-            <div class="form-group" th:classappend="${#fields.hasErrors('password')} ? 'has-error'">
-                <label for="password">비밀번호 <span class="required">*</span></label>
-                <input type="password" id="password" th:field="*{password}"
-                       placeholder="8자 이상" autocomplete="new-password">
-                <span class="field-error" th:if="${#fields.hasErrors('password')}"
-                      th:errors="*{password}"></span>
+            <div class="signup-row" th:classappend="${#fields.hasErrors('password')} ? 'has-error'">
+                <label for="password" class="signup-label">비밀번호 <span class="required">*</span></label>
+                <div class="signup-field">
+                    <input type="password" id="password" th:field="*{password}"
+                           placeholder="8자 이상" autocomplete="new-password"
+                           class="signup-input">
+                    <p class="signup-field-error" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></p>
+                </div>
             </div>
 
-            <div class="form-group" th:classappend="${#fields.hasErrors('name')} ? 'has-error'">
-                <label for="name">이름 <span class="required">*</span></label>
-                <input type="text" id="name" th:field="*{name}"
-                       placeholder="홍길동" autocomplete="name">
-                <span class="field-error" th:if="${#fields.hasErrors('name')}"
-                      th:errors="*{name}"></span>
+            <div class="signup-row" th:classappend="${#fields.hasErrors('passwordConfirm')} ? 'has-error'">
+                <label for="passwordConfirm" class="signup-label">비밀번호 확인 <span class="required">*</span></label>
+                <div class="signup-field">
+                    <input type="password" id="passwordConfirm" th:field="*{passwordConfirm}"
+                           placeholder="비밀번호를 다시 입력해주세요." autocomplete="new-password"
+                           class="signup-input">
+                    <p class="signup-field-error" th:if="${#fields.hasErrors('passwordConfirm')}" th:errors="*{passwordConfirm}"></p>
+                </div>
             </div>
 
-            <div class="form-group" th:classappend="${#fields.hasErrors('phone')} ? 'has-error'">
-                <label for="phone">휴대폰 번호</label>
-                <input type="tel" id="phone" th:field="*{phone}"
-                       placeholder="01012345678 (숫자만)">
-                <span class="field-error" th:if="${#fields.hasErrors('phone')}"
-                      th:errors="*{phone}"></span>
+            <!-- ── 개인 정보 ─────────────────────────────── -->
+            <h2 class="signup-section-title">개인 정보</h2>
+
+            <div class="signup-row" th:classappend="${#fields.hasErrors('name')} ? 'has-error'">
+                <label for="name" class="signup-label">이름 <span class="required">*</span></label>
+                <div class="signup-field">
+                    <input type="text" id="name" th:field="*{name}"
+                           placeholder="홍길동" autocomplete="name"
+                           class="signup-input">
+                    <p class="signup-field-error" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></p>
+                </div>
             </div>
 
-            <div class="form-group" th:classappend="${#fields.hasErrors('birthDate')} ? 'has-error'">
-                <label for="birthDate">생년월일</label>
-                <input type="date" id="birthDate" th:field="*{birthDate}">
-                <span class="field-error" th:if="${#fields.hasErrors('birthDate')}"
-                      th:errors="*{birthDate}"></span>
+            <div class="signup-row" th:classappend="${#fields.hasErrors('phone')} ? 'has-error'">
+                <label for="phone" class="signup-label">핸드폰 번호</label>
+                <div class="signup-field">
+                    <div class="signup-input-with-action">
+                        <input type="tel" id="phone" th:field="*{phone}"
+                               placeholder="01012345678 (숫자만)"
+                               class="signup-input">
+                        <button type="button" class="signup-action-btn" disabled>인증요청</button>
+                    </div>
+                    <p class="signup-field-error" th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}"></p>
+                </div>
             </div>
 
-            <button type="submit" class="btn-primary btn-full">가입하기</button>
+            <div class="signup-row" th:classappend="${#fields.hasErrors('birthDate')} ? 'has-error'">
+                <label for="birthDate" class="signup-label">생년월일</label>
+                <div class="signup-field">
+                    <input type="date" id="birthDate" th:field="*{birthDate}" class="signup-input">
+                    <p class="signup-field-error" th:if="${#fields.hasErrors('birthDate')}" th:errors="*{birthDate}"></p>
+                </div>
+            </div>
+
+            <div class="signup-row" th:classappend="${#fields.hasErrors('zipcode')} ? 'has-error'">
+                <label for="zipcode" class="signup-label">주소</label>
+                <div class="signup-field">
+                    <div class="signup-input-with-action">
+                        <input type="text" id="zipcode" th:field="*{zipcode}"
+                               placeholder="우편번호" maxlength="5"
+                               class="signup-input signup-input--zip">
+                        <button type="button" class="signup-action-btn" disabled>우편번호 검색</button>
+                    </div>
+                    <input type="text" th:field="*{address}"
+                           placeholder="기본 주소"
+                           class="signup-input signup-input--mt">
+                    <input type="text" th:field="*{addressDetail}"
+                           placeholder="상세 주소"
+                           class="signup-input signup-input--mt">
+                    <p class="signup-field-error" th:if="${#fields.hasErrors('zipcode')}" th:errors="*{zipcode}"></p>
+                </div>
+            </div>
+
+            <!-- ── 이용약관 동의 ─────────────────────────── -->
+            <div class="signup-terms">
+                <label class="signup-terms-check">
+                    <input type="checkbox" th:field="*{termsAgreed}">
+                    <span>이용약관 및 개인정보 처리방침에 동의합니다 <span class="required">*</span></span>
+                </label>
+                <a href="#" class="signup-terms-link">약관 보기</a>
+            </div>
+
+            <!-- ── 액션 ──────────────────────────────────── -->
+            <div class="signup-actions">
+                <a th:href="@{/}" class="btn-auth btn-auth--ghost">취소</a>
+                <button type="submit" class="btn-auth btn-auth--primary">회원가입</button>
+            </div>
         </form>
-
-        <p class="auth-footer">
-            이미 계정이 있으신가요? <a th:href="@{/login}">로그인</a>
-        </p>
     </div>
-</div>
+</main>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+
 </body>
 </html>
