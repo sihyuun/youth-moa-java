@@ -16,7 +16,7 @@
   /* Neutral */
   --color-text: oklch(0.22 0.051 280);
   --color-text-sec: oklch(0.55 0.034 280);
-  --color-text-tri: var(--color-text-tri);            /* 약한 텍스트 (날짜·분리자) */
+  --color-text-tri: oklch(0.7 0.02 280);              /* 약한 텍스트 (날짜·분리자) — prototype T.textTri */
   --color-muted: #666;
   --color-surface: #fff;
   --color-bg: oklch(0.985 0.004 280);
