@@ -27,13 +27,15 @@
 
         <h1 class="signup-title">회원가입</h1>
 
-        <!-- 폼 전체 에러 (cross-field 등) -->
+        <!-- 컨트롤러에서 명시 추가한 에러 (form 외부에서도 동작) -->
         <div th:if="${errorMsg}" class="alert alert-error" th:text="${errorMsg}"></div>
-        <div th:if="${#fields.hasGlobalErrors('signUpRequest')}" class="alert alert-error">
-            <div th:each="err : ${#fields.globalErrors('signUpRequest')}" th:text="${err}"></div>
-        </div>
 
         <form th:action="@{/signup}" th:object="${signUpRequest}" method="post" class="signup-form" novalidate>
+
+            <!-- Bean Validation 의 cross-field global error (form 안에서만 #fields 동작) -->
+            <div th:if="${#fields.hasGlobalErrors()}" class="alert alert-error">
+                <div th:each="err : ${#fields.globalErrors()}" th:text="${err}"></div>
+            </div>
 
             <!-- ── 계정 정보 ─────────────────────────────── -->
             <h2 class="signup-section-title">계정 정보</h2>
