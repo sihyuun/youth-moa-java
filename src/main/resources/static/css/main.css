@@ -1068,6 +1068,246 @@ code {
 .apply-back-link:hover { color: var(--color-primary); }
 .apply-back-arrow { font-size: 18px; line-height: 1; }
 
+/* ── 진행 장소 + 지도 버튼 (F4 prototype.tsx 의 inline 지도) ─────── */
+.detail-meta-place {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.detail-map-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-primary);
+  background: transparent;
+  color: var(--color-primary);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s;
+}
+.detail-map-btn:hover { background: var(--color-primary-bg); }
+
+.detail-meta-note {
+  font-size: 12px;
+  color: var(--color-text-tri);
+  margin-left: 4px;
+}
+
+/* ── 지원 대상 3-grid 카드 (prototype.tsx grid 2col + 3 항목) ─── */
+.detail-requirement-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.detail-requirement-card {
+  display: flex;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-light);
+}
+
+.detail-requirement-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  background: var(--color-primary-bg);
+  color: var(--color-primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.detail-requirement-key {
+  font-size: 12px;
+  color: var(--color-text-tri);
+  margin-bottom: 2px;
+}
+.detail-requirement-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+/* ── 지도 모달 (prototype.tsx Modal line 927~954) ─────────── */
+.detail-map-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.18s ease;
+}
+.detail-map-modal[aria-hidden="false"] {
+  pointer-events: auto;
+  opacity: 1;
+}
+
+.detail-map-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.detail-map-dialog {
+  position: relative;
+  width: 520px;
+  max-width: calc(100% - 32px);
+  background: var(--color-surface);
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
+  overflow: hidden;
+}
+
+.detail-map-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--color-border-light);
+}
+.detail-map-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+.detail-map-close {
+  width: 28px;
+  height: 28px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: var(--color-text-tri);
+  cursor: pointer;
+  line-height: 1;
+}
+.detail-map-close:hover { color: var(--color-text); }
+
+.detail-map-canvas {
+  position: relative;
+  height: 280px;
+  background: #E8EBF0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* 라인 그리드 placeholder */
+.detail-map-grid-bg {
+  position: absolute;
+  inset: 0;
+  background-image:
+    repeating-linear-gradient(0deg, transparent, transparent 38px,
+      var(--color-border) 38px, var(--color-border) 39px),
+    repeating-linear-gradient(90deg, transparent, transparent 38px,
+      var(--color-border) 38px, var(--color-border) 39px);
+  opacity: 0.5;
+}
+
+.detail-map-pin-wrap {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.detail-map-pin {
+  width: 44px;
+  height: 44px;
+  border-radius: 50% 50% 50% 0;
+  background: var(--color-primary);
+  transform: rotate(-45deg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+.detail-map-pin svg { transform: rotate(45deg); }
+
+.detail-map-pin-label {
+  position: relative;
+  top: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text);
+  background: rgba(255, 255, 255, 0.9);
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+}
+
+.detail-map-watermark {
+  position: absolute;
+  bottom: 10px;
+  right: 12px;
+  font-size: 11px;
+  color: var(--color-text-tri);
+}
+
+.detail-map-body {
+  padding: 18px 22px;
+}
+.detail-map-center-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: 4px;
+}
+.detail-map-address {
+  font-size: 13.5px;
+  color: var(--color-text-sec);
+  margin-bottom: 16px;
+}
+
+.detail-map-actions {
+  display: flex;
+  gap: 10px;
+}
+.detail-map-btn-secondary,
+.detail-map-btn-primary {
+  flex: 1;
+  height: 44px;
+  border-radius: var(--radius-md);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+}
+.detail-map-btn-secondary {
+  background: var(--color-surface);
+  color: var(--color-text-sec);
+  border: 1px solid var(--color-border);
+}
+.detail-map-btn-secondary:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+.detail-map-btn-primary {
+  background: var(--color-primary);
+  color: #fff;
+  border: none;
+}
+.detail-map-btn-primary:hover { opacity: 0.92; }
+
+/* ── Apply form page (F0c 추가) ─────────────────────────────── */
 .apply-title {
   font-size: 26px;
   font-weight: 700;
