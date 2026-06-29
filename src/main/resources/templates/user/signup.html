@@ -153,12 +153,12 @@
                         <p class="signup-field-error" th:if="${#fields.hasErrors('gender')}" th:errors="*{gender}"></p>
                     </div>
 
-                    <!-- 생년월일 -->
+                    <!-- 생년월일 (브라우저 native date picker — type=date) -->
                     <div class="signup-field-block" th:classappend="${#fields.hasErrors('birthDateText')} ? 'has-error'">
                         <label for="birthDateText" class="signup-field-label">생년월일 <span class="required">*</span></label>
-                        <input type="text" id="birthDateText" th:field="*{birthDateText}"
-                               placeholder="YYYY / MM / DD"
-                               class="signup-input">
+                        <input type="date" id="birthDateText" th:field="*{birthDateText}"
+                               max="2099-12-31"
+                               class="signup-input signup-input--date">
                         <p class="signup-field-error" th:if="${#fields.hasErrors('birthDateText')}" th:errors="*{birthDateText}"></p>
                     </div>
 
@@ -171,7 +171,7 @@
                                        placeholder="우편번호" readonly
                                        class="signup-input signup-input--readonly">
                                 <button type="button" class="btn-outline-sm signup-side-btn signup-search-btn"
-                                        onclick="alert('우편번호 검색 — 추후 Kakao API 연동')">
+                                        onclick="window.applyDummyAddress && window.applyDummyAddress()">
                                     <svg viewBox="0 0 24 24" width="14" height="14"
                                          fill="none" stroke="currentColor" stroke-width="1.5">
                                         <circle cx="11" cy="11" r="8"/>
@@ -286,6 +286,18 @@
         p.addEventListener('change', syncAll);
         syncAll();
     })();
+
+    // 우편번호 검색 — prototype.tsx 패턴 (Kakao API 연동 전 임시 더미 데이터)
+    window.applyDummyAddress = function () {
+        const zip = document.getElementById('zipcode');
+        const addr = document.getElementById('address');
+        if (!zip || !addr) return;
+        zip.value = '14547';
+        addr.value = '경기도 부천시 원미구 부일로 123';
+        // input 이벤트 발생시켜 :not(:placeholder-shown) 같은 CSS 트리거 + 검증 갱신
+        zip.dispatchEvent(new Event('input', { bubbles: true }));
+        addr.dispatchEvent(new Event('input', { bubbles: true }));
+    };
 </script>
 
 </body>
