@@ -99,9 +99,9 @@ oklch 미지원 환경(예: admin)에서는 아래 HEX 근사값을 사용하세
 /* ── Utility Classes (프로토타입과 동일 적용) ── */
 .card-hover { transition: all 200ms ease; cursor: pointer; }
 .card-hover:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 24px rgba(63,48,233,0.14) !important;
-  border-color: #3F30E9 !important;
+transform: translateY(-3px);
+box-shadow: 0 8px 24px rgba(63,48,233,0.14) !important;
+border-color: #3F30E9 !important;
 }
 .btn-hover { transition: all 150ms ease; cursor: pointer; }
 .btn-hover:hover  { filter: brightness(0.92); transform: translateY(-1px); }
@@ -401,10 +401,10 @@ Footer
 ├─ "반가워요! 박시현님" (한 줄)
 ├─ 통계 박스: 진행중인 프로그램 N | 종료된 프로그램 N (테두리 박스)
 └─ 메뉴
-    ├─ 프로그램 신청 현황 (calendar 아이콘)
-    ├─ 즐겨찾기한 프로그램 (star 아이콘)
-    └─ 개인 정보 수정 (user 아이콘)
-    활성 메뉴: primaryLight 배경 + primary 텍스트
+├─ 프로그램 신청 현황 (calendar 아이콘)
+├─ 즐겨찾기한 프로그램 (star 아이콘)
+└─ 개인 정보 수정 (user 아이콘)
+활성 메뉴: primaryLight 배경 + primary 텍스트
 ```
 
 ### 5.9 마이페이지 — 신청현황 (`/mypage/history`)
@@ -492,15 +492,24 @@ Footer
 ```
 Header
 ├─ 페이지 타이틀 "청년센터 찾기"
-├─ [좌측 400px] 검색 + 시·군 필터 + 센터 카드 리스트
+├─ [좌측 360px] 검색 + 시·군 필터 + 정렬(이름순/프로그램많은순) + 센터 카드 리스트(독립 스크롤)
 │   └─ 센터 카드: 이름 + 운영중/종료 뱃지 + 주소 + 운영시간/전화 + 진행중 프로그램 수
 ├─ [우측 flex] 지도 (카카오맵)
 │   ├─ 마커 (센터 위치) — 선택 시 라벨 표시 + 강조
+│   ├─ "이 지역에서 검색" 버튼 (지도 이동 시 상단 중앙 노출)
 │   └─ 선택 센터 정보 팝업 (이름/주소/운영시간/전화 + 프로그램 보기 CTA)
 Footer
 ```
 > **개발 메모:** 지도는 **카카오맵 JavaScript SDK** 연동 필요. 센터 데이터에 위경도(lat/lng) 필드 추가 → 마커 렌더링. 시안의 MapPlaceholder는 연동 전 대체물.
 > **모바일:** 지도 풀폭 + **드래그 핸들 바텀시트**(센터 리스트). 마커 탭 → 시트 상단에 해당 센터 노출.
+>
+> **⚠️ 센터 수가 많을 때(40~60+) 처리 — 개발 필수 반영:**
+> - **마커 클러스터링**: 카카오맵 `MarkerClusterer`로 인접 마커를 "N개" 원으로 묶고, 줌인/클릭 시 펼침 (마커 그대로 찍으면 겹쳐서 사용 불가)
+> - **"이 지역에서 검색"**: 지도 `idle`(이동/줌 종료) 이벤트 → 버튼 노출 → 현재 bounds 내 센터만 목록·마커 갱신 (전체 로드 대신 영역 기반)
+> - **목록 무한 스크롤**: 리스트는 독립 스크롤 영역, 스크롤 하단 도달 시 추가 페치(커서/offset). 상단에 "총 N개" 카운트 고정
+> - **지도↔목록 동기화**: 카드 hover→마커 강조, 마커 클릭→해당 카드로 스크롤 (양방향)
+> - **정렬**: 이름순 / 프로그램많은순 / (위치 권한 시) 내 주변순
+> - 시안엔 정렬·"이 지역에서 검색"·독립 스크롤 적용됨. 클러스터링·내 주변순·동기화는 SDK 연동 단계에서 구현
 
 ### 5.16 검색 결과 (`/search?q=`)
 ```
@@ -546,9 +555,9 @@ Header
 │   ├─ 이용약관
 │   └─ 이메일주소무단수집거부
 └─ [우측 콘텐츠]
-    ├─ h1 제목 + 시행일 (textTri)
-    ├─ 본문 (장 제목 16px/700, 조 제목 14px/600, 본문 13px)
-    └─ 개인정보처리방침: 수집 항목 테이블 (3열)
+├─ h1 제목 + 시행일 (textTri)
+├─ 본문 (장 제목 16px/700, 조 제목 14px/600, 본문 13px)
+└─ 개인정보처리방침: 수집 항목 테이블 (3열)
 Footer
 ```
 > **모바일:** 제목 헤더(뒤로가기+타이틀) + 본문 + **하단 관련 문서 링크** (다른 2개 문서 버튼)
@@ -627,6 +636,21 @@ Footer
 · 알림 항목: 승인·반려(필수,잠금) / D-1 리마인더 / 빈자리 / 관심분야 신규 / 마케팅
 · 마케팅 동의 변경 시 동의/철회 일시 문자 발송 (정보통신망법 준수)
 ```
+
+### 5-E.7 프로그램 비활성(운영 중단) 처리 (`ProgramDetailEnhanced inactive`)
+admin이 프로그램을 비활성화했을 때 사용자 측 동작. **모달이 아닌 상태 표시 방식**(이커머스 판매중지 패턴).
+```
+· 목록/검색/추천 → 숨김 (노출 제외)
+· 상세 직접 접근(즐겨찾기·공유·검색엔진) → 페이지는 유지, 상단 "운영 중단" 배너 + 이미지 그레이 + 신청 버튼 비활성("신청이 중단된 프로그램입니다")
+· **이미 신청한 사용자**: 마이페이지 신청내역에 절대 숨기지 않음 → 항상 표시, "운영중단" 뱃지(muted) + 안내 문구(타임라인 대신)
+· (권장) 비활성 전환 시 신청자에게 알림(알림톡/이메일) 발송 — 알림 설정 "운영 변경" 항목
+· 데이터: Program.status에 '중단'(inactive) 추가. 목록 쿼리에서는 제외, 상세·마이페이지에서는 조회 허용
+
+### 5-E.8 지원대상·자격요건 (프로그램 상세)
+· 상세 페이지에 "지원 대상 · 자격요건" 섹션 (2열 카드)
+· 필드: 연령 / 거주지 / 기타  — **소득기준은 제외**(청년정책 특성상 불필요)
+· 하단 주의 문구: "신청 전 자격요건을 반드시 확인" + 미충족 시 반려 가능 안내
+· ⚠️ **admin 추가 필요**: 관리자 프로그램 등록/수정 화면에 자격요건 입력 필드(연령/거주지/기타)를 추가해야 상세에 연동됨. Program.eligibility = { age, region, etc }
 
 ## 6. API 엔드포인트 (권장)
 
@@ -790,10 +814,10 @@ src/
 - **원칙:** "보기엔 모바일 화면을 따로 만든 것" 같지만, **코드는 한 벌 + 레이아웃만 분기**한다. 완전 분리(m.도메인/별도 코드)는 금지.
 - **공유:** 디자인 토큰, 색·타이포, 공통 컴포넌트(Button/Input/Badge/Card), 페이지 로직(데이터 패칭·상태)은 **1벌만** 유지.
 - **분기:** 레이아웃/내비게이션만 화면 폭에 따라 바꾼다.
-  - 데스크톱 상단 네비 ↔ 모바일 하단 탭바
-  - 필터 사이드바 ↔ 바텀시트 모달
-  - 지도+리스트 분할 ↔ 지도+바텀시트
-  - 다열 그리드 ↔ 1~2열
+	- 데스크톱 상단 네비 ↔ 모바일 하단 탭바
+	- 필터 사이드바 ↔ 바텀시트 모달
+	- 지도+리스트 분할 ↔ 지도+바텀시트
+	- 다열 그리드 ↔ 1~2열
 - **구현(Next.js):** `useMediaQuery` 훅으로 `<DesktopX/>` vs `<MobileX/>` 선택하거나, Tailwind `hidden md:flex` / `flex md:hidden`로 같은 페이지에서 두 레이아웃 토글. 페이지 컴포넌트는 데이터·상태를 1벌로 들고, 프레젠테이션만 분기.
 
 
@@ -936,6 +960,7 @@ MFooter
 | — | 알림 패널 interactive (삭제/모두읽음/빈상태), 스크롤 감지 헤더 |
 | — | 모바일 보조: 아이디/비밀번호찾기 · 검색결과 · 404 · 로딩 |
 | — | 청년센터 찾기 지역 필터 → 드롭다운+내부검색 (31개 시·군 대응) |
+| — | 청년센터 찾기 다수 센터 대응: 정렬(이름순/프로그램많은순) + 목록 독립 스크롤 + "이 지역에서 검색" 버튼, 클러스터링은 HANDOFF 명세 |
 | — | 법적 문서 3종 추가 (개인정보처리방침/이용약관/이메일무단수집거부) |
 | — | 법적 문서 네비 → 탭 바 제거, 데스크톱=사이드바·모바일=타이틀+하단 관련 문서 링크 |
 | 2026-06 | 컴포넌트 상태 명세 추가 (Button/Input/Card hover·focus·disabled·loading) |
@@ -946,13 +971,15 @@ MFooter
 | — | 빈자리/오픈 알림 채널 선택 = 체크박스(복수), 버튼명 "빈자리 알림 받기"·"오픈 알림 받기"로 통일 |
 | — | 캘린더 뷰: 기본 전체 폭, 날짜 클릭 시 우측 패널·오늘 버튼·빈 칸 선택 버그 수정 |
 | — | **메인 컬러 인디고 `#3F30E9` 최종 확정** (admin 블루 `#0264FB` → 통일), HEX 대조표 추가 |
-| — | 상세: 지원대상·자격요건 섹션 추가 (연령/거주지/소득/기타) |
+| — | 상세: 지원대상·자격요건 섹션 추가 (연령/거주지/기타 — 소득기준 제외, admin 등록 필드 필요) |
+| — | 신청내역을 기획서(WF-3-001)와 일치: 기간필터(3/6개월·1/3년) + 신청일시/신청상세 링크 + 상태별 버튼(신청취소/재신청) + 신청 상세 페이지(신청자정보·신청이력 아코디언) |
 | — | 마이페이지 신청현황: 접수→검토→승인/반려 상태 타임라인 + 뱃지 매핑 통일(대기/승인/반려/취소) |
 | — | 프로그램 목록 페이지네이션 추가 |
 | — | 검색 화면 신설: 자동완성 + 최근/인기 검색어 |
 | — | 홈 맞춤 추천 섹션(로그인 시, 관심지역·분야 기반) |
 | — | 웹접근성(KWCAG) 가이드 섹션 추가 |
 | — | 시스템 화면 확장: 403(권한없음)·503(점검)·세션만료 추가, 404를 아이콘 배지형으로 통일(SystemLayout 일원화), 404=라우트 fallback |
+| — | 프로그램 비활성(운영 중단) 처리: 목록 숨김 + 상세 비활성 배너/버튼 + 마이페이지 신청내역 "운영중단" 뱃지 유지 |
 | — | 헤더 유저 메뉴 딜링크(신청내역/즐겨찾기/알림/개인정보 → 각 탭 직결), Avatar 컴포넌트(이미지 지원·디폴트 이니셜) |
 | — | 홈 중복 제거: 로그인 시 맞춤추천만 / 비로그인 시 일반 목록만 노출 |
 
@@ -966,6 +993,7 @@ MFooter
 |------|------|
 | `Youth-Moa Design.html` | 전체 디자인 캔버스 (9서션, 30+ 아트보드) |
 | `Youth-Moa Prototype.html` | 인터랙티브 프로토타입 (실제 클릭/화면전환) |
+| `prototype.tsx` | **위 프로토타입의 React+TS 소스 (개발 직접 참조용, 항상 .html과 동기화)** |
 | `HANDOFF.md` | 이 문서 — 코드 구현 시 유일한 참조 자료 |
 | `assets/` | 로고, 심볼, SNS 아이콘 |
 | `design-tokens.jsx` 등 | 디자인 시안의 컴포넌트 소스 |
@@ -982,8 +1010,27 @@ MFooter
 ### Claude Code 개발 시 우선 참조 순서
 1. 이 `HANDOFF.md` — 토큰, 컴포넌트 명세, 페이지 구조
 2. `Youth-Moa Design.html` — 시각적 레이아웃 참조 (캔버스 클릭 희 화면 확대)
-3. `Youth-Moa Prototype.html` — 인터랙션 패턴 참조 (클릭 흐름, 모달 동작)
+3. `prototype.tsx` / `Youth-Moa Prototype.html` — 인터랙션 패턴·컴포넌트 구조 참조 (클릭 흐름, 모달 동작). **개발 중에는 `prototype.tsx`를 직접 참조** — .html과 동일 소스이며 최신본으로 동기화됨
 4. `src/app/globals.css` — 실제 코드베이스의 토큰 구현체
+
+> **prototype.tsx 사용 메모:**
+> - `react` / `react-dom/client` ESM import 기준. 파일 하단에서 `#root`에 자동 마운트 + `export default App`.
+> - 시연용이라 `// @ts-nocheck` 상단에 포함(엄격 타입 미적용). 실제 구현 시 컴포넌트별로 분리하고 타입 부여 권장.
+> - **styled-jsx 없이** 동작하도록 인라인 스타일 위주. 단, 아래 애니메이션/유틸 클래스는 `globals.css`에 동일 정의 필요:
+> ```css
+> @keyframes fadeSlideUp { from { opacity:0; transform:translateY(16px) } to { opacity:1; transform:translateY(0) } }
+> @keyframes fadeIn { from { opacity:0 } to { opacity:1 } }
+> @keyframes slideDown { from { opacity:0; transform:translateY(-8px) } to { opacity:1; transform:translateY(0) } }
+> .screen-enter { animation: fadeSlideUp 280ms ease forwards }
+> .screen-fade  { animation: fadeIn 300ms ease forwards }   /* 홈: 위치이동 없이 페이드만 (hero 0px 고정) */
+> .overlay-enter{ animation: fadeIn 180ms ease forwards }
+> .dropdown-enter{ animation: slideDown 180ms ease forwards }
+> .btn-hover  { transition: all 150ms ease; cursor:pointer }
+> .btn-hover:hover { filter: brightness(0.92); transform: translateY(-1px) }
+> .btn-hover:active { transform: scale(0.97) }
+> .card-hover { transition: all 200ms ease; cursor:pointer }
+> .card-hover:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(63,48,233,0.14); border-color:#3F30E9 }
+> ```
 
 ---
 
@@ -1002,7 +1049,7 @@ MFooter
 { id, title, center, region, status: '진행중'|'진행예정'|'마감',
   applyStart, applyEnd, startDate, endDate,
   capacity, currentApplicants,   // 정원바·경쟁률 계산
-  thumbnail, description, eligibility: { age, region, income, etc } }
+  thumbnail, description, eligibility: { age, region, etc } }   // 소득기준 제외
 // Application
 { id, programId, userId, appStatus: '대기'|'승인'|'반려'|'취소',
   appliedAt, extraAnswers, rejectReason? }
