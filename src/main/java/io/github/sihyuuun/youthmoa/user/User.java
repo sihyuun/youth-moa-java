@@ -58,6 +58,10 @@ public class User extends BaseTimeEntity {
     @Column
     private LocalDate birthDate;
 
+    @Enumerated(EnumType.STRING)
+    @Column(length = 10)
+    private UserGender gender;
+
     @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(name = "user_interest", joinColumns = @JoinColumn(name = "user_id"))
     @Column(name = "interest", length = 50)
@@ -77,7 +81,7 @@ public class User extends BaseTimeEntity {
     @Builder
     private User(String email, String password, String name, String phone,
                  String zipcode, String address, String addressDetail,
-                 LocalDate birthDate, Set<String> interests,
+                 LocalDate birthDate, UserGender gender, Set<String> interests,
                  UserRole role, Center center, String centerScope) {
         this.email = email;
         this.password = password;
@@ -87,6 +91,7 @@ public class User extends BaseTimeEntity {
         this.address = address;
         this.addressDetail = addressDetail;
         this.birthDate = birthDate;
+        this.gender = gender;
         this.interests = interests != null ? interests : new HashSet<>();
         this.role = role != null ? role : UserRole.USER;
         this.center = center;

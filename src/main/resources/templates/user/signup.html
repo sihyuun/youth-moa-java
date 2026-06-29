@@ -8,143 +8,248 @@
           rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/main.css}">
 </head>
-<body>
+<body class="auth-page-body">
 
 <!--
-  HANDOFF 5.7 기준:
-  - max-width 800px, 중앙 정렬, Header + Footer 있음
-  - 계정 정보 섹션 (2단 그리드: 라벨 140px + 필드)
-  - 개인 정보 섹션 (이름 / 핸드폰+인증요청 / 생년월일 / 주소)
-  - 이용약관 동의 (체크박스 + 약관보기 링크)
-  - 취소 (L/ghost) + 회원가입 (L/primary)
-  - 성별(gender) — User entity 에 필드 없어 미포함 (추후 entity 확장 시)
+  prototype.tsx SignupScreen (line 1414~1539) 기준:
+  - 폭 520px 중앙 정렬
+  - 헤더 없음 (auth 페이지) / 푸터 있음
+  - 상단: 로고(34px) + "회원가입" h2(26/700) + 부제(14/textSec)
+  - 섹션 3개: 계정 정보 / 개인 정보 / 이용약관 동의
+    각 섹션은 sectionHead (2px solid text 하단 보더) + 필드 column(gap:18)
+  - 라벨 위, input 아래 (수직)
+  - 비밀번호 확인 불일치 즉시 표시
+  - 약관 동의: 전체 동의 + 회원가입약관 + 개인정보처리방침 안내 각 "약관보기 ›"
+  - 하단: 취소(L ghost width 150) + 회원가입(L primary width 200)
 -->
 
-<div th:replace="~{fragments/header :: header('')}"></div>
+<main class="signup-screen">
+    <div class="signup-inner">
 
-<main class="main-content">
-    <div class="signup-container">
+        <!-- 상단 로고 + 타이틀 -->
+        <div class="signup-header">
+            <a th:href="@{/}">
+                <img th:src="@{/images/logo_primary.png}" alt="청년모아" class="signup-logo-img">
+            </a>
+            <h2 class="signup-title">회원가입</h2>
+            <p class="signup-subtitle">청년모아 서비스 이용을 위해 회원정보를 입력해주세요.</p>
+        </div>
 
-        <h1 class="signup-title">회원가입</h1>
-
-        <!-- 컨트롤러에서 명시 추가한 에러 (form 외부에서도 동작) -->
+        <!-- 서버 측 에러 표시 (중복 이메일 등) -->
         <div th:if="${errorMsg}" class="alert alert-error" th:text="${errorMsg}"></div>
 
-        <form th:action="@{/signup}" th:object="${signUpRequest}" method="post" class="signup-form" novalidate>
+        <form th:action="@{/signup}" th:object="${signUpRequest}" method="post" novalidate>
 
-            <!-- Bean Validation 의 cross-field global error (form 안에서만 #fields 동작) -->
+            <!-- 폼 글로벌 에러 (비밀번호 불일치 등) -->
             <div th:if="${#fields.hasGlobalErrors()}" class="alert alert-error">
                 <div th:each="err : ${#fields.globalErrors()}" th:text="${err}"></div>
             </div>
 
-            <!-- ── 계정 정보 ─────────────────────────────── -->
-            <h2 class="signup-section-title">계정 정보</h2>
+            <!-- ════ 계정 정보 ════ -->
+            <section class="signup-section">
+                <div class="signup-section-head">
+                    <span class="signup-section-title">계정 정보</span>
+                </div>
 
-            <div class="signup-row" th:classappend="${#fields.hasErrors('email')} ? 'has-error'">
-                <label for="email" class="signup-label">아이디 <span class="required">*</span></label>
-                <div class="signup-field">
-                    <div class="signup-input-with-action">
-                        <input type="email" id="email" th:field="*{email}"
-                               placeholder="이메일을 입력해주세요." autocomplete="email"
+                <div class="signup-fields">
+                    <!-- 아이디(이메일) + 중복확인 -->
+                    <div class="signup-field-block" th:classappend="${#fields.hasErrors('email')} ? 'has-error'">
+                        <label for="email" class="signup-field-label">아이디 <span class="required">*</span></label>
+                        <div class="signup-field-row">
+                            <input type="email" id="email" th:field="*{email}"
+                                   placeholder="이메일을 입력해주세요"
+                                   autocomplete="email"
+                                   class="signup-input">
+                            <button type="button" class="btn-outline-sm signup-side-btn" disabled
+                                    title="중복확인 — 추후 구현">중복확인</button>
+                        </div>
+                        <p class="signup-field-error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></p>
+                    </div>
+
+                    <!-- 비밀번호 -->
+                    <div class="signup-field-block" th:classappend="${#fields.hasErrors('password')} ? 'has-error'">
+                        <label for="password" class="signup-field-label">비밀번호 <span class="required">*</span></label>
+                        <input type="password" id="password" th:field="*{password}"
+                               placeholder="영문, 숫자 포함 8자 이상"
+                               autocomplete="new-password"
                                class="signup-input">
-                        <button type="button" class="signup-action-btn" disabled>중복 확인</button>
+                        <p class="signup-field-error" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></p>
                     </div>
-                    <p class="signup-field-error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></p>
-                </div>
-            </div>
 
-            <div class="signup-row" th:classappend="${#fields.hasErrors('password')} ? 'has-error'">
-                <label for="password" class="signup-label">비밀번호 <span class="required">*</span></label>
-                <div class="signup-field">
-                    <input type="password" id="password" th:field="*{password}"
-                           placeholder="8자 이상" autocomplete="new-password"
-                           class="signup-input">
-                    <p class="signup-field-error" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></p>
-                </div>
-            </div>
-
-            <div class="signup-row" th:classappend="${#fields.hasErrors('passwordConfirm')} ? 'has-error'">
-                <label for="passwordConfirm" class="signup-label">비밀번호 확인 <span class="required">*</span></label>
-                <div class="signup-field">
-                    <input type="password" id="passwordConfirm" th:field="*{passwordConfirm}"
-                           placeholder="비밀번호를 다시 입력해주세요." autocomplete="new-password"
-                           class="signup-input">
-                    <p class="signup-field-error" th:if="${#fields.hasErrors('passwordConfirm')}" th:errors="*{passwordConfirm}"></p>
-                </div>
-            </div>
-
-            <!-- ── 개인 정보 ─────────────────────────────── -->
-            <h2 class="signup-section-title">개인 정보</h2>
-
-            <div class="signup-row" th:classappend="${#fields.hasErrors('name')} ? 'has-error'">
-                <label for="name" class="signup-label">이름 <span class="required">*</span></label>
-                <div class="signup-field">
-                    <input type="text" id="name" th:field="*{name}"
-                           placeholder="홍길동" autocomplete="name"
-                           class="signup-input">
-                    <p class="signup-field-error" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></p>
-                </div>
-            </div>
-
-            <div class="signup-row" th:classappend="${#fields.hasErrors('phone')} ? 'has-error'">
-                <label for="phone" class="signup-label">핸드폰 번호</label>
-                <div class="signup-field">
-                    <div class="signup-input-with-action">
-                        <input type="tel" id="phone" th:field="*{phone}"
-                               placeholder="01012345678 (숫자만)"
+                    <!-- 비밀번호 확인 -->
+                    <div class="signup-field-block" th:classappend="${#fields.hasErrors('passwordConfirm')} ? 'has-error'">
+                        <label for="passwordConfirm" class="signup-field-label">비밀번호 확인 <span class="required">*</span></label>
+                        <input type="password" id="passwordConfirm" th:field="*{passwordConfirm}"
+                               placeholder="비밀번호를 다시 입력해주세요"
+                               autocomplete="new-password"
                                class="signup-input">
-                        <button type="button" class="signup-action-btn" disabled>인증요청</button>
+                        <p class="signup-field-error" id="pw-mismatch-msg" style="display:none">비밀번호가 일치하지 않습니다.</p>
+                        <p class="signup-field-error" th:if="${#fields.hasErrors('passwordConfirm')}" th:errors="*{passwordConfirm}"></p>
                     </div>
-                    <p class="signup-field-error" th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}"></p>
                 </div>
-            </div>
+            </section>
 
-            <div class="signup-row" th:classappend="${#fields.hasErrors('birthDate')} ? 'has-error'">
-                <label for="birthDate" class="signup-label">생년월일</label>
-                <div class="signup-field">
-                    <input type="date" id="birthDate" th:field="*{birthDate}" class="signup-input">
-                    <p class="signup-field-error" th:if="${#fields.hasErrors('birthDate')}" th:errors="*{birthDate}"></p>
+            <!-- ════ 개인 정보 ════ -->
+            <section class="signup-section">
+                <div class="signup-section-head">
+                    <span class="signup-section-title">개인 정보</span>
                 </div>
-            </div>
 
-            <div class="signup-row" th:classappend="${#fields.hasErrors('zipcode')} ? 'has-error'">
-                <label for="zipcode" class="signup-label">주소</label>
-                <div class="signup-field">
-                    <div class="signup-input-with-action">
-                        <input type="text" id="zipcode" th:field="*{zipcode}"
-                               placeholder="우편번호" maxlength="5"
-                               class="signup-input signup-input--zip">
-                        <button type="button" class="signup-action-btn" disabled>우편번호 검색</button>
+                <div class="signup-fields">
+                    <!-- 이름 -->
+                    <div class="signup-field-block" th:classappend="${#fields.hasErrors('name')} ? 'has-error'">
+                        <label for="name" class="signup-field-label">이름 <span class="required">*</span></label>
+                        <input type="text" id="name" th:field="*{name}"
+                               placeholder="이름을 입력해주세요"
+                               autocomplete="name"
+                               class="signup-input">
+                        <p class="signup-field-error" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></p>
                     </div>
-                    <input type="text" th:field="*{address}"
-                           placeholder="기본 주소"
-                           class="signup-input signup-input--mt">
-                    <input type="text" th:field="*{addressDetail}"
-                           placeholder="상세 주소"
-                           class="signup-input signup-input--mt">
-                    <p class="signup-field-error" th:if="${#fields.hasErrors('zipcode')}" th:errors="*{zipcode}"></p>
-                </div>
-            </div>
 
-            <!-- ── 이용약관 동의 ─────────────────────────── -->
-            <div class="signup-terms">
-                <label class="signup-terms-check">
-                    <input type="checkbox" th:field="*{termsAgreed}">
-                    <span>이용약관 및 개인정보 처리방침에 동의합니다 <span class="required">*</span></span>
+                    <!-- 핸드폰 번호 + 인증요청 -->
+                    <div class="signup-field-block" th:classappend="${#fields.hasErrors('phone')} ? 'has-error'">
+                        <label for="phone" class="signup-field-label">핸드폰 번호 <span class="required">*</span></label>
+                        <div class="signup-field-row">
+                            <input type="tel" id="phone" th:field="*{phone}"
+                                   placeholder="숫자만 입력해주세요"
+                                   class="signup-input">
+                            <button type="button" class="btn-outline-sm signup-side-btn" disabled
+                                    title="인증요청 — 추후 구현">인증요청</button>
+                        </div>
+                        <p class="signup-field-error" th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}"></p>
+                    </div>
+
+                    <!-- 성별 (라디오) -->
+                    <div class="signup-field-block" th:classappend="${#fields.hasErrors('gender')} ? 'has-error'">
+                        <span class="signup-field-label">성별 <span class="required">*</span></span>
+                        <div class="signup-gender-radio-group">
+                            <label class="signup-radio">
+                                <input type="radio" th:field="*{gender}" value="MALE">
+                                <span class="signup-radio-circle"></span>
+                                <span class="signup-radio-text">남</span>
+                            </label>
+                            <label class="signup-radio">
+                                <input type="radio" th:field="*{gender}" value="FEMALE">
+                                <span class="signup-radio-circle"></span>
+                                <span class="signup-radio-text">여</span>
+                            </label>
+                        </div>
+                        <p class="signup-field-error" th:if="${#fields.hasErrors('gender')}" th:errors="*{gender}"></p>
+                    </div>
+
+                    <!-- 생년월일 (type=text, prototype.tsx) -->
+                    <div class="signup-field-block" th:classappend="${#fields.hasErrors('birthDateText')} ? 'has-error'">
+                        <label for="birthDateText" class="signup-field-label">생년월일 <span class="required">*</span></label>
+                        <input type="text" id="birthDateText" th:field="*{birthDateText}"
+                               placeholder="YYYY / MM / DD"
+                               class="signup-input">
+                        <p class="signup-field-error" th:if="${#fields.hasErrors('birthDateText')}" th:errors="*{birthDateText}"></p>
+                    </div>
+
+                    <!-- 주소 (우편번호 readonly + 검색 / 주소 readonly / 상세주소) -->
+                    <div class="signup-field-block" th:classappend="${#fields.hasErrors('zipcode') or #fields.hasErrors('address')} ? 'has-error'">
+                        <span class="signup-field-label">주소 <span class="required">*</span></span>
+                        <div class="signup-address-stack">
+                            <div class="signup-field-row">
+                                <input type="text" id="zipcode" th:field="*{zipcode}"
+                                       placeholder="우편번호" readonly
+                                       class="signup-input signup-input--readonly">
+                                <button type="button" class="btn-outline-sm signup-side-btn" disabled
+                                        title="우편번호 검색 — 추후 Kakao API 연동">🔍 검색</button>
+                            </div>
+                            <input type="text" id="address" th:field="*{address}"
+                                   placeholder="주소 (검색으로 입력)" readonly
+                                   class="signup-input signup-input--readonly">
+                            <input type="text" id="addressDetail" th:field="*{addressDetail}"
+                                   placeholder="상세주소를 입력해주세요"
+                                   class="signup-input">
+                        </div>
+                        <p class="signup-field-error" th:if="${#fields.hasErrors('zipcode')}" th:errors="*{zipcode}"></p>
+                        <p class="signup-field-error" th:if="${#fields.hasErrors('address')}" th:errors="*{address}"></p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ════ 이용약관 동의 ════ -->
+            <section class="signup-section">
+                <div class="signup-section-head">
+                    <span class="signup-section-title">이용약관 동의</span>
+                </div>
+
+                <!-- 전체 동의 -->
+                <label class="signup-agree-all">
+                    <input type="checkbox" id="agreeAll">
+                    <span class="signup-checkbox-square"></span>
+                    <span class="signup-agree-all-text">전체 동의</span>
                 </label>
-                <a href="#" class="signup-terms-link">약관 보기</a>
-            </div>
 
-            <!-- ── 액션 ──────────────────────────────────── -->
+                <!-- 각 약관 -->
+                <div class="signup-agree-row">
+                    <label class="signup-agree-item">
+                        <input type="checkbox" th:field="*{termsAgreed}">
+                        <span class="signup-checkbox-line"></span>
+                        <span class="signup-agree-label">회원가입약관 <span class="required-inline">(필수)</span></span>
+                    </label>
+                    <a href="#" class="signup-agree-view">약관보기 ›</a>
+                </div>
+
+                <div class="signup-agree-row">
+                    <label class="signup-agree-item">
+                        <input type="checkbox" th:field="*{privacyAgreed}">
+                        <span class="signup-checkbox-line"></span>
+                        <span class="signup-agree-label">개인정보처리방침 안내 <span class="required-inline">(필수)</span></span>
+                    </label>
+                    <a href="#" class="signup-agree-view">약관보기 ›</a>
+                </div>
+            </section>
+
+            <!-- ════ 액션 ════ -->
             <div class="signup-actions">
-                <a th:href="@{/}" class="btn-auth btn-auth--ghost">취소</a>
-                <button type="submit" class="btn-auth btn-auth--primary">회원가입</button>
+                <a th:href="@{/login}" class="btn-auth btn-auth--ghost signup-cancel-btn">취소</a>
+                <button type="submit" class="btn-auth btn-auth--primary signup-submit-btn">회원가입</button>
             </div>
         </form>
     </div>
 </main>
 
 <div th:replace="~{fragments/footer :: footer}"></div>
+
+<!-- 비밀번호 확인 실시간 검증 (prototype.tsx 의 React 즉시 검증 패턴 재현) -->
+<script>
+    (function () {
+        const pw = document.getElementById('password');
+        const pw2 = document.getElementById('passwordConfirm');
+        const msg = document.getElementById('pw-mismatch-msg');
+        if (!pw || !pw2 || !msg) return;
+        function check() {
+            if (pw2.value && pw.value !== pw2.value) {
+                msg.style.display = 'block';
+                pw2.classList.add('signup-input--mismatch');
+            } else {
+                msg.style.display = 'none';
+                pw2.classList.remove('signup-input--mismatch');
+            }
+        }
+        pw.addEventListener('input', check);
+        pw2.addEventListener('input', check);
+    })();
+
+    // 전체 동의 토글
+    (function () {
+        const all = document.getElementById('agreeAll');
+        const t = document.getElementById('termsAgreed');
+        const p = document.getElementById('privacyAgreed');
+        if (!all || !t || !p) return;
+        function syncAll() { all.checked = t.checked && p.checked; }
+        all.addEventListener('change', () => {
+            t.checked = all.checked;
+            p.checked = all.checked;
+        });
+        t.addEventListener('change', syncAll);
+        p.addEventListener('change', syncAll);
+        syncAll();
+    })();
+</script>
 
 </body>
 </html>
