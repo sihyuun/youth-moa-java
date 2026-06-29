@@ -910,38 +910,61 @@ code {
   line-height: 1.55;
 }
 
-/* ── Apply form page ─────────────────────────────────────── */
+/* ── Apply form — prototype.tsx ProgramApply (line 962~1017) ──────── */
+.apply-screen {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 36px var(--content-px) 48px;
+}
+
+.apply-inner { width: 100%; }
+
+.apply-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 20px;
+  color: var(--color-text-sec);
+  font-size: 14px;
+  text-decoration: none;
+  transition: color 0.15s;
+}
+.apply-back-link:hover { color: var(--color-primary); }
+.apply-back-arrow { font-size: 18px; line-height: 1; }
+
 .apply-title {
-  margin: 24px 0;
   font-size: 26px;
   font-weight: 700;
   color: var(--color-text);
+  text-align: center;
+  margin: 0 0 28px;
 }
 
-.apply-program-summary {
+/* Summary 카드 (80x80 이미지 + 정보) */
+.apply-summary-card {
   display: flex;
-  gap: 20px;
-  padding: 20px;
+  gap: 16px;
+  padding: 18px;
   background: var(--color-surface);
-  border: 1px solid var(--color-border-light);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  margin-bottom: 28px;
+  margin-bottom: 24px;
 }
 
-.apply-program-image {
-  width: 140px;
-  height: 140px;
-  border-radius: var(--radius-md);
+.apply-summary-image {
+  width: 80px;
+  height: 80px;
+  border-radius: 10px;
   overflow: hidden;
   background: #e5e7eb;
   flex-shrink: 0;
 }
-.apply-program-image img {
+.apply-summary-image img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
-.apply-program-placeholder {
+.apply-summary-placeholder {
   width: 100%;
   height: 100%;
   display: flex;
@@ -950,80 +973,196 @@ code {
   background: linear-gradient(135deg, oklch(0.85 0.05 280), oklch(0.75 0.08 280));
   color: #fff;
   font-weight: 700;
-  font-size: 16px;
+  font-size: 13px;
 }
 
-.apply-program-meta {
-  flex: 1;
-  min-width: 0;
+.apply-summary-meta { min-width: 0; }
+
+.apply-summary-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--color-primary);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
 }
-.apply-program-meta h2 {
-  font-size: 18px;
-  font-weight: 700;
+.apply-summary-badge.status--closed { background: #9CA3AF; }
+.apply-summary-badge.status--upcoming { background: var(--color-warning); }
+
+.apply-summary-title {
+  font-weight: 600;
+  font-size: 16px;
   color: var(--color-text);
-  margin: 8px 0 4px;
+  margin: 6px 0 2px;
 }
-.apply-program-meta p {
+
+.apply-summary-sub {
   font-size: 13px;
   color: var(--color-text-sec);
-  margin: 0 0 2px;
-}
-.apply-program-date {
-  color: var(--color-text-tri) !important;
-  font-size: 12px !important;
 }
 
-.apply-form {
+/* 섹션 타이틀 (2px solid text 하단 보더) */
+.apply-section-title {
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--color-text);
+  padding-bottom: 10px;
+  border-bottom: 2px solid var(--color-text);
+  margin-bottom: 16px;
+}
+.apply-section-title:not(:first-of-type) { margin-top: 24px; }
+
+/* 섹션 1: 신청자 정보 (readonly 박스) */
+.apply-applicant-fields {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 14px;
+  margin-bottom: 24px;
 }
 
-.apply-form textarea {
-  padding: 12px 14px;
-  border: 1px solid var(--color-border);
+.apply-applicant-field { display: block; }
+
+.apply-applicant-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-sec);
+  margin-bottom: 6px;
+  display: block;
+}
+
+.apply-applicant-value {
+  height: 46px;
   border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  padding: 0 14px;
+  display: flex;
+  align-items: center;
+  background: #F3F4F6;
+  font-size: 14px;
+  color: var(--color-text-sec);
+}
+
+.apply-applicant-note {
+  font-size: 12px;
+  color: var(--color-text-tri);
+  margin-top: 4px;
+}
+
+/* 섹션 2: 추가 정보 — 지원 동기 textarea */
+.apply-extra-block {
+  margin-bottom: 24px;
+}
+
+.apply-extra-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-sec);
+  margin-bottom: 6px;
+  display: block;
+}
+
+.apply-textarea {
+  width: 100%;
+  height: 88px;
+  border-radius: var(--radius-md);
+  border: 1.5px solid var(--color-border);
+  padding: 12px 14px;
   font-size: 14px;
   font-family: inherit;
   color: var(--color-text);
   background: var(--color-surface);
-  resize: vertical;
-  min-height: 180px;
+  resize: none;
   outline: none;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  transition: border-color 0.15s;
+  box-sizing: border-box;
 }
-.apply-form textarea:focus {
+.apply-textarea:focus { border-color: var(--color-primary); }
+.apply-textarea::placeholder { color: var(--color-text-tri); }
+.apply-textarea:not(:placeholder-shown):not(:focus) {
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(63, 48, 233, 0.12);
 }
-.form-group.has-error textarea {
+
+.apply-extra-block.has-error .apply-textarea {
   border-color: var(--color-error);
 }
 
-.field-hint {
+.apply-field-error {
+  margin: 5px 0 0;
   font-size: 12px;
-  color: var(--color-text-tri);
+  color: var(--color-error);
 }
 
-.apply-notice {
-  padding: 16px 18px;
-  background: var(--color-warning-light);
-  border-radius: var(--radius-lg);
+/* 섹션 3: 개인정보 수집 동의 */
+.apply-privacy-box {
+  padding: 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
   font-size: 13px;
-  color: var(--color-text);
-  line-height: 1.6;
+  color: var(--color-text-sec);
+  line-height: 1.7;
+  max-height: 130px;
+  overflow: hidden;
+  margin-bottom: 12px;
 }
-.apply-notice strong { color: var(--color-warning); display: block; margin-bottom: 6px; }
-.apply-notice ul { margin: 0; padding-left: 20px; }
-.apply-notice li { margin-bottom: 2px; }
 
+.apply-privacy-agree {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 28px;
+  cursor: pointer;
+  user-select: none;
+}
+.apply-privacy-agree input[type="checkbox"] {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* 원형 라디오 (prototype.tsx 의 동의 체크 — 라디오 모양) */
+.apply-privacy-radio {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid var(--color-border);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: border-color 0.15s;
+}
+.apply-privacy-agree input[type="checkbox"]:checked + .apply-privacy-radio {
+  border-color: var(--color-primary);
+}
+.apply-privacy-agree input[type="checkbox"]:checked + .apply-privacy-radio::after {
+  content: '';
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--color-primary);
+}
+
+.apply-privacy-text {
+  font-size: 14px;
+  color: var(--color-text);
+}
+
+.apply-privacy-agree.has-error .apply-privacy-radio {
+  border-color: var(--color-error);
+}
+
+/* 액션 (가운데 정렬, "신청하기" 220px) */
 .apply-actions {
   display: flex;
-  gap: 10px;
-  justify-content: flex-end;
-  margin-top: 8px;
+  justify-content: center;
+  margin-top: 4px;
 }
+.apply-submit-btn { width: 220px; }
 
+/* 옛 잔여 (제거 대상) */
 .btn-cancel {
   display: inline-flex;
   align-items: center;
