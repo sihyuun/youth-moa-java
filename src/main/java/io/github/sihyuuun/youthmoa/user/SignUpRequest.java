@@ -34,7 +34,7 @@ public class SignUpRequest {
     @NotBlank(message = "비밀번호를 입력해주세요.")
     @Size(min = 8, message = "비밀번호는 8자 이상이어야 합니다.")
     @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d).+$",
-            message = "영문과 숫자를 모두 포함해야 합니다.")
+            message = "비밀번호는 영문과 숫자를 모두 포함해야 합니다.")
     private String password;
 
     @NotBlank(message = "비밀번호 확인을 입력해주세요.")
@@ -71,6 +71,9 @@ public class SignUpRequest {
     private boolean termsAgreed;
     private boolean privacyAgreed;
 
+    // 중복확인 통과 여부 — hidden input 으로 전송, 이메일 변경 시 false 로 reset
+    private boolean emailChecked;
+
     // ── 객체 레벨 검증 ──────────────────────────────────
 
     @AssertTrue(message = "비밀번호와 비밀번호 확인이 일치하지 않습니다.")
@@ -81,6 +84,11 @@ public class SignUpRequest {
     @AssertTrue(message = "이용약관과 개인정보처리방침에 모두 동의해주세요.")
     public boolean isAllTermsAccepted() {
         return termsAgreed && privacyAgreed;
+    }
+
+    @AssertTrue(message = "아이디 중복확인을 진행해주세요.")
+    public boolean isEmailChecked() {
+        return emailChecked;
     }
 
     /** birthDateText 를 LocalDate 로 파싱 (UserService 에서 호출). */
