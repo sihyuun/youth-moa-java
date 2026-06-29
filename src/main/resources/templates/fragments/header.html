@@ -3,16 +3,29 @@
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <body>
 
+<!--
+  Header fragment — prototype Header (line 337~400) 기준.
+  - 좌: 로고 (img 34px + "청년모아" text)
+  - 중앙: nav 3개 (gap:36) — 프로그램 / 청년센터 / 공지사항
+  - 우: 검색 아이콘 + (인증) 아바타(이니셜 30px) + 이름 + ▾ 드롭다운
+                  (비인증) 로그인 아이콘 1개
+  미적용 (별도 작업, F2):
+  - 알림 종 + unread dot (인증 시)
+  - transparent 모드 (홈 hero 위)
+-->
+
 <header th:fragment="header(currentPage)" class="site-header">
     <div class="header-inner">
 
-        <!-- Logo -->
-        <a th:href="@{/}" class="header-logo">
-            <img th:src="@{/images/logo_symbol.png}" alt="" class="header-logo-img">
-            <span class="header-logo-text">청년모아</span>
-        </a>
+        <!-- Logo (좌, flex:1) -->
+        <div class="header-logo-wrap">
+            <a th:href="@{/}" class="header-logo">
+                <img th:src="@{/images/logo_symbol.png}" alt="" class="header-logo-img">
+                <span class="header-logo-text">청년모아</span>
+            </a>
+        </div>
 
-        <!-- Nav -->
+        <!-- Nav (중앙) -->
         <nav class="header-nav">
             <a th:href="@{/programs}"
                th:class="${currentPage == 'programs'} ? 'nav-link active' : 'nav-link'">프로그램</a>
@@ -22,23 +35,42 @@
                th:class="${currentPage == 'notices'} ? 'nav-link active' : 'nav-link'">공지사항</a>
         </nav>
 
-        <!-- Right actions -->
+        <!-- Right actions (우, flex:1) -->
         <div class="header-right">
-            <!-- 로그인 상태 -->
-            <div sec:authorize="isAuthenticated()" class="header-user">
-                <span class="user-greeting">
-                    <sec:authentication property="principal.displayName"/>님
-                </span>
-                <a th:href="@{/mypage}" class="header-action-link">마이페이지</a>
-                <form th:action="@{/logout}" method="post" style="display:inline;margin:0">
-                    <button type="submit" class="header-logout-btn">로그아웃</button>
-                </form>
+            <!-- 검색 아이콘 (공통) -->
+            <a th:href="@{/programs}" class="header-icon-btn" title="검색" aria-label="검색">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <circle cx="11" cy="11" r="8"/>
+                    <path d="M21 21l-4.35-4.35" stroke-linecap="round"/>
+                </svg>
+            </a>
+
+            <!-- 인증 상태: 아바타 + 이름 + ▾ 드롭다운 -->
+            <div sec:authorize="isAuthenticated()" class="header-user-menu">
+                <button type="button" class="header-user-trigger">
+                    <span class="header-avatar" aria-hidden="true"
+                          th:text="${#strings.substring(#authentication.principal.displayName, 0, 1)}">박</span>
+                    <span class="header-user-name">
+                        <sec:authentication property="principal.displayName"/>님
+                    </span>
+                    <span class="header-chev">▾</span>
+                </button>
+                <div class="header-user-dropdown">
+                    <a th:href="@{/mypage}" class="header-dropdown-item">마이페이지</a>
+                    <form th:action="@{/logout}" method="post" class="header-dropdown-logout">
+                        <button type="submit" class="header-dropdown-item">로그아웃</button>
+                    </form>
+                </div>
             </div>
-            <!-- 비로그인 상태 -->
-            <div sec:authorize="!isAuthenticated()" class="header-guest">
-                <a th:href="@{/login}" class="header-action-link">로그인</a>
-                <a th:href="@{/signup}" class="btn-primary btn-sm">회원가입</a>
-            </div>
+
+            <!-- 비인증 상태: 로그인 아이콘 1개 (회원가입은 로그인 페이지의 secondary 버튼 통해 진입) -->
+            <a sec:authorize="!isAuthenticated()" th:href="@{/login}"
+               class="header-icon-btn header-icon-btn--primary" title="로그인" aria-label="로그인">
+                <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor"
+                     stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4M10 17l5-5-5-5M15 12H3"/>
+                </svg>
+            </a>
         </div>
 
     </div>

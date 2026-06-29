@@ -120,7 +120,11 @@ code {
   padding: 0 var(--content-px);
   display: flex;
   align-items: center;
-  gap: 40px;
+}
+
+/* 좌측 로고 영역 (flex:1) */
+.header-logo-wrap {
+  flex: 1;
 }
 
 .header-logo {
@@ -129,7 +133,7 @@ code {
   gap: 8px;
   color: var(--color-text);
   text-decoration: none;
-  flex-shrink: 0;
+  cursor: pointer;
 }
 
 .header-logo-img {
@@ -146,10 +150,11 @@ code {
 
 .logo-accent { color: var(--color-primary); }
 
+/* 중앙 nav (gap:36 prototype) */
 .header-nav {
   display: flex;
-  gap: 32px;
-  flex: 1;
+  gap: 36px;
+  flex-shrink: 0;
 }
 
 .nav-link {
@@ -170,47 +175,129 @@ code {
   border-bottom-color: var(--color-primary);
 }
 
+/* 우측 액션 영역 (flex:1, prototype) */
 .header-right {
+  flex: 1;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
+  justify-content: flex-end;
+  position: relative;
+}
+
+/* 아이콘 버튼 (검색 / 로그인) */
+.header-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-sec);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  text-decoration: none;
+  transition: color 0.15s;
+}
+.header-icon-btn:hover {
+  color: var(--color-primary);
+}
+.header-icon-btn--primary {
+  color: var(--color-primary);
+}
+
+/* 사용자 메뉴 (아바타 + 이름 + chevron) */
+.header-user-menu {
+  position: relative;
+}
+
+.header-user-trigger {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 6px;
+  font-family: inherit;
+  color: var(--color-text);
+  transition: opacity 0.15s;
+}
+.header-user-trigger:hover { opacity: 0.85; }
+
+.header-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+  font-weight: 700;
+  font-size: 13px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
 }
 
-.header-user,
-.header-guest {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.user-greeting {
+.header-user-name {
   font-size: 14px;
   font-weight: 500;
   color: var(--color-text);
 }
 
-.header-action-link {
-  font-size: 14px;
+.header-chev {
+  font-size: 12px;
   color: var(--color-text-sec);
-  text-decoration: none;
-  transition: color 0.15s;
+  line-height: 1;
 }
 
-.header-action-link:hover { color: var(--color-primary); }
+/* 드롭다운 (CSS hover/focus 만으로 — JS 없음) */
+.header-user-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 160px;
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.14);
+  border: 1px solid var(--color-border-light);
+  overflow: hidden;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-4px);
+  transition: opacity 0.15s, transform 0.15s, visibility 0.15s;
+  z-index: 200;
+}
 
-.header-logout-btn {
+.header-user-menu:hover .header-user-dropdown,
+.header-user-menu:focus-within .header-user-dropdown {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.header-dropdown-item {
+  display: block;
+  width: 100%;
+  padding: 11px 18px;
+  font-size: 14px;
+  color: var(--color-text);
+  text-decoration: none;
   background: none;
   border: none;
-  padding: 0;
-  font-size: 14px;
-  color: var(--color-text-sec);
+  text-align: left;
   cursor: pointer;
   font-family: inherit;
-  transition: color 0.15s;
+  transition: background 0.1s;
+}
+.header-dropdown-item:hover {
+  background: var(--color-primary-bg);
+  color: var(--color-primary);
 }
 
-.header-logout-btn:hover { color: var(--color-primary); }
+.header-dropdown-logout {
+  border-top: 1px solid var(--color-border-light);
+  margin: 0;
+}
 
 /* ── Layout ───────────────────────────────────────────────── */
 .main-content {
@@ -1256,7 +1343,359 @@ code {
   border: 1px solid var(--color-text);
 }
 
-/* ── Legacy auth-wrapper (signup 페이지 — F0b 작업 전 임시 유지) ─ */
+/* ── Signup screen — prototype.tsx SignupScreen (line 1414~1539) ───────── */
+/* 사용자 결정: 헤더 추가, body 일반 flow (auth-page-body flex column 사용 안 함) */
+.signup-screen {
+  display: flex;
+  justify-content: center;
+  padding: 48px var(--content-px);
+  background: var(--color-bg);
+  min-height: calc(100vh - var(--header-h) - 72px);
+}
+
+/* prototype.tsx 폭: 520px */
+.signup-inner { width: 520px; max-width: 100%; }
+
+.signup-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+.signup-logo-img {
+  height: 34px;
+  width: auto;
+  margin: 0 auto 20px;
+  display: block;
+}
+.signup-title {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0 0 8px;
+}
+.signup-subtitle {
+  font-size: 14px;
+  color: var(--color-text-sec);
+  margin: 0;
+}
+
+.signup-section { margin-bottom: 28px; }
+
+.signup-section-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--color-text);
+  margin-bottom: 18px;
+}
+
+.signup-section-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.signup-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.signup-field-block { display: block; }
+
+.signup-field-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: 7px;
+  display: block;
+}
+
+.required { color: var(--color-error); }
+.required-inline { color: var(--color-error); font-weight: 400; }
+
+/* Input — prototype.tsx field 스타일 (height 46, 1.5px border, padding 0 16) */
+.signup-input {
+  width: 100%;
+  height: 46px;
+  border-radius: var(--radius-md);
+  border: 1.5px solid var(--color-border);
+  padding: 0 16px;
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--color-text);
+  background: var(--color-surface);
+  outline: none;
+  transition: border-color 0.15s;
+  box-sizing: border-box;
+  display: block;
+}
+.signup-input:focus { border-color: var(--color-primary); }
+.signup-input::placeholder { color: var(--color-text-tri); }
+
+/* 값 있을 때 primary border (prototype.tsx 동적 색) */
+.signup-input:not(:placeholder-shown):not(:focus):not(:read-only) {
+  border-color: var(--color-primary);
+}
+
+/* readOnly (우편번호 / 주소) — bg #F3F4F6 */
+.signup-input--readonly {
+  background: #F3F4F6;
+  cursor: default;
+}
+
+.signup-input--mismatch {
+  border-color: var(--color-error) !important;
+}
+
+/* 비밀번호 input 우측 눈 아이콘 (사용자 요청, prototype 최신본 외 추가) */
+.signup-input-with-eye {
+  position: relative;
+}
+.signup-input--with-eye {
+  padding-right: 44px;
+}
+.signup-eye-btn {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  color: var(--color-text-tri);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s;
+}
+.signup-eye-btn:hover { color: var(--color-text-sec); }
+.signup-eye-btn.is-visible { color: var(--color-primary); }
+
+/* 우편번호 검색 버튼 (아이콘 + 텍스트) */
+.signup-search-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.signup-field-block.has-error .signup-input {
+  border-color: var(--color-error);
+}
+
+.signup-field-error {
+  margin: 5px 0 0;
+  font-size: 12px;
+  color: var(--color-error);
+  display: block;
+}
+
+/* row 형태 (input + 우측 보조 버튼) */
+.signup-field-row {
+  display: flex;
+  gap: 8px;
+}
+.signup-field-row .signup-input { flex: 1; min-width: 0; }
+
+.signup-side-btn {
+  flex-shrink: 0;
+  width: 96px;
+  height: 46px;
+}
+
+/* 주소 영역 세로 스택 */
+.signup-address-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* 성별 라디오 (prototype.tsx 원형 + 내부 점) */
+.signup-gender-radio-group {
+  display: flex;
+  gap: 20px;
+  padding-top: 4px;
+}
+.signup-radio {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+}
+.signup-radio input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+.signup-radio-circle {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid var(--color-border);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: border-color 0.15s;
+}
+.signup-radio input[type="radio"]:checked + .signup-radio-circle {
+  border-color: var(--color-primary);
+}
+.signup-radio input[type="radio"]:checked + .signup-radio-circle::after {
+  content: '';
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--color-primary);
+}
+.signup-radio-text {
+  font-size: 14px;
+  color: var(--color-text);
+}
+
+/* btn-outline-sm (중복확인 / 인증요청 / 검색) */
+.btn-outline-sm {
+  background: var(--color-surface);
+  color: var(--color-text);
+  border: 1px solid var(--color-text);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.btn-outline-sm:not(:disabled):hover {
+  background: var(--color-primary-bg);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+.btn-outline-sm:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── 약관 동의 ── */
+.signup-agree-all {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--color-border-light);
+  cursor: pointer;
+  margin-bottom: 4px;
+  user-select: none;
+}
+.signup-agree-all input[type="checkbox"] {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+.signup-checkbox-square {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-border);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.15s, border-color 0.15s;
+}
+.signup-agree-all input[type="checkbox"]:checked + .signup-checkbox-square {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+}
+.signup-agree-all input[type="checkbox"]:checked + .signup-checkbox-square::after {
+  content: '✓';
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+}
+.signup-agree-all-text {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.signup-agree-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 11px 0;
+}
+.signup-agree-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  user-select: none;
+}
+.signup-agree-item input[type="checkbox"] {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+.signup-checkbox-line {
+  width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--color-border);
+  transition: color 0.15s;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1;
+}
+.signup-checkbox-line::before { content: '✓'; }
+.signup-agree-item input[type="checkbox"]:checked + .signup-checkbox-line {
+  color: var(--color-primary);
+}
+.signup-agree-label {
+  font-size: 14px;
+  color: var(--color-text-sec);
+}
+
+.signup-agree-view {
+  font-size: 12.5px;
+  color: var(--color-primary);
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  flex-shrink: 0;
+  padding-left: 8px;
+}
+.signup-agree-view:hover { text-decoration: underline; }
+
+/* 하단 액션 (가운데 정렬, ghost 150 / primary 200) */
+.signup-actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 4px;
+}
+.signup-cancel-btn { width: 150px; }
+.signup-submit-btn { width: 200px; }
+
+.btn-auth--ghost {
+  background: transparent;
+  color: var(--color-text-sec);
+  border: 1px solid var(--color-border);
+}
+.btn-auth--ghost:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+/* ── Legacy auth-wrapper (login 외 잔여 — 추후 정리) ─ */
 .auth-wrapper {
   min-height: 100vh;
   display: flex;
