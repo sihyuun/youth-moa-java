@@ -1344,11 +1344,13 @@ code {
 }
 
 /* ── Signup screen — prototype.tsx SignupScreen (line 1414~1539) ───────── */
+/* 사용자 결정: 헤더 추가, body 일반 flow (auth-page-body flex column 사용 안 함) */
 .signup-screen {
-  flex: 1;
   display: flex;
   justify-content: center;
   padding: 48px var(--content-px);
+  background: var(--color-bg);
+  min-height: calc(100vh - var(--header-h) - 72px);
 }
 
 /* prototype.tsx 폭: 520px */
@@ -1444,6 +1446,38 @@ code {
 
 .signup-input--mismatch {
   border-color: var(--color-error) !important;
+}
+
+/* 비밀번호 input 우측 눈 아이콘 (사용자 요청, prototype 최신본 외 추가) */
+.signup-input-with-eye {
+  position: relative;
+}
+.signup-input--with-eye {
+  padding-right: 44px;
+}
+.signup-eye-btn {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  color: var(--color-text-tri);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s;
+}
+.signup-eye-btn:hover { color: var(--color-text-sec); }
+.signup-eye-btn.is-visible { color: var(--color-primary); }
+
+/* 우편번호 검색 버튼 (아이콘 + 텍스트) */
+.signup-search-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .signup-field-block.has-error .signup-input {
