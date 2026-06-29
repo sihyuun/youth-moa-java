@@ -79,6 +79,8 @@
                                 </svg>
                             </button>
                         </div>
+                        <!-- 비밀번호 정책 실시간 검증 (입력 시 JS 가 토글) -->
+                        <p class="signup-field-error" id="pw-policy-msg" style="display:none"></p>
                         <p class="signup-field-error" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></p>
                     </div>
 
@@ -252,6 +254,35 @@
             btn.classList.toggle('is-visible', !isText);
         });
     });
+
+    // 비밀번호 정책 실시간 검증 — 8자 이상 + 영문 + 숫자
+    (function () {
+        const pw = document.getElementById('password');
+        const msg = document.getElementById('pw-policy-msg');
+        if (!pw || !msg) return;
+        function checkPolicy() {
+            const v = pw.value;
+            if (!v) {
+                msg.style.display = 'none';
+                pw.classList.remove('signup-input--mismatch');
+                return true;
+            }
+            const missing = [];
+            if (v.length < 8) missing.push('8자 이상');
+            if (!/[A-Za-z]/.test(v)) missing.push('영문 포함');
+            if (!/\d/.test(v)) missing.push('숫자 포함');
+            if (missing.length > 0) {
+                msg.textContent = '비밀번호 조건: ' + missing.join(' · ') + ' 필요합니다.';
+                msg.style.display = 'block';
+                pw.classList.add('signup-input--mismatch');
+                return false;
+            }
+            msg.style.display = 'none';
+            pw.classList.remove('signup-input--mismatch');
+            return true;
+        }
+        pw.addEventListener('input', checkPolicy);
+    })();
 
     // 비밀번호 확인 실시간 검증 (prototype.tsx 의 즉시 검증 패턴 재현)
     (function () {
