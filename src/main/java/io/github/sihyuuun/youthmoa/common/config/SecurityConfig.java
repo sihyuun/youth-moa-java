@@ -21,7 +21,8 @@ public class SecurityConfig {
                         // 그 외 비인증 허용
                         .requestMatchers("/", "/api/ping",
                                 "/programs", "/programs/**",
-                                "/css/**", "/js/**", "/images/**", "/webjars/**")
+                                "/css/**", "/js/**", "/images/**", "/webjars/**",
+                                "/favicon.ico")
                         .permitAll()
                         .anyRequest().authenticated()
                 )
