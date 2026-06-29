@@ -35,11 +35,10 @@
             </div>
 
             <div class="detail-info">
-                <!-- Status + category -->
+                <!-- Status badge (prototype: status 1개만, 카테고리 없음) -->
                 <div class="detail-badges">
                     <span th:class="'status-badge ' + ${program.status.cssClass}"
                           th:text="${program.status.label}">진행중</span>
-                    <span class="detail-category" th:text="${program.category}">카테고리</span>
                 </div>
 
                 <!-- Title -->
@@ -47,25 +46,39 @@
                 <p class="detail-subtitle"
                    th:text="${program.organization + ' · ' + program.region}">기관 · 지역</p>
 
-                <!-- Status / D-day card -->
+                <!-- 모집 상태 카드 — prototype.tsx (상단 row + CapacityBar + 하단 신청률·경쟁률) -->
                 <div th:class="${program.status.name() == 'CLOSED'} ?
                                'detail-status-card detail-status-card--closed' :
                                'detail-status-card'">
+                    <!-- 상단 row: 좌(모집중 + 마감까지) / 우(applied / capacity) -->
                     <div class="detail-status-card-row">
                         <span class="detail-status-headline"
                               th:text="${program.status.name() == 'ACTIVE' ?
-                                        '모집 중 · 마감까지 ' +
+                                        '모집중 · 마감까지 ' +
                                         (program.daysUntilDeadline == 0 ? '오늘' : program.daysUntilDeadline + '일') :
                                         program.status.label}">상태</span>
                         <span class="detail-capacity" th:if="${program.capacity != null}">
-                            <strong th:text="${program.capacity}">30</strong>
-                            <span class="detail-capacity-unit">명 정원</span>
+                            <strong th:text="${appliedCount}">0</strong>
+                            <span class="detail-capacity-unit"
+                                  th:text="' / ' + ${program.capacity} + '명'"> / 30명</span>
                         </span>
                         <span class="detail-capacity" th:if="${program.capacity == null}">
                             정원 제한 없음
                         </span>
                     </div>
-                    <p class="detail-status-note" th:if="${program.status.name() == 'ACTIVE'}">
+
+                    <!-- Progress bar (prototype CapacityBar) -->
+                    <div class="detail-capacity-bar" th:if="${program.capacity != null}">
+                        <div class="detail-capacity-bar-fill"
+                             th:style="'width: ' + ${applicationRate} + '%'"></div>
+                    </div>
+
+                    <!-- 하단: 활성=신청률/경쟁률 · 마감=마감안내 · 진행예정=오픈안내 -->
+                    <p class="detail-status-note" th:if="${program.status.name() == 'ACTIVE' and program.capacity != null}"
+                       th:text="'현재 신청률 ' + ${applicationRate} + '% · 경쟁률 ' + ${competitionRatio} + ':1'">
+                        현재 신청률 60% · 경쟁률 0.6:1
+                    </p>
+                    <p class="detail-status-note" th:if="${program.status.name() == 'ACTIVE' and program.capacity == null}">
                         현재 모집 중인 프로그램입니다. 자격 요건 확인 후 신청해주세요.
                     </p>
                     <p class="detail-status-note" th:if="${program.status.name() == 'UPCOMING'}">
@@ -76,8 +89,14 @@
                     </p>
                 </div>
 
-                <!-- Meta table -->
+                <!-- Meta table — prototype.tsx (신청기간 / 진행기간 / 진행장소+지도 / 모집인원 / 문의처) -->
                 <dl class="detail-meta">
+                    <div class="detail-meta-row">
+                        <dt>신청 기간</dt>
+                        <dd th:if="${program.startDate != null}"
+                            th:text="${'~ ' + #temporals.format(program.startDate, 'yyyy.MM.dd') + ' 까지'}">기간</dd>
+                        <dd th:if="${program.startDate == null}">상시 모집</dd>
+                    </div>
                     <div class="detail-meta-row" th:if="${program.startDate != null and program.endDate != null}">
                         <dt>진행 기간</dt>
                         <dd th:text="${#temporals.format(program.startDate, 'yyyy.MM.dd') + ' ~ ' + #temporals.format(program.endDate, 'yyyy.MM.dd')}">
@@ -85,30 +104,41 @@
                         </dd>
                     </div>
                     <div class="detail-meta-row">
-                        <dt>주관 기관</dt>
-                        <dd th:text="${program.organization}">기관</dd>
-                    </div>
-                    <div class="detail-meta-row">
-                        <dt>지역</dt>
-                        <dd th:text="${program.region}">지역</dd>
-                    </div>
-                    <div class="detail-meta-row">
-                        <dt>카테고리</dt>
-                        <dd th:text="${program.category}">카테고리</dd>
+                        <dt>진행 장소</dt>
+                        <dd class="detail-meta-place">
+                            <span th:text="${program.organization + ' (' + program.region + ')'}">기관 (지역)</span>
+                            <button type="button" class="detail-map-btn" data-map-toggle>
+                                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor"
+                                     stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/>
+                                    <circle cx="12" cy="10" r="3"/>
+                                </svg>
+                                <span>지도</span>
+                            </button>
+                        </dd>
                     </div>
                     <div class="detail-meta-row" th:if="${program.capacity != null}">
-                        <dt>모집 인원</dt>
+                        <dt>모집인원</dt>
                         <dd th:text="${program.capacity} + '명'">정원</dd>
+                    </div>
+                    <div class="detail-meta-row">
+                        <dt>문의처</dt>
+                        <dd>031-XXX-XXXX <span class="detail-meta-note">(추후 안내)</span></dd>
                     </div>
                 </dl>
 
                 <!-- Actions -->
                 <div class="detail-actions">
-                    <!-- 즐겨찾기 (HTMX 토글) -->
+                    <!-- 즐겨찾기 (D2 HTMX 토글) -->
                     <div th:replace="~{fragments/bookmark-button :: button(programId=${program.id}, bookmarked=${bookmarked}, styleClass='detail-action-icon')}"></div>
-
-                    <button type="button" class="detail-action-icon" title="링크 복사" disabled>
-                        <span>⤴</span>
+                    <!-- 공유 (F4 URL 클립보드 복사, prototype share SVG) -->
+                    <button type="button" class="detail-action-icon" title="URL 복사" data-share-btn>
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <circle cx="18" cy="5" r="3"/>
+                            <circle cx="6" cy="12" r="3"/>
+                            <circle cx="18" cy="19" r="3"/>
+                            <path d="M8.59 13.51l6.83 3.98M15.41 6.51l-6.82 3.98"/>
+                        </svg>
                     </button>
                     <a th:if="${program.status.name() == 'ACTIVE'}"
                        th:href="@{/programs/{id}/apply(id=${program.id})}"
@@ -132,17 +162,55 @@
 
         <hr class="detail-divider">
 
-        <!-- Requirements -->
+        <!-- Requirements — prototype.tsx 3 grid 카드 (연령 / 거주지 / 기타) -->
         <section class="detail-section">
-            <h2 class="detail-section-title">지원 대상 · 자격 요건</h2>
-            <div class="detail-content-box" th:text="${program.requirements}">
-                자격 요건 텍스트
+            <h2 class="detail-section-title">지원 대상</h2>
+            <div class="detail-requirement-grid">
+                <div class="detail-requirement-card">
+                    <div class="detail-requirement-icon">
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
+                             stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
+                            <circle cx="12" cy="7" r="4"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <div class="detail-requirement-key">연령</div>
+                        <div class="detail-requirement-value">만 19세 ~ 39세 청년</div>
+                    </div>
+                </div>
+                <div class="detail-requirement-card">
+                    <div class="detail-requirement-icon">
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
+                             stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/>
+                            <circle cx="12" cy="10" r="3"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <div class="detail-requirement-key">거주지</div>
+                        <div class="detail-requirement-value">경기도 거주 또는 활동 중인 청년</div>
+                    </div>
+                </div>
+                <div class="detail-requirement-card">
+                    <div class="detail-requirement-icon">
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
+                             stroke-width="1.5">
+                            <rect x="3" y="4" width="18" height="18" rx="2"/>
+                            <path d="M16 2v4M8 2v4M3 10h18" stroke-linecap="round"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <div class="detail-requirement-key">기타</div>
+                        <div class="detail-requirement-value" th:text="${program.requirements}">전 회차 참석 가능자 우대</div>
+                    </div>
+                </div>
             </div>
             <div class="detail-warning">
                 <span class="detail-warning-icon">⚠</span>
                 <span class="detail-warning-text">
-                    신청 전 <strong>자격 요건을 반드시 확인</strong>해주세요.
-                    요건 미충족 시 승인이 반려될 수 있습니다.
+                    신청 전 <strong>지원 대상을 반드시 확인</strong>해주세요.
+                    요건 미충족 시 프로그램 신청이 반려될 수 있습니다.
                 </span>
             </div>
         </section>
@@ -159,7 +227,99 @@
     </div>
 </main>
 
+<!-- 지도 모달 (prototype.tsx line 927~954) — JS hidden 토글 -->
+<div class="detail-map-modal" id="mapModal" aria-hidden="true">
+    <div class="detail-map-overlay" data-map-close></div>
+    <div class="detail-map-dialog" role="dialog" aria-labelledby="mapModalTitle">
+        <div class="detail-map-head">
+            <span id="mapModalTitle" class="detail-map-title">진행 장소</span>
+            <button type="button" class="detail-map-close" data-map-close aria-label="닫기">×</button>
+        </div>
+        <div class="detail-map-canvas">
+            <div class="detail-map-grid-bg"></div>
+            <div class="detail-map-pin-wrap">
+                <div class="detail-map-pin">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#fff"
+                         stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/>
+                        <circle cx="12" cy="10" r="3"/>
+                    </svg>
+                </div>
+                <span class="detail-map-pin-label" th:text="${program.organization}">기관</span>
+            </div>
+            <span class="detail-map-watermark">지도 이미지 (카카오/네이버 지도 SDK 연동 예정)</span>
+        </div>
+        <div class="detail-map-body">
+            <div class="detail-map-center-name" th:text="${program.organization}">기관</div>
+            <div class="detail-map-address" th:text="'경기도 ' + ${program.region} + ' 청년로 123, 3층'">
+                경기도 ○○시 청년로 123, 3층
+            </div>
+            <div class="detail-map-actions">
+                <button type="button" class="detail-map-btn-secondary" data-copy-address
+                        th:data-address="'경기도 ' + ${program.region} + ' 청년로 123, 3층'">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <circle cx="18" cy="5" r="3"/>
+                        <circle cx="6" cy="12" r="3"/>
+                        <circle cx="18" cy="19" r="3"/>
+                        <path d="M8.59 13.51l6.83 3.98M15.41 6.51l-6.82 3.98"/>
+                    </svg>
+                    주소 복사
+                </button>
+                <button type="button" class="detail-map-btn-primary"
+                        onclick="alert('길찾기 — 추후 카카오/네이버 지도 SDK 연동')">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#fff"
+                         stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/>
+                        <circle cx="12" cy="10" r="3"/>
+                    </svg>
+                    길찾기
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div th:replace="~{fragments/footer :: footer}"></div>
+
+<script>
+    // 공유 버튼 — URL 클립보드 복사
+    document.querySelectorAll('[data-share-btn]').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            try {
+                await navigator.clipboard.writeText(window.location.href);
+                alert('URL이 클립보드에 복사되었습니다.');
+            } catch (e) {
+                alert('URL 복사에 실패했습니다.');
+            }
+        });
+    });
+
+    // 지도 모달 toggle
+    const mapModal = document.getElementById('mapModal');
+    document.querySelectorAll('[data-map-toggle]').forEach(b => {
+        b.addEventListener('click', () => {
+            mapModal.setAttribute('aria-hidden', 'false');
+        });
+    });
+    document.querySelectorAll('[data-map-close]').forEach(b => {
+        b.addEventListener('click', () => {
+            mapModal.setAttribute('aria-hidden', 'true');
+        });
+    });
+
+    // 주소 복사 (모달 안)
+    document.querySelectorAll('[data-copy-address]').forEach(b => {
+        b.addEventListener('click', async () => {
+            const addr = b.getAttribute('data-address');
+            try {
+                await navigator.clipboard.writeText(addr);
+                alert('주소가 복사되었습니다.');
+            } catch (e) {
+                alert('주소 복사에 실패했습니다.');
+            }
+        });
+    });
+</script>
 
 </body>
 </html>
