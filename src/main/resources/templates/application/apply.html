@@ -3,75 +3,115 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title th:text="${program.title} + ' 신청 — youth-moa'">프로그램 신청</title>
+    <title th:text="${program.title} + ' 신청 — 청년모아'">프로그램 신청</title>
     <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"
           rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/main.css}">
 </head>
 <body>
 
+<!--
+  prototype.tsx ProgramApply (line 962~1017) 기준:
+  - 폭 max-width 700px
+  - 헤더 있음 / 푸터 있음
+  - 상단: "← 이전으로" 링크 + "프로그램 신청" h2 (가운데 정렬)
+  - Summary 카드: 80x80 이미지 + Badge "진행중" + 제목 + 기관·기간
+  - 섹션 1 (신청자 정보): 이름/핸드폰/이메일 readonly + 이메일 안내 note
+  - 섹션 2 (추가 정보): 지원 동기 textarea (88px height)
+  - 섹션 3 (개인정보 수집 동의): 동의 내용 박스 (maxHeight 130) + 라디오 원형 동의
+  - 하단: "신청하기" Btn primary L (가운데, width:220)
+-->
+
 <div th:replace="~{fragments/header :: header('programs')}"></div>
 
-<main class="main-content">
-    <div class="detail-container">
+<main class="apply-screen">
+    <div class="apply-inner">
 
-        <a th:href="@{/programs/{id}(id=${program.id})}" class="detail-back-link">
-            <span class="arrow-left">←</span> 프로그램 상세로
+        <!-- ← 이전으로 -->
+        <a th:href="@{/programs/{id}(id=${program.id})}" class="apply-back-link">
+            <span class="apply-back-arrow">←</span> 이전으로
         </a>
 
-        <h1 class="apply-title">프로그램 신청</h1>
+        <h2 class="apply-title">프로그램 신청</h2>
 
-        <!-- Program summary -->
-        <section class="apply-program-summary">
-            <div class="apply-program-image">
+        <!-- Summary 카드 -->
+        <div class="apply-summary-card">
+            <div class="apply-summary-image">
                 <img th:if="${program.imageUrl != null}" th:src="${program.imageUrl}" alt="">
-                <div th:if="${program.imageUrl == null}" class="apply-program-placeholder"
+                <div th:if="${program.imageUrl == null}" class="apply-summary-placeholder"
                      th:text="${program.category}">카테고리</div>
             </div>
-            <div class="apply-program-meta">
-                <span th:class="'status-badge ' + ${program.status.cssClass}"
+            <div class="apply-summary-meta">
+                <span th:class="'apply-summary-badge ' + ${program.status.cssClass}"
                       th:text="${program.status.label}">진행중</span>
-                <h2 th:text="${program.title}">프로그램 제목</h2>
-                <p th:text="${program.organization + ' · ' + program.region}">기관 · 지역</p>
-                <p class="apply-program-date"
-                   th:if="${program.startDate != null and program.endDate != null}"
-                   th:text="${#temporals.format(program.startDate, 'yyyy.MM.dd') + ' ~ ' + #temporals.format(program.endDate, 'yyyy.MM.dd')}">
-                    기간
-                </p>
+                <div class="apply-summary-title" th:text="${program.title}">프로그램 제목</div>
+                <div class="apply-summary-sub">
+                    <span th:text="${program.organization}">기관</span>
+                    <span th:if="${program.startDate != null and program.endDate != null}"
+                          th:text="' · ' + ${#temporals.format(program.startDate, 'yyyy.MM.dd')} + ' ~ ' + ${#temporals.format(program.endDate, 'yyyy.MM.dd')}">
+                        · 기간
+                    </span>
+                </div>
             </div>
-        </section>
+        </div>
 
-        <!-- Server-side error from redirect (e.g. 중복 신청) -->
+        <!-- 서버 측 에러 (redirect flash) -->
         <div th:if="${applyError}" class="alert alert-error" th:text="${applyError}"></div>
 
-        <!-- Apply form -->
         <form th:action="@{/programs/{id}/apply(id=${program.id})}"
-              th:object="${applyRequest}" method="post" class="apply-form">
+              th:object="${applyRequest}" method="post" novalidate>
 
-            <div class="form-group" th:classappend="${#fields.hasErrors('applyReason')} ? 'has-error'">
-                <label for="applyReason">
-                    신청 사유 <span class="required">*</span>
-                </label>
+            <!-- Bean Validation global error -->
+            <div th:if="${#fields.hasGlobalErrors()}" class="alert alert-error">
+                <div th:each="err : ${#fields.globalErrors()}" th:text="${err}"></div>
+            </div>
+
+            <!-- ════ 섹션 1: 신청자 정보 (readonly) ════ -->
+            <div class="apply-section-title">신청자 정보</div>
+            <div class="apply-applicant-fields">
+                <div class="apply-applicant-field">
+                    <span class="apply-applicant-label">이름</span>
+                    <div class="apply-applicant-value" th:text="${currentUser.name}">박시현</div>
+                </div>
+                <div class="apply-applicant-field">
+                    <span class="apply-applicant-label">핸드폰 번호</span>
+                    <div class="apply-applicant-value"
+                         th:text="${currentUser.phone != null ? currentUser.phone : '— (마이페이지에서 등록)'}">010-1234-5678</div>
+                </div>
+                <div class="apply-applicant-field">
+                    <span class="apply-applicant-label">이메일</span>
+                    <div class="apply-applicant-value" th:text="${currentUser.email}">user@example.com</div>
+                    <div class="apply-applicant-note">이메일을 통해 프로그램 관련 알림을 드립니다.</div>
+                </div>
+            </div>
+
+            <!-- ════ 섹션 2: 추가 정보 ════ -->
+            <div class="apply-section-title">추가 정보</div>
+            <div class="apply-extra-block" th:classappend="${#fields.hasErrors('applyReason')} ? 'has-error'">
+                <label for="applyReason" class="apply-extra-label">지원 동기</label>
                 <textarea id="applyReason" th:field="*{applyReason}"
-                          rows="8"
-                          placeholder="이 프로그램에 신청하는 이유와 기대하는 점을 자유롭게 작성해주세요. (10자 이상)"></textarea>
-                <span class="field-error" th:if="${#fields.hasErrors('applyReason')}"
-                      th:errors="*{applyReason}"></span>
-                <span class="field-hint">10자 이상 1000자 이하로 작성해주세요.</span>
+                          placeholder="지원 동기를 입력해주세요."
+                          class="apply-textarea"></textarea>
+                <p class="apply-field-error" th:if="${#fields.hasErrors('applyReason')}"
+                   th:errors="*{applyReason}"></p>
             </div>
 
-            <div class="apply-notice">
-                <strong>⚠ 신청 전 확인사항</strong>
-                <ul>
-                    <li>신청 후에는 관리자의 심사를 거쳐 승인 / 반려가 결정됩니다.</li>
-                    <li>신청 결과는 마이페이지에서 확인할 수 있습니다.</li>
-                    <li>신청 후 취소는 가능하지만, 반려된 신청은 다시 신청할 수 없습니다.</li>
-                </ul>
+            <!-- ════ 섹션 3: 개인정보 수집 동의 ════ -->
+            <div class="apply-section-title">개인정보 수집 동의</div>
+            <div class="apply-privacy-box">
+                <strong>개인정보수집 및 초상 이용</strong><br><br>
+                1. 개인정보 수집 항목: 성명, 생년월일, 성별, 연락처<br>
+                2. 이용목적: 강좌신청 예약 접수 및 홍보 목적
             </div>
+            <label class="apply-privacy-agree" th:classappend="${#fields.hasErrors('privacyAgreed')} ? 'has-error'">
+                <input type="checkbox" th:field="*{privacyAgreed}">
+                <span class="apply-privacy-radio"></span>
+                <span class="apply-privacy-text">동의합니다</span>
+            </label>
 
+            <!-- ════ 액션 ════ -->
             <div class="apply-actions">
-                <a th:href="@{/programs/{id}(id=${program.id})}" class="btn-cancel">취소</a>
-                <button type="submit" class="btn-primary btn-lg">신청하기</button>
+                <button type="submit" class="btn-auth btn-auth--primary apply-submit-btn">신청하기</button>
             </div>
         </form>
     </div>
