@@ -42,3 +42,6 @@ logging:
     root: INFO
     io.github.sihyuuun.youthmoa: DEBUG
     org.hibernate.SQL: DEBUG
+    # F0b 디버그 — /signup 302 redirect 진단용 (해결 후 제거)
+    org.springframework.security.web.FilterChainProxy: DEBUG
+    org.springframework.security.web.access: DEBUG
