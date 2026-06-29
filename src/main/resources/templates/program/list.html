@@ -8,6 +8,7 @@
     <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"
           rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/main.css}">
+    <script th:src="@{/webjars/htmx.org/dist/htmx.min.js}" defer></script>
 </head>
 <body>
 
@@ -136,6 +137,8 @@
                             </p>
                         </div>
                     </a>
+                    <!-- 즐겨찾기 ★ overlay (a 태그 밖, button 이 article 의 직접 자식이 되어 absolute 적용) -->
+                    <div th:replace="~{fragments/bookmark-button :: button(programId=${p.id}, bookmarked=${bookmarkedIds.contains(p.id)}, styleClass='card-bookmark-btn')}"></div>
                 </article>
             </div>
 

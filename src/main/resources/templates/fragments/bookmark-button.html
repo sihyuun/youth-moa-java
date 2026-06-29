@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+
+<!--
+  bookmark-button fragment
+  ─────────────────────────────────────────────
+  변수:
+    - programId (Long, 필수)
+    - bookmarked (boolean, 필수): 현재 사용자가 이 프로그램을 즐겨찾기했는지
+    - styleClass (String, 필수): 상세 페이지면 'detail-action-icon', 카드면 'card-bookmark-btn'
+  동작:
+    - 인증된 사용자: HTMX POST /bookmarks/programs/{id}/toggle → 자기 자신 outerHTML 교체
+    - 비인증 사용자: /login 으로 이동
+-->
+
+<th:block th:fragment="button(programId, bookmarked, styleClass)">
+
+    <!-- 인증 상태 -->
+    <button sec:authorize="isAuthenticated()"
+            type="button"
+            th:hx-post="@{/bookmarks/programs/{id}/toggle(id=${programId})}"
+            hx-swap="outerHTML"
+            th:class="${styleClass + ' bookmark-btn' + (bookmarked ? ' is-bookmarked' : '')}"
+            th:title="${bookmarked} ? '즐겨찾기 해제' : '즐겨찾기 추가'">
+        <span th:text="${bookmarked} ? '★' : '☆'">☆</span>
+    </button>
+
+    <!-- 비인증 상태 → 로그인 페이지로 -->
+    <a sec:authorize="!isAuthenticated()"
+       th:href="@{/login}"
+       th:class="${styleClass + ' bookmark-btn'}"
+       title="로그인 후 즐겨찾기 사용 가능">
+        <span>☆</span>
+    </a>
+
+</th:block>
+
+</body>
+</html>

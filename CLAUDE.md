@@ -105,6 +105,75 @@ sdk use java 21-tem  # 또는 17
 
 ---
 
+## 검증 규칙 (필수)
+
+> **배경**: 2026-06-26 까지 4 PR 동안 `application.yml` 의 `static-path-pattern: /static/**` 잘못된 설정으로 모든 정적 리소스 (CSS/JS/IMG) 가 302 redirect 되어 화면 전체가 깨진 상태로 누적됨. 단 한 번도 직접 페이지를 열어 보지 않아 발견 못 함. 이 사고를 반복하지 않기 위한 규칙.
+
+### 정적 검증 — 매 작업 필수
+
+- `./gradlew compileJava test --tests <class>` 통과
+- 보고 시 **"정적 검증 ✅"** 으로 명시
+
+### 동적 검증 — 화면 변경 포함 작업은 매 PR 필수
+
+**다음 중 하나라도 변경되면 commit 전 반드시 직접 동적 검증한다:**
+- Thymeleaf 템플릿 (`.html`)
+- CSS (`main.css` 등)
+- 정적 리소스 (`static/**`)
+- Controller 의 view 이름 / 모델 변수 변경
+- SecurityConfig 의 URL 패턴 변경
+- `application.yml` 의 `spring.mvc` / `spring.web` / `spring.thymeleaf` 설정 변경
+
+**검증 절차:**
+
+1. 사용자에게 bootRun 상태 확인 (안 떠 있으면 띄워 달라 요청)
+2. **페이지 응답 코드 확인**
+   ```bash
+   curl -s -o /dev/null -w "%{http_code}\n" http://localhost:8080/<path>
+   ```
+3. **정적 리소스 응답 코드 확인** — 모두 200 OK 여야 함
+   ```bash
+   curl -s -o /dev/null -w "%{http_code}\n" http://localhost:8080/css/main.css
+   curl -s -o /dev/null -w "%{http_code}\n" http://localhost:8080/images/logo_symbol.png
+   curl -s -o /dev/null -w "%{http_code}\n" http://localhost:8080/webjars/htmx.org/dist/htmx.min.js
+   ```
+4. **HTML 마크업 검증** — 의도한 fragment / class / 컴포넌트가 렌더링됐는지
+   ```bash
+   curl -s http://localhost:8080/<path> | grep -A 10 "<특정 클래스 또는 마크업>"
+   ```
+5. **Thymeleaf 표현식 잔존 여부 확인** — `${...}`, `th:*` 가 응답 HTML 에 남아 있으면 렌더 실패
+6. 모두 이상 없을 때만 보고에 **"동적 검증 ✅"** 명시 후 commit 진행
+
+**금지 패턴:**
+
+- ❌ "동적 검증 ⏸ 사용자 확인 필요" 떠넘기기 (예외: 시각 디테일·인터랙션·반응형 등 curl 로 검증 불가한 항목만 명시적으로 분리)
+- ❌ 정적 검증만 통과하고 commit / PR / 머지 후 동적 검증
+- ❌ 누적 미검증 PR 만들기 (1 PR 단위로 즉시 동적 검증, 그렇지 않으면 누적 사고)
+
+### 시각 검증 — 사용자 확인 영역
+
+- 색감·폰트·반응형·인터랙션·HTMX 동작 같은 시각·동작 요소는 사용자 브라우저 확인
+- 이 경우에도 **정적/동적(curl) 검증은 Claude 가 선행** — "다 깨졌는데 왜 검증 안 함?" 사고 재발 방지
+- 사용자에게 시각 확인 요청 시 정확한 URL + 확인 포인트 명시
+
+### 결과 보고 시 분리 표기
+
+PR 본문·커밋 본문·메시지 모두 정적·동적·시각 검증 범위를 분리해서 표기:
+
+```
+## 정적 검증
+- compile + N 클래스 / M TC PASS ✅
+
+## 동적 검증
+- GET /<path> 200 OK + 정적 리소스 200 OK ✅
+- HTML 에 <expected markup> 정상 렌더 확인 ✅
+
+## 시각 확인 (사용자 영역)
+- 브라우저에서 ⟨A⟩ 토글 시 ⟨B⟩ 동작
+```
+
+---
+
 ## Git 브랜치·커밋 컨벤션
 
 ### 전략: GitHub Flow 변형 (1인 학습 프로젝트 맞춤)
