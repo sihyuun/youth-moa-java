@@ -1,5 +1,7 @@
 package io.github.sihyuuun.youthmoa.program;
 
+import io.github.sihyuuun.youthmoa.application.ApplicationRepository;
+import io.github.sihyuuun.youthmoa.application.ApplicationStatus;
 import io.github.sihyuuun.youthmoa.bookmark.BookmarkService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -11,12 +13,15 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.util.List;
+
 @Controller
 @RequiredArgsConstructor
 public class ProgramController {
 
     private final ProgramService programService;
     private final BookmarkService bookmarkService;
+    private final ApplicationRepository applicationRepository;
 
     @GetMapping("/programs")
     public String list(
@@ -55,9 +60,26 @@ public class ProgramController {
         boolean bookmarked = principal != null
                 && bookmarkService.isBookmarked(principal.getUsername(), id);
 
+        // prototype.tsx capInfo() — applied / capacity 비율 + 경쟁률
+        long appliedCount = applicationRepository.countByProgramAndStatusIn(
+                program,
+                List.of(ApplicationStatus.PENDING, ApplicationStatus.APPROVED)
+        );
+
+        int applicationRate = 0;
+        String competitionRatio = "0.0";
+        if (program.getCapacity() != null && program.getCapacity() > 0) {
+            double ratio = (double) appliedCount / program.getCapacity();
+            applicationRate = Math.min(100, (int) Math.round(ratio * 100));
+            competitionRatio = String.format("%.1f", ratio);
+        }
+
         model.addAttribute("currentPage", "programs");
         model.addAttribute("program", program);
         model.addAttribute("bookmarked", bookmarked);
+        model.addAttribute("appliedCount", appliedCount);
+        model.addAttribute("applicationRate", applicationRate);
+        model.addAttribute("competitionRatio", competitionRatio);
         return "program/detail";
     }
 }
