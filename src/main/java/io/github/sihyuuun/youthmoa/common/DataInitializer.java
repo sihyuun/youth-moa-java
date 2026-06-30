@@ -91,15 +91,17 @@ public class DataInitializer implements ApplicationRunner {
                         .startDate(today.plusDays(21)).endDate(today.plusDays(180))
                         .capacity(20).build(),
 
-                Program.builder()
-                        .title("주거 지원 청년 매칭")
-                        .organization("딴딴회관")
-                        .category("주거").region("군포시")
-                        .imageUrl("https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=460&h=340&fit=crop")
-                        .content("청년 주거 상담 + 매물 매칭 + 보증금 지원 안내.")
-                        .requirements("만 19~34세 무주택 청년")
-                        .startDate(today.minusDays(3)).endDate(today.plusDays(21))
-                        .capacity(null).build(),
+                // ⏸ '주거' 카테고리 — prototype.html 4종(취업/창업/힐링/교육)과 정합 위해 임시 비활성화 (2026-06-30)
+                //   살릴지 결정 후 주석 해제 또는 완전 삭제. 살릴 경우 카테고리 5종으로 복귀.
+                // Program.builder()
+                //         .title("주거 지원 청년 매칭")
+                //         .organization("딴딴회관")
+                //         .category("주거").region("군포시")
+                //         .imageUrl("https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=460&h=340&fit=crop")
+                //         .content("청년 주거 상담 + 매물 매칭 + 보증금 지원 안내.")
+                //         .requirements("만 19~34세 무주택 청년")
+                //         .startDate(today.minusDays(3)).endDate(today.plusDays(21))
+                //         .capacity(null).build(),
 
                 Program.builder()
                         .title("청년 문화예술 스쿨")
