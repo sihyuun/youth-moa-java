@@ -48,3 +48,10 @@ dependencies {
 tasks.withType<Test> {
 	useJUnitPlatform()
 }
+
+// bootRun 이 build/resources/main 대신 src/main/resources 를 직접 사용하도록.
+// DevTools 가 소스 변경을 즉시 감지하려면 이 설정이 필수.
+// (없으면 .html 변경 후 ./gradlew processResources 강제 실행 필요)
+tasks.named<org.springframework.boot.gradle.tasks.run.BootRun>("bootRun") {
+	sourceResources(sourceSets["main"])
+}
