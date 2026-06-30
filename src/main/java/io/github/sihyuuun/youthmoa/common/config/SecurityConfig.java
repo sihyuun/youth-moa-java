@@ -15,7 +15,7 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests(auth -> auth
                         // 인증 페이지는 우선 permit (Spring Security 7 매처 동작 이슈 회피용 단독 명시)
-                        .requestMatchers("/login", "/signup").permitAll()
+                        .requestMatchers("/login", "/signup", "/api/users/check-email").permitAll()
                         // 인증 필요 (먼저 매칭되어 permitAll 보다 우선)
                         .requestMatchers("/programs/*/apply", "/bookmarks/**").authenticated()
                         // 그 외 비인증 허용

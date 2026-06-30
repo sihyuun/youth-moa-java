@@ -9,12 +9,26 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import java.util.Map;
 
 @Controller
 @RequiredArgsConstructor
 public class UserController {
 
     private final UserService userService;
+    private final UserRepository userRepository;
+
+    /** 회원가입 — 아이디 중복확인 API. signup.html 의 [중복확인] 버튼에서 fetch 호출. */
+    @GetMapping("/api/users/check-email")
+    @ResponseBody
+    public Map<String, Boolean> checkEmail(@RequestParam String email) {
+        boolean available = email != null
+                && !email.isBlank()
+                && !userRepository.existsByEmail(email);
+        return Map.of("available", available);
+    }
 
     @GetMapping("/login")
     public String loginPage(@RequestParam(required = false) String error,
