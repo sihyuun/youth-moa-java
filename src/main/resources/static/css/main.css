@@ -1475,6 +1475,13 @@ code {
 }
 .apply-textarea:focus { border-color: var(--color-primary); }
 .apply-textarea::placeholder { color: var(--color-text-tri); }
+
+.apply-textarea-counter {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--color-text-tri);
+  text-align: right;
+}
 .apply-textarea:not(:placeholder-shown):not(:focus) {
   border-color: var(--color-primary);
 }
@@ -1518,7 +1525,7 @@ code {
 }
 
 /* 원형 라디오 (prototype.tsx 의 동의 체크 — 라디오 모양) */
-.apply-privacy-radio {
+.apply-privacy-checkbox {
   width: 20px;
   height: 20px;
   border-radius: 50%;
@@ -1529,10 +1536,10 @@ code {
   flex-shrink: 0;
   transition: border-color 0.15s;
 }
-.apply-privacy-agree input[type="checkbox"]:checked + .apply-privacy-radio {
+.apply-privacy-agree input[type="checkbox"]:checked + .apply-privacy-checkbox {
   border-color: var(--color-primary);
 }
-.apply-privacy-agree input[type="checkbox"]:checked + .apply-privacy-radio::after {
+.apply-privacy-agree input[type="checkbox"]:checked + .apply-privacy-checkbox::after {
   content: '';
   width: 10px;
   height: 10px;
@@ -1545,7 +1552,7 @@ code {
   color: var(--color-text);
 }
 
-.apply-privacy-agree.has-error .apply-privacy-radio {
+.apply-privacy-agree.has-error .apply-privacy-checkbox {
   border-color: var(--color-error);
 }
 
@@ -1920,6 +1927,27 @@ code {
 .signup-eye-btn:hover { color: var(--color-text-sec); }
 .signup-eye-btn.is-visible { color: var(--color-primary); }
 
+/* login 화면 — signup 의 눈 아이콘 패턴 재사용 (클래스명만 auth-* 로) */
+.auth-input-with-eye { position: relative; }
+.auth-input--with-eye { padding-right: 44px; }
+.auth-eye-btn {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  color: var(--color-text-tri);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s;
+}
+.auth-eye-btn:hover { color: var(--color-text-sec); }
+.auth-eye-btn.is-visible { color: var(--color-primary); }
+
 /* 우편번호 검색 버튼 (아이콘 + 텍스트) */
 .signup-search-btn {
   display: inline-flex;
@@ -1936,6 +1964,11 @@ code {
   font-size: 12px;
   color: var(--color-error);
   display: block;
+}
+
+/* 정책 충족 피드백 (컬리 패턴) — error 와 같은 .signup-field-error 위에 toggle */
+.signup-field-error.signup-field-ok {
+  color: var(--color-success);
 }
 
 /* row 형태 (input + 우측 보조 버튼) */
