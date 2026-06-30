@@ -323,6 +323,88 @@ Spring Security 7 변경:
 
 ---
 
+## Thymeleaf / Spring Form 주의사항
+
+이 프로젝트에서 실제로 사고 났던 패턴 모음. 새 화면 작업 전 일독 권장.
+
+### `th:field` 의 type=password 동작
+`<input type="password" th:field="*{password}">` 는 **보안상 value 를 강제로 빈 문자열로 출력**. 검증 실패 후 폼 재표시 시 비밀번호 입력값이 사라지는 사고 발생.
+
+```html
+<!-- ❌ 검증 실패 후 value 가 비어짐 -->
+<input type="password" th:field="*{password}">
+
+<!-- ✅ name + th:value 수동 명시 → 값 보존 -->
+<input type="password" id="password" name="password" th:value="*{password}">
+```
+
+`th:errors` 는 form 의 `th:object` 만 있으면 그대로 동작하므로 위 변경은 에러 표시에 영향 없음.
+
+### `th:field` 가 checkbox id 를 자동 변경
+`<input type="checkbox" th:field="*{termsAgreed}">` 의 실제 id 는 `termsAgreed1` 처럼 숫자 접미사가 붙음.
+JS 에서 같은 폼 내 체크박스 제어 시 `getElementById('termsAgreed')` 는 null. **항상 name 으로 querySelector 사용**.
+
+```javascript
+// ❌ null
+document.getElementById('termsAgreed')
+
+// ✅
+document.querySelector('input[type="checkbox"][name="termsAgreed"]')
+```
+
+### 정적 리소스 `static-path-pattern` 함정
+`application.yml` 의 `spring.mvc.static-path-pattern: /static/**` 같은 설정을 두면 모든 정적 리소스가 `/static/` prefix 가 없는 한 404 → SecurityConfig 가 매칭 못 함 → 302 redirect → 화면 전체 깨짐.
+
+해당 설정은 **두지 않는다**. `/css/**`, `/images/**`, `/webjars/**`, `/favicon.ico` 가 자동으로 서빙되는 기본 동작 유지.
+
+### Thymeleaf cache + bootRun 의 sourceResources
+- `application.yml`: `spring.thymeleaf.cache: false` 기본 적용 (개발 시 즉시 반영)
+- `build.gradle.kts`: `bootRun { sourceResources(sourceSets["main"]) }` 적용 (2026-06-30 도입) → src/main/resources 가 classpath 에 직접 들어가 `.html` 변경 즉시 반영. `./gradlew processResources` 강제 실행 **불필요**.
+- DevTools (`spring-boot-devtools` developmentOnly) 와 함께 작동 → Java 파일 변경 시 자동 restart.
+
+### Form binding 의 boolean
+hidden input 의 `value="true"` / `"false"` 를 Spring Form Binder 가 자동으로 boolean 으로 변환. JS 에서 `hidden.value = 'true'` 처럼 문자열로 set 해도 OK.
+
+---
+
+## 메시지 어조 통일 규칙 (안 B)
+
+회원가입·신청 등 폼 검증 메시지는 **`~해야 합니다.`** 패턴으로 통일.
+
+### 적용 형식
+- 단일 조건 누락: `"X 는 Y 이어야 합니다."` / `"X 를 포함해야 합니다."`
+- 다중 조건 누락: `"X 는 Y 이어야 하고, Z 해야 합니다."`
+- 필수 입력 (NotBlank): `"X 를 입력해주세요."` (요청형 유지)
+- 상태/사실 안내 (도메인 에러): `"이미 신청한 프로그램입니다."` 같은 서술형 유지
+
+### 적용 위치
+| 위치 | 예시 |
+|---|---|
+| `@Pattern(message=...)` | `"비밀번호는 영문과 숫자를 모두 포함해야 합니다."` |
+| `@Size(message=...)` | `"비밀번호는 8자 이상이어야 합니다."` |
+| `@AssertTrue(message=...)` | `"아이디 중복확인을 진행해주세요."` |
+| 클라이언트 JS 동적 메시지 | 누락 조건 조립: `"비밀번호는 8자 이상이어야 하고, 영문을 포함해야 합니다."` |
+
+### 통일 안 한 어조 (혼란 사례)
+- ❌ `"비밀번호 조건: 8자 이상 · 숫자 포함 필요합니다."` ("필요합니다" 는 어디에도 안 맞음)
+- ❌ `"~해주세요"` 가 검증/제약 메시지에 섞임 (요청형은 NotBlank 만)
+
+---
+
+## 검증 자산 — 에이전트 / 스킬
+
+| 자산 | 경로 | 호출 |
+|---|---|---|
+| `ym-spec` 에이전트 | `~/.claude/agents/ym-spec.md` | 새 화면 작업 명세 산출 (prototype 3자산 비교) |
+| `ym-impl` 에이전트 | `~/.claude/agents/ym-impl.md` | 명세 → 풀스택 구현 |
+| `ym-qa` 에이전트 | `~/.claude/agents/ym-qa.md` | 단위 테스트 + 정적/동적/회귀 검증 |
+| `/qa` Skill | (도입 예정) | ym-qa 의 표준 절차 일괄 실행 |
+| `/prototype-check` Skill | (도입 예정) | prototype vs Thymeleaf 갭 정기 스캔 |
+
+화면 작업 표준 사이클: **ym-spec → 사용자 컨펌 → ym-impl → ym-qa → 머지**.
+
+---
+
 ## 미완성 / 다음 작업
 
 메모리 `project_youth_moa_java.md` 의 "다음 작업 후보" 섹션을 우선 확인.
