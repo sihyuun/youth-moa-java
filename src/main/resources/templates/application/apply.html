@@ -91,8 +91,13 @@
             <div class="apply-extra-block" th:classappend="${#fields.hasErrors('applyReason')} ? 'has-error'">
                 <label for="applyReason" class="apply-extra-label">지원 동기</label>
                 <textarea id="applyReason" th:field="*{applyReason}"
-                          placeholder="지원 동기를 입력해주세요."
-                          class="apply-textarea"></textarea>
+                          placeholder="이 프로그램에 지원하는 이유를 자유롭게 작성해주세요. (예: 진로 탐색, 역량 강화 등)"
+                          class="apply-textarea"
+                          maxlength="500"></textarea>
+                <!-- 글자 수 카운터 (토스 패턴) — 최소 글자 수 정책은 결정 대기, 일단 표시만 -->
+                <div class="apply-textarea-counter">
+                    <span id="applyReasonCount">0</span> / 500자
+                </div>
                 <p class="apply-field-error" th:if="${#fields.hasErrors('applyReason')}"
                    th:errors="*{applyReason}"></p>
             </div>
@@ -106,7 +111,7 @@
             </div>
             <label class="apply-privacy-agree" th:classappend="${#fields.hasErrors('privacyAgreed')} ? 'has-error'">
                 <input type="checkbox" th:field="*{privacyAgreed}">
-                <span class="apply-privacy-radio"></span>
+                <span class="apply-privacy-checkbox"></span>
                 <span class="apply-privacy-text">동의합니다</span>
             </label>
 
@@ -119,6 +124,18 @@
 </main>
 
 <div th:replace="~{fragments/footer :: footer}"></div>
+
+<script>
+    // 지원 동기 글자 수 카운터 (토스 패턴)
+    (function () {
+        const ta = document.getElementById('applyReason');
+        const counter = document.getElementById('applyReasonCount');
+        if (!ta || !counter) return;
+        function update() { counter.textContent = ta.value.length; }
+        ta.addEventListener('input', update);
+        update();
+    })();
+</script>
 
 </body>
 </html>

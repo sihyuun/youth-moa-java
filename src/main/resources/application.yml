@@ -37,6 +37,13 @@ server:
   error:
     include-message: always
 
+# Spring Security remember-me (PersistentToken) 설정
+# - key: hash 에 사용되는 서버 secret. 운영 시 반드시 환경변수로 분리.
+# - 학습 단계 default 는 dev-only.
+security:
+  remember-me:
+    key: ${REMEMBER_ME_KEY:dev-only-remember-me-key-change-in-prod}
+
 logging:
   level:
     root: INFO

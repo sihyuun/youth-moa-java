@@ -47,18 +47,25 @@
 
             <!-- 인증 상태: 아바타 + 이름 + ▾ 드롭다운 -->
             <div sec:authorize="isAuthenticated()" class="header-user-menu">
-                <button type="button" class="header-user-trigger">
+                <!-- 드롭다운은 CSS :hover / :focus-within 만으로 열림. JS 토글 도입 시 aria-expanded 동기화 추가. -->
+                <button type="button" class="header-user-trigger"
+                        aria-haspopup="menu" aria-controls="header-user-dropdown">
                     <span class="header-avatar" aria-hidden="true"
                           th:text="${#strings.substring(#authentication.principal.displayName, 0, 1)}">박</span>
                     <span class="header-user-name">
                         <sec:authentication property="principal.displayName"/>님
                     </span>
-                    <span class="header-chev">▾</span>
+                    <!-- chevron-down SVG (▾ 문자 대체) -->
+                    <svg class="header-chev" viewBox="0 0 24 24" width="14" height="14"
+                         fill="none" stroke="currentColor" stroke-width="2"
+                         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <polyline points="6 9 12 15 18 9"/>
+                    </svg>
                 </button>
-                <div class="header-user-dropdown">
-                    <a th:href="@{/mypage}" class="header-dropdown-item">마이페이지</a>
+                <div id="header-user-dropdown" class="header-user-dropdown" role="menu">
+                    <a th:href="@{/mypage}" class="header-dropdown-item" role="menuitem">마이페이지</a>
                     <form th:action="@{/logout}" method="post" class="header-dropdown-logout">
-                        <button type="submit" class="header-dropdown-item">로그아웃</button>
+                        <button type="submit" class="header-dropdown-item" role="menuitem">로그아웃</button>
                     </form>
                 </div>
             </div>

@@ -87,7 +87,11 @@
                         </div>
                         <!-- 비밀번호 정책 실시간 검증 (입력 시 JS 가 토글) -->
                         <p class="signup-field-error" id="pw-policy-msg" style="display:none"></p>
-                        <p class="signup-field-error" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></p>
+                        <!-- 서버 검증 실패 — passwordPolicyMsg 있으면 통합 메시지, 없으면 @errors (NotBlank 등) -->
+                        <p class="signup-field-error" th:if="${passwordPolicyMsg}" th:text="${passwordPolicyMsg}"></p>
+                        <p class="signup-field-error"
+                           th:if="${#fields.hasErrors('password') and passwordPolicyMsg == null}"
+                           th:errors="*{password}"></p>
                     </div>
 
                     <!-- 비밀번호 확인 (눈 아이콘 토글 + 실시간 검증) -->
@@ -111,6 +115,8 @@
                         </div>
                         <p class="signup-field-error" id="pw-mismatch-msg" style="display:none">비밀번호가 일치하지 않습니다.</p>
                         <p class="signup-field-error" th:if="${#fields.hasErrors('passwordConfirm')}" th:errors="*{passwordConfirm}"></p>
+                        <!-- isPasswordMatched() @AssertTrue 결과 — Spring 이 "passwordMatched" 가상 필드 에러로 등록 -->
+                        <p class="signup-field-error" th:if="${#fields.hasErrors('passwordMatched')}" th:errors="*{passwordMatched}"></p>
                     </div>
                 </div>
             </section>
@@ -236,6 +242,9 @@
                     <a href="#" class="signup-agree-view"
                        onclick="alert('개인정보처리방침 내용입니다.'); return false;">약관보기 ›</a>
                 </div>
+
+                <!-- isAllTermsAccepted() @AssertTrue 결과 — Spring 이 "allTermsAccepted" 가상 필드 에러로 등록 -->
+                <p class="signup-field-error" th:if="${#fields.hasErrors('allTermsAccepted')}" th:errors="*{allTermsAccepted}"></p>
             </section>
 
             <!-- ════ 액션 ════ -->
@@ -290,6 +299,7 @@
             const v = pw.value;
             if (!v) {
                 msg.style.display = 'none';
+                msg.classList.remove('signup-field-ok');
                 pw.classList.remove('signup-input--mismatch');
                 return true;
             }
@@ -297,10 +307,14 @@
             if (text) {
                 msg.textContent = text;
                 msg.style.display = 'block';
+                msg.classList.remove('signup-field-ok');
                 pw.classList.add('signup-input--mismatch');
                 return false;
             }
-            msg.style.display = 'none';
+            // 정책 충족 — ✓ 초록 표시 (컬리 패턴: 충족 피드백)
+            msg.textContent = '✓ 비밀번호 조건을 모두 충족했습니다.';
+            msg.style.display = 'block';
+            msg.classList.add('signup-field-ok');
             pw.classList.remove('signup-input--mismatch');
             return true;
         }
