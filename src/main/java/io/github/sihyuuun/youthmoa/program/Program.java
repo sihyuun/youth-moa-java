@@ -32,7 +32,9 @@ public class Program extends BaseTimeEntity {
     @Column(nullable = false, length = 100)
     private String organization;
 
-    @Column(nullable = false, length = 50)
+    // ⏸ Q2 결정 (2026-06-30) — 카테고리 4종 보류 동안 nullable 로 변경.
+    //   살릴 경우 nullable=false 로 복귀.
+    @Column(length = 50)
     private String category;
 
     @Column(length = 50)
