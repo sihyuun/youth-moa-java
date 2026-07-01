@@ -1,5 +1,8 @@
 package io.github.sihyuuun.youthmoa.common;
 
+import io.github.sihyuuun.youthmoa.application.Application;
+import io.github.sihyuuun.youthmoa.application.ApplicationRepository;
+import io.github.sihyuuun.youthmoa.application.ApplicationStatus;
 import io.github.sihyuuun.youthmoa.center.Center;
 import io.github.sihyuuun.youthmoa.center.CenterRepository;
 import io.github.sihyuuun.youthmoa.notice.Notice;
@@ -8,11 +11,15 @@ import io.github.sihyuuun.youthmoa.program.Program;
 import io.github.sihyuuun.youthmoa.program.ProgramRepository;
 import io.github.sihyuuun.youthmoa.region.Region;
 import io.github.sihyuuun.youthmoa.region.RegionRepository;
+import io.github.sihyuuun.youthmoa.user.User;
+import io.github.sihyuuun.youthmoa.user.UserRepository;
+import io.github.sihyuuun.youthmoa.user.UserRole;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Profile;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,6 +41,9 @@ public class DataInitializer implements ApplicationRunner {
     private final CenterRepository centerRepository;
     private final NoticeRepository noticeRepository;
     private final SiteImageRepository siteImageRepository;
+    private final UserRepository userRepository;
+    private final ApplicationRepository applicationRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     @Transactional
@@ -42,6 +52,7 @@ public class DataInitializer implements ApplicationRunner {
         seedPrograms();
         seedSiteImages();
         seedNotices();
+        seedApplications();
     }
 
     private void seedSiteImages() {
@@ -279,5 +290,75 @@ public class DataInitializer implements ApplicationRunner {
 
         programRepository.saveAll(seeds);
         log.info("Seeded {} programs", seeds.size());
+    }
+
+    /**
+     * CapacityBar 시각 검증용 Application 시드.
+     * 시드 유저를 먼저 생성하고 세 가지 비율 케이스 데이터를 추가.
+     * ddl-auto: create-drop 이므로 매 기동 시 초기화됨.
+     */
+    private void seedApplications() {
+        if (applicationRepository.count() > 0) {
+            log.info("Applications already seeded, skip");
+            return;
+        }
+        List<Program> programs = programRepository.findAll();
+        if (programs.size() < 3) {
+            log.warn("Not enough programs to seed applications");
+            return;
+        }
+
+        // 더미 유저 30명 생성 (UniqueConstraint: user+program 쌍)
+        List<User> seedUsers = new ArrayList<>();
+        for (int i = 1; i <= 30; i++) {
+            String email = "seed" + i + "@youth-moa.test";
+            if (!userRepository.existsByEmail(email)) {
+                seedUsers.add(userRepository.save(
+                        User.builder()
+                                .email(email)
+                                .password(passwordEncoder.encode("Test1234!"))
+                                .name("시드유저" + i)
+                                .role(UserRole.USER)
+                                .build()
+                ));
+            } else {
+                userRepository.findByEmail(email).ifPresent(seedUsers::add);
+            }
+        }
+
+        // programs[0] = 취업역량 강화 워크숍 capacity=30 → 마감임박(90%+): 28명 신청
+        // programs[1] = 청년 창업 아카데미 capacity=25 → 서두르세요(70~89%): 19명 신청
+        // programs[2] = 마음건강 힐링 캠프 capacity=20 → 모집중(50% 이하): 6명 신청
+        List<Application> applications = new ArrayList<>();
+
+        // 마감임박 케이스: 28/30
+        for (int i = 0; i < 28 && i < seedUsers.size(); i++) {
+            applications.add(Application.builder()
+                    .user(seedUsers.get(i))
+                    .program(programs.get(0))
+                    .status(ApplicationStatus.APPROVED)
+                    .build());
+        }
+
+        // 서두르세요 케이스: 19/25
+        for (int i = 0; i < 19 && i < seedUsers.size(); i++) {
+            applications.add(Application.builder()
+                    .user(seedUsers.get(i))
+                    .program(programs.get(1))
+                    .status(ApplicationStatus.PENDING)
+                    .build());
+        }
+
+        // 모집중 케이스: 6/20
+        for (int i = 0; i < 6 && i < seedUsers.size(); i++) {
+            applications.add(Application.builder()
+                    .user(seedUsers.get(i))
+                    .program(programs.get(2))
+                    .status(ApplicationStatus.PENDING)
+                    .build());
+        }
+
+        applicationRepository.saveAll(applications);
+        log.info("Seeded {} applications (capacity bar test data)", applications.size());
     }
 }

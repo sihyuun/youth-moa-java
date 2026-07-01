@@ -1,5 +1,7 @@
 package io.github.sihyuuun.youthmoa.program;
 
+import io.github.sihyuuun.youthmoa.application.ApplicationRepository;
+import io.github.sihyuuun.youthmoa.application.ApplicationStatus;
 import io.github.sihyuuun.youthmoa.center.Center;
 import io.github.sihyuuun.youthmoa.center.CenterRepository;
 import io.github.sihyuuun.youthmoa.region.Region;
@@ -14,6 +16,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -22,9 +26,13 @@ public class ProgramService {
 
     private static final int PAGE_SIZE = 9;
 
+    private static final List<ApplicationStatus> ACTIVE_STATUSES =
+            List.of(ApplicationStatus.PENDING, ApplicationStatus.APPROVED);
+
     private final ProgramRepository programRepository;
     private final RegionRepository regionRepository;
     private final CenterRepository centerRepository;
+    private final ApplicationRepository applicationRepository;
 
     public Page<Program> search(String status, List<String> regions, List<String> centers,
                                 String sort, int page) {
@@ -85,5 +93,26 @@ public class ProgramService {
     public Program findById(Long id) {
         return programRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("프로그램을 찾을 수 없습니다: " + id));
+    }
+
+    /**
+     * Program 목록을 ProgramCardDto 로 변환 (IN 쿼리 1회로 N+1 방지).
+     * 카드 목록 표시 시 사용.
+     */
+    public List<ProgramCardDto> toCardDtos(List<Program> programs) {
+        if (programs.isEmpty()) return List.of();
+
+        List<Long> ids = programs.stream().map(Program::getId).collect(Collectors.toList());
+        Map<Long, Long> countMap = applicationRepository
+                .countByProgramIdsAndStatuses(ids, ACTIVE_STATUSES)
+                .stream()
+                .collect(Collectors.toMap(
+                        row -> (Long) row[0],
+                        row -> (Long) row[1]
+                ));
+
+        return programs.stream()
+                .map(p -> new ProgramCardDto(p, countMap.getOrDefault(p.getId(), 0L)))
+                .collect(Collectors.toList());
     }
 }

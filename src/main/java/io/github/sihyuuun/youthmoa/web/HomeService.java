@@ -6,7 +6,9 @@ import io.github.sihyuuun.youthmoa.common.SiteImage;
 import io.github.sihyuuun.youthmoa.common.SiteImageRepository;
 import io.github.sihyuuun.youthmoa.notice.Notice;
 import io.github.sihyuuun.youthmoa.notice.NoticeRepository;
+import io.github.sihyuuun.youthmoa.application.ApplicationStatus;
 import io.github.sihyuuun.youthmoa.program.Program;
+import io.github.sihyuuun.youthmoa.program.ProgramCardDto;
 import io.github.sihyuuun.youthmoa.program.ProgramRepository;
 import io.github.sihyuuun.youthmoa.user.User;
 import io.github.sihyuuun.youthmoa.user.UserRepository;
@@ -17,7 +19,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * 홈 화면 데이터 조합 로직.
@@ -31,6 +35,8 @@ public class HomeService {
 
     private static final String SLOT_HERO = "HERO_BANNER";
     private static final int RECOMMEND_SIZE = 4;
+    private static final List<ApplicationStatus> ACTIVE_STATUSES =
+            List.of(ApplicationStatus.PENDING, ApplicationStatus.APPROVED);
 
     private final ProgramRepository programRepository;
     private final CenterRepository centerRepository;
@@ -64,6 +70,30 @@ public class HomeService {
     /** Top 4 프로그램 — 모집중 + endDate ASC (마감임박). */
     public List<Program> findTopPrograms() {
         return programRepository.findTop4ByIsActiveTrueOrderByEndDateAsc();
+    }
+
+    /** Top 4 프로그램 → ProgramCardDto 변환 (CapacityBar용). */
+    public List<ProgramCardDto> findTopProgramCards() {
+        List<Program> programs = findTopPrograms();
+        return toCardDtos(programs);
+    }
+
+    /** 맞춤추천 → ProgramCardDto 변환 (CapacityBar용). */
+    public List<ProgramCardDto> findRecommendedProgramCards(Long userId) {
+        List<Program> programs = findRecommendedPrograms(userId);
+        return toCardDtos(programs);
+    }
+
+    private List<ProgramCardDto> toCardDtos(List<Program> programs) {
+        if (programs.isEmpty()) return List.of();
+        List<Long> ids = programs.stream().map(Program::getId).collect(Collectors.toList());
+        Map<Long, Long> countMap = applicationRepository
+                .countByProgramIdsAndStatuses(ids, ACTIVE_STATUSES)
+                .stream()
+                .collect(Collectors.toMap(row -> (Long) row[0], row -> (Long) row[1]));
+        return programs.stream()
+                .map(p -> new ProgramCardDto(p, countMap.getOrDefault(p.getId(), 0L)))
+                .collect(Collectors.toList());
     }
 
     /**

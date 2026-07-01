@@ -33,13 +33,13 @@ public class HomeController {
         model.addAttribute("centerCount", homeService.countCenters());
         model.addAttribute("totalApplicantCount", homeService.countTotalApplicants());
 
-        // 프로그램: 비로그인 = topPrograms / 로그인 = recommendedPrograms
+        // 프로그램: 비로그인 = topPrograms / 로그인 = recommendedPrograms (ProgramCardDto — CapacityBar 포함)
         if (principal != null) {
-            model.addAttribute("recommendedPrograms", homeService.findRecommendedPrograms(principal.getId()));
+            model.addAttribute("recommendedPrograms", homeService.findRecommendedProgramCards(principal.getId()));
             model.addAttribute("topPrograms", List.of());
             model.addAttribute("userDisplayName", principal.getDisplayName());
         } else {
-            model.addAttribute("topPrograms", homeService.findTopPrograms());
+            model.addAttribute("topPrograms", homeService.findTopProgramCards());
             model.addAttribute("recommendedPrograms", List.of());
         }
 

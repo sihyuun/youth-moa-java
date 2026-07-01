@@ -67,6 +67,9 @@ public class ProgramController {
                 bookmarkService.getBookmarkedProgramIds(
                         principal != null ? principal.getUsername() : null));
 
+        // CapacityBar용 DTO (IN 쿼리 1회, N+1 방지)
+        model.addAttribute("cardDtos", programService.toCardDtos(programs.getContent()));
+
         // htmx 부분 갱신
         if (hxRequest != null && !hxRequest.isBlank()) {
             return "program/_list-fragment :: list-region";

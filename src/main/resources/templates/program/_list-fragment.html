@@ -40,39 +40,55 @@
 
     <!-- 프로그램 카드 그리드 -->
     <div th:if="${programs.totalElements > 0}" class="program-grid">
-        <article th:each="p : ${programs.content}" class="program-card">
-            <a th:href="@{/programs/{id}(id=${p.id})}" class="program-card-link">
+        <article th:each="dto : ${cardDtos}"
+                 th:classappend="${dto.status.name() == 'CLOSED'} ? ' program-card--closed'"
+                 class="program-card">
+            <a th:href="@{/programs/{id}(id=${dto.id})}" class="program-card-link">
                 <div class="program-card-image">
-                    <img th:if="${p.imageUrl != null}" th:src="${p.imageUrl}" alt="">
-                    <div th:if="${p.imageUrl == null}" class="program-card-placeholder">
-                        <span th:text="${p.organization}">기관</span>
+                    <img th:if="${dto.imageUrl != null}" th:src="${dto.imageUrl}" alt=""
+                         th:style="${dto.status.name() == 'CLOSED'} ? 'filter:grayscale(0.5)' : ''">
+                    <div th:if="${dto.imageUrl == null}" class="program-card-placeholder">
+                        <span th:text="${dto.organization}">기관</span>
                     </div>
                     <span class="dday-chip"
-                          th:if="${!#strings.isEmpty(p.ddayLabel)}"
-                          th:classappend="${p.daysUntilDeadline <= 3 and p.daysUntilDeadline >= 0} ? ' dday-chip--urgent'"
-                          th:text="${p.ddayLabel}">D-3</span>
+                          th:if="${!#strings.isEmpty(dto.ddayLabel)}"
+                          th:classappend="${dto.daysUntilDeadline <= 3 and dto.daysUntilDeadline >= 0} ? ' dday-chip--urgent'"
+                          th:text="${dto.ddayLabel}">D-3</span>
                 </div>
                 <div class="program-card-body">
                     <div class="program-card-badges">
-                        <span th:class="'status-badge ' + ${p.status.cssClass}"
-                              th:text="${p.status.label}">진행중</span>
+                        <span th:class="'status-badge ' + ${dto.status.cssClass}"
+                              th:text="${dto.status.label}">진행중</span>
                     </div>
-                    <h3 class="program-card-title" th:text="${p.title}">프로그램 제목</h3>
-                    <p class="program-card-org" th:text="${p.organization + ' · ' + p.region}">기관 · 지역</p>
+                    <h3 class="program-card-title" th:text="${dto.title}">프로그램 제목</h3>
+                    <p class="program-card-org" th:text="${dto.organization + ' · ' + dto.region}">기관 · 지역</p>
                     <p class="program-card-date"
-                       th:if="${p.startDate != null and p.endDate != null}"
-                       th:text="${#temporals.format(p.startDate,'yyyy.MM.dd') + ' ~ ' + #temporals.format(p.endDate,'yyyy.MM.dd')}">
+                       th:if="${dto.startDate != null and dto.endDate != null}"
+                       th:text="${#temporals.format(dto.startDate,'yyyy.MM.dd') + ' ~ ' + #temporals.format(dto.endDate,'yyyy.MM.dd')}">
                         기간
                     </p>
-                    <p class="program-card-capacity" th:if="${p.capacity != null}">
-                        정원 <strong th:text="${p.capacity}">30</strong>명
-                    </p>
-                    <p class="program-card-capacity" th:if="${p.capacity == null}">
-                        정원 제한 없음
-                    </p>
+                    <!-- CapacityBar -->
+                    <div th:replace="~{fragments/capacity-bar :: capacityBar(
+                        pct=${dto.pct},
+                        colorClass=${dto.colorClass},
+                        barLabel=${dto.barLabel},
+                        capacityText=${dto.capacityText},
+                        showBar=${dto.capacity != null})}"></div>
                 </div>
             </a>
-            <div th:replace="~{fragments/bookmark-button :: button(programId=${p.id}, bookmarked=${bookmarkedIds.contains(p.id)}, styleClass='card-bookmark-btn')}"></div>
+            <!-- 카드 액션 버튼 -->
+            <div class="program-card-actions">
+                <a th:if="${dto.status.name() == 'ACTIVE'}"
+                   th:href="@{/programs/{id}/apply(id=${dto.id})}"
+                   class="btn-primary btn-sm card-action-btn">신청하기</a>
+                <button th:if="${dto.status.name() == 'CLOSED'}"
+                        type="button" disabled
+                        class="btn-secondary btn-sm card-action-btn card-action-btn--disabled">빈자리 알림 받기</button>
+                <button th:if="${dto.status.name() == 'UPCOMING'}"
+                        type="button" disabled
+                        class="btn-secondary btn-sm card-action-btn card-action-btn--disabled">오픈 알림 받기</button>
+            </div>
+            <div th:replace="~{fragments/bookmark-button :: button(programId=${dto.id}, bookmarked=${bookmarkedIds.contains(dto.id)}, styleClass='card-bookmark-btn')}"></div>
         </article>
     </div>
 
