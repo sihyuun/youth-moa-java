@@ -16,4 +16,10 @@ public interface ProgramRepository extends JpaRepository<Program, Long>, JpaSpec
 
     @Query("SELECT DISTINCT p.region FROM Program p WHERE p.isActive = true AND p.region IS NOT NULL ORDER BY p.region")
     List<String> findDistinctRegions();
+
+    /** 홈 Top 4 (모집중 + 마감임박 정렬). */
+    List<Program> findTop4ByIsActiveTrueOrderByEndDateAsc();
+
+    /** 홈 Quick Stats — 모집중 프로그램 카운트. */
+    long countByIsActiveTrue();
 }

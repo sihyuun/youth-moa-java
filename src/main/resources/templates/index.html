@@ -17,16 +17,21 @@
 <div th:replace="~{fragments/header :: header('home')}"></div>
 
 <main class="main-content">
-    <!-- Hero -->
-    <section class="hero" th:style="'background-image: linear-gradient(135deg, rgba(52,40,207,0.85) 0%, rgba(63,48,233,0.7) 45%, rgba(120,100,233,0.55) 100%), url(' + @{/images/banner_01.png} + ');'">
-        <div class="hero-inner">
+    <!-- Hero: 배경 이미지는 site_image 슬롯 HERO_BANNER, 검색바 = UI-only -->
+    <section class="hero"
+             th:style="'background-image: linear-gradient(135deg, rgba(52,40,207,0.85) 0%, rgba(63,48,233,0.7) 45%, rgba(120,100,233,0.55) 100%), url(' + ${heroImageUrl} + ');'">
+        <div class="hero-inner" style="text-align:center;">
             <div class="hero-tag">경기도 청년센터 프로그램 통합 플랫폼</div>
             <h1 class="hero-title">경기도 청년의 내일을<br>함께 만들어갑니다</h1>
-            <p class="hero-desc">
-                취업·창업·주거·힐링 프로그램을 한 곳에서 찾고<br>
-                내게 맞는 청년 지원을 손쉽게 신청해보세요.
-            </p>
-            <div class="hero-actions">
+            <p class="hero-desc">경기도 31개 시·군 청년센터의 프로그램을 한눈에 확인하세요</p>
+            <!-- 검색바 — UI-only (프로그램 검색 API 미구현) -->
+            <form class="hero-search-bar" onsubmit="alert('검색 준비 중입니다.'); return false;">
+                <input type="text" name="q" class="hero-search-input"
+                       placeholder="프로그램, 센터명으로 검색">
+                <button type="button" class="hero-search-btn"
+                        onclick="alert('검색 준비 중입니다.');">검색</button>
+            </form>
+            <div class="hero-actions" style="justify-content:center; margin-top:24px;">
                 <a th:href="@{/programs}" class="btn-primary btn-lg">프로그램 둘러보기</a>
                 <a th:href="@{/signup}" class="btn-outline btn-lg" sec:authorize="!isAuthenticated()">
                     무료 회원가입
@@ -35,50 +40,149 @@
         </div>
     </section>
 
-    <!-- ⏸ Q1·Q2 결정 (2026-06-30) — 카테고리 그리드 비활성화. F0e 홈 prototype 정렬 작업에서 Quick Stats + 프로그램 4건 + 공지 + 공간 섹션으로 교체 예정.
-    <section class="section container">
-        <h2 class="section-title">카테고리별 프로그램</h2>
-        <div class="category-grid">
-            <a th:href="@{/programs(category='취업')}" class="category-card">
-                <span class="category-icon">💼</span>
-                <span class="category-label">취업</span>
-            </a>
-            <a th:href="@{/programs(category='창업')}" class="category-card">
-                <span class="category-icon">🚀</span>
-                <span class="category-label">창업</span>
-            </a>
-            <a th:href="@{/programs(category='주거')}" class="category-card">
-                <span class="category-icon">🏠</span>
-                <span class="category-label">주거</span>
-            </a>
-            <a th:href="@{/programs(category='힐링')}" class="category-card">
-                <span class="category-icon">💚</span>
-                <span class="category-label">힐링</span>
-            </a>
-            <a th:href="@{/programs(category='교육')}" class="category-card">
-                <span class="category-icon">📚</span>
-                <span class="category-label">교육</span>
-            </a>
-            <a th:href="@{/programs}" class="category-card">
-                <span class="category-icon">🌐</span>
-                <span class="category-label">전체</span>
+    <!-- Quick Stats -->
+    <section class="quick-stats">
+        <div class="quick-stat">
+            <div class="quick-stat-icon">✓</div>
+            <div>
+                <div class="quick-stat-value" th:text="${activeProgramCount}">0</div>
+                <div class="quick-stat-label">모집중 프로그램</div>
+            </div>
+        </div>
+        <div class="quick-stat">
+            <div class="quick-stat-icon">✓</div>
+            <div>
+                <div class="quick-stat-value" th:text="${centerCount}">0</div>
+                <div class="quick-stat-label">참여 청년센터</div>
+            </div>
+        </div>
+        <div class="quick-stat">
+            <div class="quick-stat-icon">✓</div>
+            <div>
+                <div class="quick-stat-value" th:text="${totalApplicantCount}">0</div>
+                <div class="quick-stat-label">누적 참여자</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 프로그램 섹션 — 로그인 시 맞춤추천, 비로그인 시 Top4 -->
+    <section class="home-section container" sec:authorize="isAuthenticated()">
+        <div class="home-section-head">
+            <div>
+                <div class="home-section-title">
+                    <span th:text="${userDisplayName} + '님 맞춤 추천'">사용자 맞춤 추천</span>
+                </div>
+                <div class="home-section-sub">관심 지역과 분야를 바탕으로 골라드렸어요</div>
+            </div>
+            <a th:href="@{/programs}" class="btn-outline-primary btn-sm">전체보기</a>
+        </div>
+        <div class="home-program-row">
+            <a th:each="pg, iter : ${recommendedPrograms}"
+               th:href="@{/programs/{id}(id=${pg.id})}"
+               class="home-program-card">
+                <div class="program-card-image">
+                    <img th:if="${pg.imageUrl}" th:src="${pg.imageUrl}" alt="">
+                    <div th:unless="${pg.imageUrl}" class="program-card-placeholder"
+                         th:text="${#strings.substring(pg.title, 0, 1)}">P</div>
+                    <span class="dday-chip" th:text="${pg.ddayLabel}">D-3</span>
+                    <span class="recommend-badge"
+                          th:text="${iter.index == 0 ? '관심지역' : '추천'}">추천</span>
+                </div>
+                <div class="program-card-body">
+                    <div class="program-card-title" th:text="${pg.title}">프로그램 제목</div>
+                    <div class="program-card-org" th:text="${pg.organization}">주관 기관</div>
+                </div>
             </a>
         </div>
     </section>
-    -->
 
+    <section class="home-section container" sec:authorize="!isAuthenticated()">
+        <div class="home-section-head">
+            <div>
+                <div class="home-section-title">프로그램</div>
+                <div class="home-section-sub">진행중인 프로그램을 소개해드려요</div>
+            </div>
+            <a th:href="@{/programs}" class="btn-outline-primary btn-sm">전체보기</a>
+        </div>
+        <div class="home-program-row">
+            <a th:each="pg : ${topPrograms}"
+               th:href="@{/programs/{id}(id=${pg.id})}"
+               class="home-program-card">
+                <div class="program-card-image">
+                    <img th:if="${pg.imageUrl}" th:src="${pg.imageUrl}" alt="">
+                    <div th:unless="${pg.imageUrl}" class="program-card-placeholder"
+                         th:text="${#strings.substring(pg.title, 0, 1)}">P</div>
+                    <span class="dday-chip" th:text="${pg.ddayLabel}">D-3</span>
+                </div>
+                <div class="program-card-body">
+                    <div class="program-card-title" th:text="${pg.title}">프로그램 제목</div>
+                    <div class="program-card-org" th:text="${pg.organization}">주관 기관</div>
+                    <div class="program-card-date">
+                        <span th:text="${pg.startDate}">시작일</span> ~ <span th:text="${pg.endDate}">종료일</span>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </section>
 
-    <!-- HTMX demo (개발 확인용) -->
-    <section class="section container">
-        <div class="card">
-            <h2>서버 연결 확인</h2>
-            <button hx-post="/api/ping"
-                    hx-target="#ping-result"
-                    hx-swap="innerHTML"
-                    class="btn-primary">
-                Ping 보내기
-            </button>
-            <div id="ping-result" class="result"></div>
+    <!-- 공지 섹션 -->
+    <section class="home-notice-section">
+        <div class="container">
+            <div class="home-section-head">
+                <div>
+                    <div class="home-section-title">공지사항</div>
+                    <div class="home-section-sub">청년센터 소식을 전해드려요</div>
+                </div>
+                <a th:href="@{/notices}" class="btn-outline-primary btn-sm">전체보기</a>
+            </div>
+            <div style="display:flex; gap:24px; align-items:stretch;">
+                <a th:if="${mainNotice != null}"
+                   th:href="@{/notices}"
+                   class="home-notice-main">
+                    <div class="home-notice-main-image">
+                        <img th:if="${mainNotice.imageUrl}" th:src="${mainNotice.imageUrl}" alt="">
+                        <div th:unless="${mainNotice.imageUrl}" class="home-notice-placeholder"></div>
+                    </div>
+                    <div class="home-notice-main-body">
+                        <span class="category-badge">📌 주요</span>
+                        <div class="home-notice-main-title" th:text="${mainNotice.title}">공지 제목</div>
+                        <div class="home-notice-main-meta">
+                            <span th:text="${#temporals.format(mainNotice.createdAt, 'yyyy.MM.dd')}">2024.07.30</span>
+                            · 조회 <span th:text="${mainNotice.viewCount}">0</span>
+                        </div>
+                    </div>
+                </a>
+                <div class="home-notice-list">
+                    <a th:each="n, iter : ${subNotices}"
+                       th:href="@{/notices}"
+                       class="home-notice-item"
+                       th:classappend="${iter.last} ? 'is-last' : ''">
+                        <span class="category-badge" th:text="${n.tag}">공지</span>
+                        <span class="home-notice-item-title" th:text="${n.title}">공지 제목</span>
+                        <span class="home-notice-item-date"
+                              th:text="${#temporals.format(n.createdAt, 'yyyy.MM.dd')}">2024.06.15</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 공간 안내 -->
+    <section class="home-space-section container">
+        <div class="home-section-head">
+            <div>
+                <div class="home-section-title">공간안내</div>
+                <div class="home-section-sub">청년센터 공간을 소개해드려요</div>
+            </div>
+            <a th:href="@{/programs}" class="btn-outline-primary btn-sm">전체 센터 보기</a>
+        </div>
+        <div class="home-space-row">
+            <div th:each="img, iter : ${spaceImages}" class="home-space-card">
+                <img th:src="${img.imageUrl}" alt="">
+                <div class="home-space-overlay">
+                    <span th:text="${img.caption != null ? img.caption : spaceLabels[iter.index]}">공간명</span>
+                </div>
+            </div>
         </div>
     </section>
 </main>

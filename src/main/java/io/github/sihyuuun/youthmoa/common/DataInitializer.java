@@ -2,6 +2,8 @@ package io.github.sihyuuun.youthmoa.common;
 
 import io.github.sihyuuun.youthmoa.center.Center;
 import io.github.sihyuuun.youthmoa.center.CenterRepository;
+import io.github.sihyuuun.youthmoa.notice.Notice;
+import io.github.sihyuuun.youthmoa.notice.NoticeRepository;
 import io.github.sihyuuun.youthmoa.program.Program;
 import io.github.sihyuuun.youthmoa.program.ProgramRepository;
 import io.github.sihyuuun.youthmoa.region.Region;
@@ -30,12 +32,75 @@ public class DataInitializer implements ApplicationRunner {
     private final ProgramRepository programRepository;
     private final RegionRepository regionRepository;
     private final CenterRepository centerRepository;
+    private final NoticeRepository noticeRepository;
+    private final SiteImageRepository siteImageRepository;
 
     @Override
     @Transactional
     public void run(ApplicationArguments args) {
         seedRegionsAndCenters();
         seedPrograms();
+        seedSiteImages();
+        seedNotices();
+    }
+
+    private void seedSiteImages() {
+        if (siteImageRepository.count() > 0) {
+            log.info("SiteImages already seeded (count={}), skip", siteImageRepository.count());
+            return;
+        }
+        List<SiteImage> images = List.of(
+                SiteImage.builder()
+                        .slot("HERO_BANNER")
+                        .imageUrl("https://images.unsplash.com/photo-1531482615713-2afd69097998?w=1440&h=560&fit=crop")
+                        .sortOrder(0).isActive(true).build(),
+                SiteImage.builder()
+                        .slot("HOME_SPACE_1")
+                        .imageUrl("https://images.unsplash.com/photo-1497366216548-37526070297c?w=460&h=340&fit=crop")
+                        .sortOrder(1).isActive(true).caption("상상대로").build(),
+                SiteImage.builder()
+                        .slot("HOME_SPACE_2")
+                        .imageUrl("https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=460&h=340&fit=crop")
+                        .sortOrder(2).isActive(true).caption("내일스퀘어").build(),
+                SiteImage.builder()
+                        .slot("HOME_SPACE_3")
+                        .imageUrl("https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=460&h=340&fit=crop")
+                        .sortOrder(3).isActive(true).caption("비행지구").build()
+        );
+        siteImageRepository.saveAll(images);
+        log.info("Seeded {} site images", images.size());
+    }
+
+    private void seedNotices() {
+        if (noticeRepository.count() > 0) {
+            log.info("Notices already seeded (count={}), skip", noticeRepository.count());
+            return;
+        }
+        List<Notice> notices = List.of(
+                Notice.builder()
+                        .title("제1회 청년의 날 축제 안내")
+                        .content("경기도 청년의 날을 맞이하여 축제가 열립니다. 다양한 프로그램과 부스가 준비되어 있습니다.")
+                        .tag("행사").isPinned(true)
+                        .imageUrl("https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=360&h=220&fit=crop")
+                        .build(),
+                Notice.builder()
+                        .title("7월 청년센터 프로그램 일정 안내")
+                        .content("7월 한 달간 진행되는 청년센터 프로그램 일정을 안내드립니다.")
+                        .tag("공지").isPinned(false)
+                        .build(),
+                Notice.builder()
+                        .title("7월 휴관 일정 안내")
+                        .content("7월 정기 휴관일 안내입니다.")
+                        .tag("운영").isPinned(false)
+                        .build(),
+                Notice.builder()
+                        .title("[경기도] 2024 경기 사회적 경제 박람회")
+                        .content("경기 사회적 경제 박람회가 개최됩니다.")
+                        .tag("기타").isPinned(false)
+                        .build()
+        );
+        noticeRepository.saveAll(notices);
+        log.info("Seeded {} notices ({} pinned)", notices.size(), 1);
     }
 
     private void seedRegionsAndCenters() {
