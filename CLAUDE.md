@@ -391,6 +391,39 @@ hidden input 의 `value="true"` / `"false"` 를 Spring Form Binder 가 자동으
 
 ---
 
+## 확장성 원칙 (관리자 페이지 대비)
+
+사용자 페이지 개발 후 **관리자 페이지 확장 예정**. 매 기획·개발에서 다음 원칙 적용.
+
+### 하드코딩 금지 대상 (엔티티 + 시드 + Repository 관리)
+아래 값은 admin 페이지에서 CRUD 가능하도록 처음부터 DB 관리:
+- 지역 / 청년센터 리스트 (완료: `Region.isFeatured` / `Center.isFeatured` — F0f)
+- 홈 Hero 배너 / 공간 안내 이미지 (F0e — `SiteImage` slot 기반)
+- Notice / Program 데이터 (완료: 시드 + Repository)
+- 프로그램 카테고리 (`Category` 엔티티 예정, 현재 코드 삭제 상태)
+- 카드 정렬 default·홈 표시 지표 순서 등 화면 policy
+
+### 하드코딩 OK
+- CSS 토큰 (색·spacing·radius) — 디자인 시스템 일관성
+- 라우팅 경로 (`/programs`, `/signup` 등)
+- Bean Validation 메시지 (UX 라이팅)
+- 백엔드 상수 (`@GroupSequence` 그룹명, remember-me key 등)
+
+### 신규 기능 개발 체크리스트
+- [ ] 사용자가 화면에서 바꿀 만한 값인가? → 엔티티 도입
+- [ ] admin 페이지에서 편집 필요한가? → 시드 + Repository
+- [ ] 향후 정책 변경 가능성 있는가? → 상수 대신 설정 파일 or DB
+- [ ] 이미지·아이콘·문자열 리소스인가? → `SiteImage` 등 별도 리소스 엔티티
+
+### 슬롯 기반 설계 패턴 (SiteImage 예시)
+```
+SiteImage(slot="HERO_BANNER", imageUrl="...", sortOrder=0, isActive=true)
+SiteImage(slot="HOME_SPACE_1", imageUrl="...", sortOrder=1, ...)
+```
+→ Controller 는 `findBySlotAndIsActiveTrue(...)` 로 조회. admin 이 URL 만 교체하면 화면 반영.
+
+---
+
 ## 검증 자산 — 에이전트 / 스킬
 
 | 자산 | 경로 | 호출 |
@@ -400,8 +433,12 @@ hidden input 의 `value="true"` / `"false"` 를 Spring Form Binder 가 자동으
 | `ym-impl` 에이전트 | `~/.claude/agents/ym-impl.md` | 명세 → 풀스택 구현 |
 | `ym-qa` 에이전트 | `~/.claude/agents/ym-qa.md` | 단위 테스트 + 정적/동적/회귀 검증 |
 | `/pm-review` Skill | `.claude/skills/pm-review/SKILL.md` | ym-pm 페르소나 단발성 슬래시 호출 |
-| `/qa` Skill | (도입 예정) | ym-qa 의 표준 절차 일괄 실행 |
-| `/prototype-check` Skill | (도입 예정) | prototype vs Thymeleaf 갭 정기 스캔 |
+| `/qa` Skill | `.claude/skills/qa/SKILL.md` | 정적·동적·E2E·시각 4영역 분리 리포트 |
+| `/prototype-check` Skill | `.claude/skills/prototype-check/SKILL.md` | prototype vs Thymeleaf 갭 정기 스캔 |
+| `/wrap-up` Skill | `.claude/skills/wrap-up/SKILL.md` | commit·push·PR·merge·pull·prune 자동 |
+| `/memory-sync` Skill | `.claude/skills/memory-sync/SKILL.md` | git log + gh PR 기반 메모리 자동 갱신 |
+| `/build-check` Skill | `.claude/skills/build-check/SKILL.md` | Gradle 빌드 + JPA 매핑 테스트 실행 |
+| `/resume` Skill | `.claude/skills/resume/SKILL.md` | 세션 재개 시 메모리 읽고 다음 작업 우선순위 제시 |
 
 화면 작업 표준 사이클: **ym-spec → 사용자 컨펌 → ym-impl → ym-qa → 머지**.
 선택 0단계 (사고): **ym-pm** — prototype·정책 검토, 대안 제시 후 ym-spec 인계.
