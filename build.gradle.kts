@@ -2,6 +2,8 @@ plugins {
 	java
 	id("org.springframework.boot") version "4.1.0"
 	id("io.spring.dependency-management") version "1.1.7"
+	id("com.diffplug.spotless") version "7.0.4"
+	jacoco
 }
 
 group = "io.github.sihyuuun"
@@ -44,6 +46,9 @@ dependencies {
 	testCompileOnly("org.projectlombok:lombok")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 	testAnnotationProcessor("org.projectlombok:lombok")
+	// TODO Springdoc: springdoc-openapi 2.x 는 Spring Boot 3.x 까지만 지원.
+	// Boot 4 (Spring 7) 호환 버전 릴리즈 확인 후 도입 예정.
+	// implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:<version>")
 }
 
 tasks.withType<Test> {
@@ -55,4 +60,53 @@ tasks.withType<Test> {
 // (없으면 .html 변경 후 ./gradlew processResources 강제 실행 필요)
 tasks.named<org.springframework.boot.gradle.tasks.run.BootRun>("bootRun") {
 	sourceResources(sourceSets["main"])
+}
+
+// JaCoCo: 테스트 커버리지 측정 + HTML 리포트 생성
+// - ./gradlew test jacocoTestReport  : 리포트 생성 (build/reports/jacoco/test/html/index.html)
+// - ./gradlew jacocoTestCoverageVerification : 최소 커버리지 강제 (CI 에서 사용)
+jacoco {
+	toolVersion = "0.8.12"
+}
+
+tasks.test {
+	finalizedBy(tasks.jacocoTestReport)
+}
+
+tasks.jacocoTestReport {
+	dependsOn(tasks.test)
+	reports {
+		xml.required = true   // CI coverage badge 툴·SonarQube 연동용
+		html.required = true  // 로컬 브라우저 확인용
+	}
+	// Entity, DTO, 설정 클래스 제외 (비즈니스 로직 커버리지에 집중)
+	classDirectories.setFrom(
+		files(classDirectories.files.map {
+			fileTree(it) {
+				exclude(
+					"**/YouthMoaApplication.class",
+					"**/*Entity.class",
+					"**/*Dto.class",
+					"**/*Request.class",
+					"**/*Response.class",
+					"**/config/**",
+					"**/common/DataInitializer.class"
+				)
+			}
+		})
+	)
+}
+
+// Spotless: Google Java Format 으로 코드 스타일 자동 통일
+// - ./gradlew spotlessApply  : 포맷 자동 수정
+// - ./gradlew spotlessCheck  : CI 에서 포맷 위반 검사
+spotless {
+	java {
+		googleJavaFormat("1.22.0")
+		removeUnusedImports()
+		trimTrailingWhitespace()
+		endWithNewline()
+		// 생성 파일 제외
+		targetExclude("build/**")
+	}
 }

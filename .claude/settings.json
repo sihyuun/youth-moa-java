@@ -1,5 +1,10 @@
 {
   "outputStyle": "default",
+  "permissions": {
+    "allow": [
+      "mcp__playwright__*"
+    ]
+  },
   "hooks": {
     "SessionStart": [
       {
