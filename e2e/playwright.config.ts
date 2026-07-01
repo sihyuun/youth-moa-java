@@ -7,9 +7,10 @@ import { defineConfig, devices } from '@playwright/test';
  */
 export default defineConfig({
     testDir: './tests',
-    timeout: 30_000,
+    timeout: 60_000,                    // 30s → 60s (회사 PC SSL 프록시 + 시드 부담 회피)
     expect: { timeout: 5_000 },
-    fullyParallel: true,
+    fullyParallel: false,               // 5 worker 동시 진입 시 DB 부담 → 순차 실행
+    workers: 1,
     reporter: [['list'], ['html', { open: 'never' }]],
     use: {
         baseURL: 'http://localhost:8080',

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!--
+    htmx 부분 갱신 영역.
+    HX-Request 헤더 존재 시 ProgramController 가 이 fragment 만 단독 렌더링.
+    full-page 진입 시에도 list.html 의 #program-list-region 안에 동일 fragment 가 포함됨.
+-->
+<th:block th:fragment="list-region">
+
+    <!-- 활성 필터 칩 + 결과 카운트 -->
+    <div class="active-filter-bar">
+        <span class="result-count">
+            전체 <strong th:text="${programs.totalElements}">0</strong>건
+        </span>
+
+        <div class="active-filter-chips" th:if="${activeFilters != null and !activeFilters.isEmpty()}">
+            <span class="active-filter-chip" th:each="f : ${activeFilters}">
+                <span th:text="${f.label}">라벨</span>
+                <button type="button" class="active-filter-chip-x"
+                        th:attr="onclick=|removeFilter('${f.group}','${f.value}')|"
+                        aria-label="필터 제거">×</button>
+            </span>
+            <button type="button" class="active-filter-reset" onclick="resetAllFilters()">
+                전체 초기화
+            </button>
+        </div>
+    </div>
+
+    <!-- 빈 상태 -->
+    <div th:if="${programs.totalElements == 0}" class="empty-state-rich">
+        <p class="empty-title">조건에 맞는 프로그램이 아직 없어요</p>
+        <p class="empty-sub">선택하신 필터를 줄여보거나, 다른 지역도 살펴보시겠어요?</p>
+        <div class="empty-actions">
+            <button type="button" class="btn-secondary" onclick="resetAllFilters()">전체 초기화</button>
+            <a class="btn-primary" th:href="@{/programs}">전체 프로그램 보기</a>
+        </div>
+    </div>
+
+    <!-- 프로그램 카드 그리드 -->
+    <div th:if="${programs.totalElements > 0}" class="program-grid">
+        <article th:each="p : ${programs.content}" class="program-card">
+            <a th:href="@{/programs/{id}(id=${p.id})}" class="program-card-link">
+                <div class="program-card-image">
+                    <img th:if="${p.imageUrl != null}" th:src="${p.imageUrl}" alt="">
+                    <div th:if="${p.imageUrl == null}" class="program-card-placeholder">
+                        <span th:text="${p.organization}">기관</span>
+                    </div>
+                    <span class="dday-chip"
+                          th:if="${!#strings.isEmpty(p.ddayLabel)}"
+                          th:classappend="${p.daysUntilDeadline <= 3 and p.daysUntilDeadline >= 0} ? ' dday-chip--urgent'"
+                          th:text="${p.ddayLabel}">D-3</span>
+                </div>
+                <div class="program-card-body">
+                    <div class="program-card-badges">
+                        <span th:class="'status-badge ' + ${p.status.cssClass}"
+                              th:text="${p.status.label}">진행중</span>
+                    </div>
+                    <h3 class="program-card-title" th:text="${p.title}">프로그램 제목</h3>
+                    <p class="program-card-org" th:text="${p.organization + ' · ' + p.region}">기관 · 지역</p>
+                    <p class="program-card-date"
+                       th:if="${p.startDate != null and p.endDate != null}"
+                       th:text="${#temporals.format(p.startDate,'yyyy.MM.dd') + ' ~ ' + #temporals.format(p.endDate,'yyyy.MM.dd')}">
+                        기간
+                    </p>
+                    <p class="program-card-capacity" th:if="${p.capacity != null}">
+                        정원 <strong th:text="${p.capacity}">30</strong>명
+                    </p>
+                    <p class="program-card-capacity" th:if="${p.capacity == null}">
+                        정원 제한 없음
+                    </p>
+                </div>
+            </a>
+            <div th:replace="~{fragments/bookmark-button :: button(programId=${p.id}, bookmarked=${bookmarkedIds.contains(p.id)}, styleClass='card-bookmark-btn')}"></div>
+        </article>
+    </div>
+
+    <!-- 페이지네이션 -->
+    <nav th:if="${programs.totalPages > 1}" class="pagination">
+        <a th:if="${programs.hasPrevious()}"
+           th:href="@{/programs(status=${filterStatus},regions=${filterRegions},centers=${filterCenters},sort=${filterSort},page=${programs.number - 1})}"
+           class="page-link page-arrow">‹</a>
+        <span th:unless="${programs.hasPrevious()}" class="page-link page-arrow disabled">‹</span>
+
+        <a th:each="i : ${#numbers.sequence(0, programs.totalPages - 1)}"
+           th:href="@{/programs(status=${filterStatus},regions=${filterRegions},centers=${filterCenters},sort=${filterSort},page=${i})}"
+           th:class="${i == programs.number} ? 'page-link active' : 'page-link'"
+           th:text="${i + 1}">1</a>
+
+        <a th:if="${programs.hasNext()}"
+           th:href="@{/programs(status=${filterStatus},regions=${filterRegions},centers=${filterCenters},sort=${filterSort},page=${programs.number + 1})}"
+           class="page-link page-arrow">›</a>
+        <span th:unless="${programs.hasNext()}" class="page-link page-arrow disabled">›</span>
+    </nav>
+
+</th:block>
+
+</body>
+</html>
