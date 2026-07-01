@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!--
+    CapacityBar fragment.
+    파라미터:
+      pct        — 0~100 정수
+      colorClass — primary | warning | error | secondary | muted
+      barLabel   — "모집중" / "서두르세요" / "마감임박" / "신청 오픈 예정" / "모집 마감"
+      capacityText — "정원 N/M명" 또는 "정원 제한 없음"
+      showBar    — true 이면 bar 표시 (capacity null 이면 false)
+-->
+<th:block th:fragment="capacityBar(pct, colorClass, barLabel, capacityText, showBar)">
+    <div class="capacity-bar-wrap">
+        <div class="capacity-bar-label">
+            <span class="capacity-bar-status"
+                  th:classappend="'capacity-bar-status--' + ${colorClass}"
+                  th:text="${barLabel}">모집중</span>
+            <span class="capacity-bar-pct"
+                  th:if="${showBar}"
+                  th:text="${pct} + '%'">0%</span>
+        </div>
+        <div th:if="${showBar}" class="capacity-bar">
+            <div class="capacity-bar-fill"
+                 th:classappend="'capacity-bar-fill--' + ${colorClass}"
+                 th:style="'width:' + ${pct} + '%'"></div>
+        </div>
+        <div class="capacity-bar-count" th:text="${capacityText}">정원 0/0명</div>
+    </div>
+</th:block>
+
+</body>
+</html>

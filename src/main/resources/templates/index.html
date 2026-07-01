@@ -105,21 +105,31 @@
             <a th:href="@{/programs}" class="btn-outline-primary btn-sm">전체보기</a>
         </div>
         <div class="home-program-row">
-            <a th:each="pg : ${topPrograms}"
-               th:href="@{/programs/{id}(id=${pg.id})}"
+            <a th:each="dto : ${topPrograms}"
+               th:href="@{/programs/{id}(id=${dto.id})}"
                class="home-program-card">
                 <div class="program-card-image">
-                    <img th:if="${pg.imageUrl}" th:src="${pg.imageUrl}" alt="">
-                    <div th:unless="${pg.imageUrl}" class="program-card-placeholder"
-                         th:text="${#strings.substring(pg.title, 0, 1)}">P</div>
-                    <span class="dday-chip" th:text="${pg.ddayLabel}">D-3</span>
+                    <img th:if="${dto.imageUrl}" th:src="${dto.imageUrl}" alt=""
+                         th:style="${dto.status.name() == 'CLOSED'} ? 'filter:grayscale(0.5)' : ''">
+                    <div th:unless="${dto.imageUrl}" class="program-card-placeholder"
+                         th:text="${#strings.substring(dto.title, 0, 1)}">P</div>
+                    <span class="dday-chip" th:text="${dto.ddayLabel}">D-3</span>
                 </div>
                 <div class="program-card-body">
-                    <div class="program-card-title" th:text="${pg.title}">프로그램 제목</div>
-                    <div class="program-card-org" th:text="${pg.organization}">주관 기관</div>
-                    <div class="program-card-date">
-                        <span th:text="${pg.startDate}">시작일</span> ~ <span th:text="${pg.endDate}">종료일</span>
+                    <div class="program-card-title" th:text="${dto.title}">프로그램 제목</div>
+                    <div class="program-card-org" th:text="${dto.organization}">주관 기관</div>
+                    <div class="program-card-date"
+                         th:if="${dto.startDate != null and dto.endDate != null}"
+                         th:text="${#temporals.format(dto.startDate,'yyyy.MM.dd') + ' ~ ' + #temporals.format(dto.endDate,'yyyy.MM.dd')}">
+                        기간
                     </div>
+                    <!-- CapacityBar -->
+                    <div th:replace="~{fragments/capacity-bar :: capacityBar(
+                        pct=${dto.pct},
+                        colorClass=${dto.colorClass},
+                        barLabel=${dto.barLabel},
+                        capacityText=${dto.capacityText},
+                        showBar=${dto.capacity != null})}"></div>
                 </div>
             </a>
         </div>
