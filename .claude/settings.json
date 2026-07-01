@@ -1,6 +1,26 @@
 {
   "outputStyle": "default",
   "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/session-start.sh"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/user-prompt-heartbeat.sh"
+          }
+        ]
+      }
+    ],
     "PreToolUse": [
       {
         "matcher": "Bash",
@@ -42,6 +62,10 @@
           {
             "type": "command",
             "command": "bash .claude/hooks/stop-uncommitted.sh"
+          },
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/session-stop.sh"
           }
         ]
       }
