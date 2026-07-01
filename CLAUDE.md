@@ -395,16 +395,93 @@ hidden input 의 `value="true"` / `"false"` 를 Spring Form Binder 가 자동으
 
 | 자산 | 경로 | 호출 |
 |---|---|---|
+| `ym-pm` 에이전트 | `.claude/agents/ym-pm.md` (repo) → fallback `~/.claude/agents/ym-pm.md` | PM Review — 화면·정책 검토 (read-only). 원격 루틴에서도 사용 |
 | `ym-spec` 에이전트 | `~/.claude/agents/ym-spec.md` | 새 화면 작업 명세 산출 (prototype 3자산 비교) |
 | `ym-impl` 에이전트 | `~/.claude/agents/ym-impl.md` | 명세 → 풀스택 구현 |
 | `ym-qa` 에이전트 | `~/.claude/agents/ym-qa.md` | 단위 테스트 + 정적/동적/회귀 검증 |
+| `/pm-review` Skill | `.claude/skills/pm-review/SKILL.md` | ym-pm 페르소나 단발성 슬래시 호출 |
 | `/qa` Skill | (도입 예정) | ym-qa 의 표준 절차 일괄 실행 |
 | `/prototype-check` Skill | (도입 예정) | prototype vs Thymeleaf 갭 정기 스캔 |
 
 화면 작업 표준 사이클: **ym-spec → 사용자 컨펌 → ym-impl → ym-qa → 머지**.
+선택 0단계 (사고): **ym-pm** — prototype·정책 검토, 대안 제시 후 ym-spec 인계.
+
+에이전트 파일 우선순위: repo `.claude/agents/` 가 전역 `~/.claude/agents/` 보다 우선. 같은 이름이면 repo 판이 채택됨. 원격 루틴(CCR) 은 전역을 못 보므로 repo 판이 필수.
+
+---
+
+## 메모리 미러링 규칙
+
+로컬 메모리 파일은 PC 별로 존재하고 원격 루틴(claude.ai routines) 이 접근할 수 없다. 원격 세션이 진행 상황을 파악하려면 repo 내 파일 미러가 필요.
+
+- **원본** (로컬 전용): `~/.claude/projects/.../memory/project_youth_moa_java.md`
+- **미러** (repo 공유): `docs/STATE.md` — 전문 복사
+
+### 미러 시점
+세션 wrap-up 시 (사용자가 "커밋", "정리", "wrap-up" 등 마무리 명시할 때) 최신 메모리를 `docs/STATE.md` 로 전문 복사. 세션 중간에는 미러하지 않음 (다중 세션 동시 작업 시 충돌 방지).
+
+### 커밋 메시지 형식
+```
+YYMMDD_memory_mirror - STATE.md sync
+```
+
+### 원격 루틴에서 참조
+루틴 프롬프트는 `docs/STATE.md` 만 신뢰. 로컬 메모리 파일 경로는 언급하지 않음 (원격에서 접근 불가).
+
+### 이중 PC (Win ↔ Mac) 정책
+- 각 PC 의 로컬 메모리는 개별 유지 (자동 동기화 없음)
+- `docs/STATE.md` 만 git 을 통해 공유 — 다른 PC 는 pull 로 최신 상태 확보
+- 상충 시 파일 상단 `> 마지막 갱신: YYYY-MM-DD` 최신 값이 정답
+
+---
+
+## Claude Code 기술 활용 제안 규칙
+
+이 프로젝트는 **학습용** 이므로 Claude Code 의 기능을 적극 활용해 작업을 자동화·가속한다. 작업 중 아래 조건 감지 시 사용자에게 **근거·방안**을 함께 제안한다.
+
+| 감지 조건 | 제안 기술 | 근거 |
+|---|---|---|
+| 동일 절차가 대화 중 3회 이상 반복 | **Skill** 신설 (`.claude/skills/<name>/SKILL.md`) | 슬래시로 재사용, 프롬프트 오염 방지 |
+| 여러 파일·경로 병렬 분석 필요 | **Explore subagent** 또는 병렬 `Agent` 호출 | 메인 컨텍스트 보호. 결과만 요약해 회신 |
+| 화면·정책 결정 필요 | `ym-pm` subagent 또는 `/pm-review` skill | PM 6관점 자동 적용 |
+| 새 화면 명세 필요 | `ym-spec` subagent | prototype 3자산 비교 명세 자동 산출 |
+| 명세 → 구현 | `ym-impl` subagent | 표준 사이클 유지 |
+| QA 4영역 (정적·동적·회귀·시각) | `ym-qa` subagent 또는 `/qa` skill | 분리 표기 자동 |
+| 로컬 반복 작업 (테스트·빌드) | `Bash run_in_background` + `Monitor` | 대기 시간 활용, 이벤트 알림 |
+| CLAUDE.md 규칙 자동 강제 | **Hook** (`.claude/settings.json`) | Claude 실수 방어 |
+| 응답 포맷 반복 지시 | **Output style** (`.claude/output-styles/`) | 프롬프트 길이 감축 |
+| 매일·주기적 리포트 필요 | **Remote routine** (`docs/routines/*.md` + `RemoteTrigger`) | 무인 실행, GitHub 연동 자동 인증 |
+| CI 로 처리 가능한 검증 | **GitHub Actions workflow** (`.github/workflows/`) | 로컬 부담 완화 |
+| 세션 종료·미커밋 상태 | `/wrap-up` skill | 정적/E2E 검증 → 명시적 stage → PR |
+| 메모리 갱신 | `/memory-sync` skill | main 로그·PR·큐 자동 종합 |
+| 세션 재개 | `/resume` skill | 진행 현황 요약 자동 |
+
+### 적용 방식
+
+1. 사용자가 요청한 직접 작업을 **먼저 수행** (도구 제안 우선 X)
+2. 완료 응답 마지막에 `💡 다음에 더 빠르게` 별도 섹션으로 개선안 1~3개 제시
+3. 각 제안에 **근거 · 예상 이득 · 도입 방법** 명시
+4. **사용자 승인 없이 도입 금지** — 새 스킬·훅·워크플로우 파일 생성 전 반드시 컨펌
+
+### 예시
+
+```
+[작업 완료 응답 후]
+
+💡 다음에 더 빠르게
+
+1. **`/build-check` 후 자동 test**
+   - 근거: 최근 5회 대화에서 build-check 후 항상 test 를 이어서 실행함
+   - 방안: `.claude/hooks/post-build-check.sh` 로 자동 chaining
+   - 이득: 매 반복당 30초 절약
+
+2. **prototype gap 리포트 자동화**
+   - 근거: 매주 수동 갱신 관찰됨
+   - 방안: 이미 등록된 `prototype-gap.yml` workflow 재확인. 수동 실행 필요 시 `workflow_dispatch`
+```
 
 ---
 
 ## 미완성 / 다음 작업
 
-메모리 `project_youth_moa_java.md` 의 "다음 작업 후보" 섹션을 우선 확인.
+메모리 `project_youth_moa_java.md` 또는 repo 미러 `docs/STATE.md` 의 "다음 작업 후보" 섹션을 우선 확인.
