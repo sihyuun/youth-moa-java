@@ -2310,3 +2310,223 @@ code {
 .auth-footer a:hover {
   text-decoration: underline;
 }
+
+/* ============================================================
+   F0f — 프로그램 목록 필터 재설계 (사이드바 체크박스 + 칩 + 팝오버)
+   ============================================================ */
+
+.sidebar-check-item { margin-bottom: 4px; }
+.sidebar-check-item label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  font-size: 13px;
+  color: var(--color-text-sec);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+.sidebar-check-item label:hover { background: var(--color-border-light); }
+.sidebar-check-item input[type="checkbox"] { accent-color: var(--color-primary); }
+
+.sidebar-show-all {
+  display: block;
+  margin-top: 6px;
+  padding: 6px 8px;
+  background: none;
+  border: none;
+  font-size: 12px;
+  color: var(--color-primary);
+  cursor: pointer;
+  text-align: left;
+}
+.sidebar-show-all:hover { text-decoration: underline; }
+
+/* 활성 필터 칩 */
+.active-filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+  min-height: 28px;
+}
+.active-filter-chips {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.active-filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: var(--color-primary-bg);
+  color: var(--color-primary);
+  border-radius: var(--radius-pill);
+  font-size: 12px;
+  font-weight: 600;
+}
+.active-filter-chip-x {
+  background: none;
+  border: none;
+  color: var(--color-primary);
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  padding: 0 2px;
+}
+.active-filter-reset {
+  background: none;
+  border: none;
+  color: var(--color-text-sec);
+  font-size: 12px;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* view toggle (목록 / 캘린더) */
+.view-toggle {
+  display: inline-flex;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+.view-toggle-btn {
+  padding: 6px 12px;
+  background: var(--color-surface);
+  border: none;
+  font-size: 12px;
+  color: var(--color-text-sec);
+  cursor: pointer;
+}
+.view-toggle-btn.active {
+  background: var(--color-primary);
+  color: #fff;
+  font-weight: 600;
+}
+.view-toggle-btn--disabled {
+  cursor: not-allowed;
+  color: var(--color-text-tri);
+  background: var(--color-border-light);
+}
+
+/* 빈 상태 (rich) */
+.empty-state-rich {
+  padding: 56px 24px;
+  text-align: center;
+  background: var(--color-surface);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-lg);
+}
+.empty-state-rich .empty-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0 0 6px;
+}
+.empty-state-rich .empty-sub {
+  font-size: 13px;
+  color: var(--color-text-sec);
+  margin: 0 0 20px;
+}
+.empty-actions {
+  display: inline-flex;
+  gap: 8px;
+}
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 9px 18px;
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+}
+.btn-secondary:hover { border-color: var(--color-primary); color: var(--color-primary); }
+
+/* 팝오버 */
+.filter-popover-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  z-index: 90;
+}
+.filter-popover {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 420px;
+  max-width: calc(100vw - 32px);
+  max-height: 70vh;
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.filter-popover-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--color-border-light);
+}
+.filter-popover-header h4 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+}
+.filter-popover-close {
+  background: none;
+  border: none;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--color-text-sec);
+}
+.filter-popover-search {
+  margin: 12px 20px 0;
+  padding: 8px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: 13px;
+}
+.filter-popover-options {
+  padding: 12px 20px;
+  overflow-y: auto;
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px 8px;
+}
+.filter-popover-options label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 4px;
+  font-size: 13px;
+  color: var(--color-text);
+  cursor: pointer;
+  border-radius: 4px;
+}
+.filter-popover-options label:hover { background: var(--color-border-light); }
+.filter-popover-options input[type="checkbox"] { accent-color: var(--color-primary); }
+
+.filter-popover-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 20px;
+  border-top: 1px solid var(--color-border-light);
+}

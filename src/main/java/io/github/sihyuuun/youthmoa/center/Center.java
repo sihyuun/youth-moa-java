@@ -28,7 +28,7 @@ public class Center extends BaseTimeEntity {
     @Column(nullable = false, length = 50)
     private String region;
 
-    @Column(nullable = false, length = 255)
+    @Column(length = 255)
     private String address;
 
     @Column(length = 20)
@@ -37,14 +37,21 @@ public class Center extends BaseTimeEntity {
     @Column(nullable = false)
     private boolean isActive;
 
+    @Column(nullable = false)
+    private boolean isFeatured;
+
     @Builder
-    private Center(String name, String region, String address, String phone, Boolean isActive) {
+    private Center(String name, String region, String address, String phone, Boolean isActive, Boolean isFeatured) {
         this.name = name;
         this.region = region;
         this.address = address;
         this.phone = phone;
         this.isActive = isActive != null ? isActive : true;
+        this.isFeatured = isFeatured != null && isFeatured;
     }
+
+    public void markFeatured() { this.isFeatured = true; }
+    public void unmarkFeatured() { this.isFeatured = false; }
 
     public void updateInfo(String name, String region, String address, String phone) {
         this.name = name;

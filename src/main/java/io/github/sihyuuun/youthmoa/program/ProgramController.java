@@ -11,9 +11,14 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @Controller
 @RequiredArgsConstructor
@@ -26,30 +31,67 @@ public class ProgramController {
     @GetMapping("/programs")
     public String list(
             @RequestParam(required = false, defaultValue = "") String status,
-            @RequestParam(required = false, defaultValue = "") String region,
-            @RequestParam(required = false, defaultValue = "") String category,
+            @RequestParam(name = "regions", required = false) List<String> regions,
+            @RequestParam(name = "centers", required = false) List<String> centers,
             @RequestParam(required = false, defaultValue = "newest") String sort,
             @RequestParam(required = false, defaultValue = "0") int page,
+            @RequestHeader(name = "HX-Request", required = false) String hxRequest,
             @AuthenticationPrincipal UserDetails principal,
             Model model) {
 
-        Page<Program> programs = programService.search(status, region, category, sort, page);
+        List<String> safeRegions = regions == null ? Collections.emptyList() : regions;
+        List<String> safeCenters = centers == null ? Collections.emptyList() : centers;
+
+        Page<Program> programs = programService.search(status, safeRegions, safeCenters, sort, page);
 
         model.addAttribute("currentPage", "programs");
         model.addAttribute("programs", programs);
-        model.addAttribute("regions", programService.getRegions());
+
+        // 사이드바 (featured 5) + 팝오버 (전체)
+        model.addAttribute("sidebarRegions", programService.getSidebarRegions());
+        model.addAttribute("sidebarCenters", programService.getSidebarCenters());
+        model.addAttribute("allRegions", programService.getAllRegions());
+        model.addAttribute("allCenters", programService.getAllCenters());
 
         model.addAttribute("filterStatus", status);
-        model.addAttribute("filterRegion", region);
-        model.addAttribute("filterCategory", category);
+        model.addAttribute("filterRegions", safeRegions);
+        model.addAttribute("filterCenters", safeCenters);
         model.addAttribute("filterSort", sort);
+
+        // 활성 칩 — key=group:value, label, removeQuery
+        List<Map<String, String>> activeFilters = buildActiveFilters(status, safeRegions, safeCenters, sort);
+        model.addAttribute("activeFilters", activeFilters);
 
         // 인증된 사용자의 즐겨찾기 program id Set (카드 N개 N+1 회피)
         model.addAttribute("bookmarkedIds",
                 bookmarkService.getBookmarkedProgramIds(
                         principal != null ? principal.getUsername() : null));
 
+        // htmx 부분 갱신
+        if (hxRequest != null && !hxRequest.isBlank()) {
+            return "program/_list-fragment :: list-region";
+        }
         return "program/list";
+    }
+
+    private List<Map<String, String>> buildActiveFilters(String status, List<String> regions,
+                                                         List<String> centers, String sort) {
+        List<Map<String, String>> chips = new ArrayList<>();
+        for (String r : regions) {
+            Map<String, String> chip = new LinkedHashMap<>();
+            chip.put("group", "regions");
+            chip.put("value", r);
+            chip.put("label", r);
+            chips.add(chip);
+        }
+        for (String c : centers) {
+            Map<String, String> chip = new LinkedHashMap<>();
+            chip.put("group", "centers");
+            chip.put("value", c);
+            chip.put("label", c);
+            chips.add(chip);
+        }
+        return chips;
     }
 
     @GetMapping("/programs/{id}")
@@ -60,7 +102,6 @@ public class ProgramController {
         boolean bookmarked = principal != null
                 && bookmarkService.isBookmarked(principal.getUsername(), id);
 
-        // prototype.tsx capInfo() — applied / capacity 비율 + 경쟁률
         long appliedCount = applicationRepository.countByProgramAndStatusIn(
                 program,
                 List.of(ApplicationStatus.PENDING, ApplicationStatus.APPROVED)

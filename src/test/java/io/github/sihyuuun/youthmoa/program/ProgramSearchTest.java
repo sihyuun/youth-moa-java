@@ -99,16 +99,34 @@ class ProgramSearchTest {
     }
 
     @Test
-    @DisplayName("category 필터로 단일 카테고리만 추출")
-    void filterCategory() {
+    @DisplayName("withRegions(List) 는 IN 절로 다중 지역을 추출한다")
+    void filterRegionsMultiple() {
         Specification<Program> spec = Specification
                 .where(ProgramSpec.isActive())
-                .and(ProgramSpec.withCategory("교육"));
+                .and(ProgramSpec.withRegions(java.util.List.of("수원시", "고양시")));
         Page<Program> result = programRepository.findAll(spec,
                 PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "createdAt")));
-        assertThat(result.getContent()).hasSize(2);
-        assertThat(result.getContent()).extracting(Program::getCategory)
-                .containsOnly("교육");
+        assertThat(result.getContent()).extracting(Program::getRegion)
+                .containsExactlyInAnyOrder("수원시", "고양시");
+    }
+
+    @Test
+    @DisplayName("withRegions 가 null/빈 리스트 면 조건 미적용")
+    void filterRegionsEmpty() {
+        assertThat(ProgramSpec.withRegions(null)).isNull();
+        assertThat(ProgramSpec.withRegions(java.util.List.of())).isNull();
+    }
+
+    @Test
+    @DisplayName("withCenters(List) 는 organization IN 절로 청년센터 다중 필터")
+    void filterCentersMultiple() {
+        Specification<Program> spec = Specification
+                .where(ProgramSpec.isActive())
+                .and(ProgramSpec.withCenters(java.util.List.of("내일스퀘어", "비행지구")));
+        Page<Program> result = programRepository.findAll(spec,
+                PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "createdAt")));
+        assertThat(result.getContent()).extracting(Program::getOrganization)
+                .containsExactlyInAnyOrder("내일스퀘어", "비행지구");
     }
 
     @Test

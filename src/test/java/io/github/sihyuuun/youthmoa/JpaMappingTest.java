@@ -15,6 +15,8 @@ import io.github.sihyuuun.youthmoa.notification.NotificationRepository;
 import io.github.sihyuuun.youthmoa.notification.NotificationType;
 import io.github.sihyuuun.youthmoa.program.Program;
 import io.github.sihyuuun.youthmoa.program.ProgramRepository;
+import io.github.sihyuuun.youthmoa.region.Region;
+import io.github.sihyuuun.youthmoa.region.RegionRepository;
 import io.github.sihyuuun.youthmoa.user.User;
 import io.github.sihyuuun.youthmoa.user.UserRepository;
 import io.github.sihyuuun.youthmoa.user.UserRole;
@@ -41,11 +43,17 @@ class JpaMappingTest {
     @Autowired BookmarkRepository bookmarkRepository;
     @Autowired NoticeRepository noticeRepository;
     @Autowired NotificationRepository notificationRepository;
+    @Autowired RegionRepository regionRepository;
 
     @Test
     void allEntitiesPersistAndAuditingWorks() {
         Center center = centerRepository.save(Center.builder()
-                .name("강남 청년센터").region("서울").address("서울시 강남구").phone("02-0000-0000").build());
+                .name("강남 청년센터").region("서울").address("서울시 강남구").phone("02-0000-0000")
+                .isFeatured(true)
+                .build());
+
+        Region region = regionRepository.save(Region.builder()
+                .name("서울").isFeatured(true).build());
 
         User user = userRepository.save(User.builder()
                 .email("user@test.com").password("hashed").name("홍길동")
@@ -79,6 +87,10 @@ class JpaMappingTest {
 
         assertThat(userRepository.count()).isEqualTo(2);
         assertThat(centerRepository.count()).isEqualTo(1);
+        assertThat(regionRepository.count()).isEqualTo(1);
+        assertThat(regionRepository.findAllByIsFeaturedTrueOrderByNameAsc()).hasSize(1);
+        assertThat(centerRepository.findAllByIsFeaturedTrueOrderByNameAsc()).hasSize(1);
+        assertThat(region.getName()).isEqualTo("서울");
         assertThat(programRepository.count()).isEqualTo(1);
         assertThat(applicationRepository.count()).isEqualTo(1);
         assertThat(bookmarkRepository.count()).isEqualTo(1);
