@@ -39,7 +39,8 @@ dependencies {
 	testImplementation("org.springframework.boot:spring-boot-testcontainers")
 	testImplementation("org.testcontainers:testcontainers-junit-jupiter")
 	testImplementation("org.testcontainers:testcontainers-postgresql")
-	testRuntimeOnly("com.h2database:h2")
+	// H2: unit test + e2e profile (CI Playwright) 양쪽에서 사용 — runtimeOnly 로 승격해 boot jar 포함
+	runtimeOnly("com.h2database:h2")
 	testCompileOnly("org.projectlombok:lombok")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 	testAnnotationProcessor("org.projectlombok:lombok")

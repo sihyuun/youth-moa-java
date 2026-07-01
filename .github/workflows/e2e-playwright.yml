@@ -1,0 +1,97 @@
+name: E2E Playwright
+
+# PR 이 열리거나 main 에 push 될 때 Playwright E2E 실행
+# DB: H2 in-memory (application-e2e.properties). 신규 DB 불필요.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  e2e:
+    name: Playwright E2E (H2)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: e2e/package-lock.json
+
+      - name: Make gradlew executable
+        run: chmod +x gradlew
+
+      - name: Build boot jar
+        run: ./gradlew bootJar --no-daemon
+
+      - name: Install Playwright dependencies
+        working-directory: e2e
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+
+      - name: Start Spring Boot (e2e profile)
+        run: |
+          nohup java -jar build/libs/*.jar \
+            --spring.profiles.active=e2e \
+            --server.port=8080 \
+            > /tmp/boot.log 2>&1 &
+          echo $! > /tmp/boot.pid
+          # 부팅 대기 — /actuator/health 없으면 index.html
+          for i in $(seq 1 60); do
+            if curl -sf http://localhost:8080/ >/dev/null 2>&1; then
+              echo "Boot ready in ${i}s"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "::error::Boot timeout after 60s"
+          tail -80 /tmp/boot.log
+          exit 1
+
+      - name: Run Playwright tests
+        working-directory: e2e
+        env:
+          BASE_URL: http://localhost:8080
+        run: npx playwright test --reporter=html,line
+
+      - name: Stop Spring Boot
+        if: always()
+        run: |
+          if [ -f /tmp/boot.pid ]; then
+            kill $(cat /tmp/boot.pid) 2>/dev/null || true
+          fi
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ github.run_number }}
+          path: e2e/playwright-report/
+          retention-days: 14
+
+      - name: Upload Spring Boot log (실패 시)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: boot-log-${{ github.run_number }}
+          path: /tmp/boot.log
+          retention-days: 7

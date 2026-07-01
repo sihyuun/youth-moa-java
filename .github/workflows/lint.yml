@@ -1,0 +1,96 @@
+name: Lint
+
+# 매 push · PR 마다 코드 스타일·안티패턴 검증
+# 스크립트 검증 + 필요 시 Spotless (Gradle plugin) 후속 도입
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: lint-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  custom-lint:
+    name: Custom Anti-Pattern Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Detect self-referencing CSS custom properties
+        run: |
+          # `--x: var(--x)` 형태 자기참조 감지 (text-tri 사고 재발 방지)
+          set +e
+          BAD=$(grep -rEn '^\s*(--[a-zA-Z0-9_-]+)\s*:[^;]*\bvar\(\1\)' \
+                src/main/resources/static/css/ 2>/dev/null || true)
+          if [ -n "$BAD" ]; then
+            echo "::error::Self-referencing CSS custom properties detected:"
+            echo "$BAD"
+            exit 1
+          fi
+          echo "✅ No self-referencing CSS custom properties"
+
+      - name: Detect th:field password anti-pattern
+        run: |
+          # `th:field="*{password}"` + `type="password"` 함께 있으면 Spring 이 value 유출 위험
+          # CLAUDE.md 규칙: password input 은 th:field 대신 name+th:value 로 구현
+          set +e
+          BAD=$(grep -rEn 'th:field="[^"]*password' \
+                src/main/resources/templates/ 2>/dev/null | \
+                grep -B2 -A2 'type="password"' || true)
+          if [ -n "$BAD" ]; then
+            echo "::warning::Possible th:field password anti-pattern:"
+            echo "$BAD"
+          else
+            echo "✅ No th:field password anti-pattern"
+          fi
+
+      - name: Detect git add -A in scripts
+        run: |
+          # 프로젝트 내 스크립트에 git add -A 있으면 경고 (메모리 규칙)
+          set +e
+          BAD=$(grep -rEn '\bgit[[:space:]]+add[[:space:]]+(-A|--all|\.|\*)' \
+                .claude/hooks/ .github/workflows/ scripts/ 2>/dev/null || true)
+          # 예외: 이 lint workflow 자체와 pre-bash-git-add.sh 는 감지 로직 자체를 포함하므로 스킵
+          BAD=$(echo "$BAD" | grep -v 'pre-bash-git-add.sh' | grep -v 'lint.yml' || true)
+          if [ -n "$BAD" ]; then
+            echo "::warning::git add -A/./\\* found in tracked scripts:"
+            echo "$BAD"
+          fi
+
+      - name: Check commit message convention (last 10)
+        run: |
+          # 최근 10 커밋의 메시지 첫 줄이 컨벤션 매치하는지
+          set +e
+          BAD=""
+          while read -r line; do
+            # 패턴 A: YYMMDD_id - desc
+            if echo "$line" | grep -qE '^[0-9]{6}_[a-z0-9_]+[[:space:]]+-'; then continue; fi
+            # 패턴 B: [TAG] desc
+            if echo "$line" | grep -qE '^\[[A-Z가-힣]+\]'; then continue; fi
+            # 패턴 C: Merge / Revert (자동 커밋)
+            if echo "$line" | grep -qE '^(Merge|Revert)'; then continue; fi
+            # 패턴 D: 예전 커밋 (초기 관대 처리)
+            BAD="$BAD\n$line"
+          done < <(git log --format=%s -10)
+          if [ -n "$BAD" ]; then
+            echo "::warning::commit messages not matching convention (last 10):"
+            printf "$BAD\n"
+          fi
+
+  gradle-check:
+    name: Gradle Check (compile only)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+      - run: chmod +x gradlew
+      - name: Compile
+        run: ./gradlew compileJava compileTestJava --no-daemon

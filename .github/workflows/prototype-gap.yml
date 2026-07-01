@@ -1,0 +1,119 @@
+name: Prototype Gap Weekly
+
+# 매주 월요일 KST 08:55 (UTC 23:55 일요일)
+# prototype.html ↔ templates/ 대응 diff 를 Claude 없이 스크립트로 근사 측정.
+# 상세 AI 평가는 별도 원격 루틴 (docs/routines/prototype-gap-weekly.md) 이 담당.
+# 이 workflow 는 "구조적 signal" 만 Notion 에 push — 화면별 대응 파일 존재·최근 수정일·라인 수.
+
+on:
+  schedule:
+    - cron: '55 23 * * 0'  # UTC Sun 23:55 = KST Mon 08:55
+  workflow_dispatch:        # 수동 트리거 허용
+
+jobs:
+  gap-report:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compute structural gap signals
+        id: signals
+        run: |
+          # 화면별 대응 template 파일 존재·라인·최근 수정일 수집
+          mkdir -p /tmp/gap
+          declare -A SCREENS=(
+            [home]="src/main/resources/templates/index.html"
+            [programs-list]="src/main/resources/templates/program/list.html"
+            [programs-detail]="src/main/resources/templates/program/detail.html"
+            [signup]="src/main/resources/templates/user/signup.html"
+            [login]="src/main/resources/templates/user/login.html"
+            [apply]="src/main/resources/templates/application/apply.html"
+            [header]="src/main/resources/templates/fragments/header.html"
+            [footer]="src/main/resources/templates/fragments/footer.html"
+          )
+
+          echo "| 화면 | 파일 존재 | 라인 수 | 최근 수정 |" > /tmp/gap/report.md
+          echo "|---|---|---|---|" >> /tmp/gap/report.md
+          for name in "${!SCREENS[@]}"; do
+            f="${SCREENS[$name]}"
+            if [ -f "$f" ]; then
+              lines=$(wc -l < "$f" | tr -d ' ')
+              mod=$(git log -1 --format=%ai -- "$f" 2>/dev/null | cut -d' ' -f1)
+              echo "| $name | ✅ | $lines | $mod |" >> /tmp/gap/report.md
+            else
+              echo "| $name | ❌ | 0 | — |" >> /tmp/gap/report.md
+            fi
+          done
+
+          cat /tmp/gap/report.md
+
+      - name: Push to Notion
+        env:
+          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+          NOTION_PARENT_PAGE_ID: ${{ secrets.NOTION_PARENT_PAGE_ID }}
+        run: |
+          if [ -z "$NOTION_TOKEN" ] || [ -z "$NOTION_PARENT_PAGE_ID" ]; then
+            echo "::warning::Notion secrets not set — skipping push"
+            cat /tmp/gap/report.md
+            exit 0
+          fi
+
+          TODAY_KST=$(TZ='Asia/Seoul' date '+%Y-%m-%d')
+          TITLE="${TODAY_KST} Prototype Gap (Structural)"
+          BODY=$(cat /tmp/gap/report.md)
+
+          # Notion API — Create child page under parent
+          # blocks 는 최상단 heading + paragraph 1개 (표는 별도 API 필요하므로 markdown 원문을 code block 으로)
+          jq -n \
+            --arg parent "$NOTION_PARENT_PAGE_ID" \
+            --arg title "$TITLE" \
+            --arg body "$BODY" \
+            '{
+              parent: { page_id: $parent },
+              properties: {
+                title: {
+                  title: [{ text: { content: $title } }]
+                }
+              },
+              icon: { emoji: "📊" },
+              children: [
+                {
+                  object: "block",
+                  type: "callout",
+                  callout: {
+                    rich_text: [{ text: { content: "📌 구조적 signal 스냅샷. 상세 AI 평가는 원격 PM 루틴 참조." } }],
+                    icon: { emoji: "📌" }
+                  }
+                },
+                {
+                  object: "block",
+                  type: "code",
+                  code: {
+                    rich_text: [{ text: { content: $body } }],
+                    language: "markdown"
+                  }
+                }
+              ]
+            }' > /tmp/gap/payload.json
+
+          curl -sS -X POST https://api.notion.com/v1/pages \
+            -H "Authorization: Bearer $NOTION_TOKEN" \
+            -H "Notion-Version: 2022-06-28" \
+            -H "Content-Type: application/json" \
+            --data @/tmp/gap/payload.json \
+            | tee /tmp/gap/response.json
+
+          if ! jq -e '.id' /tmp/gap/response.json >/dev/null; then
+            echo "::error::Notion page creation failed"
+            cat /tmp/gap/response.json
+            exit 1
+          fi
+
+          echo "Notion page created: $(jq -r '.url' /tmp/gap/response.json)"
+
+      - name: Upload report as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: prototype-gap-${{ github.run_number }}
+          path: /tmp/gap/report.md
+          retention-days: 30
