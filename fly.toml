@@ -1,0 +1,38 @@
+# Fly.io 배포 설정
+# 참고: https://fly.io/docs/reference/configuration/
+#
+# 첫 배포 절차:
+#   1. fly auth login
+#   2. fly launch --no-deploy  (fly.toml 생성 — 이미 있으면 스킵)
+#   3. fly secrets set DATABASE_URL="jdbc:..." DATABASE_USERNAME="..." DATABASE_PASSWORD="..."
+#   4. fly deploy
+#
+# 이후 배포: fly deploy (또는 GitHub Actions CD 파이프라인 추가)
+
+app = "youth-moa-java"
+primary_region = "nrt"  # Tokyo — 서울(icn) 리전이 열리면 변경
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  # 비밀값(DATABASE_*) 은 fly secrets set 으로 주입 — 이 파일엔 포함 금지
+  SPRING_PROFILES_ACTIVE = "prod"
+  SERVER_PORT = "8080"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = true    # 트래픽 없을 때 자동 종료 (무료 플랜 절약)
+  auto_start_machines = true
+  min_machines_running = 0     # 0: 완전 절전 가능 (첫 요청 시 cold start ~5초)
+
+  [http_service.concurrency]
+    type = "requests"
+    hard_limit = 25
+    soft_limit = 20
+
+[[vm]]
+  memory = "512mb"
+  cpu_kind = "shared"
+  cpus = 1

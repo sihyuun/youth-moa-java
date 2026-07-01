@@ -1,7 +1,7 @@
 name: Lint
 
 # 매 push · PR 마다 코드 스타일·안티패턴 검증
-# 스크립트 검증 + 필요 시 Spotless (Gradle plugin) 후속 도입
+# Spotless (Google Java Format) + 커스텀 안티패턴 검사
 
 on:
   push:
@@ -82,7 +82,7 @@ jobs:
           fi
 
   gradle-check:
-    name: Gradle Check (compile only)
+    name: Gradle Check (compile + spotless)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -94,3 +94,5 @@ jobs:
       - run: chmod +x gradlew
       - name: Compile
         run: ./gradlew compileJava compileTestJava --no-daemon
+      - name: Spotless format check
+        run: ./gradlew spotlessCheck --no-daemon

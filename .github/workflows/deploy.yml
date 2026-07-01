@@ -1,0 +1,28 @@
+name: Deploy to Fly.io
+
+# main 브랜치 push 시 자동 배포
+# 전제: GitHub Secrets 에 FLY_API_TOKEN 설정 필요
+# 발급: fly auth token → GitHub repo Settings → Secrets → FLY_API_TOKEN
+
+on:
+  push:
+    branches: [main]
+
+# CI 통과 후 배포 (ci.yml 와 별도 job 이라 순서 보장 안 됨 — 필요 시 needs 추가)
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    # FLY_API_TOKEN 시크릿이 없으면 스킵 (초기 셋업 전 오류 방지)
+    if: ${{ secrets.FLY_API_TOKEN != '' }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Fly CLI
+        uses: superfly/flyctl-actions/setup-flyctl@master
+
+      - name: Deploy to Fly.io
+        run: flyctl deploy --remote-only
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}

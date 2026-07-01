@@ -1,0 +1,26 @@
+version: 2
+updates:
+  # Gradle 의존성 주간 업데이트
+  - package-ecosystem: "gradle"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Asia/Seoul"
+    labels: ["dependencies"]
+    open-pull-requests-limit: 5
+    ignore:
+      # Spring Boot BOM 이 관리하는 버전은 Boot 업그레이드와 함께 처리
+      - dependency-name: "org.springframework.boot:*"
+        update-types: ["version-update:semver-major"]
+
+  # GitHub Actions 액션 버전 주간 업데이트
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Asia/Seoul"
+    labels: ["dependencies", "github-actions"]
