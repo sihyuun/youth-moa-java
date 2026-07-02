@@ -89,7 +89,7 @@ class ApplicationCompleteControllerTest {
         mockMvc.perform(get("/apply/complete").param("applicationId", "123"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("application/complete"))
-                .andExpect(model().attributeExists("application", "program", "channels", "channelSubtitle"))
+                .andExpect(model().attributeExists("myApplication", "program", "channels", "channelSubtitle"))
                 .andExpect(model().attribute("channelSubtitle", "결과는 카카오톡·이메일로 안내드려요"));
     }
 

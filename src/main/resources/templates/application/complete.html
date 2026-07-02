@@ -47,7 +47,7 @@
                 <span class="apply-complete-badge">승인 대기</span>
                 <div class="apply-complete-program-title" th:text="${program.title}">프로그램 제목</div>
                 <div class="apply-complete-appno"
-                     th:text="'#A' + ${application.id}">#A123</div>
+                     th:text="'#A' + ${myApplication.id}">#A123</div>
                 <div class="apply-complete-sub">
                     <span th:text="${program.organization}">기관</span>
                     <span th:if="${program.region != null}"
@@ -59,7 +59,7 @@
                     기간
                 </div>
                 <div class="apply-complete-applied-at"
-                     th:text="'신청일시 ' + ${#temporals.format(application.appliedAt, 'yyyy-MM-dd HH:mm')}">
+                     th:text="'신청일시 ' + ${#temporals.format(myApplication.appliedAt, 'yyyy-MM-dd HH:mm')}">
                     신청일시 2024-07-05 17:11
                 </div>
             </div>

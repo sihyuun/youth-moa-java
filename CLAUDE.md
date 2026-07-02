@@ -388,6 +388,26 @@ document.querySelector('input[type="checkbox"][name="termsAgreed"]')
 ### Form binding 의 boolean
 hidden input 의 `value="true"` / `"false"` 를 Spring Form Binder 가 자동으로 boolean 으로 변환. JS 에서 `hidden.value = 'true'` 처럼 문자열로 set 해도 OK.
 
+### Thymeleaf 모델 attribute 이름 예약어 충돌
+
+Thymeleaf/Spring MVC 는 `application` / `session` / `request` 같은 이름을 **ServletContext scope 예약어** 로 취급. 모델 attribute 를 이 이름으로 넣으면 shadowing 되어 우리 객체가 아닌 servletContext 가 resolve 되며, 필드가 없으니 모두 `null` 로 렌더됨 (에러 안 남 → 시각 확인 없으면 놓치기 쉬움).
+
+**금지 이름**: `application`, `session`, `request`, `response`, `servletContext`, `param`
+
+```java
+// ❌ shadowing — ${application.id} → null, ${application.appliedAt} → null
+model.addAttribute("application", application);
+
+// ✅ 다른 이름 사용
+model.addAttribute("myApplication", application);
+// 또는 도메인 별칭
+model.addAttribute("apply", application);
+```
+
+**감지 방법**: 시각 확인 시 특정 객체의 여러 필드가 일제히 `null` 로 출력되면 이름 충돌 의심. `${application}` 을 통째로 출력해 보면 ServletContext 객체가 찍힘.
+
+**2026-07-02 D1b 사고**: 신청 완료 페이지에 `#Anull`, `신청일시 null` 출력. 원인은 `application` 이름 shadowing.
+
 ---
 
 ## JPA / PostgreSQL 주의사항

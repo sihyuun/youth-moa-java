@@ -93,7 +93,8 @@ public class ApplicationController {
 
         List<NotificationChannel> channels = notificationChannelResolver.activeChannelsFor(currentUser);
 
-        model.addAttribute("application", application);
+        // "application" 은 Thymeleaf 에서 ServletContext scope 예약어와 충돌 → myApplication 사용
+        model.addAttribute("myApplication", application);
         model.addAttribute("program", application.getProgram());
         model.addAttribute("channels", channels);
         model.addAttribute("channelSubtitle", buildChannelSubtitle(channels));
