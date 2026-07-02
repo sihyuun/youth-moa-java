@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -75,13 +76,15 @@ public class ApplicationController {
      * 403 을 쓰지 않는 이유: 존재 여부 자체를 노출하지 않기 위함.
      */
     @GetMapping("/apply/complete")
+    @Transactional(readOnly = true)
     public String complete(@RequestParam("applicationId") Long applicationId,
                            @AuthenticationPrincipal UserDetails principal,
                            Model model) {
         User currentUser = userRepository.findByEmail(principal.getUsername())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
-        Application application = applicationRepository.findById(applicationId)
+        // OSIV=false 환경 대응: program·user 를 fetch join 으로 미리 로드 (템플릿 lazy 접근 방지).
+        Application application = applicationRepository.findWithProgramAndUserById(applicationId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
         if (!application.getUser().getId().equals(currentUser.getId())) {
