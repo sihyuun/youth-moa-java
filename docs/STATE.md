@@ -162,6 +162,7 @@ gh auth setup-git
 | ⑦ | `fix/text-tri-token` | main.css 자기참조 변수 정정 | 작은 fix |
 | ⑧ | `fix/webjars-htmx-path` | /webjars/htmx 302 redirect 정정 | 작은 fix |
 | ⑨ | `chore/testcontainers-fix` | YouthMoaApplicationTests Docker daemon 연결 확인·수정 | — |
+| ⑩ | `chore/integration-test-render` | 주요 렌더 경로에 `@SpringBootTest + MockMvc` 통합 렌더링 테스트 도입 (D1b 사고 재발 방지 — @WebMvcTest 는 렌더 안 함) | 사고 후 |
 
 ### 인프라 작업 (남은 단계)
 - 4️⃣ `/qa` Skill 셋업
