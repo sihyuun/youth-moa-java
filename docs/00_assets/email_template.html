@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="design_doc_mode" content="canvas"/>
+<title>Youth-Moa 이메일 양식</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<style>
+  @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css');
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif; }
+  .frame { position: absolute; }
+  .frame-label {
+    font-size: 13px; font-weight: 600; color: oklch(0.55 0.034 280);
+    margin-bottom: 14px; letter-spacing: -0.01em; display: flex; align-items: center; gap: 8px;
+  }
+  .frame-label .tag {
+    font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 20px;
+    background: oklch(0.93 0.0425 280); color: #3F30E9; letter-spacing: 0;
+  }
+  .frame-label .tag.txt { background: oklch(0.95 0.007 280); color: oklch(0.45 0.02 280); }
+  .frame-sub { font-size: 12px; color: oklch(0.7 0.02 280); font-weight: 400; }
+  /* email client window chrome */
+  .client {
+    width: 600px; border-radius: 14px; overflow: hidden;
+    box-shadow: 0 10px 40px rgba(40,30,90,0.13); background: #fff;
+  }
+  .client-bar {
+    height: 38px; background: oklch(0.96 0.006 280); display: flex; align-items: center;
+    padding: 0 14px; gap: 7px; border-bottom: 1px solid oklch(0.92 0.01 280);
+  }
+  .client-bar i { width: 11px; height: 11px; border-radius: 50%; display: inline-block; }
+  .client-meta {
+    padding: 16px 28px; border-bottom: 1px solid oklch(0.93 0.012 280); background: #fff;
+  }
+  .client-from { font-size: 13.5px; color: oklch(0.22 0.051 280); font-weight: 600; }
+  .client-from span { color: oklch(0.7 0.02 280); font-weight: 400; }
+  .client-subj { font-size: 15px; color: oklch(0.22 0.051 280); font-weight: 700; margin-top: 5px; }
+  /* plain-text mono */
+  .mono {
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif;
+    font-size: 14px; line-height: 1.85; color: #2b2b35; white-space: pre-wrap;
+    padding: 30px 30px 34px; background: #fff;
+  }
+  .mono .pw {
+    display: inline-block; font-family: 'SFMono-Regular', ui-monospace, 'Menlo', monospace;
+    font-size: 22px; font-weight: 700; letter-spacing: 3px;
+    color: #3F30E9; background: oklch(0.96 0.0255 280); border: 1px dashed #3F30E9;
+    border-radius: 8px; padding: 12px 22px; margin: 6px 0 4px;
+  }
+  .mono .rule { color: oklch(0.78 0.015 280); letter-spacing: -1px; }
+  .mono .muted { color: oklch(0.55 0.02 280); }
+  .canvas-title {
+    position: absolute; font-size: 26px; font-weight: 800; color: oklch(0.22 0.051 280);
+    letter-spacing: -0.02em;
+  }
+  .canvas-desc {
+    position: absolute; font-size: 14px; line-height: 1.7; color: oklch(0.5 0.03 280);
+    max-width: 560px;
+  }
+  .spec {
+    position: absolute; width: 360px; background: #fff; border: 1px solid oklch(0.9 0.014 280);
+    border-radius: 14px; padding: 22px 24px; box-shadow: 0 4px 12px rgba(67,56,202,0.05);
+  }
+  .spec h3 { margin: 0 0 14px; font-size: 14px; font-weight: 700; color: oklch(0.22 0.051 280); }
+  .spec dl { margin: 0; display: grid; grid-template-columns: 92px 1fr; gap: 9px 12px; }
+  .spec dt { font-size: 12px; font-weight: 600; color: #3F30E9; }
+  .spec dd { margin: 0; font-size: 12.5px; line-height: 1.55; color: oklch(0.42 0.025 280); }
+  .spec .div { grid-column: 1/3; height: 1px; background: oklch(0.93 0.012 280); margin: 3px 0; }
+</style>
+</head>
+<body>
+
+<div class="canvas-title" style="left:80px; top:60px;">청년모아 이메일 양식</div>
+<div class="canvas-desc" style="left:80px; top:104px;">
+  거래성(transactional) 이메일 2종. 테이블 기반 + 인라인 스타일로 작성되어 Gmail·Outlook·네이버메일 등에서 깨지지 않습니다.
+  본 시안의 이미지·CTA는 <b>운영 시 절대경로(https://)</b>로 교체해야 합니다.
+</div>
+
+<!-- ════════════════ EMAIL 1: 회원가입 환영 (HTML) ════════════════ -->
+<div class="frame" style="left:80px; top:200px;">
+  <div class="frame-label">
+    <span class="tag">HTML 멀티파트</span> 회원가입 환영 메일
+    <span class="frame-sub">· 가입 완료 직후 발송</span>
+  </div>
+  <div class="client">
+    <div class="client-bar">
+      <i style="background:#FF5F57;"></i><i style="background:#FEBC2E;"></i><i style="background:#28C840;"></i>
+    </div>
+    <div class="client-meta">
+      <div class="client-from">청년모아 <span>&lt;<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="cea0a1e3bcabbea2b78eb7a1bbbaa6a3a1afe0a5bc">[email&#160;protected]</a>&gt;</span></div>
+      <div class="client-subj">[청년모아] 박시현님, 가입을 환영합니다!</div>
+    </div>
+
+    <!-- ===== EMAIL BODY (table-based, inline styles) ===== -->
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f3f9;">
+      <tr><td align="center" style="padding:0;">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="width:600px; background:#ffffff;">
+
+          <!-- header bar -->
+          <tr><td style="background:#3F30E9; padding:26px 36px;">
+            <img src="assets/logo_white.png" alt="청년모아" width="124" style="display:block; height:auto; border:0;"/>
+          </td></tr>
+
+          <!-- hero -->
+          <tr><td style="padding:44px 36px 8px;">
+            <div style="font-size:25px; font-weight:800; color:#1a1a22; letter-spacing:-0.02em; line-height:1.35;">
+              박시현님,<br/>청년모아의 멤버가 되신 걸 환영해요
+            </div>
+          </td></tr>
+          <tr><td style="padding:14px 36px 0;">
+            <div style="font-size:15px; line-height:1.7; color:#56535f;">
+              이제 경기도 곳곳의 청년센터 프로그램을 한곳에서 찾고,<br/>
+              관심 있는 활동에 바로 신청할 수 있어요. 지금 둘러보세요.
+            </div>
+          </td></tr>
+
+          <!-- CTA -->
+          <tr><td style="padding:30px 36px 8px;">
+            <table role="presentation" cellpadding="0" cellspacing="0">
+              <tr><td style="background:#3F30E9; border-radius:10px;">
+                <a href="https://youthmoa.kr/programs" target="_blank"
+                   style="display:inline-block; padding:15px 34px; font-size:15px; font-weight:700; color:#ffffff; text-decoration:none; letter-spacing:-0.01em;">
+                  프로그램 둘러보기 →
+                </a>
+              </td></tr>
+            </table>
+          </td></tr>
+
+          <!-- value props -->
+          <tr><td style="padding:30px 36px 6px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid #ecebf3;">
+              <tr>
+                <td width="33.33%" style="padding:22px 8px 6px; text-align:center; vertical-align:top;">
+                  <div style="font-size:22px; font-weight:800; color:#3F30E9;">31</div>
+                  <div style="font-size:12.5px; color:#56535f; margin-top:4px; line-height:1.4;">시·군<br/>청년센터</div>
+                </td>
+                <td width="33.33%" style="padding:22px 8px 6px; text-align:center; vertical-align:top; border-left:1px solid #ecebf3; border-right:1px solid #ecebf3;">
+                  <div style="font-size:22px; font-weight:800; color:#3F30E9;">120+</div>
+                  <div style="font-size:12.5px; color:#56535f; margin-top:4px; line-height:1.4;">진행중<br/>프로그램</div>
+                </td>
+                <td width="33.33%" style="padding:22px 8px 6px; text-align:center; vertical-align:top;">
+                  <div style="font-size:22px; font-weight:800; color:#3F30E9;">무료</div>
+                  <div style="font-size:12.5px; color:#56535f; margin-top:4px; line-height:1.4;">대부분<br/>참가비 0원</div>
+                </td>
+              </tr>
+            </table>
+          </td></tr>
+
+          <!-- help -->
+          <tr><td style="padding:26px 36px 0;">
+            <div style="background:#f7f6fc; border-radius:10px; padding:16px 18px;">
+              <div style="font-size:13px; font-weight:700; color:#1a1a22; margin-bottom:4px;">도움이 필요하신가요?</div>
+              <div style="font-size:12.5px; line-height:1.6; color:#56535f;">
+                마이페이지 &gt; 자주 묻는 질문에서 신청 방법을 확인하거나,
+                고객센터(<a href="tel:031-000-0000" style="color:#3F30E9; text-decoration:none;">031-000-0000</a>)로 문의해 주세요.
+              </div>
+            </div>
+          </td></tr>
+
+          <!-- footer -->
+          <tr><td style="padding:30px 36px 36px;">
+            <div style="border-top:1px solid #ecebf3; padding-top:20px;">
+              <div style="font-size:11.5px; line-height:1.7; color:#9a98a8;">
+                본 메일은 발신 전용 메일입니다. 문의는 고객센터를 이용해 주세요.<br/>
+                경기도 청년모아 · 경기도 수원시 청년로 000 · 고객센터 031-000-0000<br/>
+                <a href="https://youthmoa.kr/mypage/noti" style="color:#9a98a8; text-decoration:underline;">수신 설정</a>
+                &nbsp;·&nbsp;
+                <a href="https://youthmoa.kr/legal/privacy" style="color:#9a98a8; text-decoration:underline;">개인정보처리방침</a>
+              </div>
+              <div style="font-size:11px; color:#bdbcc8; margin-top:12px;">© 2026 Youth-Moa. All rights reserved.</div>
+            </div>
+          </td></tr>
+
+        </table>
+      </td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- ════════════════ EMAIL 2: 임시 비밀번호 (HTML — 통일 셸) ════════════════ -->
+<div class="frame" style="left:760px; top:200px;">
+  <div class="frame-label">
+    <span class="tag">HTML 멀티파트</span> 임시 비밀번호 메일
+    <span class="frame-sub">· 비밀번호 찾기 요청 시 발송</span>
+  </div>
+  <div class="client">
+    <div class="client-bar">
+      <i style="background:#FF5F57;"></i><i style="background:#FEBC2E;"></i><i style="background:#28C840;"></i>
+    </div>
+    <div class="client-meta">
+      <div class="client-from">청년모아 <span>&lt;<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="1779783a6572677b6e576e7862637f7a7876397c65">[email&#160;protected]</a>&gt;</span></div>
+      <div class="client-subj">[청년모아] 임시 비밀번호가 발급되었습니다</div>
+    </div>
+
+    <!-- ===== EMAIL BODY (table-based, inline styles) ===== -->
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f3f9;">
+      <tr><td align="center" style="padding:0;">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="width:600px; background:#ffffff;">
+
+          <!-- header bar (통일) -->
+          <tr><td style="background:#3F30E9; padding:26px 36px;">
+            <img src="assets/logo_white.png" alt="청년모아" width="124" style="display:block; height:auto; border:0;"/>
+          </td></tr>
+
+          <!-- title -->
+          <tr><td style="padding:44px 36px 8px;">
+            <div style="font-size:25px; font-weight:800; color:#1a1a22; letter-spacing:-0.02em; line-height:1.35;">
+              임시 비밀번호가<br/>발급되었습니다
+            </div>
+          </td></tr>
+          <tr><td style="padding:14px 36px 0;">
+            <div style="font-size:15px; line-height:1.7; color:#56535f;">
+              박시현님, 요청하신 임시 비밀번호를 보내드려요.<br/>
+              아래 비밀번호로 로그인한 뒤 새 비밀번호로 변경해 주세요.
+            </div>
+          </td></tr>
+
+          <!-- password block -->
+          <tr><td style="padding:24px 36px 0;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f3f1fd; border:1px dashed #3F30E9; border-radius:10px;">
+              <tr><td style="padding:22px 24px; text-align:center;">
+                <div style="font-size:12.5px; color:#56535f; margin-bottom:8px;">임시 비밀번호</div>
+                <div style="font-family:'SFMono-Regular',ui-monospace,Menlo,monospace; font-size:26px; font-weight:700; letter-spacing:3px; color:#3F30E9;">Tz7$kQ9w</div>
+              </td></tr>
+            </table>
+          </td></tr>
+          <tr><td style="padding:12px 36px 0;">
+            <div style="font-size:13px; line-height:1.6; color:#9a3b3b;">
+              ※ 이 임시 비밀번호는 발급 후 <b>30분</b> 동안만 유효합니다.
+            </div>
+          </td></tr>
+
+          <!-- CTA -->
+          <tr><td style="padding:26px 36px 8px;">
+            <table role="presentation" cellpadding="0" cellspacing="0">
+              <tr><td style="background:#3F30E9; border-radius:10px;">
+                <a href="https://youthmoa.kr/login" target="_blank"
+                   style="display:inline-block; padding:15px 34px; font-size:15px; font-weight:700; color:#ffffff; text-decoration:none; letter-spacing:-0.01em;">
+                  로그인하고 비밀번호 변경 →
+                </a>
+              </td></tr>
+            </table>
+          </td></tr>
+
+          <!-- security note -->
+          <tr><td style="padding:26px 36px 0;">
+            <div style="background:#f7f6fc; border-radius:10px; padding:16px 18px;">
+              <div style="font-size:13px; font-weight:700; color:#1a1a22; margin-bottom:4px;">본인이 요청하지 않으셨나요?</div>
+              <div style="font-size:12.5px; line-height:1.6; color:#56535f;">
+                다른 사람이 회원님의 이메일을 입력했을 수 있습니다. 이 메일을 무시하셔도 계정은 안전하며,
+                걱정되신다면 고객센터(<a href="tel:031-000-0000" style="color:#3F30E9; text-decoration:none;">031-000-0000</a>)로 문의해 주세요.
+              </div>
+            </div>
+          </td></tr>
+
+          <!-- footer (통일) -->
+          <tr><td style="padding:30px 36px 36px;">
+            <div style="border-top:1px solid #ecebf3; padding-top:20px;">
+              <div style="font-size:11.5px; line-height:1.7; color:#9a98a8;">
+                본 메일은 발신 전용 메일입니다. 문의는 고객센터를 이용해 주세요.<br/>
+                경기도 청년모아 · 경기도 수원시 청년로 000 · 고객센터 031-000-0000<br/>
+                <a href="https://youthmoa.kr/mypage/noti" style="color:#9a98a8; text-decoration:underline;">수신 설정</a>
+                &nbsp;·&nbsp;
+                <a href="https://youthmoa.kr/legal/privacy" style="color:#9a98a8; text-decoration:underline;">개인정보처리방침</a>
+              </div>
+              <div style="font-size:11px; color:#bdbcc8; margin-top:12px;">© 2026 Youth-Moa. All rights reserved.</div>
+            </div>
+          </td></tr>
+
+        </table>
+      </td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- ════════════════ SPEC PANEL ════════════════ -->
+<div class="spec" style="left:760px; top:1200px;">
+  <h3>발송 정책 요약 (HANDOFF §14)</h3>
+  <dl>
+    <dt>대상 (MVP)</dt><dd>임시 비밀번호 · 회원가입 환영<br/>(보안 인시던트 통지는 2차)</dd>
+    <div class="div"></div>
+    <dt>환영 메일</dt><dd>HTML 멀티파트 (텍스트 폴백 포함)</dd>
+    <dt>임시 비번</dt><dd>HTML 멀티파트 (공통 셸·텍스트 폴백 포함)</dd>
+    <div class="div"></div>
+    <dt>공통 셸</dt><dd>모든 거래성 메일이 동일 헤더(인디고+로고)·푸터 공유, 본문만 교체</dd>
+    <div class="div"></div>
+    <dt>임시 비번<br/>필수 요소</dt><dd>만료 시간(30분) · "본인 요청 아니면" 안내 · 변경 유도</dd>
+    <div class="div"></div>
+    <dt>트리거</dt><dd>POST /api/auth/find-password<br/>POST /api/auth/signup (성공 후)</dd>
+    <dt>템플릿</dt><dd>lib/email/templates/<br/>temp-password.txt · welcome.html/.txt</dd>
+  </dl>
+</div>
+
+<template id="__bundler_thumbnail">
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <rect width="100" height="100" fill="#3F30E9"/>
+  <rect x="22" y="34" width="56" height="38" rx="5" fill="#ffffff"/>
+  <path d="M22 39 L50 57 L78 39" stroke="#3F30E9" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
+</template>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script></body>
+</html>

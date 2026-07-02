@@ -53,3 +53,10 @@ logs/
 *.stackdump
 *.hprof
 core.*
+
+### Claude Code / Playwright MCP ###
+.claude/settings.local.json
+.playwright-mcp/
+
+### Screenshot artifacts (Playwright dynamic verification) ###
+/*.png
