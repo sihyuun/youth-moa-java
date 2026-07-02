@@ -1876,8 +1876,9 @@ code {
 .signup-eye-btn.is-visible { color: var(--color-primary); }
 
 /* login 화면 — signup 의 눈 아이콘 패턴 재사용 (클래스명만 auth-* 로) */
-.auth-input-with-eye { position: relative; }
-.auth-input--with-eye { padding-right: 44px; }
+.auth-input-with-eye { position: relative; width: 100%; }
+/* wrapper 안 input 도 명시적으로 100% 폭 확보 (없으면 intrinsic size 로 좁아짐) */
+.auth-input--with-eye { width: 100%; padding-right: 44px; box-sizing: border-box; }
 .auth-eye-btn {
   position: absolute;
   right: 12px;

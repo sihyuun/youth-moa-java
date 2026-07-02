@@ -362,6 +362,29 @@ document.querySelector('input[type="checkbox"][name="termsAgreed"]')
 - `build.gradle.kts`: `bootRun { sourceResources(sourceSets["main"]) }` 적용 (2026-06-30 도입) → src/main/resources 가 classpath 에 직접 들어가 `.html` 변경 즉시 반영. `./gradlew processResources` 강제 실행 **불필요**.
 - DevTools (`spring-boot-devtools` developmentOnly) 와 함께 작동 → Java 파일 변경 시 자동 restart.
 
+### 정적 리소스(CSS/JS/이미지) 는 sourceResources 로도 즉시 반영 안 됨 — 별도 조치 필요
+
+**배경**: 2026-07-02 D1b 작업 중 `main.css` 수정이 bootRun 서버에 반영 안 됐고, `curl /css/main.css` 로 확인 시 옛 버전이 계속 서빙됨. Java·`.html` 은 즉시 반영되는데 CSS 만 안 됨.
+
+**원인**: IntelliJ `bootRun` 은 classpath 상 `build/resources/main/**` 을 먼저 서빙. `sourceResources` 가 `src/main/resources` 를 추가해도 static 파일은 build 산출물이 우선 로드됨 (Java·template 은 hot-reload 경로가 별도이므로 무관). 즉 CSS·JS·이미지 변경 후에는 반드시 `build/` 를 갱신해야 함.
+
+**대응 패턴**:
+
+```powershell
+# 1. CSS/JS/이미지 변경 후
+.\gradlew.bat processResources
+
+# 2. 이미 서버가 로드한 CSS 는 브라우저 캐시도 잡고 있음 → 캐시 무효화
+#    (a) Playwright/curl: URL 뒤에 ?v=timestamp 붙이거나 link[href] 를 JS 로 교체
+#    (b) 브라우저: Ctrl+Shift+R (강제 새로고침)
+```
+
+**감지 방법**:
+- `curl http://localhost:8080/css/main.css | grep "<변경한 클래스명>"` 로 실제 서빙 CSS 확인 → 옛 내용이면 processResources 미수행 상태
+- 시각 확인 전 반드시 서빙 CSS 실측 필수 (변경 안 됐는데 눈으로만 확인하면 사고 재발)
+
+**향후 자동화 후보**: `build.gradle.kts` 의 `bootRun` 을 `processResources` 에 의존시키거나, `dev:` gradle task 로 두 개 묶기.
+
 ### Form binding 의 boolean
 hidden input 의 `value="true"` / `"false"` 를 Spring Form Binder 가 자동으로 boolean 으로 변환. JS 에서 `hidden.value = 'true'` 처럼 문자열로 set 해도 OK.
 
