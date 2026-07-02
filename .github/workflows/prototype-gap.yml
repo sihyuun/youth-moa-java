@@ -112,7 +112,7 @@ jobs:
           echo "Notion page created: $(jq -r '.url' /tmp/gap/response.json)"
 
       - name: Upload report as artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: prototype-gap-${{ github.run_number }}
           path: /tmp/gap/report.md
