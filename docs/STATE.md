@@ -172,6 +172,33 @@ gh auth setup-git
 - 8️⃣ P1 `/qa` 회귀 루프
 - 9️⃣ P2 `/prototype-check` 갭 루프
 
+### 🧪 E2E 커버리지 확장 (2026-07-02 사용자: QA 최우선 원칙)
+
+이번 PR (`test/e2e-top5-coverage`) 로 5개 spec 추가:
+- login, bookmark, apply, program-detail, header-nav (기존 home / program-list / signup 에 이어 총 8개 spec)
+
+**남은 backlog** (memory `project_e2e_backlog.md` 참조):
+
+| 시나리오 | 선행 조건 |
+|---|---|
+| `/apply/complete` 신청 완료 화면 | D1b 머지 후 |
+| 공지사항 목록·상세 | F0g 구현 후 |
+| 청년센터 + 카카오맵 | F0h 구현 후 |
+| 마이페이지 (신청 내역/즐겨찾기/개인정보) | D5-mypage 구현 후 |
+| 아이디·비밀번호 찾기 | F0a 후속 페이지 구현 후 |
+| 검색바 + 결과 | D4-search-bar 구현 후 |
+| 반응형 (모바일 뷰포트) | 우선순위 낮음 |
+
+**즉시 확장 가능** (이미 구현됨, Top 5 에서 뺀 것):
+- CapacityBar 색상 경계값 (89%/90%) — 카드 fragment 대상
+- 회원가입 성공 후 로그인 흐름 (성공 path)
+- 프로그램 목록 페이징·정렬 조합
+
+**인프라 리팩터**:
+- Playwright `webServer` 자동 기동
+- `helpers.ts` 로 login / waitForHtmx 헬퍼 추출 (현재 spec 마다 중복)
+- CI 병렬 실행 (DB 격리 확보 후)
+
 ### 더 옛 작업 큐 (참고)
 
 | 순서 | 브랜치 | 범위 |
