@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>신청 완료 — 청년모아</title>
+    <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"
+          rel="stylesheet">
+    <link rel="icon" type="image/png" th:href="@{/images/logo_symbol.png}">
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+</head>
+<body>
+
+<!--
+  prototype.html ApplyComplete (line 1040~1073) 기준.
+  - 헤더 없음 / 푸터 있음
+  - 성공 아이콘 88×88 (--color-success-light 배경, 46×46 체크 SVG)
+  - 타이틀 26/700, focus 초기 위치 = h1
+  - 부제: 활성 알림 채널 수에 따라 서버에서 조립 (0/1/2/3 케이스)
+  - 요약 카드 width 520
+  - CTA 2개 (ghost 160 / primary 200) + 하단 텍스트 링크
+-->
+<main class="apply-complete-screen">
+    <div class="apply-complete-inner">
+
+        <div class="apply-complete-icon" aria-label="신청 완료">
+            <svg viewBox="0 0 24 24" width="46" height="46" aria-hidden="true">
+                <circle cx="12" cy="12" r="10" fill="#10B981"/>
+                <path d="M8 12.5l2.5 2.5L16 9.5" stroke="#fff" stroke-width="2.2"
+                      fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </div>
+
+        <h1 class="apply-complete-title" tabindex="-1" autofocus>프로그램 신청이 완료되었습니다</h1>
+        <p class="apply-complete-subtitle">
+            신청이 접수되었습니다.<br>
+            <span th:text="${channelSubtitle}">결과는 카카오톡·이메일로 안내드려요</span>
+        </p>
+
+        <!-- 요약 카드 -->
+        <div class="apply-complete-card">
+            <div class="apply-complete-thumb">
+                <img th:if="${program.imageUrl != null}" th:src="${program.imageUrl}" alt="">
+                <div th:if="${program.imageUrl == null}" class="apply-complete-thumb-fallback"></div>
+            </div>
+            <div class="apply-complete-meta">
+                <span class="apply-complete-badge">승인 대기</span>
+                <div class="apply-complete-program-title" th:text="${program.title}">프로그램 제목</div>
+                <div class="apply-complete-appno"
+                     th:text="'#A' + ${application.id}">#A123</div>
+                <div class="apply-complete-sub">
+                    <span th:text="${program.organization}">기관</span>
+                    <span th:if="${program.region != null}"
+                          th:text="' · ' + ${program.region}"> · 지역</span>
+                </div>
+                <div class="apply-complete-sub"
+                     th:if="${program.startDate != null and program.endDate != null}"
+                     th:text="${#temporals.format(program.startDate, 'yyyy.MM.dd')} + ' ~ ' + ${#temporals.format(program.endDate, 'yyyy.MM.dd')}">
+                    기간
+                </div>
+                <div class="apply-complete-applied-at"
+                     th:text="'신청일시 ' + ${#temporals.format(application.appliedAt, 'yyyy-MM-dd HH:mm')}">
+                    신청일시 2024-07-05 17:11
+                </div>
+            </div>
+        </div>
+
+        <!-- CTA -->
+        <div class="apply-complete-actions">
+            <a th:href="@{/}" class="apply-complete-btn apply-complete-btn--ghost">홈으로</a>
+            <!-- TODO: 마이페이지 미구현 상태 — /mypage?tab=history 임시 링크. 구현 후 링크 유지 확인. -->
+            <a th:href="@{/mypage(tab='history')}"
+               class="apply-complete-btn apply-complete-btn--primary">내 신청 현황 보기</a>
+        </div>
+
+        <!-- 하단 소형 링크 -->
+        <a th:href="@{/mypage(tab='history')}" class="apply-complete-mini-link">
+            잘못 신청하셨나요? 신청 현황에서 취소할 수 있어요
+        </a>
+    </div>
+
+    <div th:replace="~{fragments/footer :: footer}"></div>
+</main>
+
+</body>
+</html>

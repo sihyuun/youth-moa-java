@@ -78,11 +78,24 @@ public class User extends BaseTimeEntity {
     @Column(length = 50)
     private String centerScope;
 
+    // ─── D1b: 알림 채널 수신 선호 ───
+    // default true / false / true — 시드/신규 회원가입 시 자동 세팅.
+    // 값 변경은 도메인 메서드 updateNotificationChannels() 로 수행 (@Setter 금지 원칙).
+    @Column(nullable = false)
+    private boolean notifyKakao = true;
+
+    @Column(nullable = false)
+    private boolean notifySms = false;
+
+    @Column(nullable = false)
+    private boolean notifyEmail = true;
+
     @Builder
     private User(String email, String password, String name, String phone,
                  String zipcode, String address, String addressDetail,
                  LocalDate birthDate, UserGender gender, Set<String> interests,
-                 UserRole role, Center center, String centerScope) {
+                 UserRole role, Center center, String centerScope,
+                 Boolean notifyKakao, Boolean notifySms, Boolean notifyEmail) {
         this.email = email;
         this.password = password;
         this.name = name;
@@ -96,6 +109,16 @@ public class User extends BaseTimeEntity {
         this.role = role != null ? role : UserRole.USER;
         this.center = center;
         this.centerScope = centerScope;
+        this.notifyKakao = notifyKakao != null ? notifyKakao : true;
+        this.notifySms = notifySms != null ? notifySms : false;
+        this.notifyEmail = notifyEmail != null ? notifyEmail : true;
+    }
+
+    /** D1b: 알림 수신 채널 갱신 (마이페이지 설정용). @Setter 금지 → 도메인 메서드. */
+    public void updateNotificationChannels(boolean kakao, boolean sms, boolean email) {
+        this.notifyKakao = kakao;
+        this.notifySms = sms;
+        this.notifyEmail = email;
     }
 
     public void changePassword(String newPassword) {
