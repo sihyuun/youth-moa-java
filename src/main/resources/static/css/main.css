@@ -1876,8 +1876,9 @@ code {
 .signup-eye-btn.is-visible { color: var(--color-primary); }
 
 /* login 화면 — signup 의 눈 아이콘 패턴 재사용 (클래스명만 auth-* 로) */
-.auth-input-with-eye { position: relative; }
-.auth-input--with-eye { padding-right: 44px; }
+.auth-input-with-eye { position: relative; width: 100%; }
+/* wrapper 안 input 도 명시적으로 100% 폭 확보 (없으면 intrinsic size 로 좁아짐) */
+.auth-input--with-eye { width: 100%; padding-right: 44px; box-sizing: border-box; }
 .auth-eye-btn {
   position: absolute;
   right: 12px;
@@ -2782,3 +2783,145 @@ code {
 .program-card--closed .program-card-image img {
   filter: grayscale(0.5);
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   D1b: 신청 완료 페이지 (prototype.html ApplyComplete line 1040~1073)
+   ─── 헤더 없음 · 성공 아이콘 + 카드 + CTA + 미니 링크 + 푸터
+   ═══════════════════════════════════════════════════════════════ */
+.apply-complete-screen {
+  background: var(--color-bg);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+.apply-complete-inner {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 56px 80px;
+}
+.apply-complete-icon {
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  background: var(--color-success-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+.apply-complete-title {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0 0 8px;
+  outline: none;
+}
+.apply-complete-subtitle {
+  font-size: 15px;
+  color: var(--color-text-sec);
+  text-align: center;
+  line-height: 1.7;
+  margin: 0 0 28px;
+  word-break: keep-all;
+}
+.apply-complete-card {
+  width: 520px;
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  padding: 20px;
+  display: flex;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+.apply-complete-thumb {
+  width: 80px;
+  height: 80px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #e5e7eb;
+  flex-shrink: 0;
+}
+.apply-complete-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.apply-complete-thumb-fallback {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, var(--color-border-light), var(--color-border));
+}
+.apply-complete-meta { flex: 1; min-width: 0; }
+.apply-complete-badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--color-warning-light);
+  color: var(--color-warning);
+  font-size: 12px;
+  font-weight: 600;
+}
+.apply-complete-program-title {
+  font-weight: 600;
+  font-size: 16px;
+  color: var(--color-text);
+  margin: 6px 0 2px;
+}
+.apply-complete-appno {
+  font-size: 13px;
+  color: var(--color-primary);
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+.apply-complete-sub {
+  font-size: 13px;
+  color: var(--color-text-sec);
+}
+.apply-complete-applied-at {
+  font-size: 12px;
+  color: var(--color-text-tri);
+  margin-top: 4px;
+}
+.apply-complete-actions {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.apply-complete-btn {
+  height: 48px;
+  border-radius: var(--radius-md);
+  font-size: 15px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  cursor: pointer;
+  transition: opacity 0.2s, background 0.2s;
+  border: 1px solid transparent;
+}
+.apply-complete-btn--ghost {
+  width: 160px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  border-color: var(--color-border);
+}
+.apply-complete-btn--ghost:hover { background: var(--color-border-light); }
+.apply-complete-btn--primary {
+  width: 200px;
+  background: var(--color-primary);
+  color: #fff;
+}
+.apply-complete-btn--primary:hover { background: var(--color-primary-dark); }
+.apply-complete-mini-link {
+  font-size: 13px;
+  color: var(--color-text-tri);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.apply-complete-mini-link:hover { color: var(--color-text-sec); }
+

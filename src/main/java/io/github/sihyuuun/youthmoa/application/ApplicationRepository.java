@@ -4,6 +4,7 @@ import io.github.sihyuuun.youthmoa.program.Program;
 import io.github.sihyuuun.youthmoa.user.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -14,6 +15,14 @@ import java.util.Optional;
 public interface ApplicationRepository extends JpaRepository<Application, Long> {
 
     Optional<Application> findByUserAndProgram(User user, Program program);
+
+    /**
+     * D1b 완료 페이지용: program·user 를 fetch join 하여 OSIV=false 환경에서
+     * 템플릿 렌더링 시 LazyInitializationException 방지.
+     * @EntityGraph 는 JPA 표준으로, JPQL 없이 지정한 연관을 즉시 로딩한다.
+     */
+    @EntityGraph(attributePaths = {"program", "user"})
+    Optional<Application> findWithProgramAndUserById(Long id);
 
     boolean existsByUserAndProgramAndStatusIn(User user, Program program, List<ApplicationStatus> statuses);
 
