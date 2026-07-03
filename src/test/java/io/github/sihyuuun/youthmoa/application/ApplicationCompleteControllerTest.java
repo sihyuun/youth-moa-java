@@ -82,7 +82,7 @@ class ApplicationCompleteControllerTest {
     @WithMockUser(username = "owner@t.com")
     void success_rendersComplete() throws Exception {
         given(userRepository.findByEmail("owner@t.com")).willReturn(Optional.of(owner));
-        given(applicationRepository.findById(123L)).willReturn(Optional.of(application));
+        given(applicationRepository.findWithProgramAndUserById(123L)).willReturn(Optional.of(application));
         given(notificationChannelResolver.activeChannelsFor(owner))
                 .willReturn(List.of(NotificationChannel.KAKAO, NotificationChannel.EMAIL));
 
@@ -97,7 +97,7 @@ class ApplicationCompleteControllerTest {
     @WithMockUser(username = "other@t.com")
     void otherUser_returns404() throws Exception {
         given(userRepository.findByEmail("other@t.com")).willReturn(Optional.of(other));
-        given(applicationRepository.findById(123L)).willReturn(Optional.of(application));
+        given(applicationRepository.findWithProgramAndUserById(123L)).willReturn(Optional.of(application));
 
         mockMvc.perform(get("/apply/complete").param("applicationId", "123"))
                 .andExpect(status().isNotFound());
@@ -107,7 +107,7 @@ class ApplicationCompleteControllerTest {
     @WithMockUser(username = "owner@t.com")
     void missingApplication_returns404() throws Exception {
         given(userRepository.findByEmail("owner@t.com")).willReturn(Optional.of(owner));
-        given(applicationRepository.findById(999L)).willReturn(Optional.empty());
+        given(applicationRepository.findWithProgramAndUserById(999L)).willReturn(Optional.empty());
 
         mockMvc.perform(get("/apply/complete").param("applicationId", "999"))
                 .andExpect(status().isNotFound());
