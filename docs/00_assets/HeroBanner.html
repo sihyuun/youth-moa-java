@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="design_doc_mode" content="canvas"/>
+<title>Hero 배경 시안</title>
+<style>
+  @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Pretendard',sans-serif; }
+  .frame { position:absolute; width:760px; height:400px; border-radius:16px; overflow:hidden;
+    box-shadow:0 12px 40px rgba(0,0,0,.18); background:#3730a3; }
+  .hero-bg { position:absolute; inset:0; background-size:cover; background-position:center; }
+  .scrim-tint { position:absolute; inset:0;
+    background:linear-gradient(120deg, rgba(49,46,129,.72) 0%, rgba(67,56,202,.45) 45%, rgba(79,70,229,.25) 100%); }
+  .scrim-dark { position:absolute; inset:0;
+    background:linear-gradient(to bottom, rgba(0,0,0,0) 40%, rgba(0,0,0,.35) 100%); }
+  .hero-content { position:absolute; inset:0; padding:48px 52px;
+    display:flex; flex-direction:column; justify-content:center; color:#fff; }
+  .eyebrow { font-size:13px; font-weight:600; letter-spacing:.04em; opacity:.9; margin-bottom:12px; }
+  .htitle { font-size:34px; font-weight:800; line-height:1.25; letter-spacing:-.02em; margin-bottom:10px; text-shadow:0 2px 12px rgba(0,0,0,.25); }
+  .hsub { font-size:15px; font-weight:500; opacity:.92; margin-bottom:24px; text-shadow:0 1px 8px rgba(0,0,0,.25); }
+  .searchbar { display:flex; align-items:center; gap:10px; background:#fff; border-radius:12px;
+    padding:12px 14px; box-shadow:0 8px 24px rgba(0,0,0,.18); max-width:440px; }
+  .searchbar input { flex:1; border:none; outline:none; font-size:14px; font-family:inherit; color:#334155; }
+  .searchbar input::placeholder { color:#94a3b8; }
+  .search-btn { background:#4f46e5; color:#fff; border:none; border-radius:8px; padding:9px 18px; font-size:14px; font-weight:600; font-family:inherit; cursor:pointer; }
+  .chips { display:flex; gap:8px; margin-top:16px; flex-wrap:wrap; }
+  .chip { font-size:12px; font-weight:500; color:#fff; background:rgba(255,255,255,.18);
+    border:1px solid rgba(255,255,255,.3); border-radius:999px; padding:5px 12px; backdrop-filter:blur(4px); }
+  .label { position:absolute; font-size:15px; font-weight:700; color:#1e1b4b; }
+  .label span { font-weight:500; color:#6b7280; margin-left:8px; font-size:13px; }
+  .search-ico { width:18px; height:18px; flex-shrink:0; color:#94a3b8; }
+  .canvas-title { position:absolute; font-size:26px; font-weight:800; color:#1e1b4b; letter-spacing:-.02em; }
+  .canvas-sub { position:absolute; font-size:14px; color:#6b7280; }
+  .section-tag { position:absolute; font-size:18px; font-weight:800; color:#4f46e5; letter-spacing:-.01em; }
+</style>
+</head>
+<body>
+  <div class="canvas-title" style="left:60px; top:40px;">Hero 배경 시안 — Method A (scrim 오버레이)</div>
+  <div class="canvas-sub" style="left:60px; top:76px;">동일한 scrim·카피·검색바 위에 배경 사진만 교체. 전부 텍스트 없는 landscape 사진이며 실제 로드 확인 완료.</div>
+  <div id="stage"></div>
+<script>
+const OPTS = [
+  { g:'실내 · 협업', k:'A', id:'1531482615713-2afd69097998', name:'협업 테이블', desc:'현재 사용중 · 따뜻한 톤' },
+  { g:'실내 · 협업', k:'B', id:'1522071820081-009f0129c71c', name:'코워킹 (오버헤드)', desc:'활기찬 · 밀도 높음' },
+  { g:'실내 · 협업', k:'C', id:'1543269865-cbf427effbad', name:'학습 그룹', desc:'밝은 · 다양성 · 미소' },
+  { g:'실내 · 협업', k:'D', id:'1517048676732-d65bc937f952', name:'노트 필기 미팅', desc:'차분한 · 전문적' },
+  { g:'실외 · 커뮤니티 / 이벤트', k:'E', id:'1523580494863-6f3031224c94', name:'세미나 · 강연장', desc:'프로그램 · 교육 현장감' },
+  { g:'실외 · 커뮤니티 / 이벤트', k:'F', id:'1511632765486-a01980e01a18', name:'야외 · 청년 모임', desc:'실외 · 따뜻한 노을 · 유대감' },
+  { g:'실외 · 커뮤니티 / 이벤트', k:'G', id:'1528605248644-14dd04022da1', name:'커뮤니티 모임 테이블', desc:'네트워킹 · 활기찬 분위기' },
+  { g:'실외 · 커뮤니티 / 이벤트', k:'H', id:'1540575467063-178a50c2df87', name:'행사 · 관객', desc:'대규모 이벤트 · 역동적' },
+];
+const COL_X = [60, 880];
+const stage = document.getElementById('stage');
+let y = 180;
+let lastGroup = null;
+OPTS.forEach((o, i) => {
+  const col = i % 2;
+  if (col === 0) {
+    if (o.g !== lastGroup) {
+      const tag = document.createElement('div');
+      tag.className = 'section-tag';
+      tag.style.left = '60px'; tag.style.top = (y - 8) + 'px';
+      tag.textContent = o.g;
+      stage.appendChild(tag);
+      lastGroup = o.g;
+      y += 52;
+    }
+  }
+  const x = COL_X[col];
+  const rowY = y;
+  const lbl = document.createElement('div');
+  lbl.className = 'label';
+  lbl.style.left = x + 'px'; lbl.style.top = (rowY - 26) + 'px';
+  lbl.innerHTML = o.k + '. ' + o.name + ' <span>' + o.desc + '</span>';
+  stage.appendChild(lbl);
+
+  const f = document.createElement('div');
+  f.className = 'frame';
+  f.style.left = x + 'px'; f.style.top = rowY + 'px';
+  f.innerHTML =
+    '<div class="hero-bg" style="background-image:url(\'https://images.unsplash.com/photo-' + o.id + '?w=1440&h=760&fit=crop\')"></div>' +
+    '<div class="scrim-tint"></div><div class="scrim-dark"></div>' +
+    '<div class="hero-content">' +
+      '<div class="eyebrow">경기도 청년 통합 플랫폼</div>' +
+      '<div class="htitle">청년의 모든 기회를<br/>한곳에서</div>' +
+      '<div class="hsub">프로그램·공간·정책을 청년모아에서 만나보세요</div>' +
+      '<div class="searchbar">' +
+        '<svg class="search-ico" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><path d="M21 21l-4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>' +
+        '<input placeholder="관심 있는 프로그램을 검색해보세요" disabled/>' +
+        '<button class="search-btn">검색</button>' +
+      '</div>' +
+      '<div class="chips"><span class="chip">#취업역량</span><span class="chip">#창업지원</span><span class="chip">#마음건강</span></div>' +
+    '</div>';
+  stage.appendChild(f);
+
+  if (col === 1) y += 460;
+});
+</script>
+</body>
+</html>
