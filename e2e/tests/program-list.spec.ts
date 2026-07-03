@@ -1,4 +1,5 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
+import { abortExternal, waitForHtmx } from '../helpers';
 
 /**
  * F0f — 프로그램 목록 필터 재설계 E2E.
@@ -7,15 +8,13 @@ import { test, expect } from '@playwright/test';
  * 데이터 시드: DataInitializer 가 8개 프로그램 + 30 region + 48 center 를 매 부팅마다 재생성.
  */
 
-/** /programs 진입 helper — 외부 차단 + commit + htmx 로드 대기 통합 */
 async function gotoPrograms(page: Page, path: string = '/programs') {
     await page.goto(path, { waitUntil: 'commit' });
-    await page.waitForFunction(() => typeof (window as any).htmx !== 'undefined', { timeout: 10_000 });
+    await waitForHtmx(page);
 }
 
 test.beforeEach(async ({ page }) => {
-    // 외부 도메인 모두 차단 (회사 PC SSL 프록시 hang 회피)
-    await page.route(/^https?:\/\/(?!localhost)/, route => route.abort());
+    await abortExternal(page);
     await gotoPrograms(page);
     await expect(page).toHaveTitle(/프로그램/);
 });
