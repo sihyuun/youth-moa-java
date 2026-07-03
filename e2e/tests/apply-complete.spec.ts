@@ -16,8 +16,9 @@ import { abortExternal, login, seedEmail } from '../helpers';
 
 // seed29: 어떤 프로그램에도 신청 안 함 (DataInitializer seed loop 상 seed1~seed28만 신청)
 const FRESH_USER = seedEmail(29);
-// programs[0..2] 만 신청 시드 있음. programs[3] (id=4) 은 아무 유저도 신청 안 함 → 중복 신청 걱정 없음
-const FRESH_PROGRAM_ID = 4;
+// program 7 = 청년 문화예술 스쿨 (today-7 ~ today+30, ACTIVE, capacity 40, 시드 신청 없음).
+// program 4 는 endDate=today-5 로 CLOSED 라 신청 자체가 거부됨 → 리다이렉트 안 됨.
+const FRESH_PROGRAM_ID = 7;
 
 test.beforeEach(async ({ page }) => {
     await abortExternal(page);
