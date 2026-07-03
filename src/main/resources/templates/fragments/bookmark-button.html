@@ -17,11 +17,15 @@
 
 <th:block th:fragment="button(programId, bookmarked, styleClass)">
 
-    <!-- 인증 상태 -->
+    <!--
+      hx-vals 로 styleClass 를 서버에 전달해 outerHTML swap 응답에서도 동일 클래스 유지.
+      (누락 시 응답이 class="null bookmark-btn ..." 로 렌더되어 카드/상세 스타일이 깨짐)
+    -->
     <button sec:authorize="isAuthenticated()"
             type="button"
             th:hx-post="@{/bookmarks/programs/{id}/toggle(id=${programId})}"
             hx-swap="outerHTML"
+            th:attr="hx-vals=|{&quot;styleClass&quot;:&quot;${styleClass}&quot;}|"
             th:class="${styleClass + ' bookmark-btn' + (bookmarked ? ' is-bookmarked' : '')}"
             th:title="${bookmarked} ? '즐겨찾기 해제' : '즐겨찾기 추가'">
         <span th:text="${bookmarked} ? '★' : '☆'">☆</span>
