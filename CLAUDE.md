@@ -408,6 +408,46 @@ model.addAttribute("apply", application);
 
 **2026-07-02 D1b 사고**: 신청 완료 페이지에 `#Anull`, `신청일시 null` 출력. 원인은 `application` 이름 shadowing.
 
+### `<sec:authentication>` 태그는 Spring Security 7 에서 리터럴 렌더됨 → `#authentication` 유틸리티 사용
+
+Spring Boot 4.1 (Spring Security 7) + `thymeleaf-extras-springsecurity6` 조합에서 **element 형태의 `<sec:authentication property="..."/>` 태그는 Thymeleaf 가 처리 못 하고 HTML 리터럴로 출력됨**. 브라우저에서 unknown element 로 무시되어 빈 텍스트로 보임.
+
+```html
+<!-- ❌ 리터럴로 렌더됨 (렌더 결과에 <sec:authentication .../> 이 그대로 남음) -->
+<span class="header-user-name">
+    <sec:authentication property="principal.displayName"/>님
+</span>
+
+<!-- ✅ Thymeleaf 표현식 유틸리티 사용 -->
+<span class="header-user-name"
+      th:text="|${#authentication.principal.displayName}님|">이름님</span>
+```
+
+- attribute 형태의 `sec:authorize="isAuthenticated()"` 는 **정상 동작**. element 형태만 문제.
+- `#authentication` 유틸리티는 정상 → `${#authentication.principal.<field>}` 조합 안전.
+- 감지 방법: `curl /` 응답에 `<sec:authentication`이 grep 되면 문제. 정상이면 그런 문자열 없음.
+- **2026-07-03 E2E 대량 실패 사고**: 헤더 사용자 이름이 `. header-user-name` 안에서 whitespace + "님" 만 렌더됨 → login/header-nav spec 3개 실패.
+
+### HTMX 프래그먼트 재렌더 시 스타일 파라미터 왕복 (`hx-vals` 패턴)
+
+HTMX `outerHTML` swap 으로 부분 렌더할 때, 프래그먼트가 **자신을 렌더한 컨텍스트를 다시 필요로 하면** (예: card 인지 detail 인지 구분하는 `styleClass`) 그 값을 서버가 알 방법이 없다. HTTP 요청은 stateless 이므로 클라이언트가 `hx-vals` 로 되돌려주는 패턴을 사용한다.
+
+```html
+<!-- ❌ 최초 render 는 되지만 outerHTML 응답에서 styleClass 가 null -->
+<button th:hx-post="@{/toggle}" hx-swap="outerHTML"
+        th:class="${styleClass + ' bookmark-btn'}">☆</button>
+
+<!-- ✅ hx-vals 로 styleClass 왕복 -->
+<button th:hx-post="@{/toggle}" hx-swap="outerHTML"
+        th:attr="hx-vals=|{&quot;styleClass&quot;:&quot;${styleClass}&quot;}|"
+        th:class="${styleClass + ' bookmark-btn'}">☆</button>
+```
+
+컨트롤러에서 `@RequestParam` 으로 받아 model 에 다시 넣는다. 누락하면 렌더 결과가 `class="null bookmark-btn ..."` 처럼 나와 카드/상세 스타일이 무너진다.
+
+- **2026-07-03 사고**: `BookmarkController.toggle()` 이 model 에 `styleClass` 를 안 넣어 HTMX 응답이 `class="null bookmark-btn is-bookmarked"` → bookmark spec 3개 실패.
+- 검증: `curl -X POST /bookmarks/programs/{id}/toggle` 응답의 `class="..."` 확인.
+
 ---
 
 ## JPA / PostgreSQL 주의사항
