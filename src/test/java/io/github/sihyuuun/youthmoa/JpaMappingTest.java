@@ -100,7 +100,12 @@ class JpaMappingTest {
 
     Notice notice =
         noticeRepository.save(
-            Notice.builder().title("공지 제목").content("본문").tag("공지").isPinned(true).build());
+            Notice.builder()
+                .title("공지 제목")
+                .content("본문")
+                .category(io.github.sihyuuun.youthmoa.notice.NoticeCategory.NOTICE)
+                .isPinned(true)
+                .build());
 
     notificationRepository.save(
         Notification.builder()

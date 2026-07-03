@@ -3,6 +3,8 @@ package io.github.sihyuuun.youthmoa.notice;
 import io.github.sihyuuun.youthmoa.common.BaseTimeEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -30,8 +32,9 @@ public class Notice extends BaseTimeEntity {
   @Column(nullable = false)
   private String content;
 
+  @Enumerated(EnumType.STRING)
   @Column(nullable = false, length = 20)
-  private String tag;
+  private NoticeCategory category;
 
   @Column(nullable = false)
   private boolean isPinned;
@@ -43,24 +46,31 @@ public class Notice extends BaseTimeEntity {
   private String imageUrl;
 
   @Builder
-  private Notice(String title, String content, String tag, Boolean isPinned, String imageUrl) {
+  private Notice(
+      String title, String content, NoticeCategory category, Boolean isPinned, String imageUrl) {
     this.title = title;
     this.content = content;
-    this.tag = tag != null ? tag : "공지";
+    this.category = category != null ? category : NoticeCategory.NOTICE;
     this.isPinned = isPinned != null ? isPinned : false;
     this.viewCount = 0;
     this.imageUrl = imageUrl;
   }
 
-  public void update(String title, String content, String tag, boolean isPinned, String imageUrl) {
+  public void update(
+      String title, String content, NoticeCategory category, boolean isPinned, String imageUrl) {
     this.title = title;
     this.content = content;
-    this.tag = tag;
+    this.category = category;
     this.isPinned = isPinned;
     this.imageUrl = imageUrl;
   }
 
   public void increaseViewCount() {
     this.viewCount++;
+  }
+
+  /** 홈 카드 등 legacy 템플릿의 ${n.tag} 참조 호환용. */
+  public String getTag() {
+    return category != null ? category.getLabel() : "";
   }
 }

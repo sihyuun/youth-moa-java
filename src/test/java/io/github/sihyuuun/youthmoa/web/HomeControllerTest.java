@@ -42,7 +42,12 @@ class HomeControllerTest {
     // Spring Model.addAttribute(name, null) 은 값을 저장 안 함 → attributeExists 통과 위해 non-null mock
     given(homeService.findMainNotice())
         .willReturn(
-            Notice.builder().title("mock").content("mock").tag("공지").isPinned(true).build());
+            Notice.builder()
+                .title("mock")
+                .content("mock")
+                .category(io.github.sihyuuun.youthmoa.notice.NoticeCategory.NOTICE)
+                .isPinned(true)
+                .build());
     given(homeService.findSubNotices()).willReturn(List.<Notice>of());
     given(homeService.findSpaceImages()).willReturn(List.<SiteImage>of());
 
