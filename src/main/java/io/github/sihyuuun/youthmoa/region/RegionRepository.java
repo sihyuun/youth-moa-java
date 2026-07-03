@@ -1,12 +1,11 @@
 package io.github.sihyuuun.youthmoa.region;
 
-import org.springframework.data.jpa.repository.JpaRepository;
-
 import java.util.List;
+import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface RegionRepository extends JpaRepository<Region, Long> {
 
-    List<Region> findAllByIsFeaturedTrueOrderByNameAsc();
+  List<Region> findAllByIsFeaturedTrueOrderByNameAsc();
 
-    List<Region> findAllByOrderByNameAsc();
+  List<Region> findAllByOrderByNameAsc();
 }
