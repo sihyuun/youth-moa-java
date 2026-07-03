@@ -19,23 +19,22 @@
 <main class="main-content">
     <!-- Hero: 배경 이미지는 site_image 슬롯 HERO_BANNER, 검색바 = UI-only -->
     <section class="hero"
-             th:style="'background-image: linear-gradient(135deg, rgba(52,40,207,0.85) 0%, rgba(63,48,233,0.7) 45%, rgba(120,100,233,0.55) 100%), url(' + ${heroImageUrl} + ');'">
-        <div class="hero-inner" style="text-align:center;">
-            <div class="hero-tag">경기도 청년센터 프로그램 통합 플랫폼</div>
-            <h1 class="hero-title">경기도 청년의 내일을<br>함께 만들어갑니다</h1>
-            <p class="hero-desc">경기도 31개 시·군 청년센터의 프로그램을 한눈에 확인하세요</p>
+             th:style="'background-image: url(' + ${heroImageUrl} + ');'">
+        <div class="hero-inner">
+            <div class="hero-eyebrow">경기도 청년 통합 플랫폼</div>
+            <h1 class="hero-title">청년의 모든 기회를<br>한곳에서</h1>
+            <p class="hero-desc">프로그램·공간·정책을 청년모아에서 만나보세요</p>
             <!-- 검색바 — UI-only (프로그램 검색 API 미구현) -->
             <form class="hero-search-bar" onsubmit="alert('검색 준비 중입니다.'); return false;">
                 <input type="text" name="q" class="hero-search-input"
-                       placeholder="프로그램, 센터명으로 검색">
+                       placeholder="관심 있는 프로그램을 검색해보세요">
                 <button type="button" class="hero-search-btn"
                         onclick="alert('검색 준비 중입니다.');">검색</button>
             </form>
-            <div class="hero-actions" style="justify-content:center; margin-top:24px;">
-                <a th:href="@{/programs}" class="btn-primary btn-lg">프로그램 둘러보기</a>
-                <a th:href="@{/signup}" class="btn-outline btn-lg" sec:authorize="!isAuthenticated()">
-                    무료 회원가입
-                </a>
+            <div class="hero-chips">
+                <span class="hero-chip">#취업역량</span>
+                <span class="hero-chip">#창업지원</span>
+                <span class="hero-chip">#마음건강</span>
             </div>
         </div>
     </section>
