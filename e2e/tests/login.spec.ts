@@ -1,14 +1,14 @@
 import { test, expect, type Page } from '@playwright/test';
+import { abortExternal, SEED_PASS, seedEmail } from '../helpers';
 
 /**
  * 로그인·로그아웃·미인증 리다이렉트 여정.
  *
- * 시드 유저: seedN@youth-moa.test / Test1234! (DataInitializer.seedApplications 참조).
- * 사고 이력: SecurityConfig 매처, static-path-pattern, th:field password value 회귀 다수.
+ * 이 spec 은 실패 경로 (잘못된 비밀번호) 도 다루므로 helpers.login() (waitForURL '/' 포함) 대신
+ * waitForURL 없이 폼만 채우고 제출하는 로컬 helper 를 유지한다.
  */
 
-const SEED_USER = 'seed30@youth-moa.test';   // 어디에도 신청 안 한 깨끗한 유저
-const SEED_PASS = 'Test1234!';
+const SEED_USER = seedEmail(30);   // 어디에도 신청 안 한 깨끗한 유저
 
 async function fillLogin(page: Page, email: string, password: string) {
     await page.goto('/login', { waitUntil: 'commit' });
@@ -18,8 +18,7 @@ async function fillLogin(page: Page, email: string, password: string) {
 }
 
 test.beforeEach(async ({ page }) => {
-    // 외부 CDN(Pretendard) 차단 — 회사 PC SSL 프록시 hang 방지
-    await page.route(/^https?:\/\/(?!localhost)/, route => route.abort());
+    await abortExternal(page);
 });
 
 test('로그인 성공 시 홈으로 리다이렉트되고 헤더에 사용자 이름이 표시된다', async ({ page }) => {

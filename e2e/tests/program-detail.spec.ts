@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
+import { abortExternal } from '../helpers';
 
 /**
  * 프로그램 상세 페이지 렌더 검증.
@@ -18,7 +19,7 @@ async function gotoDetail(page: Page, id: number) {
 }
 
 test.beforeEach(async ({ page }) => {
-    await page.route(/^https?:\/\/(?!localhost)/, route => route.abort());
+    await abortExternal(page);
 });
 
 test('프로그램 상세 기본 렌더 — 타이틀·상태 뱃지·기관·지역', async ({ page }) => {
