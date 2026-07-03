@@ -1,4 +1,5 @@
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect } from '@playwright/test';
+import { abortExternal } from '../helpers';
 
 /**
  * F0e — 홈 prototype 정렬 E2E.
@@ -7,14 +8,9 @@ import { test, expect, type Page } from '@playwright/test';
  * 카테고리 그리드와 HTMX Ping 데모 섹션이 완전히 제거됐음.
  */
 
-async function gotoHome(page: Page) {
-    await page.goto('/', { waitUntil: 'commit' });
-}
-
 test.beforeEach(async ({ page }) => {
-    // 외부 도메인 차단 (회사 PC SSL 프록시 hang 회피)
-    await page.route(/^https?:\/\/(?!localhost)/, route => route.abort());
-    await gotoHome(page);
+    await abortExternal(page);
+    await page.goto('/', { waitUntil: 'commit' });
     await expect(page).toHaveTitle(/youth-moa/);
 });
 

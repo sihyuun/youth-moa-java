@@ -1,4 +1,5 @@
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect } from '@playwright/test';
+import { abortExternal, login, seedEmail } from '../helpers';
 
 /**
  * D1b: 신청 완료 페이지 (/apply/complete?applicationId=...)
@@ -13,23 +14,13 @@ import { test, expect, type Page } from '@playwright/test';
  * 여기서는 E2E 관점의 사용자 여정 (실 폼 제출 → 실 redirect → 실 페이지 렌더) 을 검증한다.
  */
 
-// seed loop 상 seed1~seed28 만 program1 신청 상태, seed29 는 미신청 유저
-const FRESH_USER = 'seed29@youth-moa.test';
+// seed29: 어떤 프로그램에도 신청 안 함 (DataInitializer seed loop 상 seed1~seed28만 신청)
+const FRESH_USER = seedEmail(29);
 // programs[0..2] 만 신청 시드 있음. programs[3] (id=4) 은 아무 유저도 신청 안 함 → 중복 신청 걱정 없음
 const FRESH_PROGRAM_ID = 4;
-const SEED_PASS = 'Test1234!';
-
-async function login(page: Page, email: string) {
-    await page.goto('/login', { waitUntil: 'commit' });
-    await page.locator('input[name="username"]').fill(email);
-    await page.locator('input[name="password"]').fill(SEED_PASS);
-    await page.locator('form.auth-form-prototype button[type="submit"]').click();
-    await page.waitForURL('/');
-}
 
 test.beforeEach(async ({ page }) => {
-    // 외부 CDN (Pretendard 등) 호출 차단 — 회사 PC 프록시 이슈 회피
-    await page.route(/^https?:\/\/(?!localhost)/, route => route.abort());
+    await abortExternal(page);
 });
 
 test('신청 제출 후 완료 페이지가 렌더된다 (성공 아이콘·요약 카드·CTA)', async ({ page }) => {
