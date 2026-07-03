@@ -75,10 +75,30 @@ class HomeServiceTest {
     // Notice
     noticeRepository.saveAll(
         List.of(
-            Notice.builder().title("대표 공지").content("본문").tag("행사").isPinned(true).build(),
-            Notice.builder().title("서브 1").content("본문").tag("공지").isPinned(false).build(),
-            Notice.builder().title("서브 2").content("본문").tag("운영").isPinned(false).build(),
-            Notice.builder().title("서브 3").content("본문").tag("기타").isPinned(false).build()));
+            Notice.builder()
+                .title("대표 공지")
+                .content("본문")
+                .category(io.github.sihyuuun.youthmoa.notice.NoticeCategory.EVENT)
+                .isPinned(true)
+                .build(),
+            Notice.builder()
+                .title("서브 1")
+                .content("본문")
+                .category(io.github.sihyuuun.youthmoa.notice.NoticeCategory.NOTICE)
+                .isPinned(false)
+                .build(),
+            Notice.builder()
+                .title("서브 2")
+                .content("본문")
+                .category(io.github.sihyuuun.youthmoa.notice.NoticeCategory.OPERATION)
+                .isPinned(false)
+                .build(),
+            Notice.builder()
+                .title("서브 3")
+                .content("본문")
+                .category(io.github.sihyuuun.youthmoa.notice.NoticeCategory.ETC)
+                .isPinned(false)
+                .build()));
     // Center
     centerRepository.save(
         Center.builder().name("C1").region("서울").address("A").phone("0").isFeatured(true).build());

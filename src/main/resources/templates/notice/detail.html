@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${notice.title} + ' — youth-moa'">공지 상세 — youth-moa</title>
+    <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"
+          rel="stylesheet">
+    <link rel="icon" type="image/png" th:href="@{/images/logo_symbol.png}">
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+</head>
+<body>
+
+<div th:replace="~{fragments/header :: header('notices')}"></div>
+
+<main class="main-content">
+    <div class="notice-detail">
+
+        <a th:href="@{/notices}" class="notice-back-btn" title="목록으로" aria-label="목록으로">
+            <span>←</span>
+        </a>
+
+        <div class="notice-detail-badges">
+            <span th:class="'category-badge ' + ${notice.category.cssClass}"
+                  th:text="${notice.category.label}">공지</span>
+            <span th:if="${notice.isPinned}" class="notice-pin-label">📌 고정</span>
+        </div>
+
+        <h1 class="notice-detail-title" th:text="${notice.title}">공지 제목</h1>
+
+        <div class="notice-detail-meta">
+            <span>작성일 <span th:text="${#temporals.format(notice.createdAt, 'yyyy.MM.dd')}">2026.07.03</span></span>
+            <span>조회 <span th:text="${notice.viewCount}">0</span></span>
+        </div>
+
+        <!--
+            본문 HTML 렌더링. content 필드에 이미지 등 인라인 마크업이 포함되므로 th:utext 로 unescape.
+            시드 데이터만 신뢰 가능한 학습 단계. 사용자 입력 저장 도입 시 XSS 방어(sanitize) 필수.
+        -->
+        <div class="notice-detail-body" th:utext="${notice.content}">
+            <p>본문</p>
+        </div>
+
+        <!-- 첨부파일 (다운로드는 stub) -->
+        <div th:if="${!attachments.isEmpty()}" class="notice-attachments">
+            <div th:each="a : ${attachments}" class="notice-attachment"
+                 role="button" tabindex="0"
+                 onclick="alert('첨부파일 다운로드는 준비 중입니다.');"
+                 onkeydown="if(event.key==='Enter'){alert('첨부파일 다운로드는 준비 중입니다.');}">
+                <span class="notice-attachment-icon">⬇</span>
+                <span class="notice-attachment-name" th:text="${a.fileName}">파일명.pdf</span>
+                <span class="notice-attachment-size" th:text="${a.humanFileSize}">1.2MB</span>
+            </div>
+        </div>
+
+        <!-- 이전/다음 (전체 기준, 카테고리 필터 무시) -->
+        <div class="notice-adjacent">
+            <a th:if="${prevNotice != null}"
+               th:href="@{/notices/{id}(id=${prevNotice.id})}"
+               class="notice-adjacent-row">
+                <span class="notice-adjacent-label">이전글</span>
+                <span class="notice-adjacent-title" th:text="${prevNotice.title}">이전 제목</span>
+            </a>
+            <div th:if="${prevNotice == null}" class="notice-adjacent-row notice-adjacent-row--empty">
+                <span class="notice-adjacent-label">이전글</span>
+                <span class="notice-adjacent-title">이전 공지가 없습니다.</span>
+            </div>
+
+            <a th:if="${nextNotice != null}"
+               th:href="@{/notices/{id}(id=${nextNotice.id})}"
+               class="notice-adjacent-row">
+                <span class="notice-adjacent-label">다음글</span>
+                <span class="notice-adjacent-title" th:text="${nextNotice.title}">다음 제목</span>
+            </a>
+            <div th:if="${nextNotice == null}" class="notice-adjacent-row notice-adjacent-row--empty">
+                <span class="notice-adjacent-label">다음글</span>
+                <span class="notice-adjacent-title">다음 공지가 없습니다.</span>
+            </div>
+        </div>
+
+        <div class="notice-detail-actions">
+            <a th:href="@{/notices}" class="btn-secondary">목록으로</a>
+        </div>
+    </div>
+</main>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+</body>
+</html>
