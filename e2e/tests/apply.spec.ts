@@ -61,7 +61,8 @@ test('지원 동기 10자 미만 제출 시 @Size 메시지가 노출된다', as
     await page.goto(`/programs/${FRESH_PROGRAM_ID}/apply`, { waitUntil: 'commit' });
 
     await page.locator('#applyReason').fill('짧음');   // 2자 → @Size(min=10) 위반
-    await page.locator('input[name="privacyAgreed"]').check();
+    // apply.html: privacyAgreed input 은 label wrapper 안에서 opacity:0 + pointer-events:none (custom UI)
+    await page.locator('input[name="privacyAgreed"]').check({ force: true });
     await page.locator('button.apply-submit-btn').click();
 
     await expect(page.locator('.apply-field-error')).toContainText('10자 이상');
@@ -72,7 +73,8 @@ test('이미 신청한 프로그램에 재신청 시 "이미 신청한 프로그
     await page.goto(`/programs/${DUP_PROGRAM_ID}/apply`, { waitUntil: 'commit' });
 
     await page.locator('#applyReason').fill('중복 신청 테스트용 지원 동기 문장입니다.');
-    await page.locator('input[name="privacyAgreed"]').check();
+    // apply.html: privacyAgreed input 은 label wrapper 안에서 opacity:0 + pointer-events:none (custom UI)
+    await page.locator('input[name="privacyAgreed"]').check({ force: true });
     await page.locator('button.apply-submit-btn').click();
 
     // ApplicationService.IllegalStateException → redirect /programs/{id}/apply + flash applyError
