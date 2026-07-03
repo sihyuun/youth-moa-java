@@ -5,7 +5,7 @@ type: project
 originSessionId: 51da8e75-f7a2-4b05-b2b6-963ce41efb6a
 ---
 
-> **마지막 갱신**: 2026-06-30.
+> **마지막 갱신**: 2026-07-03.
 > 프로젝트 루트의 `CLAUDE.md` 가 디자인 시스템·작업 규칙·검증 규칙·환경 분리·패키지 구조·엔티티 규칙·Git 컨벤션 등 코드 작업 컨텍스트의 최우선 가이드라인. 본 메모리는 **시점적 진행 상태·DB·열린 PR·다음 액션** 중심으로 유지.
 
 ---
@@ -44,6 +44,49 @@ export DATABASE_PASSWORD="<NEW_PASSWORD — Supabase 콘솔에서 재설정 후 
 ```bash
 gh auth setup-git
 ```
+
+---
+
+## 🟢 2026-07-03 세션 진행 완료 (13 PR 머지 — QA 대약진)
+
+### 머지된 PR
+
+| # | PR | 성격 | 핵심 |
+|---|---|---|---|
+| #39 | D1b 신청 완료 페이지 + 알림 채널 도메인 | 기능 | `/apply/complete`, `NotificationChannel` enum, `NotificationChannelResolver` |
+| #40 | E2E Top 5 커버리지 (login/bookmark/apply/detail/header) | test | 5개 spec 신설, 총 8 spec |
+| #41 | ApplicationCompleteControllerTest mock 동기화 | fix | `findById` → `findWithProgramAndUserById` |
+| #42 | Spotless 8 bulk reformat | chore | 61 파일 재포맷 (Spotless 7→8 dependabot 대응) |
+| #43 | `/apply/complete` E2E + helpers.ts + webServer 자동 기동 | test | 신규 helpers.ts, Playwright config `webServer` 도입 |
+| #44 | htmx 2.0.10 → 2.0.4 revert | fix | 대량 E2E 실패 원인 (bump 후 hang) |
+| #45 | E2E 실 앱 버그 3종 fix | fix | ①`<sec:authentication>` 태그 리터럴 렌더 ②bookmark styleClass 소실 ③privacy 에러 문구 미노출 |
+| #46 | CLAUDE.md 규칙 문서화 | docs | Thymeleaf sec 태그 + HTMX 프래그먼트 hx-vals 왕복 패턴 |
+| #47 | ApplyRequest `@AssertTrue` field 이동 | fix | error field name `privacyAccepted` → `privacyAgreed` (템플릿 렌더 완결) |
+| #48 | CodeQL workflow 제거 | chore | private + GHAS 미도입 → 모든 PR fail 노이즈 제거 |
+| #49 | Top 5 spec 5개 helpers.ts 완전 사용 | refactor | 중복 -31 lines |
+| #50 | prototype/HANDOFF 갱신 + HeroBanner 시안 | docs | F0g 카테고리 탭·페이지네이션·NoticeDetail 신설, Hero 재설계 시안 |
+
+### 실행 중 (병렬 ym-impl 2개)
+- **F0g 공지사항** (`feature/F0g-notices`) — Notice/NoticeAttachment 엔티티·서비스·컨트롤러·템플릿·시드·CSS
+- **F0e-hero-refresh** (`feature/F0e-hero-refresh`) — index.html Hero 재작성, main.css .hero 계열, home.spec.ts 문안 갱신
+
+### 확립된 규칙 (CLAUDE.md 반영)
+- `<sec:authentication>` element 태그는 Spring Security 7 에서 리터럴 렌더됨 → `#authentication` 유틸리티 사용
+- HTMX `outerHTML` swap 프래그먼트가 컨텍스트 파라미터 요구 시 `hx-vals` 로 왕복 전달
+- 의존성 bump 후 반드시 E2E CI 확인 필수 (unit test 통과만 신뢰 금지)
+- E2E CI 대량 실패 시 로컬 `bootRun --spring.profiles.active=e2e` + `curl` 로 실 마크업 먼저 확인 (spec 결함 vs 앱 버그 분간)
+- `git reset --hard` 전 항상 사용자 미커밋 편집 확인 (`git status --short`)
+- 병렬 세션용 git worktree 존재 → 브랜치 삭제·정리 전 반드시 `git worktree list`
+
+### QA 대약진 요약
+- Playwright spec 8개 → 사용자 여정 전면 커버
+- 실 앱 버그 4종 (`<sec:>`, bookmark styleClass, privacy 에러 렌더, @AssertTrue field mismatch) 발견·수정
+- E2E CI 안정화 (15m 타임아웃 → 2m 정상)
+- CI 노이즈 제거 (CodeQL fail 제거) → 모든 check green 상태로 판단 명료
+
+### F0g / F0e-hero-refresh 확정 결정 사항 (진행 중 ym-impl 이 반영)
+- **F0g**: 카테고리 탭 5종 · 페이지네이션 (10건/페이지, 그룹 5개) · 첨부 NoticeAttachment 엔티티 · 조회수 매 진입 +1 · HTMX 부분 갱신 · 시드 8~12건
+- **F0e-hero**: full-bleed · 좌측 정렬 · 기존 CTA 제거 · 2겹 scrim · 태그 칩 3개 (UI-only) · 배경 로테이션 미도입 (F0e-2 후속)
 
 ---
 
@@ -153,16 +196,20 @@ gh auth setup-git
 
 | 순서 | 브랜치 후보 | 범위 | 결정 |
 |---|---|---|---|
-| ① | **`feature/F0e-home-prototype`** | 홈 prototype.html 정렬: 카테고리 그리드 **제거** + Hero 검색바 + Quick Stats 3종 + 프로그램 4건 + 공지 + 공간 (Q1) | 결정됨 |
-| ② | `feature/D5-card-capacity-bar` | 카드 CapacityBar 컴포넌트 (목록·홈 공통, HANDOFF 5-E.1, 90%+ error / 70%+ warning) | 우선순위 큼 |
-| ③ | `feature/D1b-apply-complete` | 신청 완료 페이지 `/apply/complete` (성공 아이콘 + 요약 카드 + 홈/현황 버튼) | 우선순위 큼 |
-| ④ | **`feature/F0f-list-filter-redesign`** | 목록 필터 UI: 사이드바 체크박스 + 상단 FilterPopChip 둘 다 (Q4) + 정렬 옵션 prototype 정합 | 결정됨 |
-| ⑤ | `feature/F0g-notices` | 공지사항 목록·상세 (헤더 네비 3개 중 404 해소) | — |
-| ⑥ | `feature/F0h-centers` | 청년센터 목록 (카카오맵 SDK 연동) | — |
-| ⑦ | `fix/text-tri-token` | main.css 자기참조 변수 정정 | 작은 fix |
-| ⑧ | `fix/webjars-htmx-path` | /webjars/htmx 302 redirect 정정 | 작은 fix |
+| ① | ✅ `feature/F0e-home-prototype` | 완료 (2026-07-01 머지) | done |
+| ② | ✅ `feature/D5-card-capacity-bar` | 완료 (2026-07-01 머지) | done |
+| ③ | ✅ `feature/D1b-apply-complete` | 완료 (2026-07-02 머지) | done |
+| ④ | ✅ `feature/F0f-list-filter-redesign` | 완료 (F0f 시리즈, region/center featured 포함) | done |
+| ⑤ | 🔄 **`feature/F0g-notices`** | ym-impl 진행 중 (2026-07-03) — 카테고리 탭·페이지네이션·상세 인라인 이미지·NoticeAttachment | 착수 |
+| ⑤-2 | 🔄 **`feature/F0e-hero-refresh`** | ym-impl 진행 중 (2026-07-03) — Hero 재설계 (2겹 scrim·좌측 정렬·태그 칩·CTA 제거) | 착수 |
+| ⑥ | `feature/F0h-centers` | 청년센터 목록 (카카오맵 SDK 연동) — 대기 | — |
+| ⑦ | `fix/text-tri-token` | main.css 자기참조 변수 정정 (실제 위험도 재확인 필요) | 작은 fix |
+| ⑧ | `fix/webjars-htmx-path` | /webjars/htmx 302 redirect — 사고 이후 확인, htmx 로드 정상이면 close | 재확인 |
 | ⑨ | `chore/testcontainers-fix` | YouthMoaApplicationTests Docker daemon 연결 확인·수정 | — |
-| ⑩ | `chore/integration-test-render` | 주요 렌더 경로에 `@SpringBootTest + MockMvc` 통합 렌더링 테스트 도입 (D1b 사고 재발 방지 — @WebMvcTest 는 렌더 안 함) | 사고 후 |
+| ⑩ | `chore/integration-test-render` | 주요 렌더 경로에 `@SpringBootTest + MockMvc` 통합 렌더링 테스트 도입 | 사고 후 |
+| ⑪ | `feature/F0e-hero-rotation` (F0e-2) | Hero 배경 8종 크로스페이드 로테이션 — F0e-hero-refresh 머지 후 | 후속 |
+| ⑫ | `feature/D5-mypage` | 마이페이지 (신청 내역 / 즐겨찾기 탭 / 개인정보 수정) | — |
+| ⑬ | `feature/D4-search-bar` | 헤더 검색바 + 결과 페이지 | — |
 
 ### 인프라 작업 (남은 단계)
 - 4️⃣ `/qa` Skill 셋업
