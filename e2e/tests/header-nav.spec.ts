@@ -1,4 +1,5 @@
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect } from '@playwright/test';
+import { abortExternal, login, seedEmail } from '../helpers';
 
 /**
  * 헤더 fragment — 인증 상태별 UI 분기.
@@ -11,19 +12,10 @@ import { test, expect, type Page } from '@playwright/test';
  * currentPage 하이라이트: nav-link.active — 프로그램 목록 진입 시 "프로그램" 이 active
  */
 
-const SEED_USER = 'seed30@youth-moa.test';
-const SEED_PASS = 'Test1234!';
-
-async function login(page: Page) {
-    await page.goto('/login', { waitUntil: 'commit' });
-    await page.locator('input[name="username"]').fill(SEED_USER);
-    await page.locator('input[name="password"]').fill(SEED_PASS);
-    await page.locator('form.auth-form-prototype button[type="submit"]').click();
-    await page.waitForURL('/');
-}
+const SEED_USER = seedEmail(30);
 
 test.beforeEach(async ({ page }) => {
-    await page.route(/^https?:\/\/(?!localhost)/, route => route.abort());
+    await abortExternal(page);
 });
 
 test('비로그인 헤더: 로그인 아이콘 노출, 사용자 메뉴 없음', async ({ page }) => {
@@ -41,7 +33,7 @@ test('비로그인 헤더: 로그인 아이콘 노출, 사용자 메뉴 없음',
 });
 
 test('로그인 후 헤더: 사용자 이름 + 드롭다운(마이페이지·로그아웃) 노출', async ({ page }) => {
-    await login(page);
+    await login(page, SEED_USER);
     // 홈에서 확인
     await expect(page.locator('.header-user-menu')).toBeVisible();
     await expect(page.locator('.header-user-name')).toContainText('시드유저30');

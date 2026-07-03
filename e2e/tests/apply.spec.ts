@@ -1,10 +1,8 @@
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect } from '@playwright/test';
+import { abortExternal, login, seedEmail } from '../helpers';
 
 /**
  * 프로그램 신청 여정 (D1 완료분).
- *
- * D1b (`/apply/complete` 신청 완료 화면) 은 병렬 세션에서 진행 중이라 여기서 커버 안 함.
- * 현재 baseline (origin/main) 은 신청 성공 시 /programs/{id} 로 flash "applySuccess" 리다이렉트.
  *
  * ApplyRequest 검증:
  *  - applyReason: @NotBlank + @Size(10~1000)
@@ -13,22 +11,13 @@ import { test, expect, type Page } from '@playwright/test';
  *  - 중복 신청 시 IllegalStateException("이미 신청한 프로그램입니다.") → flash applyError
  */
 
-const FRESH_USER = 'seed30@youth-moa.test';        // 어느 프로그램에도 미신청
-const DUPLICATE_USER = 'seed1@youth-moa.test';     // programs[0] (id=1) 에 이미 APPROVED
-const SEED_PASS = 'Test1234!';
+const FRESH_USER = seedEmail(30);          // 어느 프로그램에도 미신청
+const DUPLICATE_USER = seedEmail(1);       // programs[0] (id=1) 에 이미 APPROVED
 const FRESH_PROGRAM_ID = 3;   // 마음건강 힐링 캠프 (ACTIVE, 6/20)
 const DUP_PROGRAM_ID = 1;     // 취업역량 강화 워크숍 (seed1 이미 신청)
 
-async function login(page: Page, email: string) {
-    await page.goto('/login', { waitUntil: 'commit' });
-    await page.locator('input[name="username"]').fill(email);
-    await page.locator('input[name="password"]').fill(SEED_PASS);
-    await page.locator('form.auth-form-prototype button[type="submit"]').click();
-    await page.waitForURL('/');
-}
-
 test.beforeEach(async ({ page }) => {
-    await page.route(/^https?:\/\/(?!localhost)/, route => route.abort());
+    await abortExternal(page);
 });
 
 test('로그인 후 신청 폼 진입 시 신청자 정보(이름·이메일)가 자동 채워진다', async ({ page }) => {

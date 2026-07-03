@@ -1,4 +1,5 @@
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect } from '@playwright/test';
+import { abortExternal, login, seedEmail, waitForHtmx } from '../helpers';
 
 /**
  * ★ 즐겨찾기 토글 여정 — 카드·상세 양쪽 + 비로그인 리다이렉트 + 상태 일관성.
@@ -10,24 +11,11 @@ import { test, expect, type Page } from '@playwright/test';
  *  - 카드: styleClass = card-bookmark-btn / 상세: styleClass = detail-action-icon
  */
 
-const SEED_USER = 'seed30@youth-moa.test';
-const SEED_PASS = 'Test1234!';
+const SEED_USER = seedEmail(30);
 const PROGRAM_ID = 3;   // 마음건강 힐링 캠프 (6/20, ACTIVE, 시드 유저 seed30 미신청 = 즐겨찾기 초기값 false)
 
-async function login(page: Page) {
-    await page.goto('/login', { waitUntil: 'commit' });
-    await page.locator('input[name="username"]').fill(SEED_USER);
-    await page.locator('input[name="password"]').fill(SEED_PASS);
-    await page.locator('form.auth-form-prototype button[type="submit"]').click();
-    await page.waitForURL('/');
-}
-
-async function waitForHtmx(page: Page) {
-    await page.waitForFunction(() => typeof (window as any).htmx !== 'undefined', { timeout: 10_000 });
-}
-
 test.beforeEach(async ({ page }) => {
-    await page.route(/^https?:\/\/(?!localhost)/, route => route.abort());
+    await abortExternal(page);
 });
 
 test('비로그인 상태에서 카드 ★ 클릭 시 /login 으로 이동한다', async ({ page }) => {
@@ -40,7 +28,7 @@ test('비로그인 상태에서 카드 ★ 클릭 시 /login 으로 이동한다
 });
 
 test('로그인 후 카드 ★ 클릭 시 HTMX 로 is-bookmarked 클래스가 토글된다', async ({ page }) => {
-    await login(page);
+    await login(page, SEED_USER);
     await page.goto('/programs', { waitUntil: 'commit' });
     await waitForHtmx(page);
 
@@ -55,7 +43,7 @@ test('로그인 후 카드 ★ 클릭 시 HTMX 로 is-bookmarked 클래스가 �
 });
 
 test('상세 페이지 ★ 클릭 시 detail-action-icon 이 토글된다', async ({ page }) => {
-    await login(page);
+    await login(page, SEED_USER);
     await page.goto(`/programs/${PROGRAM_ID}`, { waitUntil: 'commit' });
     await waitForHtmx(page);
 
@@ -76,7 +64,7 @@ test('상세 페이지 ★ 클릭 시 detail-action-icon 이 토글된다', asyn
 });
 
 test('목록에서 토글한 상태가 상세 페이지 진입 시에도 유지된다', async ({ page }) => {
-    await login(page);
+    await login(page, SEED_USER);
     await page.goto('/programs', { waitUntil: 'commit' });
     await waitForHtmx(page);
 
