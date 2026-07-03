@@ -18,8 +18,8 @@ public class BookmarkController {
   /**
    * 즐겨찾기 토글. HTMX 요청을 가정하고 fragment 만 반환한다. (HTMX 가 outerHTML 로 자기 자신을 교체)
    *
-   * <p>styleClass 는 카드 (card-bookmark-btn) vs 상세 (detail-action-icon) 구분을 위해 클라이언트가 hx-vals 로
-   * 전달. 누락 시 카드 기본값 사용.
+   * <p>styleClass 는 카드 (card-bookmark-btn) vs 상세 (detail-action-icon) 구분을 위해 클라이언트가 hx-vals 로 전달.
+   * 누락 시 카드 기본값 사용.
    */
   @PostMapping("/bookmarks/programs/{programId}/toggle")
   public String toggle(
