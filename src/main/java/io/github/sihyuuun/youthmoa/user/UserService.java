@@ -13,34 +13,37 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class UserService implements UserDetailsService {
 
-    private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
+  private final UserRepository userRepository;
+  private final PasswordEncoder passwordEncoder;
 
-    @Override
-    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + email));
+  @Override
+  public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+    User user =
+        userRepository
+            .findByEmail(email)
+            .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + email));
 
-        return new UserPrincipal(user);
+    return new UserPrincipal(user);
+  }
+
+  @Transactional
+  public void signUp(SignUpRequest request) {
+    if (userRepository.existsByEmail(request.getEmail())) {
+      throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
     }
-
-    @Transactional
-    public void signUp(SignUpRequest request) {
-        if (userRepository.existsByEmail(request.getEmail())) {
-            throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
-        }
-        User user = User.builder()
-                .email(request.getEmail())
-                .password(passwordEncoder.encode(request.getPassword()))
-                .name(request.getName())
-                .phone(request.getPhone())
-                .gender(request.getGender())
-                .birthDate(request.parseBirthDate())
-                .zipcode(request.getZipcode())
-                .address(request.getAddress())
-                .addressDetail(request.getAddressDetail())
-                .role(UserRole.USER)
-                .build();
-        userRepository.save(user);
-    }
+    User user =
+        User.builder()
+            .email(request.getEmail())
+            .password(passwordEncoder.encode(request.getPassword()))
+            .name(request.getName())
+            .phone(request.getPhone())
+            .gender(request.getGender())
+            .birthDate(request.parseBirthDate())
+            .zipcode(request.getZipcode())
+            .address(request.getAddress())
+            .addressDetail(request.getAddressDetail())
+            .role(UserRole.USER)
+            .build();
+    userRepository.save(user);
+  }
 }
