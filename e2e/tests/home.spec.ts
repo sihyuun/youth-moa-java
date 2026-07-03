@@ -15,7 +15,7 @@ test.beforeEach(async ({ page }) => {
 });
 
 test('Hero 배너와 검색바가 표시된다', async ({ page }) => {
-    await expect(page.locator('.hero-title')).toContainText('경기도 청년의 내일');
+    await expect(page.locator('.hero-title')).toContainText('청년의 모든 기회를');
     await expect(page.locator('.hero-search-bar')).toBeVisible();
     await expect(page.locator('.hero-search-input')).toBeVisible();
 });
