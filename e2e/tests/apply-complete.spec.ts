@@ -29,7 +29,8 @@ test('신청 제출 후 완료 페이지가 렌더된다 (성공 아이콘·요�
     // 신청 폼 → 성공 제출
     await page.goto(`/programs/${FRESH_PROGRAM_ID}/apply`, { waitUntil: 'commit' });
     await page.locator('#applyReason').fill('E2E 완료 페이지 검증용 지원 동기 문장입니다.');
-    await page.locator('input[name="privacyAgreed"]').check();
+    // apply.html: 실제 input 은 opacity:0 + pointer-events:none (custom UI). Playwright actionable 대기 우회.
+    await page.locator('input[name="privacyAgreed"]').check({ force: true });
     await page.locator('button.apply-submit-btn').click();
 
     // ApplicationController.apply() → "redirect:/apply/complete?applicationId=" + saved.getId()
