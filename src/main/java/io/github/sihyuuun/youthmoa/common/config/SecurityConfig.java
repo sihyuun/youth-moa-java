@@ -65,7 +65,12 @@ public class SecurityConfig {
                         "/find-password/**")
                     .permitAll()
                     // 인증 필요 (먼저 매칭되어 permitAll 보다 우선)
-                    .requestMatchers("/programs/*/apply", "/bookmarks/**", "/notifications/**")
+                    .requestMatchers(
+                        "/programs/*/apply",
+                        "/bookmarks/**",
+                        "/notifications/**",
+                        "/mypage",
+                        "/mypage/**")
                     .authenticated()
                     // 그 외 비인증 허용
                     .requestMatchers(

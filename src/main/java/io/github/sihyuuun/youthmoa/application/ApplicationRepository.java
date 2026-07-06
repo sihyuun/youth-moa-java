@@ -27,6 +27,13 @@ public interface ApplicationRepository extends JpaRepository<Application, Long> 
 
   Page<Application> findAllByUser(User user, Pageable pageable);
 
+  /**
+   * D5 마이페이지 신청 내역용. OSIV=false 환경에서 템플릿이 program 을 접근하므로 fetch join. status/appliedAt 을 카드에 렌더하기
+   * 위해 최신순 정렬.
+   */
+  @EntityGraph(attributePaths = {"program"})
+  List<Application> findAllByUserOrderByAppliedAtDesc(User user);
+
   long countByProgramAndStatusIn(Program program, List<ApplicationStatus> statuses);
 
   List<Application> findAllByProgramAndStatusOrderByAppliedAtAsc(

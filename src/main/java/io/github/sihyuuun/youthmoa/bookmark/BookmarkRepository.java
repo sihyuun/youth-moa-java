@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -16,6 +17,10 @@ public interface BookmarkRepository extends JpaRepository<Bookmark, Long> {
   boolean existsByUserAndProgram(User user, Program program);
 
   Page<Bookmark> findAllByUser(User user, Pageable pageable);
+
+  /** D5 마이페이지 즐겨찾기 탭용. Program fetch join + 최신순. */
+  @EntityGraph(attributePaths = {"program"})
+  List<Bookmark> findAllByUserOrderByCreatedAtDesc(User user);
 
   void deleteByUserAndProgram(User user, Program program);
 

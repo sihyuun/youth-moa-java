@@ -57,6 +57,10 @@ public class Application {
   @Column(length = 500)
   private String rejectReason;
 
+  /** D5: 신청 취소 사유 (CancelReason label + 사용자 입력 텍스트). nullable. */
+  @Column(length = 200)
+  private String cancelReason;
+
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "processed_by")
   private User processedBy;
@@ -91,6 +95,12 @@ public class Application {
 
   public void cancel() {
     this.status = ApplicationStatus.CANCELLED;
+  }
+
+  /** D5: 사유와 함께 취소. reason 은 null 허용 (기존 호출부 호환). */
+  public void cancel(String reason) {
+    this.status = ApplicationStatus.CANCELLED;
+    this.cancelReason = reason;
   }
 
   /** CANCELLED 상태의 신청을 같은 row 로 재활성화 (DB unique constraint 우회). */
