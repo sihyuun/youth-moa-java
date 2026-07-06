@@ -10,6 +10,9 @@ import io.github.sihyuuun.youthmoa.notice.NoticeAttachment;
 import io.github.sihyuuun.youthmoa.notice.NoticeAttachmentRepository;
 import io.github.sihyuuun.youthmoa.notice.NoticeCategory;
 import io.github.sihyuuun.youthmoa.notice.NoticeRepository;
+import io.github.sihyuuun.youthmoa.notification.Notification;
+import io.github.sihyuuun.youthmoa.notification.NotificationRepository;
+import io.github.sihyuuun.youthmoa.notification.NotificationType;
 import io.github.sihyuuun.youthmoa.program.Program;
 import io.github.sihyuuun.youthmoa.program.ProgramRepository;
 import io.github.sihyuuun.youthmoa.region.Region;
@@ -46,6 +49,7 @@ public class DataInitializer implements ApplicationRunner {
   private final SiteImageRepository siteImageRepository;
   private final UserRepository userRepository;
   private final ApplicationRepository applicationRepository;
+  private final NotificationRepository notificationRepository;
   private final PasswordEncoder passwordEncoder;
 
   @Override
@@ -56,6 +60,53 @@ public class DataInitializer implements ApplicationRunner {
     seedSiteImages();
     seedNotices();
     seedApplications();
+    seedNotifications();
+  }
+
+  /** F2 헤더 종 UX 검증용 — seed1, seed30 에 알림 각 4건 시드. */
+  private void seedNotifications() {
+    if (notificationRepository.count() > 0) {
+      log.info("Notifications already seeded, skip");
+      return;
+    }
+    List<String> targetEmails = List.of("seed1@youth-moa.test", "seed30@youth-moa.test");
+    for (String email : targetEmails) {
+      userRepository
+          .findByEmail(email)
+          .ifPresent(
+              u ->
+                  notificationRepository.saveAll(
+                      List.of(
+                          Notification.builder()
+                              .user(u)
+                              .type(NotificationType.APPLICATION_APPROVED)
+                              .title("프로그램 신청 승인")
+                              .message("[취업역량 강화 워크숍] 신청이 승인되었습니다.")
+                              .link("/mypage")
+                              .build(),
+                          Notification.builder()
+                              .user(u)
+                              .type(NotificationType.PROGRAM_DEADLINE_NEAR)
+                              .title("마감 임박")
+                              .message("[청년 창업 아카데미] 마감이 임박했어요. (D-1)")
+                              .link("/programs")
+                              .build(),
+                          Notification.builder()
+                              .user(u)
+                              .type(NotificationType.WELCOME)
+                              .title("공지사항")
+                              .message("새 공지사항 — 7월 휴관 일정 안내")
+                              .link("/notices")
+                              .build(),
+                          Notification.builder()
+                              .user(u)
+                              .type(NotificationType.APPLICATION_CANCELLED)
+                              .title("신청 취소 처리")
+                              .message("[마음건강 힐링 캠프] 취소가 처리되었습니다.")
+                              .link("/mypage")
+                              .build())));
+    }
+    log.info("Seeded notifications for {} users", targetEmails.size());
   }
 
   private void seedSiteImages() {

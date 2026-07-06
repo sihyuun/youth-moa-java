@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>알림 — 청년모아</title>
+    <link rel="icon" type="image/png" th:href="@{/images/logo_symbol.png}">
+    <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"
+          rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+    <script th:src="@{/webjars/htmx.org/2.0.4/dist/htmx.min.js}" defer></script>
+</head>
+<body>
+
+<div th:replace="~{fragments/header :: header('notifications')}"></div>
+
+<main class="main-content">
+    <div class="notif-page">
+        <h1 class="notif-page-title">알림</h1>
+
+        <div th:if="${#lists.isEmpty(notifications)}" class="notif-page-empty">
+            아직 도착한 알림이 없어요
+        </div>
+
+        <ul th:unless="${#lists.isEmpty(notifications)}" class="notif-page-list">
+            <li th:each="n : ${notifications}"
+                th:classappend="${!n.read} ? ' is-unread' : ''"
+                class="notif-page-item">
+                <div th:class="'notif-icon notif-icon--' + ${n.type.toneColor}"
+                     th:classappend="${!n.read} ? ' is-unread' : ''"
+                     aria-hidden="true"></div>
+                <a th:href="${n.link != null} ? ${n.link} : '#'"
+                   class="notif-page-item-body">
+                    <div class="notif-item-title" th:text="${n.title}">제목</div>
+                    <div class="notif-item-message" th:text="${n.message}">본문</div>
+                    <div class="notif-item-time"
+                         th:text="${#temporals.format(n.createdAt, 'yyyy.MM.dd HH:mm')}">2026.07.06 12:00</div>
+                </a>
+            </li>
+        </ul>
+
+        <p class="notif-page-note">
+            페이지네이션은 F2d 티켓에서 별도 구현 예정 (현재 최근 20건 표시).
+        </p>
+    </div>
+</main>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+</body>
+</html>

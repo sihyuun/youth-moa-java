@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!--
+  Notification panel fragment — prototype.tsx NotifPanel (line 289~337) 기준.
+  - 너비 380, radius 14, shadow-lg
+  - 헤더: "알림" + unread count 뱃지 (숫자) + "모두 읽음" 링크
+  - 항목: 좌 원형 아이콘 (tone) + 제목/본문/시간
+  - 하단: "알림 전체보기" → /notifications
+  OOB swap: 응답에 header-bell-dot 를 hx-swap-oob 로 포함해 헤더 dot 도 동시 갱신.
+-->
+
+<div th:fragment="panel"
+     id="header-notif-dropdown"
+     class="notif-panel">
+
+    <div class="notif-panel-head">
+        <div class="notif-panel-title">
+            <span>알림</span>
+            <span th:if="${headerUnreadCount > 0}"
+                  class="notif-panel-badge"
+                  th:text="${headerUnreadCount}">0</span>
+        </div>
+        <div class="notif-panel-actions">
+            <form th:action="@{/notifications/read-all}"
+                  method="post"
+                  hx-post="/notifications/read-all"
+                  hx-target="#header-notif-dropdown"
+                  hx-swap="outerHTML"
+                  class="notif-inline-form">
+                <button type="submit" class="notif-linklike">모두 읽음</button>
+            </form>
+        </div>
+    </div>
+
+    <div th:if="${#lists.isEmpty(headerRecentNotifications)}" class="notif-empty">
+        <span class="notif-empty-text">아직 도착한 알림이 없어요</span>
+    </div>
+
+    <div th:each="n : ${headerRecentNotifications}"
+         th:classappend="${!n.read} ? ' is-unread' : ''"
+         class="notif-item">
+        <div th:class="'notif-icon notif-icon--' + ${n.type.toneColor}"
+             th:classappend="${!n.read} ? ' is-unread' : ''"
+             aria-hidden="true"></div>
+        <a th:href="${n.link != null} ? ${n.link} : '/notifications'"
+           class="notif-item-body">
+            <div class="notif-item-title" th:text="${n.title}">제목</div>
+            <div class="notif-item-message" th:text="${n.message}">본문</div>
+            <div class="notif-item-time"
+                 th:text="${#temporals.format(n.createdAt, 'MM.dd HH:mm')}">07.06 12:00</div>
+        </a>
+    </div>
+
+    <a th:href="@{/notifications}" class="notif-panel-footer">알림 전체보기</a>
+
+    <!-- OOB swap: 헤더 종 dot 동시 갱신. hx-swap-oob="outerHTML" 로 id 기준 교체. -->
+    <span id="header-bell-dot"
+          hx-swap-oob="outerHTML"
+          th:if="${headerUnreadCount > 0}"
+          class="header-bell-dot"
+          aria-hidden="true"></span>
+    <span id="header-bell-dot"
+          hx-swap-oob="outerHTML"
+          th:unless="${headerUnreadCount > 0}"
+          class="header-bell-dot header-bell-dot--hidden"
+          aria-hidden="true"></span>
+</div>
+
+</body>
+</html>
