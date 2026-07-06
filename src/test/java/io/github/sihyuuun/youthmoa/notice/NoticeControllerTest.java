@@ -31,6 +31,11 @@ class NoticeControllerTest {
 
   @MockitoBean NoticeService noticeService;
 
+  // HeaderNotificationAdvice 의존성 mock (F2 @ControllerAdvice 도입 후 필요)
+  @MockitoBean io.github.sihyuuun.youthmoa.notification.NotificationService notificationService;
+
+  @MockitoBean io.github.sihyuuun.youthmoa.user.UserRepository userRepository;
+
   private Notice sample;
 
   @BeforeEach

@@ -1,6 +1,7 @@
 package io.github.sihyuuun.youthmoa.notification;
 
 import io.github.sihyuuun.youthmoa.user.User;
+import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -11,6 +12,9 @@ import org.springframework.data.repository.query.Param;
 public interface NotificationRepository extends JpaRepository<Notification, Long> {
 
   Page<Notification> findAllByUserOrderByCreatedAtDesc(User user, Pageable pageable);
+
+  /** 헤더 드롭다운용 — 최근 5건. */
+  List<Notification> findTop5ByUserOrderByCreatedAtDesc(User user);
 
   long countByUserAndIsReadFalse(User user);
 

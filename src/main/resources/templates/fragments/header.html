@@ -9,8 +9,7 @@
   - 중앙: nav 3개 (gap:36) — 프로그램 / 청년센터 / 공지사항
   - 우: 검색 아이콘 + (인증) 아바타(이니셜 30px) + 이름 + ▾ 드롭다운
                   (비인증) 로그인 아이콘 1개
-  미적용 (별도 작업, F2):
-  - 알림 종 + unread dot (인증 시)
+  미적용 (별도 작업):
   - transparent 모드 (홈 hero 위)
 -->
 
@@ -44,6 +43,31 @@
                     <path d="M21 21l-4.35-4.35" stroke-linecap="round"/>
                 </svg>
             </a>
+
+            <!-- 인증 상태: 알림 종 (hover 로 드롭다운). CSS :hover/:focus-within 방식. -->
+            <div sec:authorize="isAuthenticated()" class="header-bell-menu">
+                <button type="button" class="header-icon-btn header-bell-trigger"
+                        aria-haspopup="menu" aria-controls="header-notif-dropdown"
+                        aria-label="알림">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none"
+                         stroke="currentColor" stroke-width="1.5"
+                         stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/>
+                        <path d="M13.73 21a2 2 0 01-3.46 0"/>
+                    </svg>
+                    <span id="header-bell-dot"
+                          th:if="${headerUnreadCount > 0}"
+                          class="header-bell-dot"
+                          aria-hidden="true"></span>
+                    <span id="header-bell-dot"
+                          th:unless="${headerUnreadCount > 0}"
+                          class="header-bell-dot header-bell-dot--hidden"
+                          aria-hidden="true"></span>
+                </button>
+                <div class="header-bell-dropdown-wrap">
+                    <div th:replace="~{fragments/notification-panel :: panel}"></div>
+                </div>
+            </div>
 
             <!-- 인증 상태: 아바타 + 이름 + ▾ 드롭다운 -->
             <div sec:authorize="isAuthenticated()" class="header-user-menu">

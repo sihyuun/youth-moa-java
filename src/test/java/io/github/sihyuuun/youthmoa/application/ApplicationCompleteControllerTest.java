@@ -47,6 +47,9 @@ class ApplicationCompleteControllerTest {
   @MockitoBean UserRepository userRepository;
   @MockitoBean NotificationChannelResolver notificationChannelResolver;
 
+  // HeaderNotificationAdvice 의존성 mock (F2 @ControllerAdvice 도입 후 필요)
+  @MockitoBean io.github.sihyuuun.youthmoa.notification.NotificationService notificationService;
+
   private User owner;
   private User other;
   private Program program;
