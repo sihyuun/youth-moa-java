@@ -34,7 +34,8 @@ class HomeControllerTest {
   @Test
   @WithAnonymousUser
   void anonymousUser_showsTopPrograms() throws Exception {
-    given(homeService.getHeroImageUrl()).willReturn("https://example.com/hero.jpg");
+    given(homeService.getHeroImageUrls())
+        .willReturn(List.of("https://example.com/hero1.jpg", "https://example.com/hero2.jpg"));
     given(homeService.countActivePrograms()).willReturn(5L);
     given(homeService.countCenters()).willReturn(48L);
     given(homeService.countTotalApplicants()).willReturn(120L);
@@ -59,7 +60,7 @@ class HomeControllerTest {
             model()
                 .attributeExists(
                     "currentPage",
-                    "heroImageUrl",
+                    "heroImageUrls",
                     "activeProgramCount",
                     "centerCount",
                     "totalApplicantCount",

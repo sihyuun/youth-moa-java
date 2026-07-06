@@ -303,15 +303,32 @@ code {
   margin: 0 0 24px;
 }
 
-/* ── Hero (F0e-hero-refresh: HeroBanner.html 시안 준수 재설계) ── */
+/* ── Hero (F0e-hero-refresh + F0e-2 rotation) ── */
 .hero {
   position: relative;
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
   min-height: 460px;
   padding: 0;
   overflow: hidden;
+}
+
+/* F0e-2: stacked background layers (6장 크로스페이드) */
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0;
+  transition: opacity 1.2s ease-in-out;
+  z-index: 0;
+}
+.hero-bg.is-active {
+  opacity: 1;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-bg {
+    transition: none;
+  }
 }
 
 /* 2겹 scrim: tint (좌→우 보라) + dark (위→아래 어둡게) */
@@ -319,6 +336,7 @@ code {
   content: '';
   position: absolute;
   inset: 0;
+  z-index: 2;
   background: linear-gradient(120deg,
     rgba(49, 46, 129, 0.72) 0%,
     rgba(67, 56, 202, 0.45) 45%,
@@ -329,6 +347,7 @@ code {
   content: '';
   position: absolute;
   inset: 0;
+  z-index: 2;
   background: linear-gradient(to bottom,
     rgba(0, 0, 0, 0) 40%,
     rgba(0, 0, 0, 0.35) 100%);
@@ -337,7 +356,7 @@ code {
 
 .hero-inner {
   position: relative;
-  z-index: 1;
+  z-index: 3;
   max-width: var(--content-max);
   margin: 0 auto;
   min-height: 460px;

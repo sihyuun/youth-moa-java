@@ -26,7 +26,8 @@ public class SiteImage {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  @Column(nullable = false, unique = true, length = 100)
+  // F0e-2: 동일 slot 다건 허용 (HERO_BANNER 로테이션). unique 제거.
+  @Column(nullable = false, length = 100)
   private String slot;
 
   @Column(nullable = false, length = 500)

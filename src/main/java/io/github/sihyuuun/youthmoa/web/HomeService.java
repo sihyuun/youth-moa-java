@@ -44,12 +44,20 @@ public class HomeService {
   private final SiteImageRepository siteImageRepository;
   private final UserRepository userRepository;
 
-  /** Hero 배너 이미지 URL. site_image 에 없으면 fallback. */
-  public String getHeroImageUrl() {
-    return siteImageRepository
-        .findBySlotAndIsActiveTrue(SLOT_HERO)
-        .map(SiteImage::getImageUrl)
-        .orElse("/images/banner_01.png");
+  /** Hero 배너 fallback URL (Unsplash A — 톤 일관성). site_image 시드 실패 시 최소 1건 확보용. */
+  private static final String HERO_FALLBACK_URL =
+      "https://images.unsplash.com/photo-1531482615713-2afd69097998?w=1440&h=560&fit=crop";
+
+  /** F0e-2: Hero 배너 이미지 URL 리스트 (sortOrder ASC). 로테이션 대상 6장. 빈 경우 fallback 1건 리스트. */
+  public List<String> getHeroImageUrls() {
+    List<String> urls =
+        siteImageRepository.findAllBySlotAndIsActiveTrueOrderBySortOrderAsc(SLOT_HERO).stream()
+            .map(SiteImage::getImageUrl)
+            .collect(Collectors.toList());
+    if (urls.isEmpty()) {
+      return List.of(HERO_FALLBACK_URL);
+    }
+    return urls;
   }
 
   /** Quick Stats — 모집중 프로그램 개수. */
