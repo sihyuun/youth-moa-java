@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${#strings.isEmpty(q)} ? '검색 — 청년모아' : |'${q}' 검색 결과 — 청년모아|">검색 — 청년모아</title>
+    <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"
+          rel="stylesheet">
+    <link rel="icon" type="image/png" th:href="@{/images/logo_symbol.png}">
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+</head>
+<body>
+
+<div th:replace="~{fragments/header :: header('search')}"></div>
+
+<main class="main-content">
+
+    <div class="container search-result-container">
+
+        <!-- 상단 검색바 -->
+        <form class="search-result-bar" th:action="@{/search}" method="get">
+            <input type="text" name="q" class="search-result-input"
+                   maxlength="100"
+                   th:value="${q}"
+                   placeholder="관심 있는 프로그램·공지를 검색해보세요"
+                   autofocus>
+            <button type="submit" class="search-result-btn">검색</button>
+        </form>
+
+        <!-- 초기 진입(q 없음) -->
+        <div th:if="${#strings.isEmpty(q)}" class="search-empty-initial">
+            <p class="search-empty-title">검색어를 입력해주세요</p>
+            <p class="search-empty-sub">프로그램·공지사항을 통합 검색합니다.</p>
+            <div class="search-suggest-chips">
+                <a th:each="kw : ${suggestedKeywords}"
+                   th:href="@{/search(q=${kw})}"
+                   class="search-suggest-chip"
+                   th:text="'#' + ${kw}">#키워드</a>
+            </div>
+        </div>
+
+        <!-- 검색 결과 (q 있음) -->
+        <div th:if="${!#strings.isEmpty(q)}">
+
+            <!-- 카운트 헤더 -->
+            <div class="search-result-count-bar">
+                <span class="search-result-count">
+                    <strong th:text="|'${q}'|">'키워드'</strong>
+                    검색 결과
+                    <strong th:text="${searchResult.totalCount()}">0</strong>건
+                </span>
+            </div>
+
+            <!-- 탭 -->
+            <div class="search-tabs">
+                <a th:href="@{/search(q=${q}, tab='program')}"
+                   th:classappend="${activeTab == 'program'} ? ' search-tab--active'"
+                   class="search-tab">
+                    프로그램
+                    <span class="search-tab-count" th:text="'(' + ${searchResult.programCount()} + ')'">(0)</span>
+                </a>
+                <a th:href="@{/search(q=${q}, tab='notice')}"
+                   th:classappend="${activeTab == 'notice'} ? ' search-tab--active'"
+                   class="search-tab">
+                    공지사항
+                    <span class="search-tab-count" th:text="'(' + ${searchResult.noticeCount()} + ')'">(0)</span>
+                </a>
+            </div>
+
+            <!-- 프로그램 탭 -->
+            <div th:if="${activeTab == 'program'}">
+                <!-- 빈 결과 -->
+                <div th:if="${searchResult.programCount() == 0}" class="search-empty-result">
+                    <p class="search-empty-title" th:text="|'${q}'에 대한 프로그램 결과가 없어요|">'키워드'에 대한 결과가 없어요</p>
+                    <p class="search-empty-sub">다른 키워드로 검색해보세요.</p>
+                    <div class="search-suggest-chips">
+                        <a th:each="kw : ${suggestedKeywords}"
+                           th:href="@{/search(q=${kw})}"
+                           class="search-suggest-chip"
+                           th:text="'#' + ${kw}">#키워드</a>
+                    </div>
+                </div>
+
+                <!-- 프로그램 카드 그리드 (4열) -->
+                <div th:if="${searchResult.programCount() > 0}" class="program-grid">
+                    <article th:each="dto : ${cardDtos}"
+                             th:classappend="${dto.status.name() == 'CLOSED'} ? ' program-card--closed'"
+                             class="program-card">
+                        <a th:href="@{/programs/{id}(id=${dto.id})}" class="program-card-link">
+                            <div class="program-card-image">
+                                <img th:if="${dto.imageUrl != null}" th:src="${dto.imageUrl}" alt=""
+                                     th:style="${dto.status.name() == 'CLOSED'} ? 'filter:grayscale(0.5)' : ''">
+                                <div th:if="${dto.imageUrl == null}" class="program-card-placeholder">
+                                    <span th:text="${dto.organization}">기관</span>
+                                </div>
+                                <span class="dday-chip"
+                                      th:if="${!#strings.isEmpty(dto.ddayLabel)}"
+                                      th:classappend="${dto.daysUntilDeadline <= 3 and dto.daysUntilDeadline >= 0} ? ' dday-chip--urgent'"
+                                      th:text="${dto.ddayLabel}">D-3</span>
+                            </div>
+                            <div class="program-card-body">
+                                <div class="program-card-badges">
+                                    <span th:class="'status-badge ' + ${dto.status.cssClass}"
+                                          th:text="${dto.status.label}">진행중</span>
+                                </div>
+                                <h3 class="program-card-title" th:text="${dto.title}">프로그램 제목</h3>
+                                <p class="program-card-org" th:text="${dto.organization + ' · ' + dto.region}">기관 · 지역</p>
+                                <p class="program-card-date"
+                                   th:if="${dto.startDate != null and dto.endDate != null}"
+                                   th:text="${#temporals.format(dto.startDate,'yyyy.MM.dd') + ' ~ ' + #temporals.format(dto.endDate,'yyyy.MM.dd')}">
+                                    기간
+                                </p>
+                                <div th:replace="~{fragments/capacity-bar :: capacityBar(
+                                    pct=${dto.pct},
+                                    colorClass=${dto.colorClass},
+                                    barLabel=${dto.barLabel},
+                                    capacityText=${dto.capacityText},
+                                    showBar=${dto.capacity != null})}"></div>
+                            </div>
+                        </a>
+                        <div th:replace="~{fragments/bookmark-button :: button(programId=${dto.id}, bookmarked=${bookmarkedIds.contains(dto.id)}, styleClass='card-bookmark-btn')}"></div>
+                    </article>
+                </div>
+
+                <!-- 프로그램 페이지네이션 -->
+                <nav th:if="${programs.totalPages > 1}" class="pagination">
+                    <a th:if="${programs.hasPrevious()}"
+                       th:href="@{/search(q=${q}, tab='program', page=${programs.number - 1})}"
+                       class="page-link page-arrow">‹</a>
+                    <span th:unless="${programs.hasPrevious()}" class="page-link page-arrow disabled">‹</span>
+
+                    <a th:each="i : ${#numbers.sequence(0, programs.totalPages - 1)}"
+                       th:href="@{/search(q=${q}, tab='program', page=${i})}"
+                       th:class="${i == programs.number} ? 'page-link active' : 'page-link'"
+                       th:text="${i + 1}">1</a>
+
+                    <a th:if="${programs.hasNext()}"
+                       th:href="@{/search(q=${q}, tab='program', page=${programs.number + 1})}"
+                       class="page-link page-arrow">›</a>
+                    <span th:unless="${programs.hasNext()}" class="page-link page-arrow disabled">›</span>
+                </nav>
+            </div>
+
+            <!-- 공지 탭 -->
+            <div th:if="${activeTab == 'notice'}">
+                <!-- 빈 결과 -->
+                <div th:if="${searchResult.noticeCount() == 0}" class="search-empty-result">
+                    <p class="search-empty-title" th:text="|'${q}'에 대한 공지 결과가 없어요|">'키워드'에 대한 결과가 없어요</p>
+                    <p class="search-empty-sub">다른 키워드로 검색해보세요.</p>
+                    <div class="search-suggest-chips">
+                        <a th:each="kw : ${suggestedKeywords}"
+                           th:href="@{/search(q=${kw})}"
+                           class="search-suggest-chip"
+                           th:text="'#' + ${kw}">#키워드</a>
+                    </div>
+                </div>
+
+                <!-- 공지 리스트 -->
+                <ul th:if="${searchResult.noticeCount() > 0}" class="search-notice-list">
+                    <li th:each="n : ${notices.content}" class="search-notice-item">
+                        <a th:href="@{/notices/{id}(id=${n.id})}" class="search-notice-link">
+                            <div class="search-notice-meta">
+                                <span class="search-notice-cat" th:text="${n.category.label}">공지</span>
+                                <span class="search-notice-date"
+                                      th:text="${#temporals.format(n.createdAt,'yyyy.MM.dd')}">2026.01.01</span>
+                            </div>
+                            <h4 class="search-notice-title" th:text="${n.title}">공지 제목</h4>
+                        </a>
+                    </li>
+                </ul>
+
+                <!-- 공지 페이지네이션 -->
+                <nav th:if="${notices.totalPages > 1}" class="pagination">
+                    <a th:if="${notices.hasPrevious()}"
+                       th:href="@{/search(q=${q}, tab='notice', page=${notices.number - 1})}"
+                       class="page-link page-arrow">‹</a>
+                    <span th:unless="${notices.hasPrevious()}" class="page-link page-arrow disabled">‹</span>
+
+                    <a th:each="i : ${#numbers.sequence(0, notices.totalPages - 1)}"
+                       th:href="@{/search(q=${q}, tab='notice', page=${i})}"
+                       th:class="${i == notices.number} ? 'page-link active' : 'page-link'"
+                       th:text="${i + 1}">1</a>
+
+                    <a th:if="${notices.hasNext()}"
+                       th:href="@{/search(q=${q}, tab='notice', page=${notices.number + 1})}"
+                       class="page-link page-arrow">›</a>
+                    <span th:unless="${notices.hasNext()}" class="page-link page-arrow disabled">›</span>
+                </nav>
+            </div>
+        </div>
+
+    </div>
+</main>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+</body>
+</html>
