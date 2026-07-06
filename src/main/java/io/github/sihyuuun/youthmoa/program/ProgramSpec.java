@@ -10,6 +10,22 @@ public class ProgramSpec {
     return (root, query, cb) -> cb.isTrue(root.get("isActive"));
   }
 
+  /**
+   * 통합 검색 키워드 매칭 — title / organization / region / content 4개 컬럼 OR LIKE. 대소문자 무시. q 가 null/빈 문자열이면
+   * 조건 없음(cb.conjunction) 반환하여 다른 Specification 과 안전하게 결합.
+   */
+  public static Specification<Program> withKeyword(String q) {
+    return (root, query, cb) -> {
+      if (q == null || q.isBlank()) return cb.conjunction();
+      String pattern = "%" + q.toLowerCase() + "%";
+      return cb.or(
+          cb.like(cb.lower(root.get("title")), pattern),
+          cb.like(cb.lower(root.get("organization")), pattern),
+          cb.like(cb.lower(root.get("region")), pattern),
+          cb.like(cb.lower(root.get("content")), pattern));
+    };
+  }
+
   /** status: "active" | "upcoming" | "closed" | "" | null → null 반환 시 조건 없음 */
   public static Specification<Program> withDateStatus(String status) {
     if (status == null || status.isBlank()) return null;

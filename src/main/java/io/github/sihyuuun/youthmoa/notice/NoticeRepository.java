@@ -23,4 +23,8 @@ public interface NoticeRepository extends JpaRepository<Notice, Long> {
 
   /** 상세 페이지 "다음글" — 카테고리 무관, id 기준. */
   Optional<Notice> findFirstByIdGreaterThanOrderByIdAsc(Long id);
+
+  /** D4 통합 검색 — 제목·본문 대소문자 무시 부분 일치. */
+  Page<Notice> findByTitleContainingIgnoreCaseOrContentContainingIgnoreCase(
+      String titleKeyword, String contentKeyword, Pageable pageable);
 }
