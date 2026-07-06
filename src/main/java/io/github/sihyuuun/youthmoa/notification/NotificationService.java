@@ -38,6 +38,27 @@ public class NotificationService {
         .getContent();
   }
 
+  /**
+   * 알림 신규 생성.
+   *
+   * <p>userId 로 User 프록시(getReferenceById)를 사용해 SELECT 1회 절약. 유저가 실제로 존재하지 않으면 flush 시점에 FK 위반이 나므로
+   * 호출자는 유효한 userId 를 넘겨야 한다.
+   */
+  @Transactional
+  public Notification create(
+      Long userId, NotificationType type, String title, String message, String link) {
+    User user = userRepository.getReferenceById(userId);
+    Notification n =
+        Notification.builder()
+            .user(user)
+            .type(type)
+            .title(title)
+            .message(message)
+            .link(link)
+            .build();
+    return notificationRepository.save(n);
+  }
+
   @Transactional
   public int markAllAsRead(Long userId) {
     User user =

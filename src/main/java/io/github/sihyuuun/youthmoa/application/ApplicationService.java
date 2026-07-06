@@ -1,5 +1,8 @@
 package io.github.sihyuuun.youthmoa.application;
 
+import io.github.sihyuuun.youthmoa.application.event.ApplicationApprovedEvent;
+import io.github.sihyuuun.youthmoa.application.event.ApplicationCancelledEvent;
+import io.github.sihyuuun.youthmoa.application.event.ApplicationRejectedEvent;
 import io.github.sihyuuun.youthmoa.program.Program;
 import io.github.sihyuuun.youthmoa.program.ProgramRepository;
 import io.github.sihyuuun.youthmoa.program.ProgramStatus;
@@ -7,6 +10,7 @@ import io.github.sihyuuun.youthmoa.user.User;
 import io.github.sihyuuun.youthmoa.user.UserRepository;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,6 +22,14 @@ public class ApplicationService {
   private final ApplicationRepository applicationRepository;
   private final ProgramRepository programRepository;
   private final UserRepository userRepository;
+
+  /**
+   * Spring 표준 도메인 이벤트 퍼블리셔.
+   *
+   * <p>{@code publishEvent} 호출 시점엔 아직 트랜잭션 커밋 전이며,
+   * {@code @TransactionalEventListener(AFTER_COMMIT)} 리스너는 실제 커밋 후에 실행된다. 롤백되면 리스너는 호출되지 않는다.
+   */
+  private final ApplicationEventPublisher eventPublisher;
 
   /**
    * 프로그램 신청.
@@ -68,5 +80,86 @@ public class ApplicationService {
             .applyReason(request.getApplyReason())
             .build();
     return applicationRepository.save(application);
+  }
+
+  /**
+   * 신청 승인 (관리자). 상태 전이 후 {@link ApplicationApprovedEvent} 발행.
+   *
+   * <p>이미 APPROVED 상태이면 no-op (idempotent) — 이벤트도 발행하지 않는다.
+   */
+  @Transactional
+  public void approve(Long applicationId, String adminEmail) {
+    Application application = loadWithProgramAndUser(applicationId);
+    User admin = loadUser(adminEmail);
+
+    if (application.getStatus() == ApplicationStatus.APPROVED) {
+      return; // idempotent
+    }
+    application.approve(admin);
+
+    eventPublisher.publishEvent(
+        new ApplicationApprovedEvent(
+            application.getId(),
+            application.getUser().getId(),
+            application.getProgram().getId(),
+            application.getProgram().getTitle()));
+  }
+
+  /** 신청 반려 (관리자). 상태 전이 후 {@link ApplicationRejectedEvent} 발행. */
+  @Transactional
+  public void reject(Long applicationId, String adminEmail, String reason) {
+    Application application = loadWithProgramAndUser(applicationId);
+    User admin = loadUser(adminEmail);
+
+    if (application.getStatus() == ApplicationStatus.REJECTED) {
+      return; // idempotent
+    }
+    application.reject(admin, reason);
+
+    eventPublisher.publishEvent(
+        new ApplicationRejectedEvent(
+            application.getId(),
+            application.getUser().getId(),
+            application.getProgram().getId(),
+            application.getProgram().getTitle(),
+            reason));
+  }
+
+  /**
+   * 신청 취소 (신청자 본인).
+   *
+   * <p>본인이 아니면 {@link IllegalStateException}. 이미 CANCELLED 이면 no-op.
+   */
+  @Transactional
+  public void cancel(Long applicationId, String userEmail) {
+    Application application = loadWithProgramAndUser(applicationId);
+    User user = loadUser(userEmail);
+
+    if (!application.getUser().getId().equals(user.getId())) {
+      throw new IllegalStateException("본인의 신청만 취소할 수 있습니다.");
+    }
+    if (application.getStatus() == ApplicationStatus.CANCELLED) {
+      return; // idempotent
+    }
+    application.cancel();
+
+    eventPublisher.publishEvent(
+        new ApplicationCancelledEvent(
+            application.getId(),
+            application.getUser().getId(),
+            application.getProgram().getId(),
+            application.getProgram().getTitle()));
+  }
+
+  private Application loadWithProgramAndUser(Long applicationId) {
+    return applicationRepository
+        .findWithProgramAndUserById(applicationId)
+        .orElseThrow(() -> new IllegalArgumentException("신청을 찾을 수 없습니다: " + applicationId));
+  }
+
+  private User loadUser(String email) {
+    return userRepository
+        .findByEmail(email)
+        .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다: " + email));
   }
 }
