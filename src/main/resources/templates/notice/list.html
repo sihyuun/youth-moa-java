@@ -21,23 +21,8 @@
     </div>
 
     <div class="container notice-container">
-
-        <!-- 카테고리 pill 탭 (HTMX 부분 갱신) -->
-        <div class="notice-tabs">
-            <a th:href="@{/notices}"
-               th:class="${filterCategory == null} ? 'notice-tab active' : 'notice-tab'"
-               hx-get="/notices" hx-target="#notice-list-region" hx-swap="outerHTML"
-               hx-push-url="true">전체</a>
-            <a th:each="c : ${categories}"
-               th:href="@{/notices(category=${c.name()})}"
-               th:class="${filterCategory != null and filterCategory.name() == c.name()} ? 'notice-tab active' : 'notice-tab'"
-               th:hx-get="@{/notices(category=${c.name()})}"
-               hx-target="#notice-list-region" hx-swap="outerHTML" hx-push-url="true"
-               th:text="${c.label}">행사</a>
-        </div>
-
-        <!-- 부분 갱신 대상 (fragment 자체가 #notice-list-region 을 wrap) -->
-        <div th:replace="~{notice/_list-fragment :: list-region}"></div>
+        <!-- 탭 + 목록을 하나의 wrapper 로 감싸 HTMX 부분 갱신 시 탭 active 상태도 함께 재렌더된다. -->
+        <div th:replace="~{notice/_list-fragment :: content-region}"></div>
     </div>
 </main>
 

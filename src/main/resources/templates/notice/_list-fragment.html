@@ -3,67 +3,89 @@
 <body>
 
 <!--
-    HTMX 부분 갱신 대상. HX-Request 헤더 존재 시 NoticeController 가 이 fragment 만 반환하며
-    outerHTML swap 을 위해 wrapper (id=notice-list-region) 를 fragment 안에 포함시킨다.
+    HTMX 부분 갱신 대상 (탭 + 목록).
+    HX-Request 헤더 존재 시 NoticeController 가 content-region 프래그먼트만 반환하며
+    outerHTML swap 을 위해 wrapper (id=notice-content) 를 프래그먼트 안에 포함시킨다.
+
+    이 wrapper 는 카테고리 탭과 목록 테이블·페이지네이션을 모두 감싸므로 탭 클릭 시
+    active 클래스도 함께 재렌더된다 (2026-07-06 UX fix).
+
+    inner div (id=notice-list-region) 는 렌더 회귀 시그니처 유지 목적으로 남겨둔다.
 -->
-<div th:fragment="list-region" id="notice-list-region">
+<div th:fragment="content-region" id="notice-content">
 
-    <!-- 목록 테이블 -->
-    <div class="notice-table">
-        <div class="notice-thead">
-            <span class="col-no">No</span>
-            <span class="col-cat">구분</span>
-            <span class="col-title">제목</span>
-            <span class="col-date">작성일</span>
-            <span class="col-views">조회수</span>
-        </div>
-
-        <div th:if="${notices.totalElements == 0}" class="notice-empty">
-            해당 구분의 공지사항이 없습니다.
-        </div>
-
-        <a th:each="n : ${notices.content}"
-           th:href="@{/notices/{id}(id=${n.id})}"
-           th:classappend="${n.isPinned} ? ' notice-row--pinned'"
-           class="notice-row">
-            <span class="col-no" th:text="${n.id}">1</span>
-            <span class="col-cat">
-                <span th:class="'category-badge ' + ${n.category.cssClass}"
-                      th:text="${n.category.label}">공지</span>
-            </span>
-            <span class="col-title">
-                <span th:if="${n.isPinned}" class="notice-pin-icon" title="고정">📌</span>
-                <span class="notice-title-text" th:text="${n.title}">제목</span>
-            </span>
-            <span class="col-date"
-                  th:text="${#temporals.format(n.createdAt, 'yyyy.MM.dd')}">2026.07.03</span>
-            <span class="col-views" th:text="${n.viewCount}">0</span>
-        </a>
+    <!-- 카테고리 pill 탭 -->
+    <div class="notice-tabs">
+        <a th:href="@{/notices}"
+           th:class="${filterCategory == null} ? 'notice-tab active' : 'notice-tab'"
+           hx-get="/notices" hx-target="#notice-content" hx-swap="outerHTML"
+           hx-push-url="true">전체</a>
+        <a th:each="c : ${categories}"
+           th:href="@{/notices(category=${c.name()})}"
+           th:class="${filterCategory != null and filterCategory.name() == c.name()} ? 'notice-tab active' : 'notice-tab'"
+           th:hx-get="@{/notices(category=${c.name()})}"
+           hx-target="#notice-content" hx-swap="outerHTML" hx-push-url="true"
+           th:text="${c.label}">행사</a>
     </div>
 
-    <!-- 페이지네이션 (그룹 5개 단위) -->
-    <nav th:if="${notices.totalPages > 1}" class="notice-pagination">
-        <a th:if="${hasPrevGroup}"
-           th:href="@{/notices(category=${filterCategory != null ? filterCategory.name() : null}, page=${prevGroupPage})}"
-           th:hx-get="@{/notices(category=${filterCategory != null ? filterCategory.name() : null}, page=${prevGroupPage})}"
-           hx-target="#notice-list-region" hx-swap="outerHTML" hx-push-url="true"
-           class="page-btn">‹</a>
-        <span th:unless="${hasPrevGroup}" class="page-btn disabled">‹</span>
+    <div id="notice-list-region">
+        <!-- 목록 테이블 -->
+        <div class="notice-table">
+            <div class="notice-thead">
+                <span class="col-no">No</span>
+                <span class="col-cat">구분</span>
+                <span class="col-title">제목</span>
+                <span class="col-date">작성일</span>
+                <span class="col-views">조회수</span>
+            </div>
 
-        <a th:each="i : ${#numbers.sequence(pageGroupStart, pageGroupEnd)}"
-           th:href="@{/notices(category=${filterCategory != null ? filterCategory.name() : null}, page=${i})}"
-           th:hx-get="@{/notices(category=${filterCategory != null ? filterCategory.name() : null}, page=${i})}"
-           hx-target="#notice-list-region" hx-swap="outerHTML" hx-push-url="true"
-           th:class="${i == notices.number} ? 'page-btn active' : 'page-btn'"
-           th:text="${i + 1}">1</a>
+            <div th:if="${notices.totalElements == 0}" class="notice-empty">
+                해당 구분의 공지사항이 없습니다.
+            </div>
 
-        <a th:if="${hasNextGroup}"
-           th:href="@{/notices(category=${filterCategory != null ? filterCategory.name() : null}, page=${nextGroupPage})}"
-           th:hx-get="@{/notices(category=${filterCategory != null ? filterCategory.name() : null}, page=${nextGroupPage})}"
-           hx-target="#notice-list-region" hx-swap="outerHTML" hx-push-url="true"
-           class="page-btn">›</a>
-        <span th:unless="${hasNextGroup}" class="page-btn disabled">›</span>
-    </nav>
+            <a th:each="n : ${notices.content}"
+               th:href="@{/notices/{id}(id=${n.id})}"
+               th:classappend="${n.isPinned} ? ' notice-row--pinned'"
+               class="notice-row">
+                <span class="col-no" th:text="${n.id}">1</span>
+                <span class="col-cat">
+                    <span th:class="'category-badge ' + ${n.category.cssClass}"
+                          th:text="${n.category.label}">공지</span>
+                </span>
+                <span class="col-title">
+                    <span th:if="${n.isPinned}" class="notice-pin-icon" title="고정">📌</span>
+                    <span class="notice-title-text" th:text="${n.title}">제목</span>
+                </span>
+                <span class="col-date"
+                      th:text="${#temporals.format(n.createdAt, 'yyyy.MM.dd')}">2026.07.03</span>
+                <span class="col-views" th:text="${n.viewCount}">0</span>
+            </a>
+        </div>
+
+        <!-- 페이지네이션 (그룹 5개 단위) -->
+        <nav th:if="${notices.totalPages > 1}" class="notice-pagination">
+            <a th:if="${hasPrevGroup}"
+               th:href="@{/notices(category=${filterCategory != null ? filterCategory.name() : null}, page=${prevGroupPage})}"
+               th:hx-get="@{/notices(category=${filterCategory != null ? filterCategory.name() : null}, page=${prevGroupPage})}"
+               hx-target="#notice-content" hx-swap="outerHTML" hx-push-url="true"
+               class="page-btn">‹</a>
+            <span th:unless="${hasPrevGroup}" class="page-btn disabled">‹</span>
+
+            <a th:each="i : ${#numbers.sequence(pageGroupStart, pageGroupEnd)}"
+               th:href="@{/notices(category=${filterCategory != null ? filterCategory.name() : null}, page=${i})}"
+               th:hx-get="@{/notices(category=${filterCategory != null ? filterCategory.name() : null}, page=${i})}"
+               hx-target="#notice-content" hx-swap="outerHTML" hx-push-url="true"
+               th:class="${i == notices.number} ? 'page-btn active' : 'page-btn'"
+               th:text="${i + 1}">1</a>
+
+            <a th:if="${hasNextGroup}"
+               th:href="@{/notices(category=${filterCategory != null ? filterCategory.name() : null}, page=${nextGroupPage})}"
+               th:hx-get="@{/notices(category=${filterCategory != null ? filterCategory.name() : null}, page=${nextGroupPage})}"
+               hx-target="#notice-content" hx-swap="outerHTML" hx-push-url="true"
+               class="page-btn">›</a>
+            <span th:unless="${hasNextGroup}" class="page-btn disabled">›</span>
+        </nav>
+    </div>
 </div>
 
 </body>
