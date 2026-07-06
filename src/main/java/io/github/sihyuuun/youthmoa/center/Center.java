@@ -7,6 +7,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import java.math.BigDecimal;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -40,6 +41,14 @@ public class Center extends BaseTimeEntity {
   @Column(nullable = false)
   private boolean isFeatured;
 
+  /** 위도 (WGS84). BigDecimal(10,7) — 소수 7자리 = ±1cm 정밀. 좌표 미확정 센터는 null (마커 skip, 리스트만 표시). */
+  @Column(precision = 10, scale = 7)
+  private BigDecimal latitude;
+
+  /** 경도 (WGS84). BigDecimal(10,7). */
+  @Column(precision = 10, scale = 7)
+  private BigDecimal longitude;
+
   @Builder
   private Center(
       String name,
@@ -47,13 +56,17 @@ public class Center extends BaseTimeEntity {
       String address,
       String phone,
       Boolean isActive,
-      Boolean isFeatured) {
+      Boolean isFeatured,
+      BigDecimal latitude,
+      BigDecimal longitude) {
     this.name = name;
     this.region = region;
     this.address = address;
     this.phone = phone;
     this.isActive = isActive != null ? isActive : true;
     this.isFeatured = isFeatured != null && isFeatured;
+    this.latitude = latitude;
+    this.longitude = longitude;
   }
 
   public void markFeatured() {
@@ -71,11 +84,20 @@ public class Center extends BaseTimeEntity {
     this.phone = phone;
   }
 
+  public void updateCoordinates(BigDecimal latitude, BigDecimal longitude) {
+    this.latitude = latitude;
+    this.longitude = longitude;
+  }
+
   public void activate() {
     this.isActive = true;
   }
 
   public void deactivate() {
     this.isActive = false;
+  }
+
+  public boolean hasCoordinates() {
+    return latitude != null && longitude != null;
   }
 }

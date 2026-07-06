@@ -3566,3 +3566,254 @@ code {
   font-size: 12px;
   color: var(--color-text-tri);
 }
+
+/* ============================================================
+   F0h — 청년센터 목록 / 상세 + 카카오맵
+   ============================================================ */
+.centers-container {
+  padding-top: 20px;
+  padding-bottom: 60px;
+}
+
+/* 필터 바 */
+.centers-filter {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding: 12px 16px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-md);
+}
+.centers-filter-search {
+  flex: 1;
+  min-width: 240px;
+  height: 38px;
+  padding: 0 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--color-text);
+  background: #fff;
+  outline: none;
+}
+.centers-filter-search:focus {
+  border-color: var(--color-primary);
+}
+.centers-filter-region {
+  height: 38px;
+  padding: 0 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--color-text);
+  background: #fff;
+  min-width: 140px;
+  cursor: pointer;
+}
+.centers-filter-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--color-text);
+  cursor: pointer;
+  user-select: none;
+}
+.centers-filter-submit {
+  height: 38px;
+  padding: 0 18px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--color-primary);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.centers-filter-submit:hover {
+  background: var(--color-primary-dark);
+}
+
+/* 좌 리스트 / 우 지도 */
+.centers-layout {
+  display: flex;
+  gap: 16px;
+  align-items: stretch;
+  min-height: 640px;
+}
+.centers-list-panel {
+  width: 400px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+}
+.centers-list-count {
+  font-size: 13px;
+  color: var(--color-text-sec);
+  margin-bottom: 10px;
+}
+.centers-list-count strong {
+  color: var(--color-text);
+  font-weight: 700;
+}
+.centers-list-scroll {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 640px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+.centers-list-empty {
+  text-align: center;
+  padding: 40px 0;
+  color: var(--color-text-tri);
+  font-size: 14px;
+}
+.center-card {
+  display: block;
+  padding: 14px;
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-border-light);
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  color: inherit;
+  transition: background 200ms, border-color 200ms, transform 150ms;
+  cursor: pointer;
+}
+.center-card:hover,
+.center-card.is-hover {
+  border-color: var(--color-primary);
+  background: var(--color-primary-bg);
+}
+.center-card.is-highlighted {
+  border-color: var(--color-primary);
+  background: var(--color-primary-bg);
+  box-shadow: var(--shadow-md);
+}
+.center-card-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.center-card-name {
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--color-text);
+}
+.center-card-badge {
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  font-size: 11px;
+  font-weight: 600;
+}
+.center-card-badge.active {
+  background: var(--color-success-light);
+  color: var(--color-success);
+}
+.center-card-badge.inactive {
+  background: var(--color-border-light);
+  color: var(--color-text-tri);
+}
+.center-card-region {
+  font-size: 12px;
+  color: var(--color-text-tri);
+  margin-bottom: 4px;
+}
+.center-card-address {
+  font-size: 13px;
+  color: var(--color-text-sec);
+  margin-bottom: 4px;
+}
+.center-card-phone {
+  font-size: 12px;
+  color: var(--color-text-tri);
+}
+
+/* 지도 패널 */
+.centers-map-panel {
+  flex: 1;
+  position: relative;
+  min-height: 640px;
+  background: var(--color-border-light);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border: 1px solid var(--color-border-light);
+}
+.center-map-container {
+  width: 100%;
+  height: 100%;
+  min-height: 640px;
+}
+.map-fallback {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: var(--color-text-sec);
+  font-size: 14px;
+  line-height: 1.6;
+  padding: 20px;
+  background: var(--color-border-light);
+  pointer-events: none;
+}
+.map-fallback small {
+  display: block;
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--color-text-tri);
+}
+
+/* 상세 페이지 */
+.center-detail-container {
+  padding-top: 30px;
+  padding-bottom: 60px;
+  position: relative;
+}
+.center-detail-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 12px 0 8px;
+}
+.center-detail-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+  font-size: 14px;
+  color: var(--color-text-sec);
+}
+.center-detail-info {
+  padding: 16px 20px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-md);
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--color-text);
+}
+.center-detail-info strong {
+  display: inline-block;
+  width: 60px;
+  color: var(--color-text-sec);
+  font-weight: 600;
+}
+.center-detail-map-wrap {
+  min-height: 400px;
+}
+.center-detail-map-wrap .center-map-container {
+  min-height: 400px;
+}
