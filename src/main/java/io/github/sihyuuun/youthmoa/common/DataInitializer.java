@@ -458,12 +458,15 @@ public class DataInitializer implements ApplicationRunner {
     for (int i = 1; i <= 30; i++) {
       String email = "seed" + i + "@youth-moa.test";
       if (!userRepository.existsByEmail(email)) {
+        // F0i: 아이디/비밀번호 찾기 매칭용 phone 시드 (하이픈 없이 저장 — signup 정책과 동일)
+        String phone = String.format("0100000%04d", i);
         seedUsers.add(
             userRepository.save(
                 User.builder()
                     .email(email)
                     .password(passwordEncoder.encode("Test1234!"))
                     .name("시드유저" + i)
+                    .phone(phone)
                     .role(UserRole.USER)
                     .build()));
       } else {

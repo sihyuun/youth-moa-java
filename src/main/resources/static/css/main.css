@@ -2188,6 +2188,83 @@ code {
   color: var(--color-primary);
 }
 
+/* ── F0i: 아이디/비밀번호 찾기 ─────────────────────────────
+   auth-screen-inner 폭 확장 (login 400px → 480px),
+   Stepper, 결과 박스, 필드 에러 텍스트. */
+.auth-screen-inner--wide { width: 480px; }
+
+.auth-stepper {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 24px;
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  font-size: 13px;
+}
+.auth-step {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--color-text-tri);
+  font-weight: 500;
+}
+.auth-step-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--color-border-light);
+  color: var(--color-text-tri);
+  font-size: 12px;
+  font-weight: 600;
+}
+.auth-step--active {
+  color: var(--color-primary);
+  font-weight: 600;
+}
+.auth-step--active .auth-step-num {
+  background: var(--color-primary);
+  color: #fff;
+}
+.auth-step + .auth-step::before {
+  content: "";
+  display: inline-block;
+  width: 16px;
+  height: 1px;
+  background: var(--color-border);
+  margin-right: 6px;
+}
+
+.auth-field-error {
+  color: var(--color-error);
+  font-size: 12px;
+  text-align: left;
+  margin: -4px 4px 4px;
+}
+
+.auth-result-box {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 28px 20px;
+  background: var(--color-primary-bg);
+  text-align: center;
+}
+.auth-result-label {
+  margin: 0 0 8px;
+  font-size: 14px;
+  color: var(--color-text-sec);
+}
+.auth-result-email {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--color-primary);
+  letter-spacing: 0.2px;
+}
+
 /* ── Legacy auth-wrapper (login 외 잔여 — 추후 정리) ─ */
 .auth-wrapper {
   min-height: 100vh;
@@ -3271,3 +3348,221 @@ code {
   margin-top: 28px;
 }
 
+
+/* ── F2 헤더 알림 종 + 드롭다운 (prototype.tsx NotifPanel line 289~337) ── */
+.header-bell-menu {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.header-bell-trigger {
+  position: relative;
+  background: none;
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+  color: var(--color-text-sec);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.header-bell-trigger:hover { color: var(--color-primary); }
+
+.header-bell-dot {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--color-error);
+  border: 1.5px solid var(--color-surface);
+}
+.header-bell-dot--hidden { display: none; }
+
+.header-bell-dropdown-wrap {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: -10px;
+  z-index: 200;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-4px);
+  transition: opacity 0.15s, transform 0.15s, visibility 0.15s;
+}
+.header-bell-menu:hover .header-bell-dropdown-wrap,
+.header-bell-menu:focus-within .header-bell-dropdown-wrap {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+/* ── 알림 드롭다운 패널 본체 ── */
+.notif-panel {
+  width: 380px;
+  background: var(--color-surface);
+  border-radius: 14px;
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--color-border-light);
+  overflow: hidden;
+}
+.notif-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--color-border-light);
+}
+.notif-panel-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+.notif-panel-badge {
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background: var(--color-error);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.notif-panel-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.notif-inline-form { margin: 0; }
+.notif-linklike {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 12px;
+  color: var(--color-text-sec);
+  cursor: pointer;
+  font-family: inherit;
+}
+.notif-linklike:hover { color: var(--color-primary); }
+
+.notif-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 0;
+}
+.notif-empty-text { font-size: 14px; color: var(--color-text-sec); }
+
+.notif-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--color-border-light);
+  background: var(--color-surface);
+  text-decoration: none;
+}
+.notif-item.is-unread { background: var(--color-primary-bg); }
+
+.notif-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #E5E7EB;
+  flex-shrink: 0;
+}
+.notif-icon.is-unread.notif-icon--success { background: var(--color-success); }
+.notif-icon.is-unread.notif-icon--warning { background: var(--color-warning); }
+.notif-icon.is-unread.notif-icon--error   { background: var(--color-error); }
+.notif-icon.is-unread.notif-icon--primary { background: var(--color-primary); }
+
+.notif-item-body {
+  flex: 1;
+  min-width: 0;
+  text-decoration: none;
+  color: inherit;
+}
+.notif-item-title {
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--color-text-sec);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.notif-item.is-unread .notif-item-title {
+  font-weight: 600;
+  color: var(--color-text);
+}
+.notif-item-message {
+  font-size: 13px;
+  color: var(--color-text-sec);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.notif-item-time {
+  font-size: 12px;
+  color: var(--color-text-tri);
+  margin-top: 4px;
+}
+
+.notif-panel-footer {
+  display: block;
+  padding: 12px 18px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-primary);
+  text-decoration: none;
+}
+.notif-panel-footer:hover { background: var(--color-primary-bg); }
+
+/* ── 전체보기 페이지 (stub) ── */
+.notif-page {
+  max-width: 720px;
+  margin: 40px auto;
+  padding: 0 var(--content-px);
+}
+.notif-page-title {
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0 0 20px;
+}
+.notif-page-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--color-border-light);
+}
+.notif-page-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px 4px;
+  border-bottom: 1px solid var(--color-border-light);
+}
+.notif-page-item.is-unread { background: var(--color-primary-bg); }
+.notif-page-item-body {
+  flex: 1;
+  text-decoration: none;
+  color: inherit;
+}
+.notif-page-empty {
+  padding: 60px 0;
+  text-align: center;
+  color: var(--color-text-sec);
+}
+.notif-page-note {
+  margin-top: 24px;
+  font-size: 12px;
+  color: var(--color-text-tri);
+}
