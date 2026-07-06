@@ -52,7 +52,8 @@ public class NoticeController {
     model.addAttribute("hasNextGroup", groupEnd < totalPages - 1);
 
     if (hxRequest != null && !hxRequest.isBlank()) {
-      return "notice/_list-fragment :: list-region";
+      // 탭 + 목록 wrapper 를 함께 재렌더 (탭 active 클래스도 갱신) — 2026-07-06 UX fix
+      return "notice/_list-fragment :: content-region";
     }
     return "notice/list";
   }
