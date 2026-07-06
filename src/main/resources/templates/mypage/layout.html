@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!--
+  D5 마이페이지 공통 상단 (프로필 카드 + 세그먼트 탭).
+  각 탭 페이지가 이 fragment 를 상단에 삽입.
+-->
+
+<div th:fragment="head">
+    <section class="mypage-summary">
+        <div class="mypage-summary-inner">
+            <div class="mypage-summary-avatar" aria-hidden="true">
+                <span th:text="${#strings.substring(myUser.name, 0, 1)}">시</span>
+            </div>
+            <div class="mypage-summary-info">
+                <h2 class="mypage-summary-hello">반가워요, <span th:text="${myUser.name}">사용자</span>님!</h2>
+                <p class="mypage-summary-email" th:text="${myUser.email}">email@example.com</p>
+                <div class="mypage-summary-interests" th:if="${!#sets.isEmpty(myUser.interests)}">
+                    <span th:each="tag, iter : ${myUser.interests}"
+                          th:if="${iter.index < 2}"
+                          class="mypage-summary-tag"
+                          th:text="'#' + ${tag}">태그</span>
+                </div>
+            </div>
+            <div class="mypage-summary-kpis">
+                <div class="mypage-kpi">
+                    <div class="mypage-kpi-value" th:text="${kpiOngoing}">0</div>
+                    <div class="mypage-kpi-label">진행중</div>
+                </div>
+                <div class="mypage-kpi">
+                    <div class="mypage-kpi-value" th:text="${kpiFinished}">0</div>
+                    <div class="mypage-kpi-label">종료</div>
+                </div>
+                <div class="mypage-kpi">
+                    <div class="mypage-kpi-value" th:text="${kpiFavorites}">0</div>
+                    <div class="mypage-kpi-label">즐겨찾기</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <nav class="mypage-tabs" aria-label="마이페이지 탭">
+        <a th:href="@{/mypage(tab='history')}"
+           th:class="${currentTab == 'history'} ? 'mypage-tab active' : 'mypage-tab'">신청내역</a>
+        <a th:href="@{/mypage(tab='favorites')}"
+           th:class="${currentTab == 'favorites'} ? 'mypage-tab active' : 'mypage-tab'">즐겨찾기</a>
+        <a th:href="@{/mypage(tab='noti')}"
+           th:class="${currentTab == 'noti'} ? 'mypage-tab active' : 'mypage-tab'">알림설정</a>
+        <a th:href="@{/mypage(tab='profile')}"
+           th:class="${currentTab == 'profile'} ? 'mypage-tab active' : 'mypage-tab'">개인정보</a>
+    </nav>
+
+    <div th:if="${mypageToast}" class="mypage-toast" th:text="${mypageToast}"></div>
+</div>
+
+</body>
+</html>

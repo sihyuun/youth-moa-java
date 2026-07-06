@@ -26,6 +26,41 @@ public class UserService implements UserDetailsService {
     return new UserPrincipal(user);
   }
 
+  /** D5: 마이페이지 프로필 수정. 세션 재확인 통과 후 호출. */
+  @Transactional
+  public void updateProfile(String email, ProfileUpdateRequest request) {
+    User user =
+        userRepository
+            .findByEmail(email)
+            .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다: " + email));
+    user.updateProfile(
+        request.getName(),
+        request.getPhone(),
+        request.getZipcode(),
+        request.getAddress(),
+        request.getAddressDetail(),
+        request.getBirthDate(),
+        request.getInterests());
+  }
+
+  /** D5: 알림 수신 채널(카카오/SMS/이메일) 갱신. */
+  @Transactional
+  public void updateNotificationChannels(String email, NotificationChannelRequest request) {
+    User user =
+        userRepository
+            .findByEmail(email)
+            .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다: " + email));
+    user.updateNotificationChannels(request.isKakao(), request.isSms(), request.isEmail());
+  }
+
+  /** D5: Step1 비밀번호 재확인. 일치하면 true. */
+  public boolean verifyPassword(String email, String rawPassword) {
+    return userRepository
+        .findByEmail(email)
+        .map(u -> passwordEncoder.matches(rawPassword, u.getPassword()))
+        .orElse(false);
+  }
+
   @Transactional
   public void signUp(SignUpRequest request) {
     if (userRepository.existsByEmail(request.getEmail())) {

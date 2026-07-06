@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>마이페이지 — 신청내역 · 청년모아</title>
+    <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" rel="stylesheet">
+    <link rel="icon" type="image/png" th:href="@{/images/logo_symbol.png}">
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+</head>
+<body>
+
+<div th:replace="~{fragments/header :: header('mypage')}"></div>
+
+<main class="mypage-page">
+    <div class="container">
+        <div th:replace="~{mypage/layout :: head}"></div>
+
+        <section class="mypage-history">
+            <h3 class="mypage-section-title">신청 내역</h3>
+
+            <div th:if="${#lists.isEmpty(applications)}" class="mypage-empty">
+                <p>아직 신청한 프로그램이 없어요.</p>
+                <a th:href="@{/programs}" class="btn-auth btn-auth--primary">프로그램 둘러보기</a>
+            </div>
+
+            <ul class="mypage-history-list" th:unless="${#lists.isEmpty(applications)}">
+                <li th:each="app : ${applications}" class="mypage-history-card">
+                    <div class="mypage-history-meta">
+                        <span class="mypage-history-date"
+                              th:text="${#temporals.format(app.appliedAt, 'yyyy.MM.dd')}">2024.01.01</span>
+                        <span th:class="'category-badge status-' + ${app.status.name().toLowerCase()}"
+                              th:text="${app.status.name()}">PENDING</span>
+                    </div>
+                    <a th:href="@{/programs/{id}(id=${app.program.id})}" class="mypage-history-title"
+                       th:text="${app.program.title}">프로그램 제목</a>
+                    <div class="mypage-history-actions">
+                        <button th:if="${app.status.name() == 'PENDING' or app.status.name() == 'APPROVED'}"
+                                type="button"
+                                class="mypage-cancel-btn"
+                                th:attr="data-app-id=${app.id},data-app-title=${app.program.title}"
+                                onclick="openCancelModal(this)">취소</button>
+                        <a th:if="${app.status.name() == 'REJECTED' or app.status.name() == 'CANCELLED'}"
+                           th:href="@{/programs/{id}/apply(id=${app.program.id})}"
+                           class="mypage-reapply-link">재신청</a>
+                    </div>
+                </li>
+            </ul>
+        </section>
+    </div>
+</main>
+
+<!-- 취소 모달 -->
+<div id="cancelModal" class="mypage-modal" hidden>
+    <div class="mypage-modal-inner">
+        <h3>신청을 취소하시겠어요?</h3>
+        <p class="mypage-modal-subtitle" id="cancelModalTitle"></p>
+        <form th:action="@{/mypage/applications/__/cancel}" method="post" id="cancelForm">
+            <fieldset class="mypage-reason-list">
+                <legend class="visually-hidden">취소 사유</legend>
+                <label><input type="radio" name="reasonCode" value="CHANGE_MIND" required> 단순 변심</label>
+                <label><input type="radio" name="reasonCode" value="SCHEDULE_CONFLICT"> 일정이 맞지 않음</label>
+                <label><input type="radio" name="reasonCode" value="DUPLICATE_APPLY"> 중복 신청</label>
+                <label><input type="radio" name="reasonCode" value="PERSONAL"> 개인 사유</label>
+                <label><input type="radio" name="reasonCode" value="OTHER" id="reasonOther"> 기타</label>
+            </fieldset>
+            <textarea name="reasonText" id="reasonText" maxlength="100"
+                      placeholder="기타 사유 (최대 100자)" hidden></textarea>
+            <div class="mypage-modal-actions">
+                <button type="button" onclick="closeCancelModal()" class="btn-auth btn-auth--secondary">닫기</button>
+                <button type="submit" class="btn-auth btn-auth--primary">확인</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+<script>
+    let currentAppId = null;
+    function openCancelModal(btn) {
+        currentAppId = btn.dataset.appId;
+        document.getElementById('cancelModalTitle').textContent = btn.dataset.appTitle;
+        const form = document.getElementById('cancelForm');
+        form.action = '/mypage/applications/' + currentAppId + '/cancel';
+        document.getElementById('cancelModal').hidden = false;
+    }
+    function closeCancelModal() {
+        document.getElementById('cancelModal').hidden = true;
+    }
+    document.querySelectorAll('input[name="reasonCode"]').forEach(radio => {
+        radio.addEventListener('change', e => {
+            const ta = document.getElementById('reasonText');
+            const isOther = e.target.value === 'OTHER';
+            ta.hidden = !isOther;
+            ta.required = isOther;
+        });
+    });
+</script>
+
+</body>
+</html>

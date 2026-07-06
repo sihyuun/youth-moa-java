@@ -132,6 +132,12 @@ public class ApplicationService {
    */
   @Transactional
   public void cancel(Long applicationId, String userEmail) {
+    cancel(applicationId, userEmail, null);
+  }
+
+  /** D5: 취소 사유와 함께 신청 취소. reason 은 label + optional 텍스트 조합 문자열. */
+  @Transactional
+  public void cancel(Long applicationId, String userEmail, String reason) {
     Application application = loadWithProgramAndUser(applicationId);
     User user = loadUser(userEmail);
 
@@ -141,14 +147,15 @@ public class ApplicationService {
     if (application.getStatus() == ApplicationStatus.CANCELLED) {
       return; // idempotent
     }
-    application.cancel();
+    application.cancel(reason);
 
     eventPublisher.publishEvent(
         new ApplicationCancelledEvent(
             application.getId(),
             application.getUser().getId(),
             application.getProgram().getId(),
-            application.getProgram().getTitle()));
+            application.getProgram().getTitle(),
+            reason));
   }
 
   private Application loadWithProgramAndUser(Long applicationId) {

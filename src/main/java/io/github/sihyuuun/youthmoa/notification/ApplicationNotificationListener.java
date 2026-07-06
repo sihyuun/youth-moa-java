@@ -67,7 +67,11 @@ public class ApplicationNotificationListener {
   @Transactional(propagation = Propagation.REQUIRES_NEW)
   public void onCancelled(ApplicationCancelledEvent event) {
     try {
-      String message = String.format("'%s' 신청을 취소했습니다.", event.programTitle());
+      String message =
+          event.cancelReason() == null || event.cancelReason().isBlank()
+              ? String.format("'%s' 신청을 취소했습니다.", event.programTitle())
+              : String.format(
+                  "'%s' 신청을 취소했습니다. 사유: %s", event.programTitle(), event.cancelReason());
       notificationService.create(
           event.userId(),
           NotificationType.APPLICATION_CANCELLED,

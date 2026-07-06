@@ -3817,3 +3817,169 @@ code {
 .center-detail-map-wrap .center-map-container {
   min-height: 400px;
 }
+/* ═══════════════════════════════════════════════
+ * D5 마이페이지 (My Page)
+ * ═══════════════════════════════════════════════ */
+
+.mypage-page { max-width: var(--content-max); margin: 40px auto; padding: 0 var(--content-px); }
+
+/* 프로필 요약 카드 */
+.mypage-summary {
+    background: var(--color-surface);
+    border-radius: var(--radius-lg);
+    padding: 24px 28px;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--color-border-light);
+    margin-bottom: 24px;
+}
+.mypage-summary-inner { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+.mypage-summary-avatar {
+    width: 56px; height: 56px;
+    border-radius: 50%;
+    background: var(--color-primary-bg);
+    color: var(--color-primary);
+    font-size: 22px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+}
+.mypage-summary-info { flex: 1; min-width: 200px; }
+.mypage-summary-hello { font-size: 18px; font-weight: 700; margin: 0 0 4px; }
+.mypage-summary-email { font-size: 13px; color: var(--color-text-sec); margin: 0 0 8px; }
+.mypage-summary-interests { display: flex; gap: 6px; flex-wrap: wrap; }
+.mypage-summary-tag {
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: var(--radius-pill);
+    background: var(--color-bg);
+    color: var(--color-text-sec);
+}
+
+.mypage-summary-kpis { display: flex; gap: 24px; }
+.mypage-kpi { text-align: center; }
+.mypage-kpi-value { font-size: 22px; font-weight: 700; color: var(--color-primary); }
+.mypage-kpi-label { font-size: 12px; color: var(--color-text-sec); margin-top: 2px; }
+
+/* 상단 탭 세그먼트 */
+.mypage-tabs {
+    display: flex;
+    gap: 4px;
+    background: var(--color-bg);
+    padding: 4px;
+    border-radius: var(--radius-lg);
+    margin-bottom: 28px;
+    max-width: fit-content;
+}
+.mypage-tab {
+    padding: 8px 20px;
+    border-radius: var(--radius-md);
+    font-size: 14px;
+    color: var(--color-text-sec);
+    text-decoration: none;
+    transition: background .15s, color .15s;
+}
+.mypage-tab:hover { color: var(--color-primary); }
+.mypage-tab.active { background: var(--color-surface); color: var(--color-primary); font-weight: 600; box-shadow: var(--shadow-sm); }
+
+.mypage-section-title { font-size: 18px; font-weight: 700; margin: 0 0 16px; }
+.mypage-section-hint { font-size: 13px; color: var(--color-text-sec); margin-bottom: 16px; }
+
+/* Toast (플래시 메시지) */
+.mypage-toast {
+    background: var(--color-success-light);
+    color: var(--color-success);
+    padding: 12px 16px;
+    border-radius: var(--radius-md);
+    margin-bottom: 16px;
+    font-size: 14px;
+}
+
+/* 빈 상태 */
+.mypage-empty { text-align: center; padding: 48px 20px; color: var(--color-text-tri); }
+.mypage-empty p { margin-bottom: 16px; }
+
+/* 신청 내역 */
+.mypage-history-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.mypage-history-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-md);
+    padding: 16px 20px;
+    display: flex; flex-direction: column; gap: 8px;
+}
+.mypage-history-meta { display: flex; align-items: center; gap: 10px; }
+.mypage-history-date { font-size: 12px; color: var(--color-text-tri); }
+.mypage-history-title { font-size: 15px; font-weight: 600; color: var(--color-text); text-decoration: none; }
+.mypage-history-actions { display: flex; gap: 8px; }
+.mypage-cancel-btn, .mypage-reapply-link {
+    font-size: 13px; padding: 6px 14px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+    color: var(--color-text-sec);
+    cursor: pointer;
+    text-decoration: none;
+}
+.mypage-cancel-btn:hover { border-color: var(--color-error); color: var(--color-error); }
+
+/* Application 상태 뱃지 (D5 신규) */
+.status-pending { background: var(--color-warning-light); color: var(--color-warning); }
+.status-approved { background: var(--color-success-light); color: var(--color-success); }
+.status-rejected { background: #FEE2E2; color: var(--color-error); }
+.status-cancelled { background: var(--color-bg); color: var(--color-text-tri); }
+
+/* 즐겨찾기 */
+.mypage-favorites-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.mypage-favorites-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-md);
+    padding: 14px 18px;
+}
+.mypage-favorites-title { font-size: 15px; font-weight: 600; color: var(--color-text); text-decoration: none; display: block; margin-bottom: 4px; }
+.mypage-favorites-sub { font-size: 13px; color: var(--color-text-sec); }
+
+/* 알림 설정 */
+.mypage-noti-form { display: grid; gap: 12px; max-width: 480px; }
+.mypage-noti-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 16px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+}
+.mypage-noti-row.is-locked { opacity: .6; cursor: not-allowed; }
+.mypage-noti-label { font-size: 14px; }
+.mypage-noti-actions { margin-top: 12px; display: flex; justify-content: flex-end; }
+
+/* 프로필 편집 */
+.mypage-verify-form { display: grid; gap: 12px; max-width: 400px; }
+.mypage-verify-field {}
+.mypage-edit-form { display: grid; gap: 16px; max-width: 480px; }
+.mypage-edit-field { display: grid; gap: 6px; }
+.mypage-edit-field label { font-size: 13px; font-weight: 600; color: var(--color-text-sec); }
+.mypage-edit-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 8px; }
+.mypage-edit-note { margin-top: 24px; font-size: 13px; color: var(--color-text-sec); }
+.mypage-edit-note a { color: var(--color-primary); }
+
+/* 취소 모달 */
+.mypage-modal {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,.4);
+    z-index: 200;
+    display: flex; align-items: center; justify-content: center;
+}
+.mypage-modal-inner {
+    background: var(--color-surface);
+    border-radius: var(--radius-lg);
+    padding: 28px 32px;
+    width: 400px; max-width: calc(100% - 32px);
+    box-shadow: var(--shadow-lg);
+}
+.mypage-modal-inner h3 { font-size: 16px; margin: 0 0 4px; }
+.mypage-modal-subtitle { font-size: 13px; color: var(--color-text-sec); margin: 0 0 20px; }
+.mypage-reason-list { border: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.mypage-reason-list label { display: flex; align-items: center; gap: 10px; font-size: 14px; cursor: pointer; }
+#reasonText { width: 100%; margin-top: 12px; padding: 10px; border: 1px solid var(--color-border); border-radius: var(--radius-md); font-family: inherit; resize: vertical; min-height: 60px; }
+.mypage-modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
+
+.visually-hidden { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
