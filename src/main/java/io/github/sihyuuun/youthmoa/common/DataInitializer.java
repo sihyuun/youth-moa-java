@@ -63,15 +63,28 @@ public class DataInitializer implements ApplicationRunner {
       log.info("SiteImages already seeded (count={}), skip", siteImageRepository.count());
       return;
     }
-    List<SiteImage> images =
+    // F0e-2: HERO_BANNER 6건 (A/C/E/F/G/H) — 8초 크로스페이드 로테이션 대상
+    List<String> heroIds =
         List.of(
-            SiteImage.builder()
-                .slot("HERO_BANNER")
-                .imageUrl(
-                    "https://images.unsplash.com/photo-1531482615713-2afd69097998?w=1440&h=560&fit=crop")
-                .sortOrder(0)
-                .isActive(true)
-                .build(),
+            "1531482615713-2afd69097998", // A
+            "1543269865-cbf427effbad", // C
+            "1523580494863-6f3031224c94", // E
+            "1511632765486-a01980e01a18", // F
+            "1528605248644-14dd04022da1", // G
+            "1540575467063-178a50c2df87"); // H
+    List<SiteImage> images = new ArrayList<>();
+    for (int i = 0; i < heroIds.size(); i++) {
+      images.add(
+          SiteImage.builder()
+              .slot("HERO_BANNER")
+              .imageUrl(
+                  "https://images.unsplash.com/photo-" + heroIds.get(i) + "?w=1440&h=560&fit=crop")
+              .sortOrder(i)
+              .isActive(true)
+              .build());
+    }
+    images.addAll(
+        List.of(
             SiteImage.builder()
                 .slot("HOME_SPACE_1")
                 .imageUrl(
@@ -95,7 +108,7 @@ public class DataInitializer implements ApplicationRunner {
                 .sortOrder(3)
                 .isActive(true)
                 .caption("비행지구")
-                .build());
+                .build()));
     siteImageRepository.saveAll(images);
     log.info("Seeded {} site images", images.size());
   }

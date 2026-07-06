@@ -141,4 +141,27 @@ class JpaMappingTest {
     long unread = notificationRepository.countByUserAndIsReadFalse(user);
     assertThat(unread).isEqualTo(1);
   }
+
+  @Autowired io.github.sihyuuun.youthmoa.common.SiteImageRepository siteImageRepository;
+
+  /** F0e-2: SiteImage slot 은 unique 아니어야 함 (HERO_BANNER 다건 시드). */
+  @Test
+  void siteImage_allowsMultiplePerSlot() {
+    siteImageRepository.saveAll(
+        java.util.List.of(
+            io.github.sihyuuun.youthmoa.common.SiteImage.builder()
+                .slot("HERO_BANNER")
+                .imageUrl("a.jpg")
+                .sortOrder(0)
+                .isActive(true)
+                .build(),
+            io.github.sihyuuun.youthmoa.common.SiteImage.builder()
+                .slot("HERO_BANNER")
+                .imageUrl("b.jpg")
+                .sortOrder(1)
+                .isActive(true)
+                .build()));
+    assertThat(siteImageRepository.findAllBySlotAndIsActiveTrueOrderBySortOrderAsc("HERO_BANNER"))
+        .hasSize(2);
+  }
 }

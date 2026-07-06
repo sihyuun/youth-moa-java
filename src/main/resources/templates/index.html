@@ -17,9 +17,13 @@
 <div th:replace="~{fragments/header :: header('home')}"></div>
 
 <main class="main-content">
-    <!-- Hero: 배경 이미지는 site_image 슬롯 HERO_BANNER, 검색바 = UI-only -->
-    <section class="hero"
-             th:style="'background-image: url(' + ${heroImageUrl} + ');'">
+    <!-- Hero: 배경 이미지 6장 크로스페이드 (F0e-2). 검색바 = UI-only -->
+    <section class="hero">
+        <div class="hero-bg"
+             th:each="url, iter : ${heroImageUrls}"
+             th:classappend="${iter.first} ? ' is-active'"
+             th:attr="data-src=${url}"
+             th:style="'background-image: url(' + ${url} + ');'"></div>
         <div class="hero-inner">
             <div class="hero-eyebrow">경기도 청년 통합 플랫폼</div>
             <h1 class="hero-title">청년의 모든 기회를<br>한곳에서</h1>
@@ -198,5 +202,6 @@
 
 <div th:replace="~{fragments/footer :: footer}"></div>
 
+<script th:src="@{/js/hero-rotator.js}" defer></script>
 </body>
 </html>

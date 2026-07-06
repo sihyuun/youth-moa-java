@@ -149,14 +149,32 @@ class HomeServiceTest {
   }
 
   @Test
-  void heroImageUrl_fetchesFromSiteImage() {
-    assertThat(homeService.getHeroImageUrl()).isEqualTo("hero.jpg");
+  void heroImageUrls_returnsListFromSiteImage() {
+    // 추가 HERO_BANNER 2건 (sortOrder 3, 5) 저장 — setUp 의 sortOrder=0 과 합쳐 총 3건
+    siteImageRepository.saveAll(
+        List.of(
+            SiteImage.builder()
+                .slot("HERO_BANNER")
+                .imageUrl("hero2.jpg")
+                .sortOrder(3)
+                .isActive(true)
+                .build(),
+            SiteImage.builder()
+                .slot("HERO_BANNER")
+                .imageUrl("hero3.jpg")
+                .sortOrder(5)
+                .isActive(true)
+                .build()));
+    List<String> urls = homeService.getHeroImageUrls();
+    assertThat(urls).containsExactly("hero.jpg", "hero2.jpg", "hero3.jpg");
   }
 
   @Test
-  void heroImageUrl_fallbackWhenSlotMissing() {
+  void heroImageUrls_fallbackWhenEmpty() {
     siteImageRepository.deleteAll();
-    assertThat(homeService.getHeroImageUrl()).isEqualTo("/images/banner_01.png");
+    List<String> urls = homeService.getHeroImageUrls();
+    assertThat(urls).hasSize(1);
+    assertThat(urls.get(0)).contains("images.unsplash.com/photo-1531482615713-2afd69097998");
   }
 
   @Test

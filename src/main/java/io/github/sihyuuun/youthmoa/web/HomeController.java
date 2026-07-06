@@ -24,8 +24,8 @@ public class HomeController {
   public String index(@AuthenticationPrincipal UserPrincipal principal, Model model) {
     model.addAttribute("currentPage", "home");
 
-    // Hero
-    model.addAttribute("heroImageUrl", homeService.getHeroImageUrl());
+    // Hero (F0e-2: 6장 로테이션. 1장이어도 리스트로 렌더)
+    model.addAttribute("heroImageUrls", homeService.getHeroImageUrls());
 
     // Quick Stats — 향후 List<QuickStatDef> 리팩터 여지 (admin 관리)
     model.addAttribute("activeProgramCount", homeService.countActivePrograms());
