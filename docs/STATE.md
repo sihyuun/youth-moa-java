@@ -5,7 +5,7 @@ type: project
 originSessionId: 51da8e75-f7a2-4b05-b2b6-963ce41efb6a
 ---
 
-> **마지막 갱신**: 2026-07-03.
+> **마지막 갱신**: 2026-07-06.
 > 프로젝트 루트의 `CLAUDE.md` 가 디자인 시스템·작업 규칙·검증 규칙·환경 분리·패키지 구조·엔티티 규칙·Git 컨벤션 등 코드 작업 컨텍스트의 최우선 가이드라인. 본 메모리는 **시점적 진행 상태·DB·열린 PR·다음 액션** 중심으로 유지.
 
 ---
@@ -44,6 +44,42 @@ export DATABASE_PASSWORD="<NEW_PASSWORD — Supabase 콘솔에서 재설정 후 
 ```bash
 gh auth setup-git
 ```
+
+---
+
+## 🟢 2026-07-06 세션 진행 완료 (7 PR 머지 예정 — F0g E2E · 통합 렌더 테스트 · F0e-2 · F0i · F2)
+
+### 머지된/진행 PR
+
+| # | PR | 성격 | 핵심 |
+|---|---|---|---|
+| #54 | 공지사항 E2E spec (7 TC) | test | HTMX 탭 UX 이슈 발견 → 별도 fix |
+| #56 | 실 렌더 통합 테스트 도입 | chore | `PageRenderIntegrationTest` 6 TC (WebMvcTest 사각지대 커버) |
+| #57 | HTMX 공지 탭 active state fix | fix | wrapper 확장 (`#notice-content`) |
+| #58 | F0e-2 Hero 배경 6종 크로스페이드 | 기능 | 8초 로테이션, `prefers-reduced-motion` 대응 |
+| #59 | F0i 아이디/비번 찾기 | 기능 | Stepper·본인 확인 후 즉시 재설정 (SMTP 무의존) |
+| #60 | F2 헤더 알림 종 + 드롭다운 | 기능 | `@ControllerAdvice` 자동 주입 (CI 재실행 중) |
+| — | Dependabot htmx 2.0.10 재제안 | — | close (memory 규칙) |
+
+### 확립된 추가 규칙 (CLAUDE.md 및 memory 반영)
+- HTMX `outerHTML` swap wrapper 는 트리거의 시각 상태 변경 요소 모두 포함해야 (탭 active 등)
+- Thymeleaf HTML 주석 `<!-- ... -->` 은 응답에 유지됨 → 회귀 시그니처 문자열 담지 말 것. 개발 메모용은 파서 전용 `<!--/* ... */-->`
+- `@ControllerAdvice` 도입 시 기존 WebMvcTest 슬라이스 모두 의존성 `@MockitoBean` 필요
+
+### 확정 결정 반영
+- **F0e-2**: SiteImage `slot` unique 제거 (동일 slot 다건), 초기 로드 시 6장 preload, 정적 이미지 (로테이션 후속 없음), Unsplash A fallback
+- **F0i**: 이름+휴대폰 매칭, 본인 확인 후 즉시 재설정 (SMTP 무의존), email 앞 3자 마스킹, "계정 없음" 명시 + 200ms 지연
+- **F2**: 종 위 dot only + 패널 헤더 숫자 뱃지, `/notifications` stub, 자동 발행 별도 F2b 티켓, HTMX post 로 자동 read
+
+### 후속 백로그 (2026-07-06 세션 종료 시점 확정)
+- **F2b**: Application 승인/반려 시 알림 자동 발행 (domain event)
+- **F2c**: HTMX 30s 폴링 unread 갱신
+- **F2d**: `/notifications` 전체보기 완전 구현 (페이지네이션·필터)
+- **F2 tests**: `HeaderNotificationAdviceTest` / `NotificationControllerTest` / `NotificationRepositoryTest`
+- **F0h**: HANDOFF §14 정식 이행 — 임시 비밀번호 SMTP 이메일 발송
+- **E2E specs**: `find-account.spec.ts` (8 TC), `notification-bell.spec.ts`
+- **F0h 청년센터 + 카카오맵** (unchanged)
+- **`hard-reset` 사고 재발 방지 규칙 강화**: 체인 명령에서 `checkout` fail 시 이후 명령이 원래 브랜치에서 실행되는 위험 (오늘 F0i 로컬 커밋 소실 → 원격 복구)
 
 ---
 
