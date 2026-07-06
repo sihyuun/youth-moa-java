@@ -12,4 +12,8 @@ public interface CenterRepository extends JpaRepository<Center, Long> {
   List<Center> findAllByIsFeaturedTrueOrderByNameAsc();
 
   List<Center> findAllByOrderByNameAsc();
+
+  List<Center> findAllByIsActiveTrueOrderByRegionAscNameAsc();
+
+  List<Center> findByRegionAndIsActiveTrue(String region);
 }

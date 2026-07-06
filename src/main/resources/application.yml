@@ -44,6 +44,15 @@ security:
   remember-me:
     key: ${REMEMBER_ME_KEY:dev-only-remember-me-key-change-in-prod}
 
+# 앱 커스텀 설정
+# youthmoa.kakao.map-app-key — 카카오맵 JavaScript SDK 앱 키.
+#   - 미설정(빈 문자열) 이면 CenterController 가 empty 를 전달, 템플릿에서 SDK script 태그를 렌더 안 함.
+#   - 이 경우 지도 영역엔 fallback 문구 표시되고 리스트/필터는 정상 동작.
+#   - 발급: https://developers.kakao.com → 애플리케이션 → JavaScript 키
+youthmoa:
+  kakao:
+    map-app-key: ${KAKAO_MAP_APP_KEY:}
+
 logging:
   level:
     root: INFO

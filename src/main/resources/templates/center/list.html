@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>청년센터 — youth-moa</title>
+    <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"
+          rel="stylesheet">
+    <link rel="icon" type="image/png" th:href="@{/images/logo_symbol.png}">
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+    <!-- Kakao Maps SDK — appkey 미설정 시 script 태그 자체를 렌더하지 않아 fallback 문구만 표시 -->
+    <script th:if="${!#strings.isEmpty(kakaoMapAppKey)}"
+            th:src="'//dapi.kakao.com/v2/maps/sdk.js?appkey=' + ${kakaoMapAppKey} + '&autoload=false'"></script>
+    <script th:src="@{/js/center-map.js}" defer></script>
+</head>
+<body>
+
+<div th:replace="~{fragments/header :: header('centers')}"></div>
+
+<main class="main-content">
+    <div class="page-title-bar">
+        <h2>청년센터</h2>
+    </div>
+
+    <div class="container centers-container">
+        <!-- 필터 바 -->
+        <form class="centers-filter" method="get" th:action="@{/centers}">
+            <input class="centers-filter-search" type="text" name="q" placeholder="센터명, 지역 검색"
+                   th:value="${filterQ}">
+            <select class="centers-filter-region" name="region">
+                <option value="" th:selected="${#strings.isEmpty(filterRegion)}">전체 지역</option>
+                <option th:each="r : ${regions}" th:value="${r}" th:text="${r}"
+                        th:selected="${r == filterRegion}"></option>
+            </select>
+            <label class="centers-filter-toggle">
+                <input type="checkbox" name="onlyActive" value="true"
+                       th:checked="${filterOnlyActive}">
+                <span>운영중만 보기</span>
+            </label>
+            <button type="submit" class="centers-filter-submit">검색</button>
+        </form>
+
+        <!-- 좌 리스트 400 / 우 지도 flex:1 -->
+        <div class="centers-layout">
+            <aside class="centers-list-panel">
+                <div class="centers-list-count">
+                    총 <strong th:text="${#lists.size(centers)}">0</strong>개 센터
+                </div>
+                <div class="centers-list-scroll" id="centers-list">
+                    <div th:if="${#lists.isEmpty(centers)}" class="centers-list-empty">
+                        조건에 맞는 센터가 없습니다.
+                    </div>
+                    <a th:each="c : ${centers}"
+                       th:href="@{/centers/{id}(id=${c.id})}"
+                       class="center-card"
+                       th:attr="data-center-id=${c.id},
+                                data-lat=${c.latitude},
+                                data-lng=${c.longitude}">
+                        <div class="center-card-head">
+                            <span class="center-card-name" th:text="${c.name}">센터명</span>
+                            <span th:if="${c.isActive}" class="center-card-badge active">운영중</span>
+                            <span th:unless="${c.isActive}" class="center-card-badge inactive">운영종료</span>
+                        </div>
+                        <div class="center-card-region" th:text="${c.region}">지역</div>
+                        <div class="center-card-address" th:text="${c.address}">주소</div>
+                        <div class="center-card-phone" th:if="${c.phone != null}" th:text="${c.phone}">전화</div>
+                    </a>
+                </div>
+            </aside>
+
+            <div class="centers-map-panel">
+                <div id="center-map" class="center-map-container"></div>
+                <div class="map-fallback"
+                     th:if="${#strings.isEmpty(kakaoMapAppKey)}">
+                    지도를 불러올 수 없습니다.<br>
+                    <small>KAKAO_MAP_APP_KEY 환경변수를 설정해 주세요. 좌측 목록에서 센터를 확인하실 수 있습니다.</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+</body>
+</html>

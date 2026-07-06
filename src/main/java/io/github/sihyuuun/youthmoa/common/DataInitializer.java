@@ -362,6 +362,55 @@ public class DataInitializer implements ApplicationRunner {
         (region, names) ->
             names.forEach(n -> centers.add(Center.builder().name(n).region(region).build())));
 
+    // F0h — 대표 8개 센터에 실좌표 (경기도 각 시 청년센터 대략 위치). 나머지는 null → 마커 skip.
+    Map<String, java.math.BigDecimal[]> seedCoords = new LinkedHashMap<>();
+    seedCoords.put(
+        "청년바람지대",
+        new java.math.BigDecimal[] {
+          new java.math.BigDecimal("37.2636000"), new java.math.BigDecimal("127.0286000")
+        });
+    seedCoords.put(
+        "청년이봄",
+        new java.math.BigDecimal[] {
+          new java.math.BigDecimal("37.4200000"), new java.math.BigDecimal("127.1265000")
+        });
+    seedCoords.put(
+        "안양청년1번가",
+        new java.math.BigDecimal[] {
+          new java.math.BigDecimal("37.3943000"), new java.math.BigDecimal("126.9569000")
+        });
+    seedCoords.put(
+        "소사청년공간 소사로움",
+        new java.math.BigDecimal[] {
+          new java.math.BigDecimal("37.5035000"), new java.math.BigDecimal("126.7660000")
+        });
+    seedCoords.put(
+        "화성시청년지원센터 H.E.Y",
+        new java.math.BigDecimal[] {
+          new java.math.BigDecimal("37.1996000"), new java.math.BigDecimal("126.8311000")
+        });
+    seedCoords.put(
+        "광명시 청년동",
+        new java.math.BigDecimal[] {
+          new java.math.BigDecimal("37.4772000"), new java.math.BigDecimal("126.8664000")
+        });
+    seedCoords.put(
+        "양평청년공간 오름",
+        new java.math.BigDecimal[] {
+          new java.math.BigDecimal("37.4917000"), new java.math.BigDecimal("127.4874000")
+        });
+    seedCoords.put(
+        "의왕청년발전소",
+        new java.math.BigDecimal[] {
+          new java.math.BigDecimal("37.3448000"), new java.math.BigDecimal("126.9682000")
+        });
+    for (Center c : centers) {
+      java.math.BigDecimal[] latlng = seedCoords.get(c.getName());
+      if (latlng != null) {
+        c.updateCoordinates(latlng[0], latlng[1]);
+      }
+    }
+
     // name 가나다순으로 상위 5개 featured 표시
     Set<String> featuredNames =
         centers.stream()
