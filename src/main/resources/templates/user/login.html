@@ -37,6 +37,9 @@
         <div th:if="${param.registered}" class="alert alert-success">
             회원가입이 완료되었습니다. 로그인해주세요.
         </div>
+        <div th:if="${param.reset}" class="alert alert-success">
+            비밀번호가 재설정되었습니다. 새 비밀번호로 로그인해주세요.
+        </div>
         <div th:if="${logoutMsg}" class="alert alert-success" th:text="${logoutMsg}"></div>
         <div th:if="${errorMsg}" class="alert alert-error" th:text="${errorMsg}"></div>
 
