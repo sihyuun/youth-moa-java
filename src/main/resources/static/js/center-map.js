@@ -97,6 +97,13 @@
     });
 
     map.setBounds(bounds);
+
+    // 안전망: 초기 렌더 시 컨테이너 크기가 아직 결정 안 됐을 수 있어 relayout 호출
+    // (F0h "회색 지도" 사고 재발 방지)
+    setTimeout(function () {
+      map.relayout();
+      map.setBounds(bounds);
+    }, 100);
   }
 
   function highlightCard(card) {
