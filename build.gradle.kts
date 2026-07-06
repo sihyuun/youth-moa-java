@@ -28,7 +28,7 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-webmvc")
 	implementation("org.thymeleaf.extras:thymeleaf-extras-springsecurity6")
 	// 2.0.10 로 bump (#35) 이후 E2E 대량 실패 → 2.0.4 로 revert (2026-07-03). E2E 안정화 후 재상승 검토.
-	implementation("org.webjars.npm:htmx.org:2.0.4")
+	implementation("org.webjars.npm:htmx.org:2.0.10")
 	implementation("org.webjars:webjars-locator-core")
 	compileOnly("org.projectlombok:lombok")
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
