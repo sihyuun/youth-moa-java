@@ -52,10 +52,11 @@
                         aria-haspopup="menu" aria-controls="header-user-dropdown">
                     <span class="header-avatar" aria-hidden="true"
                           th:text="${#strings.substring(#authentication.principal.displayName, 0, 1)}">박</span>
-                    <!--
-                      Thymeleaf-extras-springsecurity6 + Spring Security 7 조합에서 <sec:authentication.../> 태그 형식이
-                      리터럴로 렌더되는 이슈 존재. #authentication 유틸리티 객체는 정상 → th:text 로 대체.
-                    -->
+                    <!--/*
+                      Thymeleaf 파서 전용 주석 (응답에서 제거됨). sec:authentication element 태그는
+                      Spring Security 7 + thymeleaf-extras-springsecurity6 조합에서 리터럴 렌더됨 →
+                      #authentication 유틸리티 객체로 대체. 상세는 CLAUDE.md Thymeleaf 규칙 섹션 참조.
+                    */-->
                     <span class="header-user-name"
                           th:text="|${#authentication.principal.displayName}님|">이름님</span>
                     <!-- chevron-down SVG (▾ 문자 대체) -->
