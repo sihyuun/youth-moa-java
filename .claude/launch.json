@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "youth-moa-e2e",
+      "runtimeExecutable": ".claude\\scripts\\bootrun-e2e.cmd",
+      "runtimeArgs": [],
+      "port": 8090
+    }
+  ]
+}

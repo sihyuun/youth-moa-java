@@ -407,7 +407,9 @@ document.querySelector('input[type="checkbox"][name="termsAgreed"]')
 - `curl http://localhost:8080/css/main.css | grep "<변경한 클래스명>"` 로 실제 서빙 CSS 확인 → 옛 내용이면 processResources 미수행 상태
 - 시각 확인 전 반드시 서빙 CSS 실측 필수 (변경 안 됐는데 눈으로만 확인하면 사고 재발)
 
-**향후 자동화 후보**: `build.gradle.kts` 의 `bootRun` 을 `processResources` 에 의존시키거나, `dev:` gradle task 로 두 개 묶기.
+**자동화 상태 (2026-07-07)**:
+- `bootRun` 은 Gradle 태스크 그래프상 이미 `classes → processResources` 에 의존하므로 **기동 시점** 산출물은 항상 최신 — 문제는 서버 실행 중 변경분만임.
+- 실행 중 변경분 대응: `.claude/hooks/post-edit-css.sh.proposed` 에 static/** 수정 시 `build/resources/main` 으로 즉시 미러 복사하는 훅 확장안 준비됨 (검토 후 본 파일로 교체 시 활성화).
 
 ### Form binding 의 boolean
 hidden input 의 `value="true"` / `"false"` 를 Spring Form Binder 가 자동으로 boolean 으로 변환. JS 에서 `hidden.value = 'true'` 처럼 문자열로 set 해도 OK.
@@ -598,6 +600,7 @@ SiteImage(slot="HOME_SPACE_1", imageUrl="...", sortOrder=1, ...)
 | `/memory-sync` Skill | `.claude/skills/memory-sync/SKILL.md` | git log + gh PR 기반 메모리 자동 갱신 |
 | `/build-check` Skill | `.claude/skills/build-check/SKILL.md` | Gradle 빌드 + JPA 매핑 테스트 실행 |
 | `/resume` Skill | `.claude/skills/resume/SKILL.md` | 세션 재개 시 메모리 읽고 다음 작업 우선순위 제시 |
+| Claude Preview | `.claude/launch.json` | `preview_start(name: "youth-moa-e2e")` 로 bootRun 자동 기동 (H2+시드, 자격증명 불필요) 후 snapshot/inspect/console_logs/network 로 동적·시각 검증. 실 DB 필요 시 `youth-moa` 설정 (DATABASE_* 환경변수 필요) |
 
 화면 작업 표준 사이클: **ym-spec → 사용자 컨펌 → ym-impl → ym-qa → 머지**.
 선택 0단계 (사고): **ym-pm** — prototype·정책 검토, 대안 제시 후 ym-spec 인계.
