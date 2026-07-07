@@ -2,7 +2,8 @@
   "outputStyle": "default",
   "permissions": {
     "allow": [
-      "mcp__playwright__*"
+      "mcp__playwright__*",
+      "mcp__Claude_Preview__*"
     ]
   },
   "hooks": {
