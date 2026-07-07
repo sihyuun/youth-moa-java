@@ -601,6 +601,7 @@ SiteImage(slot="HOME_SPACE_1", imageUrl="...", sortOrder=1, ...)
 | `/build-check` Skill | `.claude/skills/build-check/SKILL.md` | Gradle 빌드 + JPA 매핑 테스트 실행 |
 | `/resume` Skill | `.claude/skills/resume/SKILL.md` | 세션 재개 시 메모리 읽고 다음 작업 우선순위 제시 |
 | Claude Preview | `.claude/launch.json` | `preview_start(name: "youth-moa-e2e")` 로 bootRun 자동 기동 (H2+시드, 자격증명 불필요) 후 snapshot/inspect/console_logs/network 로 동적·시각 검증. 실 DB 필요 시 `youth-moa` 설정 (DATABASE_* 환경변수 필요) |
+| 확정 명세 큐 | `docs/specs/` | ym-spec 산출 + 사용자 결정 반영된 명세. `spec_confirmed` 상태면 ym-impl 이 바로 인계 가능. 병렬 실행 규칙은 `docs/specs/README.md` |
 
 화면 작업 표준 사이클: **ym-spec → 사용자 컨펌 → ym-impl → ym-qa → 머지**.
 선택 0단계 (사고): **ym-pm** — prototype·정책 검토, 대안 제시 후 ym-spec 인계.
