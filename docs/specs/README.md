@@ -14,6 +14,8 @@ ym-spec 이 산출하고 사용자가 결정까지 마친 명세 모음. **`spec
 
 | 명세 | 브랜치 후보 | 상태 | 비고 |
 |---|---|---|---|
+| [F0h-c1-center-data-model.md](F0h-c1-center-data-model.md) | `feature/F0h-c1-center-data-model` | spec_confirmed | Center 3필드(desc/hours/imageUrl) + 시드. c2/c3/c4 선행 |
+| [F0h-c2-list-3col.md](F0h-c2-list-3col.md) | `feature/F0h-c2-list-3col` | spec_confirmed | 청년센터 목록 3-column 재구성. 8개 상태 매핑·커스텀 지역 드롭다운·정렬 pill·토글 스위치. c1 선행 권장 |
 | [F4-detail-requirements-grid.md](F4-detail-requirements-grid.md) | `feature/F4-requirements-data` | spec_confirmed | 가장 작은 단위 (entity+시드+바인딩 1 PR). 워밍업 추천 |
 | [F2c-header-transparent.md](F2c-header-transparent.md) | `feature/F2c-header-transparent` | spec_confirmed | `main.css` 수정 |
 | [F0c-remainder.md](F0c-remainder.md) | `feature/F0c-apply-wizard` | spec_confirmed | `main.css` 수정 |
