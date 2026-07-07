@@ -28,7 +28,6 @@ class ProgramServiceTest {
             .category("취업")
             .region("수원시")
             .content("8주 부트캠프 과정")
-            .requirements("만 19~39세 청년")
             .startDate(LocalDate.now().minusDays(5))
             .endDate(LocalDate.now().plusDays(20))
             .capacity(30)

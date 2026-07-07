@@ -35,7 +35,6 @@ class ProgramSearchTest {
             .category("취업")
             .region("수원시")
             .content("c")
-            .requirements("r")
             .startDate(today.minusDays(5))
             .endDate(today.plusDays(5))
             .capacity(30)
@@ -49,7 +48,6 @@ class ProgramSearchTest {
             .category("교육")
             .region("고양시")
             .content("c")
-            .requirements("r")
             .startDate(today.plusDays(10))
             .endDate(today.plusDays(30))
             .capacity(20)
@@ -63,7 +61,6 @@ class ProgramSearchTest {
             .category("교육")
             .region("부천시")
             .content("c")
-            .requirements("r")
             .startDate(today.minusDays(30))
             .endDate(today.minusDays(5))
             .capacity(15)
@@ -167,7 +164,6 @@ class ProgramSearchTest {
                 .organization("o")
                 .category("c")
                 .content("c")
-                .requirements("r")
                 .startDate(today)
                 .endDate(today.plusDays(1))
                 .build());
@@ -180,7 +176,6 @@ class ProgramSearchTest {
                 .organization("o")
                 .category("c")
                 .content("c")
-                .requirements("r")
                 .startDate(today.plusDays(5))
                 .endDate(today.plusDays(10))
                 .build());
@@ -193,7 +188,6 @@ class ProgramSearchTest {
                 .organization("o")
                 .category("c")
                 .content("c")
-                .requirements("r")
                 .startDate(today.minusDays(10))
                 .endDate(today.minusDays(1))
                 .build());

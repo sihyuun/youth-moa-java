@@ -112,7 +112,6 @@ class HomeServiceTest {
                 .category("취업")
                 .region("서울")
                 .content("c")
-                .requirements("r")
                 .endDate(today.plusDays(1))
                 .isActive(true)
                 .build(),
@@ -122,7 +121,6 @@ class HomeServiceTest {
                 .category("창업")
                 .region("경기")
                 .content("c")
-                .requirements("r")
                 .endDate(today.plusDays(10))
                 .isActive(true)
                 .build(),
@@ -132,7 +130,6 @@ class HomeServiceTest {
                 .category("힐링")
                 .region("서울")
                 .content("c")
-                .requirements("r")
                 .endDate(today.plusDays(20))
                 .isActive(true)
                 .build(),
@@ -142,7 +139,6 @@ class HomeServiceTest {
                 .category("교육")
                 .region("서울")
                 .content("c")
-                .requirements("r")
                 .endDate(today.plusDays(3))
                 .isActive(false)
                 .build()));

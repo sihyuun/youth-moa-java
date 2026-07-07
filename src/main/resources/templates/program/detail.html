@@ -176,7 +176,10 @@
                     </div>
                     <div>
                         <div class="detail-requirement-key">연령</div>
-                        <div class="detail-requirement-value">만 19세 ~ 39세 청년</div>
+                        <div class="detail-requirement-value"
+                             th:text="${program.eligibility != null and program.eligibility.age != null} ? ${program.eligibility.age} : '연령 제한 없음'">
+                            만 19세 ~ 39세 청년
+                        </div>
                     </div>
                 </div>
                 <div class="detail-requirement-card">
@@ -189,7 +192,10 @@
                     </div>
                     <div>
                         <div class="detail-requirement-key">거주지</div>
-                        <div class="detail-requirement-value">경기도 거주 또는 활동 중인 청년</div>
+                        <div class="detail-requirement-value"
+                             th:text="${program.eligibility != null and program.eligibility.region != null} ? ${program.eligibility.region} : '거주지 제한 없음'">
+                            경기도 거주 또는 활동 중인 청년
+                        </div>
                     </div>
                 </div>
                 <div class="detail-requirement-card">
@@ -202,7 +208,10 @@
                     </div>
                     <div>
                         <div class="detail-requirement-key">기타</div>
-                        <div class="detail-requirement-value" th:text="${program.requirements}">전 회차 참석 가능자 우대</div>
+                        <div class="detail-requirement-value"
+                             th:text="${program.eligibility != null and program.eligibility.etc != null} ? ${program.eligibility.etc} : '별도 조건 없음'">
+                            전 회차 참석 가능자 우대
+                        </div>
                     </div>
                 </div>
             </div>

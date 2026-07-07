@@ -50,7 +50,6 @@ class BookmarkServiceTest {
                 .category("취업")
                 .region("수원시")
                 .content("c")
-                .requirements("r")
                 .startDate(LocalDate.now().minusDays(5))
                 .endDate(LocalDate.now().plusDays(10))
                 .capacity(30)
@@ -143,7 +142,6 @@ class BookmarkServiceTest {
                 .category("취업")
                 .region("수원시")
                 .content("c")
-                .requirements("r")
                 .startDate(LocalDate.now().minusDays(3))
                 .endDate(LocalDate.now().plusDays(10))
                 .build());
@@ -155,7 +153,6 @@ class BookmarkServiceTest {
                 .category("교육")
                 .region("부천시")
                 .content("c")
-                .requirements("r")
                 .startDate(LocalDate.now().minusDays(3))
                 .endDate(LocalDate.now().plusDays(10))
                 .build());
