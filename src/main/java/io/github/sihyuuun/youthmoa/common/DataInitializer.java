@@ -375,84 +375,212 @@ public class DataInitializer implements ApplicationRunner {
                             .operatingHours(defaultHours)
                             .build())));
 
-    // F0h — 대표 8개 센터에 실좌표 (경기도 각 시 청년센터 대략 위치). 나머지는 null → 마커 skip.
-    Map<String, java.math.BigDecimal[]> seedCoords = new LinkedHashMap<>();
-    seedCoords.put(
-        "청년바람지대",
+    // F0h — 30개 시·군 대표 좌표 (시청/청년센터 인근). 실 센터 좌표 크롤링은 별도 티켓, 시·군 매핑으로 전체 48개 마커 커버.
+    // 같은 시·군에 여러 센터가 있을 때는 소수점 4~5자리 offset 으로 겹침 방지 (지도상 시각 구분).
+    Map<String, java.math.BigDecimal[]> regionCoords = new LinkedHashMap<>();
+    regionCoords.put(
+        "고양시",
         new java.math.BigDecimal[] {
-          new java.math.BigDecimal("37.2636000"), new java.math.BigDecimal("127.0286000")
+          new java.math.BigDecimal("37.6584000"), new java.math.BigDecimal("126.8320000")
         });
-    seedCoords.put(
-        "청년이봄",
+    regionCoords.put(
+        "과천시",
         new java.math.BigDecimal[] {
-          new java.math.BigDecimal("37.4200000"), new java.math.BigDecimal("127.1265000")
+          new java.math.BigDecimal("37.4292000"), new java.math.BigDecimal("126.9878000")
         });
-    seedCoords.put(
-        "안양청년1번가",
+    regionCoords.put(
+        "광명시",
         new java.math.BigDecimal[] {
-          new java.math.BigDecimal("37.3943000"), new java.math.BigDecimal("126.9569000")
+          new java.math.BigDecimal("37.4791000"), new java.math.BigDecimal("126.8646000")
         });
-    seedCoords.put(
-        "소사청년공간 소사로움",
+    regionCoords.put(
+        "광주시",
+        new java.math.BigDecimal[] {
+          new java.math.BigDecimal("37.4295000"), new java.math.BigDecimal("127.2551000")
+        });
+    regionCoords.put(
+        "구리시",
+        new java.math.BigDecimal[] {
+          new java.math.BigDecimal("37.5943000"), new java.math.BigDecimal("127.1296000")
+        });
+    regionCoords.put(
+        "군포시",
+        new java.math.BigDecimal[] {
+          new java.math.BigDecimal("37.3617000"), new java.math.BigDecimal("126.9350000")
+        });
+    regionCoords.put(
+        "김포시",
+        new java.math.BigDecimal[] {
+          new java.math.BigDecimal("37.6155000"), new java.math.BigDecimal("126.7157000")
+        });
+    regionCoords.put(
+        "남양주시",
+        new java.math.BigDecimal[] {
+          new java.math.BigDecimal("37.6360000"), new java.math.BigDecimal("127.2166000")
+        });
+    regionCoords.put(
+        "동두천시",
+        new java.math.BigDecimal[] {
+          new java.math.BigDecimal("37.9036000"), new java.math.BigDecimal("127.0605000")
+        });
+    regionCoords.put(
+        "부천시",
         new java.math.BigDecimal[] {
           new java.math.BigDecimal("37.5035000"), new java.math.BigDecimal("126.7660000")
         });
-    seedCoords.put(
-        "화성시청년지원센터 H.E.Y",
+    regionCoords.put(
+        "성남시",
         new java.math.BigDecimal[] {
-          new java.math.BigDecimal("37.1996000"), new java.math.BigDecimal("126.8311000")
+          new java.math.BigDecimal("37.4200000"), new java.math.BigDecimal("127.1265000")
         });
-    seedCoords.put(
-        "광명시 청년동",
+    regionCoords.put(
+        "수원시",
         new java.math.BigDecimal[] {
-          new java.math.BigDecimal("37.4772000"), new java.math.BigDecimal("126.8664000")
+          new java.math.BigDecimal("37.2636000"), new java.math.BigDecimal("127.0286000")
         });
-    seedCoords.put(
-        "양평청년공간 오름",
+    regionCoords.put(
+        "시흥시",
+        new java.math.BigDecimal[] {
+          new java.math.BigDecimal("37.3800000"), new java.math.BigDecimal("126.8028000")
+        });
+    regionCoords.put(
+        "안산시",
+        new java.math.BigDecimal[] {
+          new java.math.BigDecimal("37.3219000"), new java.math.BigDecimal("126.8309000")
+        });
+    regionCoords.put(
+        "안성시",
+        new java.math.BigDecimal[] {
+          new java.math.BigDecimal("37.0080000"), new java.math.BigDecimal("127.2797000")
+        });
+    regionCoords.put(
+        "안양시",
+        new java.math.BigDecimal[] {
+          new java.math.BigDecimal("37.3943000"), new java.math.BigDecimal("126.9569000")
+        });
+    regionCoords.put(
+        "양주시",
+        new java.math.BigDecimal[] {
+          new java.math.BigDecimal("37.7852000"), new java.math.BigDecimal("127.0459000")
+        });
+    regionCoords.put(
+        "양평군",
         new java.math.BigDecimal[] {
           new java.math.BigDecimal("37.4917000"), new java.math.BigDecimal("127.4874000")
         });
-    seedCoords.put(
-        "의왕청년발전소",
+    regionCoords.put(
+        "여주시",
+        new java.math.BigDecimal[] {
+          new java.math.BigDecimal("37.2984000"), new java.math.BigDecimal("127.6370000")
+        });
+    regionCoords.put(
+        "연천군",
+        new java.math.BigDecimal[] {
+          new java.math.BigDecimal("38.0966000"), new java.math.BigDecimal("127.0748000")
+        });
+    regionCoords.put(
+        "오산시",
+        new java.math.BigDecimal[] {
+          new java.math.BigDecimal("37.1499000"), new java.math.BigDecimal("127.0774000")
+        });
+    regionCoords.put(
+        "용인시",
+        new java.math.BigDecimal[] {
+          new java.math.BigDecimal("37.2411000"), new java.math.BigDecimal("127.1776000")
+        });
+    regionCoords.put(
+        "의왕시",
         new java.math.BigDecimal[] {
           new java.math.BigDecimal("37.3448000"), new java.math.BigDecimal("126.9682000")
         });
+    regionCoords.put(
+        "의정부시",
+        new java.math.BigDecimal[] {
+          new java.math.BigDecimal("37.7381000"), new java.math.BigDecimal("127.0338000")
+        });
+    regionCoords.put(
+        "이천시",
+        new java.math.BigDecimal[] {
+          new java.math.BigDecimal("37.2723000"), new java.math.BigDecimal("127.4350000")
+        });
+    regionCoords.put(
+        "파주시",
+        new java.math.BigDecimal[] {
+          new java.math.BigDecimal("37.7599000"), new java.math.BigDecimal("126.7799000")
+        });
+    regionCoords.put(
+        "평택시",
+        new java.math.BigDecimal[] {
+          new java.math.BigDecimal("36.9922000"), new java.math.BigDecimal("127.1129000")
+        });
+    regionCoords.put(
+        "포천시",
+        new java.math.BigDecimal[] {
+          new java.math.BigDecimal("37.8949000"), new java.math.BigDecimal("127.2003000")
+        });
+    regionCoords.put(
+        "하남시",
+        new java.math.BigDecimal[] {
+          new java.math.BigDecimal("37.5393000"), new java.math.BigDecimal("127.2148000")
+        });
+    regionCoords.put(
+        "화성시",
+        new java.math.BigDecimal[] {
+          new java.math.BigDecimal("37.1996000"), new java.math.BigDecimal("126.8311000")
+        });
+    Map<String, Integer> regionOffsetIdx = new java.util.HashMap<>();
     for (Center c : centers) {
-      java.math.BigDecimal[] latlng = seedCoords.get(c.getName());
-      if (latlng != null) {
-        c.updateCoordinates(latlng[0], latlng[1]);
-      }
+      java.math.BigDecimal[] base = regionCoords.get(c.getRegion());
+      if (base == null) continue;
+      int idx = regionOffsetIdx.merge(c.getRegion(), 0, (a, b) -> a + 1);
+      // 같은 시·군에 2번째부터는 소수 5자리에서 offset 적용 (약 100m 오프셋)
+      java.math.BigDecimal offset = new java.math.BigDecimal("0.00" + (idx == 0 ? "0000" : String.format("%04d", idx * 15)));
+      c.updateCoordinates(base[0].add(offset), base[1].add(offset));
     }
 
-    // F0h-c1: 대표 8개 센터에 desc + imageUrl 주입 (operatingHours 는 기본값 유지)
-    Map<String, String[]> seedContent = new LinkedHashMap<>();
-    seedContent.put(
-        "청년바람지대",
-        new String[] {"청년 창업과 네트워킹을 위한 복합문화공간", "/images/centers/placeholder-1.png"});
-    seedContent.put(
-        "청년이봄", new String[] {"취업·역량강화 특화 청년지원센터", "/images/centers/placeholder-2.png"});
-    seedContent.put(
-        "안양청년1번가",
-        new String[] {"정신건강·힐링 프로그램 전문 센터", "/images/centers/placeholder-3.png"});
-    seedContent.put(
-        "소사청년공간 소사로움",
-        new String[] {"취업·역량강화 특화 청년지원센터", "/images/centers/placeholder-4.png"});
-    seedContent.put(
-        "화성시청년지원센터 H.E.Y",
-        new String[] {"취업·진로 전문 지원 청년센터", "/images/centers/placeholder-5.png"});
-    seedContent.put(
-        "광명시 청년동",
-        new String[] {"지역사회 연계 청년 커뮤니티 허브", "/images/centers/placeholder-6.png"});
-    seedContent.put(
-        "양평청년공간 오름",
-        new String[] {"소셜벤처·사회적 경제 청년 지원", "/images/centers/placeholder-7.png"});
-    seedContent.put(
-        "의왕청년발전소",
-        new String[] {"지역사회 연계 청년 커뮤니티 허브", "/images/centers/placeholder-8.png"});
+    // F0h-c1: 이름 키워드 기반 desc 자동 생성 (5종 로테이션) — 대표 8개는 아래 seedContent 로 override.
+    // imageUrl 은 unsplash 워크스페이스/커뮤니티 사진 6장 로테이션.
+    String[] imagePool = {
+      "https://images.unsplash.com/photo-1497366216548-37526070297c?w=400&h=200&fit=crop&auto=format",
+      "https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=400&h=200&fit=crop&auto=format",
+      "https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=400&h=200&fit=crop&auto=format",
+      "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=400&h=200&fit=crop&auto=format",
+      "https://images.unsplash.com/photo-1517048676732-d65bc937f952?w=400&h=200&fit=crop&auto=format",
+      "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=400&h=200&fit=crop&auto=format"
+    };
+    int imgIdx = 0;
     for (Center c : centers) {
-      String[] content = seedContent.get(c.getName());
-      if (content != null) {
-        c.updateContent(content[0], defaultHours, content[1]);
+      String desc;
+      String name = c.getName();
+      if (name.contains("창업")) {
+        desc = "청년 창업과 네트워킹을 지원하는 복합공간";
+      } else if (name.contains("취업") || name.contains("일자리") || name.contains("잡")) {
+        desc = "취업·진로 전문 청년 지원센터";
+      } else if (name.contains("역량") || name.contains("LAB") || name.contains("발전소")) {
+        desc = "청년 역량 강화·성장 프로그램 운영";
+      } else if (name.contains("문화") || name.contains("톡톡") || name.contains("바람") || name.contains("꿈")) {
+        desc = "청년 문화·창작 커뮤니티 공간";
+      } else {
+        desc = c.getRegion() + " 청년의 자립과 성장을 지원하는 공간";
+      }
+      c.updateContent(desc, defaultHours, imagePool[imgIdx % imagePool.length]);
+      imgIdx++;
+    }
+
+    // F0h-c1: 대표 8개 센터 desc override (실제 기획 문안, 좌표에 대응)
+    Map<String, String> featuredDesc = new LinkedHashMap<>();
+    featuredDesc.put("청년바람지대", "청년 창업과 네트워킹을 위한 복합문화공간");
+    featuredDesc.put("청년이봄", "취업·역량강화 특화 청년지원센터");
+    featuredDesc.put("안양청년1번가", "정신건강·힐링 프로그램 전문 센터");
+    featuredDesc.put("소사청년공간 소사로움", "취업·역량강화 특화 청년지원센터");
+    featuredDesc.put("화성시청년지원센터 H.E.Y", "취업·진로 전문 지원 청년센터");
+    featuredDesc.put("광명시 청년동", "지역사회 연계 청년 커뮤니티 허브");
+    featuredDesc.put("양평청년공간 오름", "소셜벤처·사회적 경제 청년 지원");
+    featuredDesc.put("의왕청년발전소", "지역사회 연계 청년 커뮤니티 허브");
+    for (Center c : centers) {
+      String d = featuredDesc.get(c.getName());
+      if (d != null) {
+        c.updateContent(d, defaultHours, c.getImageUrl());
       }
     }
 
