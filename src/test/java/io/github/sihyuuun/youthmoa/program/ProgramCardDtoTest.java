@@ -19,7 +19,6 @@ class ProgramCardDtoTest {
         .title("테스트 프로그램")
         .organization("테스트 기관")
         .content("내용")
-        .requirements("조건")
         .startDate(LocalDate.now().minusDays(1)) // 어제 시작 → ACTIVE
         .endDate(LocalDate.now().plusDays(10))
         .capacity(capacity)
@@ -31,7 +30,6 @@ class ProgramCardDtoTest {
         .title("예정 프로그램")
         .organization("테스트 기관")
         .content("내용")
-        .requirements("조건")
         .startDate(LocalDate.now().plusDays(5)) // 미래 시작 → UPCOMING
         .endDate(LocalDate.now().plusDays(20))
         .build();
@@ -42,7 +40,6 @@ class ProgramCardDtoTest {
         .title("마감 프로그램")
         .organization("테스트 기관")
         .content("내용")
-        .requirements("조건")
         .startDate(LocalDate.now().minusDays(20))
         .endDate(LocalDate.now().minusDays(1)) // 어제 종료 → CLOSED
         .build();

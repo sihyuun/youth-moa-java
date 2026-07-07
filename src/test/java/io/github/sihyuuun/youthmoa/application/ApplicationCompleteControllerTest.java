@@ -67,7 +67,6 @@ class ApplicationCompleteControllerTest {
             .organization("센터")
             .region("수원시")
             .content("c")
-            .requirements("r")
             .startDate(LocalDate.of(2024, 7, 1))
             .endDate(LocalDate.of(2024, 7, 31))
             .build();

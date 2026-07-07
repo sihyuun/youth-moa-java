@@ -2,6 +2,7 @@ package io.github.sihyuuun.youthmoa.program;
 
 import io.github.sihyuuun.youthmoa.common.BaseTimeEntity;
 import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -46,9 +47,13 @@ public class Program extends BaseTimeEntity {
   @Column(nullable = false)
   private String content;
 
-  @Lob
-  @Column(nullable = false)
-  private String requirements;
+  /**
+   * 자격요건 (연령/거주지/기타). F4 spec 에서 기존 @Lob requirements 를 @Embeddable 로 재편.
+   *
+   * <p>컬럼: eligibility_age / eligibility_region / eligibility_etc (모두 nullable — 결정 Q3-B, 화면에서 기본
+   * 문구로 대체).
+   */
+  @Embedded private ProgramEligibility eligibility;
 
   private LocalDate startDate;
 
@@ -70,7 +75,7 @@ public class Program extends BaseTimeEntity {
       String region,
       String imageUrl,
       String content,
-      String requirements,
+      ProgramEligibility eligibility,
       LocalDate startDate,
       LocalDate endDate,
       String applyUrl,
@@ -82,7 +87,7 @@ public class Program extends BaseTimeEntity {
     this.region = region;
     this.imageUrl = imageUrl;
     this.content = content;
-    this.requirements = requirements;
+    this.eligibility = eligibility;
     this.startDate = startDate;
     this.endDate = endDate;
     this.applyUrl = applyUrl;
@@ -97,7 +102,7 @@ public class Program extends BaseTimeEntity {
       String region,
       String imageUrl,
       String content,
-      String requirements,
+      ProgramEligibility eligibility,
       LocalDate startDate,
       LocalDate endDate,
       String applyUrl,
@@ -108,7 +113,7 @@ public class Program extends BaseTimeEntity {
     this.region = region;
     this.imageUrl = imageUrl;
     this.content = content;
-    this.requirements = requirements;
+    this.eligibility = eligibility;
     this.startDate = startDate;
     this.endDate = endDate;
     this.applyUrl = applyUrl;

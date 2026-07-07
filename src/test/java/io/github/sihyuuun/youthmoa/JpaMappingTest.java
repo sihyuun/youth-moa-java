@@ -16,6 +16,7 @@ import io.github.sihyuuun.youthmoa.notification.Notification;
 import io.github.sihyuuun.youthmoa.notification.NotificationRepository;
 import io.github.sihyuuun.youthmoa.notification.NotificationType;
 import io.github.sihyuuun.youthmoa.program.Program;
+import io.github.sihyuuun.youthmoa.program.ProgramEligibility;
 import io.github.sihyuuun.youthmoa.program.ProgramRepository;
 import io.github.sihyuuun.youthmoa.region.Region;
 import io.github.sihyuuun.youthmoa.region.RegionRepository;
@@ -87,7 +88,12 @@ class JpaMappingTest {
                 .category("취업")
                 .region("서울")
                 .content("내용")
-                .requirements("자격")
+                .eligibility(
+                    ProgramEligibility.builder()
+                        .age("만 19세 ~ 39세 청년")
+                        .region("서울")
+                        .etc("전 회차 참석 가능자")
+                        .build())
                 .capacity(20)
                 .build());
 
@@ -140,6 +146,13 @@ class JpaMappingTest {
 
     long unread = notificationRepository.countByUserAndIsReadFalse(user);
     assertThat(unread).isEqualTo(1);
+
+    // F4: ProgramEligibility @Embedded round-trip
+    Program reloaded = programRepository.findById(program.getId()).orElseThrow();
+    assertThat(reloaded.getEligibility()).isNotNull();
+    assertThat(reloaded.getEligibility().getAge()).isEqualTo("만 19세 ~ 39세 청년");
+    assertThat(reloaded.getEligibility().getRegion()).isEqualTo("서울");
+    assertThat(reloaded.getEligibility().getEtc()).isEqualTo("전 회차 참석 가능자");
   }
 
   @Autowired io.github.sihyuuun.youthmoa.common.SiteImageRepository siteImageRepository;

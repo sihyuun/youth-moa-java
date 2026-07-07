@@ -76,7 +76,6 @@ class ApplicationServiceStatusChangeTest {
                 .category("취업")
                 .region("수원시")
                 .content("c")
-                .requirements("r")
                 .startDate(today.minusDays(5))
                 .endDate(today.plusDays(10))
                 .capacity(30)

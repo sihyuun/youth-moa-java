@@ -14,6 +14,7 @@ import io.github.sihyuuun.youthmoa.notification.Notification;
 import io.github.sihyuuun.youthmoa.notification.NotificationRepository;
 import io.github.sihyuuun.youthmoa.notification.NotificationType;
 import io.github.sihyuuun.youthmoa.program.Program;
+import io.github.sihyuuun.youthmoa.program.ProgramEligibility;
 import io.github.sihyuuun.youthmoa.program.ProgramRepository;
 import io.github.sihyuuun.youthmoa.region.Region;
 import io.github.sihyuuun.youthmoa.region.RegionRepository;
@@ -444,7 +445,12 @@ public class DataInitializer implements ApplicationRunner {
                 .imageUrl(
                     "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=400&h=280&fit=crop")
                 .content("이력서 작성, 면접 트레이닝, 자기소개 워크숍을 한 번에 진행합니다.")
-                .requirements("만 19~39세 경기도 거주 청년")
+                .eligibility(
+                    ProgramEligibility.builder()
+                        .age("만 19세 ~ 39세 청년")
+                        .region("경기도 거주 또는 활동 중인 청년")
+                        .etc("전 회차 참석 가능자 우대")
+                        .build())
                 .startDate(today.minusDays(10))
                 .endDate(today.plusDays(3))
                 .capacity(30)
@@ -456,7 +462,12 @@ public class DataInitializer implements ApplicationRunner {
                 .imageUrl(
                     "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=400&h=280&fit=crop")
                 .content("창업 아이디어 발굴부터 사업 모델 검증까지 8주 과정.")
-                .requirements("창업 관심 청년 누구나")
+                .eligibility(
+                    ProgramEligibility.builder()
+                        .age("만 19세 ~ 39세 청년")
+                        .region("안산시 거주 또는 활동")
+                        .etc("창업 아이디어 보유자 우대")
+                        .build())
                 .startDate(today.minusDays(5))
                 .endDate(today.plusDays(12))
                 .capacity(25)
@@ -468,7 +479,12 @@ public class DataInitializer implements ApplicationRunner {
                 .imageUrl(
                     "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=400&h=280&fit=crop")
                 .content("청년의 번아웃을 회복하는 1박 2일 자연 힐링 캠프.")
-                .requirements("만 19~34세 청년")
+                .eligibility(
+                    ProgramEligibility.builder()
+                        .age("만 19세 ~ 34세 청년")
+                        .region("안양시 거주 또는 활동")
+                        .etc("전 회차 참여 가능자")
+                        .build())
                 .startDate(today.minusDays(2))
                 .endDate(today.plusDays(6))
                 .capacity(20)
@@ -480,7 +496,12 @@ public class DataInitializer implements ApplicationRunner {
                 .imageUrl(
                     "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=400&h=280&fit=crop")
                 .content("SNS·검색 광고 실전 캠페인 운영 실습.")
-                .requirements("디지털 마케팅 입문 청년")
+                .eligibility(
+                    ProgramEligibility.builder()
+                        .age("만 19세 ~ 39세 청년")
+                        .region("부천시 거주 또는 활동")
+                        .etc("디지털 마케팅 입문자 대상")
+                        .build())
                 .startDate(today.minusDays(30))
                 .endDate(today.minusDays(5))
                 .capacity(15)
@@ -492,7 +513,12 @@ public class DataInitializer implements ApplicationRunner {
                 .imageUrl(
                     "https://images.unsplash.com/photo-1531482615713-2afd69097998?w=400&h=280&fit=crop")
                 .content("ChatGPT·Claude 등 LLM 활용 실무 워크숍 (전 6강).")
-                .requirements("개발자 또는 기획자 청년")
+                .eligibility(
+                    ProgramEligibility.builder()
+                        .age("만 19세 ~ 39세 청년")
+                        .region("과천시 거주 또는 활동")
+                        .etc("개발자 또는 기획자 우대")
+                        .build())
                 .startDate(today.plusDays(14))
                 .endDate(today.plusDays(45))
                 .capacity(30)
@@ -504,7 +530,12 @@ public class DataInitializer implements ApplicationRunner {
                 .imageUrl(
                     "https://images.unsplash.com/photo-1552664730-d307ca884978?w=400&h=280&fit=crop")
                 .content("사회 문제 해결형 비즈니스 모델 인큐베이팅 6개월 과정.")
-                .requirements("소셜벤처 관심 예비/초기 창업팀")
+                // 의도적으로 age null — 화면 fallback ("연령 제한 없음") 검증용 시드
+                .eligibility(
+                    ProgramEligibility.builder()
+                        .region("양평군 거주 또는 활동")
+                        .etc("소셜벤처 관심 예비/초기 창업팀")
+                        .build())
                 .startDate(today.plusDays(21))
                 .endDate(today.plusDays(180))
                 .capacity(20)
@@ -516,7 +547,12 @@ public class DataInitializer implements ApplicationRunner {
                 .imageUrl(
                     "https://images.unsplash.com/photo-1497366216548-37526070297c?w=460&h=340&fit=crop")
                 .content("연극·사진·뮤지컬 등 6개 트랙 문화예술 입문 강좌.")
-                .requirements("문화예술 입문 청년")
+                .eligibility(
+                    ProgramEligibility.builder()
+                        .age("만 19세 ~ 39세 청년")
+                        .region("의왕시 거주 또는 활동")
+                        .etc("문화예술 입문자 대상")
+                        .build())
                 .startDate(today.minusDays(7))
                 .endDate(today.plusDays(30))
                 .capacity(40)
@@ -528,7 +564,12 @@ public class DataInitializer implements ApplicationRunner {
                 .imageUrl(
                     "https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=460&h=340&fit=crop")
                 .content("창업·취업 동료와 함께하는 월간 네트워킹 밋업.")
-                .requirements("청년 누구나")
+                .eligibility(
+                    ProgramEligibility.builder()
+                        .age("만 19세 ~ 39세 청년")
+                        .region("오산시 거주 또는 활동")
+                        .etc("창업·취업 관심자 누구나")
+                        .build())
                 .startDate(today.minusDays(1))
                 .endDate(today.plusDays(2))
                 .capacity(60)
