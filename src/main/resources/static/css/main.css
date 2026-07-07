@@ -1419,20 +1419,96 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
   margin: 0 0 28px;
 }
 
-/* Summary 카드 (80x80 이미지 + 정보) */
+/* F0c-remainder: 뒤로가기 아이콘 버튼 (38x38) */
+.apply-back-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 9px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-sec);
+  font-size: 18px;
+  line-height: 1;
+  margin-bottom: 20px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.15s;
+}
+.apply-back-btn:hover { background: var(--color-bg); }
+
+/* F0c-remainder: 스텝 프로그레스 (3단계 위저드) */
+.apply-stepper {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 0;
+  margin-bottom: 28px;
+}
+.apply-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+}
+.apply-step-circle {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-border-light);
+  color: var(--color-text-tri);
+  font-size: 14px;
+  font-weight: 700;
+  transition: all 0.2s;
+}
+.apply-step-num { display: inline; }
+.apply-step-check { display: none; color: #fff; font-size: 16px; }
+.apply-step.is-active .apply-step-circle,
+.apply-step.is-done .apply-step-circle {
+  background: var(--color-primary);
+  color: #fff;
+}
+.apply-step.is-done .apply-step-num { display: none; }
+.apply-step.is-done .apply-step-check { display: inline; }
+.apply-step-label {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--color-text-tri);
+}
+.apply-step.is-active .apply-step-label {
+  color: var(--color-primary);
+  font-weight: 700;
+}
+.apply-step-connector {
+  flex: 1;
+  max-width: 80px;
+  height: 2px;
+  background: var(--color-border);
+  margin: 22px 6px 0;
+  transition: background 0.2s;
+}
+.apply-step-connector.is-done { background: var(--color-primary); }
+
+/* Summary 카드 (prototype: 64x64 이미지 + 정보, padding 16, border-light, shadow-sm) */
 .apply-summary-card {
   display: flex;
   gap: 16px;
-  padding: 18px;
+  padding: 16px;
   background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--color-border-light);
   border-radius: var(--radius-lg);
-  margin-bottom: 24px;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 20px;
 }
 
 .apply-summary-image {
-  width: 80px;
-  height: 80px;
+  width: 64px;
+  height: 64px;
   border-radius: 10px;
   overflow: hidden;
   background: #e5e7eb;
@@ -1472,33 +1548,58 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
 
 .apply-summary-title {
   font-weight: 600;
-  font-size: 16px;
+  font-size: 15px;
   color: var(--color-text);
   margin: 6px 0 2px;
 }
 
 .apply-summary-sub {
-  font-size: 13px;
+  font-size: 12.5px;
   color: var(--color-text-sec);
 }
 
-/* 섹션 타이틀 (2px solid text 하단 보더) */
-.apply-section-title {
+/* F0c-remainder: 단계 카드 (흰 카드 1장, prototype padding 24 26) */
+.apply-step-card {
+  display: none;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: 24px 26px;
+  margin-bottom: 20px;
+}
+.apply-step-card.is-active { display: block; }
+
+.apply-step-card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.apply-step-card-title {
   font-weight: 700;
   font-size: 16px;
   color: var(--color-text);
-  padding-bottom: 10px;
-  border-bottom: 2px solid var(--color-text);
-  margin-bottom: 16px;
 }
-.apply-section-title:not(:first-of-type) { margin-top: 24px; }
+.apply-auto-badge {
+  padding: 2px 9px;
+  border-radius: var(--radius-pill);
+  background: var(--color-primary-bg);
+  color: var(--color-primary);
+  font-size: 11.5px;
+  font-weight: 600;
+}
+.apply-mypage-note {
+  font-size: 12.5px;
+  color: var(--color-text-tri);
+  margin-top: 12px;
+}
 
 /* 섹션 1: 신청자 정보 (readonly 박스) */
 .apply-applicant-fields {
   display: flex;
   flex-direction: column;
   gap: 14px;
-  margin-bottom: 24px;
 }
 
 .apply-applicant-field { display: block; }
@@ -1530,9 +1631,7 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
 }
 
 /* 섹션 2: 추가 정보 — 지원 동기 textarea */
-.apply-extra-block {
-  margin-bottom: 24px;
-}
+.apply-extra-block { margin-bottom: 0; }
 
 .apply-extra-label {
   font-size: 13px;
@@ -1544,7 +1643,7 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
 
 .apply-textarea {
   width: 100%;
-  height: 88px;
+  height: 120px;
   border-radius: var(--radius-md);
   border: 1.5px solid var(--color-border);
   padding: 12px 14px;
@@ -1585,13 +1684,13 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
   padding: 14px;
   border-radius: var(--radius-md);
   border: 1px solid var(--color-border);
-  background: var(--color-surface);
+  background: var(--color-bg);
   font-size: 13px;
   color: var(--color-text-sec);
   line-height: 1.7;
-  max-height: 130px;
-  overflow: hidden;
-  margin-bottom: 12px;
+  max-height: 160px;
+  overflow: auto;
+  margin-bottom: 14px;
 }
 
 .apply-privacy-agree {
@@ -1640,13 +1739,26 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
   border-color: var(--color-error);
 }
 
-/* 액션 (가운데 정렬, "신청하기" 220px) */
+/* 액션 (가운데 정렬, "신청하기" 220px — 구버전 잔여, 위저드 이전) */
 .apply-actions {
   display: flex;
   justify-content: center;
   margin-top: 4px;
 }
 .apply-submit-btn { width: 220px; }
+
+/* F0c-remainder: 위저드 네비게이션 (이전 flex:1 / 다음·제출 flex:2) */
+.apply-nav {
+  display: flex;
+  gap: 10px;
+}
+.apply-nav-prev { flex: 1; }
+.apply-nav-next,
+.apply-nav-submit { flex: 2; }
+.apply-nav-submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 
 /* 옛 잔여 (제거 대상) */
 .btn-cancel {
