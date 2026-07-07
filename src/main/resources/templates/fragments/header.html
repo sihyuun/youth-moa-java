@@ -9,11 +9,12 @@
   - 중앙: nav 3개 (gap:36) — 프로그램 / 청년센터 / 공지사항
   - 우: 검색 아이콘 + (인증) 아바타(이니셜 30px) + 이름 + ▾ 드롭다운
                   (비인증) 로그인 아이콘 1개
-  미적용 (별도 작업):
-  - transparent 모드 (홈 hero 위)
+  transparent 모드 (F2c): currentPage=='home' 일 때만 `site-header--transparent` 클래스 부착.
+  스크롤 60px 넘으면 header-scroll.js 가 `is-scrolled` 클래스를 body 에 추가 → 백색으로 전환.
 -->
 
-<header th:fragment="header(currentPage)" class="site-header">
+<header th:fragment="header(currentPage)"
+        th:class="${currentPage == 'home'} ? 'site-header site-header--transparent' : 'site-header'">
     <div class="header-inner">
 
         <!-- Logo (좌, flex:1) -->
