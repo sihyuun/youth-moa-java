@@ -2,16 +2,18 @@
 
 claude.ai `/schedule` 을 통해 등록되는 원격 CCR 루틴 프롬프트 모음. 실제 등록은 `RemoteTrigger` API 호출로 이루어짐 (자동 아님, 수동 진행).
 
-## 등록된 루틴 (예정)
+## 등록된 루틴 (✅ 2026-07-01 등록 완료, 가동 중 — 2026-07-07 확인)
 
-| 시각 KST | 파일 | 목적 |
-|---|---|---|
-| 08:30 | (external / youth-moa repo) | daily todo — 이 repo 외 |
-| 08:35 | `pm-review.md` | 오늘의 최우선 화면·정책 PM Review |
-| 08:40 | `spec-pending.md` | 어제 PM 결정 → spec 착수 여부 확인 |
-| 08:45 | `pr-health.md` | 열린 PR 상태 스캔 |
-| 08:50 | `visual-check-queue.md` | 개인 PC 시각 확인 큐 정리 |
-| 08:55 (월) | `prototype-gap-weekly.md` | prototype ↔ templates 일치도 주간 스냅샷 |
+| 시각 KST | 파일 | 목적 | trigger_id |
+|---|---|---|---|
+| 08:30 | (external / youth-moa repo) | daily todo — 이 repo 외 | `trig_017y6dFxfgiMRXjjFzjyJzQB` |
+| 08:35 | `pm-review.md` | 오늘의 최우선 화면·정책 PM Review | `trig_01JrjVGDWPCWpKfhzbLgJd87` |
+| 08:40 | `spec-pending.md` | 어제 PM 결정 → spec 착수 여부 확인 | `trig_0192bRBP52diXB6WV7oAArWL` |
+| 08:45 | `pr-health.md` | 열린 PR 상태 스캔 | `trig_01T4EwTw2TbPC7q9PPVCa3xa` |
+| 08:50 | `visual-check-queue.md` | 개인 PC 시각 확인 큐 정리 | `trig_01MUYFxcxNTnYH8PkxTae9EY` |
+| 08:55 (월) | `prototype-gap-weekly.md` | prototype ↔ templates 일치도 주간 스냅샷 | `trig_011bXjXerqCaLYzDVQkLtg6F` |
+
+상태 확인·수정: `RemoteTrigger` 툴 `list` / `update` (URL: `https://claude.ai/code/routines/{trigger_id}`). 루틴 프롬프트는 repo 의 `.md` 를 fire 시점에 Read 하므로, **프롬프트 수정은 이 디렉토리 파일 수정 + main 머지만으로 반영됨** (재등록 불필요).
 
 ## 공통 원칙
 
