@@ -10,7 +10,7 @@
     <link rel="stylesheet" th:href="@{/css/main.css}">
     <!-- Kakao Maps SDK — appkey 미설정 시 script 태그 자체를 렌더하지 않아 fallback 문구만 표시 -->
     <script th:if="${!#strings.isEmpty(kakaoMapAppKey)}"
-            th:src="'//dapi.kakao.com/v2/maps/sdk.js?appkey=' + ${kakaoMapAppKey} + '&autoload=false'"></script>
+            th:src="'https://dapi.kakao.com/v2/maps/sdk.js?appkey=' + ${kakaoMapAppKey} + '&autoload=false'"></script>
     <script th:src="@{/js/center-map.js}" defer></script>
 </head>
 <body>

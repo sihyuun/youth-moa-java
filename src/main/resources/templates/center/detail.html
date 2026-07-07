@@ -9,7 +9,7 @@
     <link rel="icon" type="image/png" th:href="@{/images/logo_symbol.png}">
     <link rel="stylesheet" th:href="@{/css/main.css}">
     <script th:if="${!#strings.isEmpty(kakaoMapAppKey)}"
-            th:src="'//dapi.kakao.com/v2/maps/sdk.js?appkey=' + ${kakaoMapAppKey} + '&autoload=false'"></script>
+            th:src="'https://dapi.kakao.com/v2/maps/sdk.js?appkey=' + ${kakaoMapAppKey} + '&autoload=false'"></script>
     <script th:src="@{/js/center-map.js}" defer></script>
 </head>
 <body>
