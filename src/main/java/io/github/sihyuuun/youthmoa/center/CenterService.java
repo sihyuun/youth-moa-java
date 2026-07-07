@@ -93,6 +93,17 @@ public class CenterService {
     return centerRepository.findById(id);
   }
 
+  /** F0h gap fix: 상세 패널의 "진행중인 프로그램 N건" 카드용. organization 문자열 매칭. */
+  public int programCountFor(String centerName) {
+    if (centerName == null) return 0;
+    for (Object[] row : programRepository.countActiveGroupByOrganization()) {
+      if (centerName.equals(row[0])) {
+        return ((Long) row[1]).intValue();
+      }
+    }
+    return 0;
+  }
+
   /**
    * 필터 UI 의 지역 드롭다운용 — F0h-c2: Region 엔티티 기반으로 교체. 이름 오름차순.
    */

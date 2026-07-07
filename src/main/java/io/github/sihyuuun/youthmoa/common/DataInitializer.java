@@ -360,13 +360,20 @@ public class DataInitializer implements ApplicationRunner {
     // 전체 (region, name) 펼친 뒤 name 가나다순으로 상위 5개 isFeatured=true
     // F0h-c1: 기본 operatingHours = "평일 09:00~18:00" 로 채움. desc/imageUrl 은 대표 8개만 아래 seedContent 에서 주입.
     String defaultHours = "평일 09:00~18:00";
+    // F0h-c1 gap fix: 모든 센터에 최소 fallback 주소 부여. 대표 8개는 아래 seedAddress 로 실주소 override.
+    // prototype 상세 패널·리스트 카드의 주소 라인이 빈 값으로 렌더되던 문제 해결.
     List<Center> centers = new ArrayList<>();
     centersByRegion.forEach(
         (region, names) ->
             names.forEach(
                 n ->
                     centers.add(
-                        Center.builder().name(n).region(region).operatingHours(defaultHours).build())));
+                        Center.builder()
+                            .name(n)
+                            .region(region)
+                            .address("경기도 " + region)
+                            .operatingHours(defaultHours)
+                            .build())));
 
     // F0h — 대표 8개 센터에 실좌표 (경기도 각 시 청년센터 대략 위치). 나머지는 null → 마커 skip.
     Map<String, java.math.BigDecimal[]> seedCoords = new LinkedHashMap<>();
@@ -446,6 +453,23 @@ public class DataInitializer implements ApplicationRunner {
       String[] content = seedContent.get(c.getName());
       if (content != null) {
         c.updateContent(content[0], defaultHours, content[1]);
+      }
+    }
+
+    // F0h-c1 gap fix: 대표 8개 센터에 실주소 override (좌표에 대응하는 실 위치)
+    Map<String, String> seedAddress = new LinkedHashMap<>();
+    seedAddress.put("청년바람지대", "경기도 수원시 팔달구 인계로 178");
+    seedAddress.put("청년이봄", "경기도 성남시 분당구 판교로 235");
+    seedAddress.put("안양청년1번가", "경기도 안양시 만안구 안양로 232");
+    seedAddress.put("소사청년공간 소사로움", "경기도 부천시 소사구 경인로 25");
+    seedAddress.put("화성시청년지원센터 H.E.Y", "경기도 화성시 향남읍 3.1만세로 1131");
+    seedAddress.put("광명시 청년동", "경기도 광명시 오리로 613");
+    seedAddress.put("양평청년공간 오름", "경기도 양평군 양평읍 양근로 121");
+    seedAddress.put("의왕청년발전소", "경기도 의왕시 시청로 11");
+    for (Center c : centers) {
+      String addr = seedAddress.get(c.getName());
+      if (addr != null) {
+        c.updateInfo(c.getName(), c.getRegion(), addr, c.getPhone());
       }
     }
 

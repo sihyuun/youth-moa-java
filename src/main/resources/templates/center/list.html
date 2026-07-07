@@ -147,12 +147,14 @@
                 <div class="centers-detail-image"
                      th:style="${detailCenter.imageUrl != null} ? |background-image:url(${detailCenter.imageUrl})| : ''">
                     <span th:if="${detailCenter.imageUrl == null}" class="centers-detail-image-placeholder">🏢</span>
+                    <!-- prototype: 이미지 좌하단 open badge 오버레이 (F0h gap fix) -->
+                    <span class="centers-detail-image-badge"
+                          th:classappend="${detailCenter.isActive} ? 'active' : 'inactive'"
+                          th:text="${detailCenter.isActive} ? '운영중' : '운영종료'">운영중</span>
                 </div>
                 <div class="centers-detail-body">
                     <div class="centers-detail-head">
                         <h3 class="centers-detail-name" th:text="${detailCenter.name}">센터명</h3>
-                        <span th:if="${detailCenter.isActive}" class="center-card-badge active">운영중</span>
-                        <span th:unless="${detailCenter.isActive}" class="center-card-badge inactive">운영종료</span>
                     </div>
                     <p class="centers-detail-desc" th:if="${detailCenter.description != null}"
                        th:text="${detailCenter.description}">설명</p>
@@ -163,6 +165,13 @@
                         </div>
                         <div th:if="${detailCenter.phone != null}">
                             <span class="centers-detail-meta-icon">📞</span><span th:text="${detailCenter.phone}">전화</span>
+                        </div>
+                    </div>
+                    <!-- prototype: 진행중인 프로그램 카드 (F0h gap fix) -->
+                    <div class="centers-detail-programs">
+                        <div class="centers-detail-programs-label">진행중인 프로그램</div>
+                        <div class="centers-detail-programs-count">
+                            <strong th:text="${detailProgramCount != null} ? ${detailProgramCount} : 0">0</strong>건
                         </div>
                     </div>
                     <a class="centers-detail-cta"

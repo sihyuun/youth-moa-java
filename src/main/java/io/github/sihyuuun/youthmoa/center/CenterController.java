@@ -38,18 +38,21 @@ public class CenterController {
     List<String> regions = centerService.distinctActiveRegions();
 
     Center detailCenter = null;
+    Integer detailProgramCount = null;
     if (detailId != null) {
       detailCenter =
           centerService
               .findById(detailId)
               .orElseThrow(
                   () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "청년센터를 찾을 수 없습니다."));
+      detailProgramCount = centerService.programCountFor(detailCenter.getName());
     }
 
     model.addAttribute("currentPage", "centers");
     model.addAttribute("centers", centers);
     model.addAttribute("regions", regions);
     model.addAttribute("detailCenter", detailCenter);
+    model.addAttribute("detailProgramCount", detailProgramCount);
     model.addAttribute("filterQ", q == null ? "" : q);
     model.addAttribute("filterRegion", region == null ? "" : region);
     model.addAttribute("filterOnlyActive", onlyActive);
