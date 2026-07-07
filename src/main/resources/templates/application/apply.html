@@ -11,31 +11,52 @@
 </head>
 <body>
 
-<!--
-  prototype.tsx ProgramApply (line 962~1017) 기준:
-  - 폭 max-width 700px
-  - 헤더 있음 / 푸터 있음
-  - 상단: "← 이전으로" 링크 + "프로그램 신청" h2 (가운데 정렬)
-  - Summary 카드: 80x80 이미지 + Badge "진행중" + 제목 + 기관·기간
-  - 섹션 1 (신청자 정보): 이름/핸드폰/이메일 readonly + 이메일 안내 note
-  - 섹션 2 (추가 정보): 지원 동기 textarea (88px height)
-  - 섹션 3 (개인정보 수집 동의): 동의 내용 박스 (maxHeight 130) + 라디오 원형 동의
-  - 하단: "신청하기" Btn primary L (가운데, width:220)
--->
+<!--/*
+  prototype.html ProgramApply (line 1108~1197) 기준 — F0c-remainder 3단계 위저드.
+  - max-width 700, padding 36px 0 48px
+  - 뒤로가기 38x38 아이콘 버튼 (step 1 = 상세로 / step>=2 = 이전 단계)
+  - 스텝 프로그레스 3단계: 신청자 정보 / 추가 정보 / 약관 동의
+  - Summary 카드 (항상 노출): 64x64 이미지 + 뱃지 + 제목 + 기관·기간
+  - 단계 카드 1장 (surface, radius-lg, border-light, shadow-sm)
+  - Step1: readonly 3필드 + "회원정보 자동입력" 뱃지 + 마이페이지 안내
+  - Step2: 지원 동기 textarea (120px, 선택)
+  - Step3: 개인정보 수집 동의 (약관 4항목 + 원형 라디오)
+  - 네비게이션: 이전 (flex:1) / 다음·신청 완료 (flex:2)
+  - 단일 form 유지, 클라이언트 JS 로 step 전환. 검증 실패 시 에러 있는 스텝으로 초기 노출.
+*/-->
 
 <div th:replace="~{fragments/header :: header('programs')}"></div>
 
 <main class="apply-screen">
     <div class="apply-inner">
 
-        <!-- ← 이전으로 -->
-        <a th:href="@{/programs/{id}(id=${program.id})}" class="apply-back-link">
-            <span class="apply-back-arrow">←</span> 이전으로
+        <!-- 뒤로가기 아이콘 버튼 (JS 로 step>=2 시 이전 스텝 이동) -->
+        <a th:href="@{/programs/{id}(id=${program.id})}" class="apply-back-btn" id="applyBackBtn"
+           title="이전으로">
+            <span aria-hidden="true">&larr;</span>
         </a>
 
         <h2 class="apply-title">프로그램 신청</h2>
 
-        <!-- Summary 카드 -->
+        <!-- 스텝 프로그레스 (3단계) -->
+        <div class="apply-stepper" id="applyStepper">
+            <div class="apply-step" data-step="1">
+                <div class="apply-step-circle"><span class="apply-step-num">1</span><span class="apply-step-check" aria-hidden="true">✓</span></div>
+                <span class="apply-step-label">신청자 정보</span>
+            </div>
+            <div class="apply-step-connector" data-connector="1"></div>
+            <div class="apply-step" data-step="2">
+                <div class="apply-step-circle"><span class="apply-step-num">2</span><span class="apply-step-check" aria-hidden="true">✓</span></div>
+                <span class="apply-step-label">추가 정보</span>
+            </div>
+            <div class="apply-step-connector" data-connector="2"></div>
+            <div class="apply-step" data-step="3">
+                <div class="apply-step-circle"><span class="apply-step-num">3</span><span class="apply-step-check" aria-hidden="true">✓</span></div>
+                <span class="apply-step-label">약관 동의</span>
+            </div>
+        </div>
+
+        <!-- Summary 카드 (항상 노출) -->
         <div class="apply-summary-card">
             <div class="apply-summary-image">
                 <img th:if="${program.imageUrl != null}" th:src="${program.imageUrl}" alt="">
@@ -60,68 +81,78 @@
         <div th:if="${applyError}" class="alert alert-error" th:text="${applyError}"></div>
 
         <form th:action="@{/programs/{id}/apply(id=${program.id})}"
-              th:object="${applyRequest}" method="post" novalidate>
+              th:object="${applyRequest}" method="post" novalidate id="applyForm">
 
             <!-- Bean Validation global error -->
             <div th:if="${#fields.hasGlobalErrors()}" class="alert alert-error">
                 <div th:each="err : ${#fields.globalErrors()}" th:text="${err}"></div>
             </div>
 
-            <!-- ════ 섹션 1: 신청자 정보 (readonly) ════ -->
-            <div class="apply-section-title">신청자 정보</div>
-            <div class="apply-applicant-fields">
-                <div class="apply-applicant-field">
-                    <span class="apply-applicant-label">이름</span>
-                    <div class="apply-applicant-value" th:text="${currentUser.name}">박시현</div>
+            <!-- 단계 카드 (JS 가 data-step 로 show/hide) -->
+            <div class="apply-step-card" data-step-card="1">
+                <div class="apply-step-card-header">
+                    <span class="apply-step-card-title">신청자 정보</span>
+                    <span class="apply-auto-badge">회원정보 자동입력</span>
                 </div>
-                <div class="apply-applicant-field">
-                    <span class="apply-applicant-label">핸드폰 번호</span>
-                    <div class="apply-applicant-value"
-                         th:text="${currentUser.phone != null ? currentUser.phone : '— (마이페이지에서 등록)'}">010-1234-5678</div>
+                <div class="apply-applicant-fields">
+                    <div class="apply-applicant-field">
+                        <span class="apply-applicant-label">이름</span>
+                        <div class="apply-applicant-value" th:text="${currentUser.name}">박시현</div>
+                    </div>
+                    <div class="apply-applicant-field">
+                        <span class="apply-applicant-label">핸드폰 번호</span>
+                        <div class="apply-applicant-value"
+                             th:text="${currentUser.phone != null ? currentUser.phone : '— (마이페이지에서 등록)'}">010-1234-5678</div>
+                    </div>
+                    <div class="apply-applicant-field">
+                        <span class="apply-applicant-label">이메일</span>
+                        <div class="apply-applicant-value" th:text="${currentUser.email}">user@example.com</div>
+                        <div class="apply-applicant-note">이메일을 통해 프로그램 관련 알림을 드립니다.</div>
+                    </div>
                 </div>
-                <div class="apply-applicant-field">
-                    <span class="apply-applicant-label">이메일</span>
-                    <div class="apply-applicant-value" th:text="${currentUser.email}">user@example.com</div>
-                    <div class="apply-applicant-note">이메일을 통해 프로그램 관련 알림을 드립니다.</div>
+                <div class="apply-mypage-note">정보 수정은 마이페이지 › 개인 정보 수정에서 가능합니다.</div>
+            </div>
+
+            <div class="apply-step-card" data-step-card="2">
+                <div class="apply-step-card-header">
+                    <span class="apply-step-card-title">추가 정보</span>
+                </div>
+                <div class="apply-extra-block" th:classappend="${#fields.hasErrors('applyReason')} ? 'has-error'">
+                    <label for="applyReason" class="apply-extra-label">지원 동기</label>
+                    <textarea id="applyReason" th:field="*{applyReason}"
+                              placeholder="지원 동기를 입력해주세요. (선택)"
+                              class="apply-textarea"></textarea>
+                    <p class="apply-field-error" th:if="${#fields.hasErrors('applyReason')}"
+                       th:errors="*{applyReason}"></p>
                 </div>
             </div>
 
-            <!-- ════ 섹션 2: 추가 정보 ════ -->
-            <div class="apply-section-title">추가 정보</div>
-            <div class="apply-extra-block" th:classappend="${#fields.hasErrors('applyReason')} ? 'has-error'">
-                <label for="applyReason" class="apply-extra-label">지원 동기</label>
-                <textarea id="applyReason" th:field="*{applyReason}"
-                          placeholder="이 프로그램에 지원하는 이유를 자유롭게 작성해주세요. (예: 진로 탐색, 역량 강화 등)"
-                          class="apply-textarea"
-                          maxlength="500"></textarea>
-                <!-- 글자 수 카운터 (토스 패턴) — 최소 글자 수 정책은 결정 대기, 일단 표시만 -->
-                <div class="apply-textarea-counter">
-                    <span id="applyReasonCount">0</span> / 500자
+            <div class="apply-step-card" data-step-card="3">
+                <div class="apply-step-card-header">
+                    <span class="apply-step-card-title">개인정보 수집 동의</span>
                 </div>
-                <p class="apply-field-error" th:if="${#fields.hasErrors('applyReason')}"
-                   th:errors="*{applyReason}"></p>
+                <div class="apply-privacy-box">
+                    <strong>개인정보수집 및 초상 이용</strong><br><br>
+                    1. 개인정보 수집 항목: 성명, 생년월일, 성별, 연락처<br>
+                    2. 이용목적: 강좌신청 예약 접수 및 홍보 목적<br>
+                    3. 보유기간: 프로그램 종료 후 3년<br>
+                    4. 동의를 거부할 권리가 있으며, 거부 시 신청이 제한됩니다.
+                </div>
+                <label class="apply-privacy-agree" th:classappend="${#fields.hasErrors('privacyAgreed')} ? 'has-error'">
+                    <input type="checkbox" th:field="*{privacyAgreed}">
+                    <span class="apply-privacy-checkbox"></span>
+                    <span class="apply-privacy-text">개인정보 수집 및 이용에 동의합니다</span>
+                </label>
+                <p class="apply-field-error"
+                   th:if="${#fields.hasErrors('privacyAgreed')}"
+                   th:errors="*{privacyAgreed}">에러 메시지</p>
             </div>
 
-            <!-- ════ 섹션 3: 개인정보 수집 동의 ════ -->
-            <div class="apply-section-title">개인정보 수집 동의</div>
-            <div class="apply-privacy-box">
-                <strong>개인정보수집 및 초상 이용</strong><br><br>
-                1. 개인정보 수집 항목: 성명, 생년월일, 성별, 연락처<br>
-                2. 이용목적: 강좌신청 예약 접수 및 홍보 목적
-            </div>
-            <label class="apply-privacy-agree" th:classappend="${#fields.hasErrors('privacyAgreed')} ? 'has-error'">
-                <input type="checkbox" th:field="*{privacyAgreed}">
-                <span class="apply-privacy-checkbox"></span>
-                <span class="apply-privacy-text">동의합니다</span>
-            </label>
-            <!-- @AssertTrue 메시지 노출 (privacyAgreed=false 로 제출 시 "개인정보 수집 동의가 필요합니다." 렌더) -->
-            <p class="apply-field-error"
-               th:if="${#fields.hasErrors('privacyAgreed')}"
-               th:errors="*{privacyAgreed}">에러 메시지</p>
-
-            <!-- ════ 액션 ════ -->
-            <div class="apply-actions">
-                <button type="submit" class="btn-auth btn-auth--primary apply-submit-btn">신청하기</button>
+            <!-- 네비게이션 -->
+            <div class="apply-nav">
+                <button type="button" class="btn-auth btn-auth--secondary apply-nav-prev" id="applyNavPrev">이전</button>
+                <button type="button" class="btn-auth btn-auth--primary apply-nav-next" id="applyNavNext">다음</button>
+                <button type="submit" class="btn-auth btn-auth--primary apply-nav-submit" id="applyNavSubmit">신청 완료</button>
             </div>
         </form>
     </div>
@@ -129,16 +160,78 @@
 
 <div th:replace="~{fragments/footer :: footer}"></div>
 
+<!-- 서버 검증 실패 시 에러 있는 스텝을 초기 표시 (JS 가 읽음) -->
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    window.__applyErrors = {
+        applyReason: /*[[${#fields.hasErrors('applyReason')}]]*/ false,
+        privacyAgreed: /*[[${#fields.hasErrors('privacyAgreed')}]]*/ false
+    };
+    /*]]>*/
+</script>
 <script>
-    // 지원 동기 글자 수 카운터 (토스 패턴)
-    (function () {
-        const ta = document.getElementById('applyReason');
-        const counter = document.getElementById('applyReasonCount');
-        if (!ta || !counter) return;
-        function update() { counter.textContent = ta.value.length; }
-        ta.addEventListener('input', update);
-        update();
-    })();
+(function () {
+    const TOTAL = 3;
+    let current = 1;
+
+    // 검증 실패 시 초기 스텝 결정 (applyReason → 2, privacyAgreed → 3, 둘 다면 2 부터)
+    if (window.__applyErrors) {
+        if (window.__applyErrors.applyReason) current = 2;
+        else if (window.__applyErrors.privacyAgreed) current = 3;
+    }
+
+    const backBtn = document.getElementById('applyBackBtn');
+    const backHref = backBtn.getAttribute('href');
+    const prevBtn = document.getElementById('applyNavPrev');
+    const nextBtn = document.getElementById('applyNavNext');
+    const submitBtn = document.getElementById('applyNavSubmit');
+    const privacyInput = document.querySelector('input[type="checkbox"][name="privacyAgreed"]');
+
+    function render() {
+        // 단계 카드 show/hide
+        document.querySelectorAll('[data-step-card]').forEach(el => {
+            el.classList.toggle('is-active', Number(el.dataset.stepCard) === current);
+        });
+        // 스텝 프로그레스
+        document.querySelectorAll('.apply-step').forEach(el => {
+            const n = Number(el.dataset.step);
+            el.classList.toggle('is-active', n === current);
+            el.classList.toggle('is-done', n < current);
+        });
+        document.querySelectorAll('.apply-step-connector').forEach(el => {
+            const n = Number(el.dataset.connector);
+            el.classList.toggle('is-done', current > n);
+        });
+        // 네비게이션 버튼
+        prevBtn.style.display = current > 1 ? '' : 'none';
+        nextBtn.style.display = current < TOTAL ? '' : 'none';
+        submitBtn.style.display = current === TOTAL ? '' : 'none';
+        // 신청 완료 버튼 disabled (동의 여부에 따라)
+        if (current === TOTAL && privacyInput) {
+            submitBtn.disabled = !privacyInput.checked;
+        }
+    }
+
+    // 뒤로가기: step 1 은 상세로, step>=2 는 이전 스텝
+    backBtn.addEventListener('click', function (e) {
+        if (current > 1) {
+            e.preventDefault();
+            current -= 1;
+            render();
+        }
+    });
+    prevBtn.addEventListener('click', function () {
+        if (current > 1) { current -= 1; render(); }
+    });
+    nextBtn.addEventListener('click', function () {
+        if (current < TOTAL) { current += 1; render(); }
+    });
+    if (privacyInput) {
+        privacyInput.addEventListener('change', render);
+    }
+
+    render();
+})();
 </script>
 
 </body>
