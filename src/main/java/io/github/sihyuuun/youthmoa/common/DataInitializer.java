@@ -358,10 +358,15 @@ public class DataInitializer implements ApplicationRunner {
     centersByRegion.put("화성시", List.of("화성시 청년취업끝까지 지원센터", "화성시청년지원센터 H.E.Y"));
 
     // 전체 (region, name) 펼친 뒤 name 가나다순으로 상위 5개 isFeatured=true
+    // F0h-c1: 기본 operatingHours = "평일 09:00~18:00" 로 채움. desc/imageUrl 은 대표 8개만 아래 seedContent 에서 주입.
+    String defaultHours = "평일 09:00~18:00";
     List<Center> centers = new ArrayList<>();
     centersByRegion.forEach(
         (region, names) ->
-            names.forEach(n -> centers.add(Center.builder().name(n).region(region).build())));
+            names.forEach(
+                n ->
+                    centers.add(
+                        Center.builder().name(n).region(region).operatingHours(defaultHours).build())));
 
     // F0h — 대표 8개 센터에 실좌표 (경기도 각 시 청년센터 대략 위치). 나머지는 null → 마커 skip.
     Map<String, java.math.BigDecimal[]> seedCoords = new LinkedHashMap<>();
@@ -409,6 +414,38 @@ public class DataInitializer implements ApplicationRunner {
       java.math.BigDecimal[] latlng = seedCoords.get(c.getName());
       if (latlng != null) {
         c.updateCoordinates(latlng[0], latlng[1]);
+      }
+    }
+
+    // F0h-c1: 대표 8개 센터에 desc + imageUrl 주입 (operatingHours 는 기본값 유지)
+    Map<String, String[]> seedContent = new LinkedHashMap<>();
+    seedContent.put(
+        "청년바람지대",
+        new String[] {"청년 창업과 네트워킹을 위한 복합문화공간", "/images/centers/placeholder-1.png"});
+    seedContent.put(
+        "청년이봄", new String[] {"취업·역량강화 특화 청년지원센터", "/images/centers/placeholder-2.png"});
+    seedContent.put(
+        "안양청년1번가",
+        new String[] {"정신건강·힐링 프로그램 전문 센터", "/images/centers/placeholder-3.png"});
+    seedContent.put(
+        "소사청년공간 소사로움",
+        new String[] {"취업·역량강화 특화 청년지원센터", "/images/centers/placeholder-4.png"});
+    seedContent.put(
+        "화성시청년지원센터 H.E.Y",
+        new String[] {"취업·진로 전문 지원 청년센터", "/images/centers/placeholder-5.png"});
+    seedContent.put(
+        "광명시 청년동",
+        new String[] {"지역사회 연계 청년 커뮤니티 허브", "/images/centers/placeholder-6.png"});
+    seedContent.put(
+        "양평청년공간 오름",
+        new String[] {"소셜벤처·사회적 경제 청년 지원", "/images/centers/placeholder-7.png"});
+    seedContent.put(
+        "의왕청년발전소",
+        new String[] {"지역사회 연계 청년 커뮤니티 허브", "/images/centers/placeholder-8.png"});
+    for (Center c : centers) {
+      String[] content = seedContent.get(c.getName());
+      if (content != null) {
+        c.updateContent(content[0], defaultHours, content[1]);
       }
     }
 

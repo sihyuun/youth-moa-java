@@ -12,12 +12,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.server.ResponseStatusException;
 
 /**
- * 청년센터 목록·상세.
+ * 청년센터 3-column 목록 + 인라인 상세 패널.
  *
- * <p>@Controller (vs @RestController) — Thymeleaf 뷰 렌더용. 반환 String 은 view name 으로 해석.
- *
- * <p>{@code kakaoMapAppKey} 는 application.yml 의 {@code youthmoa.kakao.map-app-key} 값. 미설정(빈 문자열) 이면
- * 템플릿의 {@code th:if} 로 카카오맵 SDK script 태그를 아예 안 렌더 → 지도 자리엔 fallback 문구 표시.
+ * <p>F0h-c2: `/centers` 와 `/centers/{id}` 를 단일 메서드로 처리. detailId 존재 시 인라인 상세 패널 렌더. 별도 `detail.html`
+ * 라우트는 제거.
  */
 @Controller
 @RequiredArgsConstructor
@@ -28,8 +26,9 @@ public class CenterController {
   @Value("${youthmoa.kakao.map-app-key:}")
   private String kakaoMapAppKey;
 
-  @GetMapping("/centers")
+  @GetMapping({"/centers", "/centers/{detailId}"})
   public String list(
+      @PathVariable(required = false) Long detailId,
       @RequestParam(required = false) String q,
       @RequestParam(required = false) String region,
       @RequestParam(required = false, defaultValue = "false") boolean onlyActive,
@@ -38,28 +37,24 @@ public class CenterController {
     List<CenterListItem> centers = centerService.list(q, region, onlyActive, sort);
     List<String> regions = centerService.distinctActiveRegions();
 
+    Center detailCenter = null;
+    if (detailId != null) {
+      detailCenter =
+          centerService
+              .findById(detailId)
+              .orElseThrow(
+                  () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "청년센터를 찾을 수 없습니다."));
+    }
+
     model.addAttribute("currentPage", "centers");
     model.addAttribute("centers", centers);
     model.addAttribute("regions", regions);
+    model.addAttribute("detailCenter", detailCenter);
     model.addAttribute("filterQ", q == null ? "" : q);
     model.addAttribute("filterRegion", region == null ? "" : region);
     model.addAttribute("filterOnlyActive", onlyActive);
     model.addAttribute("filterSort", sort);
     model.addAttribute("kakaoMapAppKey", kakaoMapAppKey);
     return "center/list";
-  }
-
-  @GetMapping("/centers/{id}")
-  public String detail(@PathVariable Long id, Model model) {
-    Center center =
-        centerService
-            .findById(id)
-            .orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "청년센터를 찾을 수 없습니다."));
-
-    model.addAttribute("currentPage", "centers");
-    model.addAttribute("center", center);
-    model.addAttribute("kakaoMapAppKey", kakaoMapAppKey);
-    return "center/detail";
   }
 }

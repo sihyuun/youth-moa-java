@@ -8,9 +8,9 @@
           rel="stylesheet">
     <link rel="icon" type="image/png" th:href="@{/images/logo_symbol.png}">
     <link rel="stylesheet" th:href="@{/css/main.css}">
-    <!-- Kakao Maps SDK — appkey 미설정 시 script 태그 자체를 렌더하지 않아 fallback 문구만 표시 -->
+    <!-- Kakao Maps SDK — appkey 미설정 시 script 태그 자체를 렌더 안 함. clusterer 옵션 상시 로드 (F0h-c4). -->
     <script th:if="${!#strings.isEmpty(kakaoMapAppKey)}"
-            th:src="'https://dapi.kakao.com/v2/maps/sdk.js?appkey=' + ${kakaoMapAppKey} + '&autoload=false'"></script>
+            th:src="'https://dapi.kakao.com/v2/maps/sdk.js?appkey=' + ${kakaoMapAppKey} + '&autoload=false&libraries=clusterer'"></script>
     <script th:src="@{/js/center-map.js}" defer></script>
 </head>
 <body>
@@ -18,62 +18,174 @@
 <div th:replace="~{fragments/header :: header('centers')}"></div>
 
 <main class="main-content">
-    <div class="page-title-bar">
-        <h2>청년센터</h2>
+
+    <!-- 필터 바 (검색 + 커스텀 지역 드롭다운 + 운영중 토글) -->
+    <div class="centers-filter-bar">
+        <div class="container centers-filter-inner">
+            <form class="centers-filter-form" method="get" th:action="@{/centers}">
+                <div class="centers-filter-search-wrap">
+                    <input class="centers-filter-search" type="text" name="q" placeholder="센터명, 지역 검색"
+                           th:value="${filterQ}">
+                </div>
+
+                <!-- 커스텀 지역 드롭다운 -->
+                <div class="centers-filter-region-dropdown" data-region-dropdown>
+                    <button type="button"
+                            class="centers-filter-region-trigger"
+                            th:classappend="${!#strings.isEmpty(filterRegion)} ? 'is-selected' : ''"
+                            data-region-trigger>
+                        <span class="centers-filter-region-pin" th:if="${!#strings.isEmpty(filterRegion)}">📍</span>
+                        <span class="centers-filter-region-text"
+                              th:text="${#strings.isEmpty(filterRegion)} ? '지역 선택' : ${filterRegion}">지역 선택</span>
+                        <span class="centers-filter-region-clear"
+                              th:if="${!#strings.isEmpty(filterRegion)}"
+                              data-region-clear
+                              title="지역 선택 해제">×</span>
+                        <span class="centers-filter-region-chevron" th:if="${#strings.isEmpty(filterRegion)}">▾</span>
+                    </button>
+                    <div class="centers-filter-region-panel" hidden data-region-panel>
+                        <input type="text" class="centers-filter-region-search"
+                               placeholder="지역 검색" data-region-search>
+                        <ul class="centers-filter-region-list" data-region-list>
+                            <li th:each="r : ${regions}"
+                                class="centers-filter-region-item"
+                                th:classappend="${r == filterRegion} ? 'is-selected' : ''"
+                                th:data-region="${r}"
+                                th:text="${r}">지역명</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="centers-filter-spacer"></div>
+
+                <!-- 운영중 토글 스위치 -->
+                <label class="centers-filter-toggle-switch">
+                    <input type="checkbox" name="onlyActive" value="true"
+                           th:checked="${filterOnlyActive}"
+                           data-only-active-toggle>
+                    <span class="centers-filter-toggle-track">
+                        <span class="centers-filter-toggle-handle"></span>
+                    </span>
+                    <span class="centers-filter-toggle-label">운영중만 보기</span>
+                </label>
+
+                <!-- hidden: sort 는 pill 이 조작 -->
+                <input type="hidden" name="sort" th:value="${filterSort}" data-sort-input>
+            </form>
+        </div>
     </div>
 
     <div class="container centers-container">
-        <!-- 필터 바 -->
-        <form class="centers-filter" method="get" th:action="@{/centers}">
-            <input class="centers-filter-search" type="text" name="q" placeholder="센터명, 지역 검색"
-                   th:value="${filterQ}">
-            <select class="centers-filter-region" name="region">
-                <option value="" th:selected="${#strings.isEmpty(filterRegion)}">전체 지역</option>
-                <option th:each="r : ${regions}" th:value="${r}" th:text="${r}"
-                        th:selected="${r == filterRegion}"></option>
-            </select>
-            <label class="centers-filter-toggle">
-                <input type="checkbox" name="onlyActive" value="true"
-                       th:checked="${filterOnlyActive}">
-                <span>운영중만 보기</span>
-            </label>
-            <button type="submit" class="centers-filter-submit">검색</button>
-        </form>
+        <!-- 3-column: 리스트 + (인라인 상세) + 지도 -->
+        <div class="centers-layout"
+             th:classappend="${detailCenter != null} ? 'has-detail' : ''">
 
-        <!-- 좌 리스트 400 / 우 지도 flex:1 -->
-        <div class="centers-layout">
+            <!-- 리스트 컬럼 (detail 있을 때 240, 없을 때 360) -->
             <aside class="centers-list-panel">
-                <div class="centers-list-count">
-                    총 <strong th:text="${#lists.size(centers)}">0</strong>개 센터
+                <div class="centers-list-head">
+                    <div class="centers-list-count">
+                        총 <strong th:text="${#lists.size(centers)}">0</strong>개 센터
+                    </div>
+                    <!-- 정렬 pill (detail 없을 때만) -->
+                    <div class="centers-sort-pill" th:if="${detailCenter == null}">
+                        <button type="button"
+                                class="centers-sort-pill-item"
+                                th:classappend="${filterSort != 'programs'} ? 'is-active' : ''"
+                                data-sort="name">이름순</button>
+                        <button type="button"
+                                class="centers-sort-pill-item"
+                                th:classappend="${filterSort == 'programs'} ? 'is-active' : ''"
+                                data-sort="programs">프로그램많은순</button>
+                    </div>
                 </div>
+
                 <div class="centers-list-scroll" id="centers-list">
                     <div th:if="${#lists.isEmpty(centers)}" class="centers-list-empty">
                         조건에 맞는 센터가 없습니다.
                     </div>
+                    <!-- Full 카드 vs Compact 카드 조건부 -->
                     <a th:each="c : ${centers}"
-                       th:href="@{/centers/{id}(id=${c.id})}"
+                       th:href="@{'/centers/' + ${c.id}(q=${filterQ},region=${filterRegion},onlyActive=${filterOnlyActive},sort=${filterSort})}"
                        class="center-card"
-                       th:attr="data-center-id=${c.id},
-                                data-lat=${c.latitude},
-                                data-lng=${c.longitude}">
-                        <div class="center-card-head">
-                            <span class="center-card-name" th:text="${c.name}">센터명</span>
+                       th:classappend="${detailCenter != null and detailCenter.id == c.id} ? 'is-active' : ''"
+                       th:attr="data-center-id=${c.id},data-lat=${c.latitude},data-lng=${c.longitude}">
+                        <!-- Compact 모드: detail 있을 때 -->
+                        <div class="center-card-compact" th:if="${detailCenter != null}">
+                            <div class="center-card-compact-icon"
+                                 th:classappend="${detailCenter.id == c.id} ? 'is-active' : ''">📍</div>
+                            <div class="center-card-compact-body">
+                                <div class="center-card-compact-name" th:text="${c.name}">센터명</div>
+                                <div class="center-card-compact-region" th:text="${c.region}">지역</div>
+                            </div>
                             <span th:if="${c.isActive}" class="center-card-badge active">운영중</span>
                             <span th:unless="${c.isActive}" class="center-card-badge inactive">운영종료</span>
                         </div>
-                        <div class="center-card-region" th:text="${c.region}">지역</div>
-                        <div class="center-card-address" th:text="${c.address}">주소</div>
-                        <div class="center-card-phone" th:if="${c.phone != null}" th:text="${c.phone}">전화</div>
+                        <!-- Full 모드: detail 없을 때 -->
+                        <div class="center-card-full" th:if="${detailCenter == null}">
+                            <div class="center-card-head">
+                                <span class="center-card-name" th:text="${c.name}">센터명</span>
+                                <span th:if="${c.isActive}" class="center-card-badge active">운영중</span>
+                                <span th:unless="${c.isActive}" class="center-card-badge inactive">운영종료</span>
+                            </div>
+                            <div class="center-card-address" th:text="${c.address}">주소</div>
+                            <div class="center-card-foot">
+                                <span class="center-card-programs">
+                                    프로그램 <strong th:text="${c.programCount}">0</strong>건
+                                </span>
+                                <span class="center-card-more">상세보기 →</span>
+                            </div>
+                        </div>
                     </a>
                 </div>
             </aside>
 
+            <!-- 인라인 상세 패널 (detailCenter null 이면 미렌더) -->
+            <aside class="centers-detail-panel" th:if="${detailCenter != null}">
+                <a class="centers-detail-close"
+                   th:href="@{/centers(q=${filterQ},region=${filterRegion},onlyActive=${filterOnlyActive},sort=${filterSort})}"
+                   title="닫기" aria-label="닫기">×</a>
+                <div class="centers-detail-image"
+                     th:style="${detailCenter.imageUrl != null} ? |background-image:url(${detailCenter.imageUrl})| : ''">
+                    <span th:if="${detailCenter.imageUrl == null}" class="centers-detail-image-placeholder">🏢</span>
+                </div>
+                <div class="centers-detail-body">
+                    <div class="centers-detail-head">
+                        <h3 class="centers-detail-name" th:text="${detailCenter.name}">센터명</h3>
+                        <span th:if="${detailCenter.isActive}" class="center-card-badge active">운영중</span>
+                        <span th:unless="${detailCenter.isActive}" class="center-card-badge inactive">운영종료</span>
+                    </div>
+                    <p class="centers-detail-desc" th:if="${detailCenter.description != null}"
+                       th:text="${detailCenter.description}">설명</p>
+                    <div class="centers-detail-meta">
+                        <div><span class="centers-detail-meta-icon">📍</span><span th:text="${detailCenter.address}">주소</span></div>
+                        <div th:if="${detailCenter.operatingHours != null}">
+                            <span class="centers-detail-meta-icon">🕒</span><span th:text="${detailCenter.operatingHours}">운영시간</span>
+                        </div>
+                        <div th:if="${detailCenter.phone != null}">
+                            <span class="centers-detail-meta-icon">📞</span><span th:text="${detailCenter.phone}">전화</span>
+                        </div>
+                    </div>
+                    <a class="centers-detail-cta"
+                       th:href="@{/programs(region=${detailCenter.region})}">프로그램 전체보기</a>
+                </div>
+            </aside>
+
+            <!-- 지도 컬럼 (flex:1) -->
             <div class="centers-map-panel">
                 <div id="center-map" class="center-map-container"></div>
-                <div class="map-fallback"
+
+                <!-- "이 지역에서 검색" floating (초기 hidden) -->
+                <button type="button" class="centers-map-search-here" data-search-here hidden>
+                    <span class="centers-map-search-here-icon">↻</span>
+                    <span>이 지역에서 검색</span>
+                </button>
+
+                <!-- Fallback: 카카오맵 appkey 미설정 시 -->
+                <div class="center-map-fallback"
                      th:if="${#strings.isEmpty(kakaoMapAppKey)}">
-                    지도를 불러올 수 없습니다.<br>
-                    <small>KAKAO_MAP_APP_KEY 환경변수를 설정해 주세요. 좌측 목록에서 센터를 확인하실 수 있습니다.</small>
+                    <div class="center-map-fallback-icon">📍</div>
+                    <div class="center-map-fallback-title">지도 미설정</div>
+                    <div class="center-map-fallback-sub">좌측 목록에서 청년센터를 확인하실 수 있어요</div>
                 </div>
             </div>
         </div>
