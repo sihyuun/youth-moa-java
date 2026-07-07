@@ -168,6 +168,9 @@
     var defaultCenter = new kakao.maps.LatLng(37.4138, 127.5183);
     var map = new kakao.maps.Map(mapEl, { center: defaultCenter, level: 10 });
 
+    // (B) ZoomControl UI — 사용자 수동 zoom 조절 (레퍼런스: 네이버 부동산, 카카오맵)
+    map.addControl(new kakao.maps.ZoomControl(), kakao.maps.ControlPosition.RIGHT);
+
     var searchHereBtn = document.querySelector('[data-search-here]');
     var overlays = [];
     var selectedId = null;
@@ -225,8 +228,27 @@
       });
     });
 
-    map.setBounds(bounds);
-    setTimeout(function () { map.relayout(); map.setBounds(bounds); }, 100);
+    // (A + C) bounds fit + zoom clamp
+    //   - 필터 결과 (validCards) 만 bounds 에 포함되므로 지역 필터 시 자동으로 그 지역 중심 fit (C)
+    //   - clamp: level 5 (너무 확대 방지) ~ 9 (너무 축소 방지). 레퍼런스: 에어비앤비/Google Maps maxZoom clamp (A)
+    //   - 단일 마커 케이스: setBounds 는 level 1 로 확대해버림 → minLevel 5 로 clamp (동네 시야)
+    function fitAndClamp() {
+      map.relayout();
+      map.setBounds(bounds);
+      var lv = map.getLevel();
+      var MIN_LEVEL = 5;   // 확대 상한 (건물 단위까지 안 가게)
+      var MAX_LEVEL = 9;   // 축소 상한 (경기도 도 전체는 넘지 않게)
+      // 필터 결과 개수 별 미세 조정
+      if (validCards.length === 1) {
+        map.setLevel(MIN_LEVEL);
+      } else if (lv < MIN_LEVEL) {
+        map.setLevel(MIN_LEVEL);
+      } else if (lv > MAX_LEVEL) {
+        map.setLevel(MAX_LEVEL);
+      }
+    }
+    fitAndClamp();
+    setTimeout(fitAndClamp, 100);
 
     function selectMarker(id) {
       selectedId = id;
