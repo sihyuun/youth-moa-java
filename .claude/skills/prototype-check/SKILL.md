@@ -33,6 +33,9 @@ disable-model-invocation: true
 | `signup` | `templates/user/signup.html` | `SignupScreen` (1414~1541) | §5.7 |
 | `header` | `templates/fragments/header.html` | `Header` (319~381) | §4.4 |
 | `footer` | `templates/fragments/footer.html` | `Footer` (384~412) | §4.5 |
+| `centers` | `templates/center/list.html` + `detail.html` | `CentersScreen` (1919~2160) | §5.15 |
+| `mypage` | `templates/mypage/*` | `MyPage*` | (D5 도입) |
+| `search` | `templates/search/result.html` | `SearchResult` | (D4 도입) |
 
 ---
 
@@ -47,6 +50,19 @@ disable-model-invocation: true
 3. `wireframe.png` — Read (이미지 직접 열람) 로 정책 텍스트 확인
 4. `HANDOFF.md` — 매핑표의 section 정독
 5. 현재 Thymeleaf 템플릿 Read
+
+## Step 2-A — 아키텍처 레벨 대조 (skip 금지)
+
+> **배경 (2026-07-07 F0h 사고)**: `/centers` PR 이 curl grep 기반 갭 스캔은 통과했으나 3-column vs 2-column 이라는 근본 아키텍처 차이를 못 잡아 재작업 발생.
+
+curl grep 이전에 prototype 과 현재 구현의 **최상위 레이아웃 축**을 대조한다:
+
+1. 페이지 최상위 flex/grid 축 갯수 (2-column vs 3-column vs stacked)
+2. 각 컬럼의 폭·flex-basis (prototype 기준값 명시)
+3. **인터랙션이 페이지 이동인가, 인라인 패널 전환인가**
+4. sticky/floating 요소 (필터바, "이 지역에서 검색" 같은 map overlay)
+
+셋 중 하나라도 다르면 "미세 갭" 이 아니라 **아키텍처 갭** 으로 분류해 리포트 최상단에 배치.
 
 ## Step 3 — 자산 간 갭 식별
 
