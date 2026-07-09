@@ -20,6 +20,9 @@
 *.js text eol=lf
 *.md text eol=lf
 
+# CSV seed 데이터 (F0h-real-coords)
+src/main/resources/data/*.csv text eol=lf
+
 # Binary
 *.jar binary
 *.war binary

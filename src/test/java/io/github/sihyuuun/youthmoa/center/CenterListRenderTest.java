@@ -148,6 +148,22 @@ class CenterListRenderTest {
         .andExpect(content().string(containsString("centers-detail-meta-badge")));
   }
 
+  // ═══════════════════════════════════════════════════════════════════════
+  // F0h-real-coords §9-8 (2026-07-09 재개정) — 운영시간 CSS 자동 줄바꿈
+  // ", " split 방식은 괄호 케이스 어색하게 깨짐 → CSS 폭 wrap 으로 전환
+  // ═══════════════════════════════════════════════════════════════════════
+
+  @Test
+  void F0h_realCoords_운영시간_CSS_자동_줄바꿈_클래스_존재() throws Exception {
+    mockMvc
+        .perform(get("/centers/1/detail-fragment"))
+        .andExpect(status().isOk())
+        // 운영시간 wrapper 클래스가 렌더되어야 함 (CSS 에 word-break/overflow-wrap 규칙 있음)
+        .andExpect(content().string(containsString("centers-detail-hours")))
+        // ", " split 방식 잔재가 있으면 안 됨 (재도입 방지)
+        .andExpect(content().string(not(containsString("centers-detail-hours-line\""))));
+  }
+
   @Test
   void F0h_c2_cards_fragment_endpoint_full_모드() throws Exception {
     mockMvc

@@ -30,6 +30,8 @@ dependencies {
 	// 2.0.10 로 bump (#35) 이후 E2E 대량 실패 → 2.0.4 로 revert (2026-07-03). E2E 안정화 후 재상승 검토.
 	implementation("org.webjars.npm:htmx.org:2.0.4")
 	implementation("org.webjars:webjars-locator-core")
+	// F0h-real-coords: CSV 시드 로더 (RFC 4180 파싱). 48행 규모, DataInitializer 에서만 사용.
+	implementation("com.opencsv:opencsv:5.9")
 	compileOnly("org.projectlombok:lombok")
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
 	runtimeOnly("org.postgresql:postgresql")

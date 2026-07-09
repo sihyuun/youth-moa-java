@@ -4267,6 +4267,12 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
   background: var(--color-primary-bg);
   flex-shrink: 0;
 }
+/* F0h-real-coords §9-8 (2026-07-09 재개정): 운영시간 자동 줄바꿈. 컨테이너 폭 넘어가면 브라우저가 자연스럽게 wrap. */
+.centers-detail-hours {
+  line-height: 1.5;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
 .centers-detail-cta {
   display: block;
   text-align: center;
@@ -4543,6 +4549,19 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
   font-size: 11px;
   color: var(--color-text-tri);
   margin-bottom: 10px;
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+}
+.center-info-window-hours-icon {
+  flex-shrink: 0;
+  line-height: 1.5;
+}
+.center-info-window-hours-text {
+  flex: 1;
+  line-height: 1.5;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 .center-info-window-actions {
   display: flex;

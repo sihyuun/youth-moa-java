@@ -436,8 +436,13 @@
           (target.address
             ? '<div class="center-info-window-address">' + escapeHtml(target.address) + '</div>'
             : '') +
+          // F0h-real-coords §9-8 (2026-07-09 재개정): 컨테이너 폭 넘어가면 CSS 자동 줄바꿈.
+          // 아이콘은 flex 로 첫 라인과 나란히 정렬. ", " split 방식 폐기 (괄호 케이스 어색).
           (target.hours
-            ? '<div class="center-info-window-hours">🕒 ' + escapeHtml(target.hours) + '</div>'
+            ? '<div class="center-info-window-hours">' +
+                '<span class="center-info-window-hours-icon">🕒</span>' +
+                '<span class="center-info-window-hours-text">' + escapeHtml(target.hours) + '</span>' +
+              '</div>'
             : '') +
           '<div class="center-info-window-actions">' +
             // FAIL-2 fix: full page reload 회피 — button 태그 + centers:request-detail 이벤트 dispatch.

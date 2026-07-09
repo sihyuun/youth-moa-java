@@ -80,7 +80,9 @@
                 <span class="centers-detail-meta-badge">
                     <svg th:replace="~{fragments/icons :: calendar(13, 'var(--color-primary)')}"></svg>
                 </span>
-                <span th:text="${detailCenter.operatingHours}">운영시간</span>
+                <!-- F0h-real-coords §9-8 (2026-07-09 재개정): 컨테이너 폭 넘어가면 CSS 자동 줄바꿈.
+                     ", " split 방식은 "확인 불가 (입주기업 전용, 직접 문의)" 같은 괄호 케이스에서 어색하게 깨짐. -->
+                <span class="centers-detail-hours" th:text="${detailCenter.operatingHours}">운영시간</span>
             </div>
             <div class="centers-detail-meta-row" th:if="${detailCenter.phone != null}">
                 <span class="centers-detail-meta-badge">
