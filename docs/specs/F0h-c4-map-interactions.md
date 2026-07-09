@@ -297,7 +297,7 @@ SDK 로드 URL 확장 (list.html):
 |---|---|---|
 | 카드 mouseenter/leave → 마커 zIndex 999/원복 | ✅ | js:293~302 (`overlay.setZIndex()` 로 교체) |
 | 마커 click → 카드 `.is-highlighted` + scrollIntoView | ✅ | js:349~373 `selectMarker()` → `highlightCard()` (2026-07-08 신규 — 종전 미구현이었음). 다른 카드 하이라이트 제거 + `scrollIntoView({block:'nearest', behavior:'smooth'})`. 카드 매칭은 overlays[].card (data-center-id 기반 수집, js:255) |
-| **list → map 카드 클릭 시 map.panTo (2026-07-09 개정)** | ✅ | js:377~379 `selectMarker()` 내 `openInfoWindow()` 직전에 `map.panTo(new kakao.maps.LatLng(target.lat, target.lng))` 호출. `target` null 방어는 기존 `if (target)` 블록에 포함됨. 사유: prototype 은 시뮬 정적 지도라 panning 미정의이나, 실 SDK 환경에서 마커가 뷰포트 밖일 때 selected 상태 시각화를 위해 필수 |
+| **list → map 카드 클릭 시 setLevel(4) + setCenter + panBy (2026-07-09 재개정)** | ✅ | js:377~394 `selectMarker()` 내: (1) `map.setLevel(4)` — 동 단위 확대(약 250~500m 시야), (2) `map.setCenter(latlng)` — 마커 지도 중앙 배치, (3) `openInfoWindow(target)` 후 setTimeout 120ms → `map.panBy(0, -(infoH/2))` — 인포윈도우가 마커 위에 뜨므로 지도를 위로 이동해 인포윈도우 중앙 정렬. 인포윈도우 실제 높이는 `.center-info-window` DOM offsetHeight 로 측정 (fallback 260). 사유: 마커가 뷰포트 밖일 때 selected 상태 시각화 + 동 단위 확대로 위치 명확화 + 인포윈도우 중앙 정렬로 UX 개선 (사용자 요청 2026-07-09) |
 | 마커 click → pill 확장 + 인포윈도우 | ✅ | js:349~360 |
 | 인포윈도우 X → 선택 해제 | ✅ | js:425~428 → js:375~383 `clearSelection()` (`.is-highlighted` 도 함께 제거) |
 | 인포윈도우 [상세보기] → /centers/{id} | ✅ | js:414 |

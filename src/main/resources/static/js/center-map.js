@@ -375,14 +375,28 @@
       if (target) {
         highlightCard(target.card);
         // spec §3-4-A (2026-07-09 개정): 마커가 뷰포트 밖일 때 selected 상태 시각화 보장.
-        // openInfoWindow 앞에서 panTo 를 먼저 호출해 인포윈도우 좌표 보정이 이동 후 시점에 정확하도록 함.
-        // target.pos 는 이미 kakao.maps.LatLng 인스턴스이므로 그대로 활용 (validCards 의 lat/lng 로 생성됨, js:206).
+        // + 사용자 요청 (2026-07-09 재개정): 동 단위까지 확대 + 인포윈도우 지도 중앙 정렬.
+        //   - kakao level 4 ≈ 동/블록 단위 (약 250~500m 시야)
+        //   - 인포윈도우가 마커 위에 뜨므로, 마커를 지도 중앙보다 약간 아래로 배치해야 인포윈도우가 중앙에 옴
+        //     → 마커 좌표에서 setCenter 한 뒤 panBy 로 지도를 위로 이동 (마커는 아래로 밀림)
         var targetLat = typeof target.pos.getLat === 'function' ? target.pos.getLat() : null;
         var targetLng = typeof target.pos.getLng === 'function' ? target.pos.getLng() : null;
         if (targetLat != null && targetLng != null) {
-          map.panTo(new kakao.maps.LatLng(targetLat, targetLng));
+          var latlng = new kakao.maps.LatLng(targetLat, targetLng);
+          map.setLevel(4);                            // 동 단위 확대
+          map.setCenter(latlng);                       // 마커를 지도 중앙에
+          openInfoWindow(target);                      // 인포윈도우 open (마커 위에 뜸)
+          // 인포윈도우 open 후 DOM 렌더 완료 대기 → 실제 인포윈도우 높이로 정확 offset 계산
+          setTimeout(function () {
+            var infoEl = document.querySelector('.center-info-window');
+            var infoH = infoEl ? infoEl.offsetHeight : 260; // fallback 260
+            // 마커를 아래로 밀어 인포윈도우가 중앙에 오도록 지도를 위로 이동
+            // panBy 음수 y = 지도를 위로 pan (viewport 안 콘텐츠는 위로 이동)
+            map.panBy(0, -(infoH / 2));
+          }, 120);
+        } else {
+          openInfoWindow(target);
         }
-        openInfoWindow(target);
       }
     }
     // FAIL-1 fix: module-scope 공개 (centers:detail-open / centers:detail-close 리스너 사용)

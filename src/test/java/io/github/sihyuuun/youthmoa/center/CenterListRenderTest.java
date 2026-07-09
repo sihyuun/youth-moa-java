@@ -213,13 +213,18 @@ class CenterListRenderTest {
   }
 
   @Test
-  void F0h_center_map_js_panTo_구현() throws Exception {
-    // spec §3-4-A (2026-07-09 개정): selectMarker() 내에서 map.panTo(new kakao.maps.LatLng(...)) 호출.
+  void F0h_center_map_js_selectMarker_setLevel_setCenter_panBy_구현() throws Exception {
+    // spec §3-4-A (2026-07-09 재개정): 카드 클릭 시 selectMarker() 는
+    //   1) setLevel(4) 로 동 단위 확대
+    //   2) setCenter 로 마커를 지도 중앙에 배치
+    //   3) 인포윈도우 open 후 panBy 로 지도를 위로 이동 → 인포윈도우 중앙 정렬
     // 마커가 뷰포트 밖일 때 selected 상태 시각화 보장.
     mockMvc
         .perform(get("/js/center-map.js"))
         .andExpect(status().isOk())
-        .andExpect(content().string(containsString("panTo")))
+        .andExpect(content().string(containsString("setLevel(4)")))
+        .andExpect(content().string(containsString("setCenter")))
+        .andExpect(content().string(containsString("panBy")))
         .andExpect(content().string(containsString("new kakao.maps.LatLng")));
   }
 }
