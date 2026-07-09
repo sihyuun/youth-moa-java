@@ -5,8 +5,43 @@ type: project
 originSessionId: 51da8e75-f7a2-4b05-b2b6-963ce41efb6a
 ---
 
-> **마지막 갱신**: 2026-07-06.
+> **마지막 갱신**: 2026-07-09.
 > 프로젝트 루트의 `CLAUDE.md` 가 디자인 시스템·작업 규칙·검증 규칙·환경 분리·패키지 구조·엔티티 규칙·Git 컨벤션 등 코드 작업 컨텍스트의 최우선 가이드라인. 본 메모리는 **시점적 진행 상태·DB·열린 PR·다음 액션** 중심으로 유지.
+
+---
+
+## 🟠 2026-07-09 진행 중 — feature/F0h-centers-rework (미커밋)
+
+**세션 흐름**: ym-verify 워킹트리 검증 → FAIL #12 필터 풀리로드 fix → 사용자 시각 확인 → X 버튼 액션 prototype 불일치 지적 → ym-verify 재검증 (FAIL 2건, spec 결함 확정) → F0h-c2 spec 개정안 산출 → 사용자 O1~O5 결정 (모두 권장안) → ym-spec 이 `docs/specs/F0h-c2-list-3col.md` 재작성 → ym-impl 로 client-state 구현 진행 중.
+
+### 반영 완료 (미커밋)
+- `static/js/center-map.js` — `form.submit()` → `form.requestSubmit()` 2건 (필터 조작 시 HTMX 부분 swap 정상화)
+- `docs/specs/F0h-c2-list-3col.md` — client-state 기반 재설계 개정안 반영 (§0 개정사유 신설, 상태머신·컨트롤러·E2E 시나리오 개정)
+
+### 확정된 c2 개정 골자
+- `detailId` 상태 위치: URL path → **client state + `history.pushState`**
+- X 클릭 / 카드 클릭 모두 서버 왕복 제거 (fragment endpoint 만 호출)
+- 리스트 컬럼 `.has-detail` 클래스 토글 → CSS `transition: width 250ms ease` 실작동
+- `/centers/{id}` 직접 접근은 서버 초기 렌더 유지 (bookmark)
+- 신규 endpoint 2개: `GET /centers/{id}/detail-fragment`, `GET /centers/cards?compact&activeId&…`
+- 신규 파일: `static/js/centers-detail.js` (client state + pushState + popstate + HTMX ajax)
+
+### 오픈 이슈 결정 (사용자 확정)
+- O1 카드 compact 전환 = HTMX fragment swap
+- O2 = pushState (뒤로가기로 close 가능)
+- O3 카드 anchor `href` 유지 (progressive enhancement)
+- O4 = 신규 `centers-detail.js` 파일 (map.js 무변경)
+- O5 popstate 시 필터 재조회는 c4 이월
+
+### ym-verify 워킹트리 검증 결과 (FAIL 1 · UNVERIFIED 4)
+- FAIL #12 (필터 풀리로드) → fix 반영 완료
+- UNVERIFIED — Kakao MarkerClusterer CustomOverlay 수용 / 인포윈도우 좌우 보정 / overlay.setZIndex hover / zoom MAX_LEVEL=7 초기 뷰포트 이탈 위험 (사용자 결정 필요)
+
+### 다음 액션
+1. ym-impl 완료 대기 → diff 리뷰
+2. ym-qa (정적) + 사용자 개인 PC Playwright (동적/시각)
+3. ym-verify 최종 관문
+4. 커밋 · PR · 머지
 
 ---
 
@@ -228,32 +263,37 @@ gh auth setup-git
 
 ---
 
-## 🟡 다음 작업 큐 (2026-06-30 ym-spec 갭 분석 + 사용자 결정 반영)
+## 🟡 다음 작업 큐 (2026-07-09 갱신)
 
-| 순서 | 브랜치 후보 | 범위 | 결정 |
+### 🔴 진행 중
+| 순서 | 브랜치 | 범위 | 상태 |
 |---|---|---|---|
-| ① | ✅ `feature/F0e-home-prototype` | 완료 (2026-07-01 머지) | done |
-| ② | ✅ `feature/D5-card-capacity-bar` | 완료 (2026-07-01 머지) | done |
-| ③ | ✅ `feature/D1b-apply-complete` | 완료 (2026-07-02 머지) | done |
-| ④ | ✅ `feature/F0f-list-filter-redesign` | 완료 (F0f 시리즈, region/center featured 포함) | done |
-| ⑤ | 🔄 **`feature/F0g-notices`** | ym-impl 진행 중 (2026-07-03) — 카테고리 탭·페이지네이션·상세 인라인 이미지·NoticeAttachment | 착수 |
-| ⑤-2 | 🔄 **`feature/F0e-hero-refresh`** | ym-impl 진행 중 (2026-07-03) — Hero 재설계 (2겹 scrim·좌측 정렬·태그 칩·CTA 제거) | 착수 |
-| ⑥ | `feature/F0h-centers` | 청년센터 목록 (카카오맵 SDK 연동) — 대기 | — |
-| ⑦ | `fix/text-tri-token` | main.css 자기참조 변수 정정 (실제 위험도 재확인 필요) | 작은 fix |
-| ⑧ | `fix/webjars-htmx-path` | /webjars/htmx 302 redirect — 사고 이후 확인, htmx 로드 정상이면 close | 재확인 |
-| ⑨ | `chore/testcontainers-fix` | YouthMoaApplicationTests Docker daemon 연결 확인·수정 | — |
-| ⑩ | `chore/integration-test-render` | 주요 렌더 경로에 `@SpringBootTest + MockMvc` 통합 렌더링 테스트 도입 | 사고 후 |
-| ⑪ | `feature/F0e-hero-rotation` (F0e-2) | Hero 배경 8종 크로스페이드 로테이션 — F0e-hero-refresh 머지 후 | 후속 |
-| ⑫ | `feature/D5-mypage` | 마이페이지 (신청 내역 / 즐겨찾기 탭 / 개인정보 수정) | — |
-| ⑬ | `feature/D4-search-bar` | 헤더 검색바 + 결과 페이지 | — |
+| **P0** | `feature/F0h-centers-rework` | F0h-c2 client-state 재설계 (X 버튼 prototype 불일치 fix) + requestSubmit 필터 부분 swap | ym-impl 실행 중 (2026-07-09) |
 
-### 인프라 작업 (남은 단계)
-- 4️⃣ `/qa` Skill 셋업
-- 5️⃣ `/prototype-check` Skill 셋업
-- 6️⃣ Flyway 도입
-- 7️⃣ GitHub Actions 동적 검증 확장
-- 8️⃣ P1 `/qa` 회귀 루프
-- 9️⃣ P2 `/prototype-check` 갭 루프
+### 🟠 곧 착수 (F0h-c2 머지 후)
+| 순서 | 브랜치 후보 | 범위 | 비고 |
+|---|---|---|---|
+| ① | `feature/F0h-c4-htmx-filter` | 필터 form submit 도 pushState 로 통일 → popstate 로 필터 되돌리기 지원 (c2 개정안 §10 O5 이월분) | c2 완료 전제 |
+| ② | E2E 확장 — `/centers` | 카드 클릭·X 클릭·pushState·popstate·transition 계측 spec | c2 stable 후 |
+| ③ | E2E 확장 — `/mypage`, `/find-account` | Playwright spec 신설 | 개인 PC |
+
+### 🟡 대기 (기술 부채·인프라)
+| 순서 | 브랜치 | 범위 | 우선도 |
+|---|---|---|---|
+| ④ | `fix/text-tri-token` | main.css 자기참조 변수 실제 위험도 재확인 (`--color-text-tri: var(--color-text-tri)`) | 확인 후 결정 |
+| ⑤ | `fix/webjars-htmx-path` | `/webjars/htmx` 302 redirect 재확인 (2.0.4 revert 이후 정상이면 close) | 재확인 |
+| ⑥ | `chore/testcontainers-fix` | `YouthMoaApplicationTests` Docker daemon 연결 확인 | 개인 PC 확인 |
+| ⑦ | `chore/flyway-intro` | Flyway 도입 (현재 ddl-auto: create-drop → 학습 진척 시점 판단) | 낮음 |
+| ⑧ | `feature/admin-siteimage-crud` | SiteImage admin CRUD — 관리자 페이지 첫 진입 시 우선 대상 | 관리자 페이지 시작 시 |
+| ⑨ | UNVERIFIED 4건 (F0h ym-verify) | Kakao MarkerClusterer CustomOverlay 수용 / 인포윈도우 좌우 보정 / overlay.setZIndex hover / zoom MAX_LEVEL=7 초기 뷰포트 이탈 | 개인 PC 시각 확인 |
+
+### ✅ 최근 완료 (참고 — 2026-07-01 이후 머지분)
+- **7/1** F0e (홈 prototype 정렬 + SiteImage) / F0f (프로그램 목록 필터 재설계)
+- **7/2** D1b 신청 완료 페이지 + 알림 채널 도메인 / D5 CapacityBar unit test 14종
+- **7/3** F0g 공지사항 / F0e-hero-refresh / Top 5 E2E / integration_render_test / helpers.ts
+- **7/6** F0i 아이디·비번 찾기 / F0e-2 Hero 로테이션 / F2 알림 종 / F2b 알림 이벤트 / D5-mypage / D4-search / F0h-centers (초판)
+- **7/7** kakao_sdk_https / F4 자격요건 / F2c header transparent / F0c apply wizard / prevent_prototype_drift / F0h specs (c1·c2·c4)
+- **7/9** (진행) F0h-c2 client-state 재설계
 
 ### 🧪 E2E 커버리지 확장 (2026-07-02 사용자: QA 최우선 원칙)
 

@@ -8,10 +8,16 @@
           rel="stylesheet">
     <link rel="icon" type="image/png" th:href="@{/images/logo_symbol.png}">
     <link rel="stylesheet" th:href="@{/css/main.css}">
-    <!-- Kakao Maps SDK — appkey 미설정 시 script 태그 자체를 렌더 안 함. clusterer 옵션 상시 로드 (F0h-c4). -->
+    <!--/* Kakao Maps SDK — KAKAO_MAP_APP_KEY 미설정 시 script 태그 자체를 렌더 안 함.
+           clusterer 라이브러리 상시 로드 (F0h-c4). 파서 주석: 응답 HTML 에 노출되지 않음. */-->
     <script th:if="${!#strings.isEmpty(kakaoMapAppKey)}"
             th:src="'https://dapi.kakao.com/v2/maps/sdk.js?appkey=' + ${kakaoMapAppKey} + '&autoload=false&libraries=clusterer'"></script>
+    <!-- HTMX — 카드 클릭·상세 닫기 부분 swap (풀 페이지 리로드 회피) -->
+    <script th:src="@{/webjars/htmx.org/2.0.4/dist/htmx.min.js}" defer></script>
     <script th:src="@{/js/center-map.js}" defer></script>
+    <!-- F0h-c2 개정(2026-07-09): 카드 클릭 시 client-state 로 상세 패널 open/close.
+         history.pushState 로 URL 만 갱신, HTMX ajax 로 fragment innerHTML 주입. 풀 리로드 없음. -->
+    <script th:src="@{/js/centers-detail.js}" defer></script>
 </head>
 <body>
 
@@ -75,13 +81,16 @@
         </div>
     </div>
 
+    <!-- F0h-c2 개정(2026-07-09): hx-boost 컨테이너 outerHTML swap 제거.
+         카드 클릭은 centers-detail.js 가 client-state 로 처리 (fragment 2건만 ajax). -->
     <div class="container centers-container">
         <!-- 3-column: 리스트 + (인라인 상세) + 지도 -->
-        <div class="centers-layout"
-             th:classappend="${detailCenter != null} ? 'has-detail' : ''">
+        <div class="centers-layout">
 
-            <!-- 리스트 컬럼 (detail 있을 때 240, 없을 때 360) -->
-            <aside class="centers-list-panel">
+            <!-- 리스트 컬럼 (detail 있을 때 .has-detail 클래스로 240, 없을 때 360). transition 250ms ease. -->
+            <aside class="centers-list-col"
+                   th:classappend="${detailCenter != null} ? 'has-detail' : ''"
+                   data-centers-list-col>
                 <div class="centers-list-head">
                     <div class="centers-list-count">
                         총 <strong th:text="${#lists.size(centers)}">0</strong>개 센터
@@ -99,84 +108,19 @@
                     </div>
                 </div>
 
-                <div class="centers-list-scroll" id="centers-list">
-                    <div th:if="${#lists.isEmpty(centers)}" class="centers-list-empty">
-                        조건에 맞는 센터가 없습니다.
-                    </div>
-                    <!-- Full 카드 vs Compact 카드 조건부 -->
-                    <a th:each="c : ${centers}"
-                       th:href="@{'/centers/' + ${c.id}(q=${filterQ},region=${filterRegion},onlyActive=${filterOnlyActive},sort=${filterSort})}"
-                       class="center-card"
-                       th:classappend="${detailCenter != null and detailCenter.id == c.id} ? 'is-active' : ''"
-                       th:attr="data-center-id=${c.id},data-lat=${c.latitude},data-lng=${c.longitude}">
-                        <!-- Compact 모드: detail 있을 때 -->
-                        <div class="center-card-compact" th:if="${detailCenter != null}">
-                            <div class="center-card-compact-icon"
-                                 th:classappend="${detailCenter.id == c.id} ? 'is-active' : ''">📍</div>
-                            <div class="center-card-compact-body">
-                                <div class="center-card-compact-name" th:text="${c.name}">센터명</div>
-                                <div class="center-card-compact-region" th:text="${c.region}">지역</div>
-                            </div>
-                            <span th:if="${c.isActive}" class="center-card-badge active">운영중</span>
-                            <span th:unless="${c.isActive}" class="center-card-badge inactive">운영종료</span>
-                        </div>
-                        <!-- Full 모드: detail 없을 때 -->
-                        <div class="center-card-full" th:if="${detailCenter == null}">
-                            <div class="center-card-head">
-                                <span class="center-card-name" th:text="${c.name}">센터명</span>
-                                <span th:if="${c.isActive}" class="center-card-badge active">운영중</span>
-                                <span th:unless="${c.isActive}" class="center-card-badge inactive">운영종료</span>
-                            </div>
-                            <div class="center-card-address" th:text="${c.address}">주소</div>
-                            <div class="center-card-foot">
-                                <span class="center-card-programs">
-                                    프로그램 <strong th:text="${c.programCount}">0</strong>건
-                                </span>
-                                <span class="center-card-more">상세보기 →</span>
-                            </div>
-                        </div>
-                    </a>
+                <div class="centers-list-scroll" id="centers-list" data-centers-list-scroll>
+                    <!-- 카드 리스트 fragment: /centers/cards 응답과 동일 마크업 재사용 -->
+                    <th:block th:replace="~{center/list-fragments :: card-list-content(centers=${centers}, compact=${detailCenter != null}, activeId=${detailCenter != null ? detailCenter.id : null}, filterQ=${filterQ}, filterRegion=${filterRegion}, filterOnlyActive=${filterOnlyActive}, filterSort=${filterSort})}"></th:block>
                 </div>
             </aside>
 
-            <!-- 인라인 상세 패널 (detailCenter null 이면 미렌더) -->
-            <aside class="centers-detail-panel" th:if="${detailCenter != null}">
-                <a class="centers-detail-close"
-                   th:href="@{/centers(q=${filterQ},region=${filterRegion},onlyActive=${filterOnlyActive},sort=${filterSort})}"
-                   title="닫기" aria-label="닫기">×</a>
-                <div class="centers-detail-image"
-                     th:style="${detailCenter.imageUrl != null} ? |background-image:url(${detailCenter.imageUrl})| : ''">
-                    <span th:if="${detailCenter.imageUrl == null}" class="centers-detail-image-placeholder">🏢</span>
-                    <!-- prototype: 이미지 좌하단 open badge 오버레이 (F0h gap fix) -->
-                    <span class="centers-detail-image-badge"
-                          th:classappend="${detailCenter.isActive} ? 'active' : 'inactive'"
-                          th:text="${detailCenter.isActive} ? '운영중' : '운영종료'">운영중</span>
-                </div>
-                <div class="centers-detail-body">
-                    <div class="centers-detail-head">
-                        <h3 class="centers-detail-name" th:text="${detailCenter.name}">센터명</h3>
-                    </div>
-                    <p class="centers-detail-desc" th:if="${detailCenter.description != null}"
-                       th:text="${detailCenter.description}">설명</p>
-                    <div class="centers-detail-meta">
-                        <div><span class="centers-detail-meta-icon">📍</span><span th:text="${detailCenter.address}">주소</span></div>
-                        <div th:if="${detailCenter.operatingHours != null}">
-                            <span class="centers-detail-meta-icon">🕒</span><span th:text="${detailCenter.operatingHours}">운영시간</span>
-                        </div>
-                        <div th:if="${detailCenter.phone != null}">
-                            <span class="centers-detail-meta-icon">📞</span><span th:text="${detailCenter.phone}">전화</span>
-                        </div>
-                    </div>
-                    <!-- prototype: 진행중인 프로그램 카드 (F0h gap fix) -->
-                    <div class="centers-detail-programs">
-                        <div class="centers-detail-programs-label">진행중인 프로그램</div>
-                        <div class="centers-detail-programs-count">
-                            <strong th:text="${detailProgramCount != null} ? ${detailProgramCount} : 0">0</strong>건
-                        </div>
-                    </div>
-                    <a class="centers-detail-cta"
-                       th:href="@{/programs(region=${detailCenter.region})}">프로그램 전체보기</a>
-                </div>
+            <!-- 인라인 상세 패널: 초기 렌더 시 detailCenter 없으면 hidden, 있으면 fragment innerHTML 주입 -->
+            <aside class="centers-detail-col"
+                   th:hidden="${detailCenter == null}"
+                   data-centers-detail-col>
+                <th:block th:if="${detailCenter != null}">
+                    <th:block th:replace="~{center/list-fragments :: detail-panel-content(detailCenter=${detailCenter}, detailProgramCount=${detailProgramCount}, filterQ=${filterQ}, filterRegion=${filterRegion}, filterOnlyActive=${filterOnlyActive}, filterSort=${filterSort})}"></th:block>
+                </th:block>
             </aside>
 
             <!-- 지도 컬럼 (flex:1) -->
@@ -185,14 +129,36 @@
 
                 <!-- "이 지역에서 검색" floating (초기 hidden) -->
                 <button type="button" class="centers-map-search-here" data-search-here hidden>
-                    <span class="centers-map-search-here-icon">↻</span>
+                    <span class="centers-map-search-here-icon">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="23 4 23 10 17 10"/>
+                            <path d="M20.49 15a9 9 0 1 1-2.13-9.36L23 10"/>
+                        </svg>
+                    </span>
                     <span>이 지역에서 검색</span>
                 </button>
 
-                <!-- Fallback: 카카오맵 appkey 미설정 시 -->
+                <!-- "내 위치" 버튼 (geolocation) — 브라우저 permission 요청, HTTPS 필수 (localhost 예외) -->
+                <button type="button" class="centers-map-my-location" data-my-location
+                        aria-label="내 위치로 이동" title="내 위치">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="3"/>
+                        <path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>
+                    </svg>
+                </button>
+
+                <!--/* Fallback: KAKAO_MAP_APP_KEY 미설정 시 grid placeholder (파서 주석) */-->
                 <div class="center-map-fallback"
                      th:if="${#strings.isEmpty(kakaoMapAppKey)}">
-                    <div class="center-map-fallback-icon">📍</div>
+                    <div class="center-map-fallback-icon">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                            <circle cx="12" cy="10" r="3"/>
+                        </svg>
+                    </div>
                     <div class="center-map-fallback-title">지도 미설정</div>
                     <div class="center-map-fallback-sub">좌측 목록에서 청년센터를 확인하실 수 있어요</div>
                 </div>

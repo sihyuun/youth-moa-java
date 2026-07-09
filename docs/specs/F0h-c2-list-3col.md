@@ -1,10 +1,45 @@
 # F0h-c2 — 청년센터 목록 3-column 재구성
 
+> **개정 (2026-07-09)**: client-state 기반 재설계. prototype 충실도 우선. 개정 사유는 §0 참고
+> **개정 (2026-07-09 두번째)**: list↔map 양방향 연동 정합·CustomEvent 채널 도입·인포윈도우 CTA client-state 화·zoom clamp 확정 (ym-verify FAIL 4 · spec 결함 3 반영). 상세는 §2 상태 머신 표 3개 CustomEvent 행, §3 변경 범위 centers-detail.js dispatch 규약, §4.3 카드 클릭 흐름 5단계, §7 시나리오 N#1~N#4 참고
+
 - **상태**: `spec_confirmed`
 - **브랜치 후보**: `feature/F0h-c2-list-3col`
 - **선행**: F0f (Region 엔티티) — 완료. 현재 코드 `region/Region.java` 존재
-- **후속**: `F0h-c3` (인라인 상세 패널 내용 채우기 · 인포윈도우 · 마커 클러스터링)
+- **후속**: `F0h-c3` (인라인 상세 패널 내용 채우기 · 인포윈도우 · 마커 클러스터링), `F0h-c4` (popstate 시 필터 재조회 · HTMX 부분 리렌더)
 - **관련 사고**: 2026-07-07 F0h 사고 — prototype 3-column 을 2-column 으로 잘못 옮김
+
+---
+
+## 0. 개정 사유 (2026-07-09)
+
+### 이전 spec 내부 모순
+초판 spec (2026-07-08) 은 `detailId` 상태 매핑에 대해 서로 다른 두 방식을 병기해 구현 지점에서 모순이 발생함.
+
+- **L64 (2 상태 머신 표)**: `detailId` 를 **URL path (`/centers/{id}`)** 에 두고 카드 클릭 시 anchor 이동 (full page reload) 로 처리
+- **L128 (4.2 리스트 컬럼)**: `width: ${detailId ? 240 : 360}, transition: width 250ms ease` — CSS transition 은 **같은 DOM 노드의 클래스/스타일 변경** 에서만 작동. full page reload 로는 transition 이 발생하지 않음
+
+즉 초판대로 구현하면 리스트 컬럼 폭이 **점프 (transition 없음)** 하게 되어 prototype 의 250ms ease 인터랙션이 재현되지 않음.
+
+### prototype 재검토 결과 (tsx 라인 인용)
+- **L1899** `const [detailId, setDetailId] = useState<number | null>(null)` — detailId 는 순수 client state (URL 미반영)
+- **L2007** `<div style={{ width: detailId ? 240 : 360, transition: 'width 250ms ease', flexShrink: 0 }}>` — 같은 DOM 노드에서 style 변경으로 transition 발동
+- **L2061** `onClick={() => setDetailId(c.id)}` — 카드 클릭은 setState 만 호출. 서버 왕복·URL 변경 없음
+
+### 재설계 원칙 (사용자 확정 오픈 이슈 5건)
+| # | 결정 | 근거 |
+|---|---|---|
+| O1 | 카드 compact 전환 = HTMX fragment swap (`GET /centers/cards`) | 서버 렌더 카드 마크업 재사용, JS 템플릿 중복 회피 |
+| O2 | history 조작 = `pushState` | 뒤로가기로 상세 close 가능 (UX 일관성) |
+| O3 | 카드 anchor `href` 유지 | progressive enhancement — JS off 시에도 `/centers/{id}` 접근 가능 |
+| O4 | 신규 `centers-detail.js` 파일로 분리 | `center-map.js` 관심사 격리 |
+| O5 | popstate 시 필터 재조회는 c4 로 이월 | c2 스코프 밖 (HTMX 부분 리렌더 티켓과 합치는 편이 자연스러움) |
+
+### 결론
+- `detailId` 상태 위치: **URL path → client state + `history.pushState`**
+- 카드 클릭 / X 클릭 모두 **서버 왕복 제거** (fragment endpoint 만 호출)
+- 리스트 컬럼 `.has-detail` 클래스 토글로 CSS `transition: width 250ms ease` 실작동
+- `/centers/{id}` 직접 접근은 서버 초기 렌더 유지 (bookmark 지원)
 
 ---
 
@@ -61,7 +96,7 @@ React 상태 8종을 Thymeleaf + URL query + 소량 client JS 로 매핑.
 | React state | 초기값 | c2 매핑 (서버/클라이언트) |
 |---|---|---|
 | `selectedId` | null | **client only**. 지도 마커 클릭 시 인포윈도우 (c3). c2 에선 미사용. |
-| `detailId` | null | **URL path**. `/centers/{id}` 진입 시 서버가 `detailCenter` 모델 세팅. 목록 카드 클릭은 `hx-get /centers/{id}` (c3) — c2 는 anchor `href` 로 페이지 전환도 허용 |
+| `detailId` | null | **client state + `history.pushState`** (tsx L1899 `useState<number \| null>`). 카드 클릭 시 `setDetailId(c.id)` → `.has-detail` 클래스 토글로 폭 transition 발동 (tsx L2007). 동시에 `history.pushState(null, '', /centers/{id}?...filters)` 로 URL 만 갱신 (뒤로가기 지원). 상세 패널 innerHTML 은 HTMX fragment (`GET /centers/{id}/detail-fragment`) 로 주입. **서버 왕복·full page reload 없음**. `/centers/{id}` 직접 접근은 서버 초기 렌더 유지 (bookmark) |
 | `regionOpen` | false | **client only** (드롭다운 open/close) |
 | `regionQuery` | '' | **client only** (드롭다운 내부 검색 입력) |
 | `selectedRegion` | null | **URL query `region=`**. 서버가 filter |
@@ -69,7 +104,17 @@ React 상태 8종을 Thymeleaf + URL query + 소량 client JS 로 매핑.
 | `centerSearch` | '' | **URL query `q=`**. 서버 filter |
 | `sortBy` | 'name' | **URL query `sort=name|programs`**. 서버 sort |
 
-→ 필터 변경 시 form submit (GET `/centers?q=&region=&onlyActive=&sort=`). 초기 c2 는 full reload. HTMX 부분 리렌더는 후속 티켓 (`F0h-c4-htmx`) 로 분리.
+### 2-A. 모듈 간 CustomEvent 채널 (2026-07-09 두번째 개정)
+
+`centers-detail.js` 와 `center-map.js` 는 **서로 import 하지 않고** `document` 레벨 CustomEvent 로만 통신한다 (decoupling). 이벤트 명·페이로드·수신자 규약은 다음과 같다.
+
+| 이벤트 | dispatcher | listener | 페이로드 | 수신자 동작 |
+|---|---|---|---|---|
+| `centers:detail-open` | `centers-detail.js` (`openDetail(id, pushHistory)` 완료 후) | `center-map.js` | `{ centerId: number }` | `selectMarker(centerId)` — 마커 pill 확장 + 인포윈도우 open + zIndex 20 |
+| `centers:detail-close` | `centers-detail.js` (`closeDetail()` 완료 후) | `center-map.js` | `{}` | `clearSelection()` — 마커 원형 복귀 + 인포윈도우 제거 |
+| `centers:request-detail` | `center-map.js` (인포윈도우 CTA 클릭 등) | `centers-detail.js` | `{ centerId: number }` | `openDetail(centerId, pushHistory=true)` — 상세 패널 인라인 open, 라우팅 없음 |
+
+→ 필터 변경 시 form submit (GET `/centers?q=&region=&onlyActive=&sort=`) — full reload. **`detailId` 변경만 client-side** (fragment swap + CustomEvent 브로드캐스트). popstate 시 필터 재조회는 c4 로 이월.
 
 ---
 
@@ -88,7 +133,8 @@ React 상태 8종을 Thymeleaf + URL query + 소량 client JS 로 매핑.
 - [ ] `src/main/resources/static/js/center-map.js` — 마커 클릭 시 카드 하이라이트 정도만 유지 (실 인포윈도우는 c3)
 
 ### 신규
-- [ ] `src/test/java/io/github/sihyuuun/youthmoa/center/CenterControllerTest.java` — 확장 (혹은 신규)
+- [ ] `src/main/resources/static/js/centers-detail.js` — 카드 클릭 가로채기 / `.has-detail` 토글 / HTMX fragment 요청 / `history.pushState` / popstate 리스너 / **`centers:detail-open` · `centers:detail-close` dispatch** / **`centers:request-detail` listener 등록**. (2026-07-09 두번째 개정: 초판의 "`center-map.js` 무변경 원칙" 은 폐기 — c4 스코프에서 map 측 listener/dispatcher 를 추가하지만 c2 개정과 정합. 두 모듈 간 결합은 오직 CustomEvent 만 사용)
+- [ ] `src/test/java/io/github/sihyuuun/youthmoa/center/CenterControllerTest.java` — 확장 (혹은 신규). `detailFragment()`, `cardsFragment()` view name + model 검증 포함
 - [ ] E2E: `e2e/tests/centers-list-3col.spec.ts` (별도 저장소 `youth-moa-java-e2e`)
 
 ### 변경 없음
@@ -125,15 +171,18 @@ gap: 12px, align-items: center
 
 ### 4.2 콘텐츠 (`padding:16px 80px 40px, gap:16, align-items:flex-start`)
 
-- **리스트 컬럼** `width: ${detailId ? 240 : 360}, flex-shrink:0, transition: width 250ms ease`
-  - 상단: `총 N개 센터` (fontSize:13 textSec, strong text) + 정렬 pill (detailId 없을 때만)
+- **리스트 컬럼** `.centers-list-col { width: 360px; flex-shrink: 0; transition: width 250ms ease; }` + `.centers-list-col.has-detail { width: 240px; }`
+  - `.has-detail` 클래스는 client JS (`centers-detail.js`) 가 `detailId` 세팅 시 토글. 같은 DOM 노드에 클래스만 바뀌므로 CSS transition 정상 발동 (prototype.tsx L2007 재현)
+  - 상단: `총 N개 센터` (fontSize:13 textSec, strong text) + 정렬 pill (`.has-detail` 상태일 때 `.centers-sort-pill { display: none; }`)
   - 스크롤 컨테이너: `max-height:600 overflow-y:auto padding-right:4 flex-direction:column gap:8`
   - 빈 상태: "조건에 맞는 센터가 없습니다" (fontSize:14 textTri padding:40px 0)
+  - 카드 마크업은 `detailId` 유무에 따라 full/compact 두 버전을 서버가 렌더. **카드 컨테이너 자체를 HTMX fragment swap** 으로 갱신 (`hx-get /centers/cards?compact=true&activeId={id}&...filters`, `hx-target=".centers-list-scroll"`, `hx-swap=innerHTML`)
 
-- **상세 패널** (`detailId` 있을 때만 렌더) `width:320 flex-shrink:0 background:surface radius:var(--radius-lg) border:1px solid border box-shadow:0 4px 16px rgba(63,48,233,0.08) overflow:hidden`
+- **상세 패널** `.centers-detail-col { width: 320px; flex-shrink: 0; ... }` — 초기 렌더 시 `detailId` 없으면 `display:none`, 있으면 표시
   - c2 에선 **껍데기만** — 상단 이미지 자리 (160 height 회색 placeholder), 이름, 주소, 운영시간, 전화, "진행중 프로그램 N건", "프로그램 전체보기" CTA
   - 내용 상세 스타일은 c3 에서 완성 (본 c2 는 3-col 뼈대 확립이 목표)
-  - **닫기 버튼**: 우측 상단 × — 클릭 시 `/centers` 로 이동 (URL 상태 반영)
+  - **패널 innerHTML 주입 경로**: 카드 클릭 시 `hx-get /centers/{id}/detail-fragment` → `hx-target=".centers-detail-col"` → `hx-swap=innerHTML`. `/centers/{id}` 직접 접근 시에는 서버가 `list.html` 초기 렌더에 fragment 포함
+  - **닫기 버튼**: 우측 상단 × — 클릭 시 client JS 가 `.centers-list-col.has-detail` 제거 + `.centers-detail-col` 숨김 + `history.pushState(null, '', /centers?...filters)` + 리스트 카드 fragment 재요청 (compact → full 전환). **서버 왕복은 카드 fragment 만**
 
 - **지도 컬럼** `flex:1 border-radius:var(--radius-lg) overflow:hidden border:1px solid border height:640 min-height:640`
   - 기존 `#center-map` + `center-map.js` 유지. 폭이 flex 로 재계산되도록 css 만 조정
@@ -159,8 +208,15 @@ padding:10 12 gap:8 flex row align-items:center
 ─ 우측: 운영뱃지 (padding:1 6 radius:pill fontSize:10)
 ```
 
-- 카드 클릭 → 링크 이동 `/centers/{id}?q=...&region=...&onlyActive=...&sort=...` (필터 상태 preserve)
-- 활성 카드 = `detailId` 와 일치하는 카드 → primaryBg 배경 + primary 테두리
+- 카드 마크업: `<a href="/centers/{id}?...filters" class="center-card" data-center-id="{id}">...</a>` — anchor `href` 유지 (progressive enhancement: JS off 시 정상 이동)
+- 카드 클릭 흐름 (JS on):
+  1. `centers-detail.js` 가 `click` 이벤트 가로채 `event.preventDefault()`
+  2. `.centers-list-col.has-detail` 클래스 추가 (폭 transition 발동)
+  3. `.centers-detail-col` show + `htmx.ajax('GET', /centers/{id}/detail-fragment, target)` 로 상세 innerHTML 주입
+  4. `htmx.ajax('GET', /centers/cards?compact=true&activeId={id}&...filters, .centers-list-scroll)` 로 리스트 컬럼 compact 카드로 재렌더
+  5. `history.pushState(null, '', /centers/{id}?...filters)` 로 URL 만 갱신 (뒤로가기 지원)
+  6. **`document.dispatchEvent(new CustomEvent('centers:detail-open', { detail: { centerId: id } }))`** — `center-map.js` 가 이를 수신해 `selectMarker(id)` (pill 확장 + 인포윈도우 open) 수행. 닫기 버튼 클릭 경로도 대칭으로 `centers:detail-close` dispatch 필요
+- 활성 카드 = `activeId` 와 일치하는 카드 → primaryBg 배경 + primary 테두리 (서버 렌더 시 클래스 부여)
 
 ---
 
@@ -199,6 +255,42 @@ public String list(
 }
 ```
 → **한 컨트롤러 메서드가 `/centers` 와 `/centers/{id}` 를 둘 다 처리** (Q1 B 결정 반영). 기존 `detail(@PathVariable Long id)` 는 삭제.
+
+### 5.1-a `CenterController.detailFragment()` — 신규 (HTMX 상세 패널 innerHTML)
+```java
+@GetMapping("/centers/{id}/detail-fragment")
+public String detailFragment(@PathVariable Long id, Model model) {
+  Center detailCenter = centerService.findById(id)
+      .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "..."));
+  model.addAttribute("detailCenter", detailCenter);
+  return "center/list :: detail-panel-content";  // Thymeleaf fragment
+}
+```
+- 응답: `.centers-detail-col` 내부 innerHTML 로 주입될 fragment (헤더 X, 레이아웃 wrapper X)
+- `list.html` 내에 `<th:block th:fragment="detail-panel-content">...</th:block>` 로 정의하고 초기 렌더·fragment 렌더 모두 재사용
+
+### 5.1-b `CenterController.cardsFragment()` — 신규 (HTMX 카드 리스트 재렌더)
+```java
+@GetMapping("/centers/cards")
+public String cardsFragment(
+    @RequestParam(defaultValue = "false") boolean compact,
+    @RequestParam(required = false) Long activeId,
+    @RequestParam(required = false) String q,
+    @RequestParam(required = false) String region,
+    @RequestParam(defaultValue = "false") boolean onlyActive,
+    @RequestParam(defaultValue = "name") String sort,
+    Model model) {
+
+  List<CenterListItem> centers = centerService.list(q, region, onlyActive, sort);
+  model.addAttribute("centers", centers);
+  model.addAttribute("compact", compact);
+  model.addAttribute("activeId", activeId);
+  return "center/list :: card-list-content";
+}
+```
+- 응답: `.centers-list-scroll` 내부 innerHTML — 카드 anchor 다수
+- `compact=true` 면 compact 카드 마크업, `false` 면 full 카드 마크업 (Thymeleaf `th:if` 분기)
+- `activeId` 일치 카드는 활성 스타일 클래스 부여
 
 ### 5.2 `CenterService`
 - **신규**: `RegionRepository` 주입 (F0f 일관성).
@@ -267,9 +359,16 @@ public record CenterListItem(
    - × 클릭 → region param 제거, `/centers` 로 복귀
 3. **정렬 토글**: `[프로그램많은순]` pill 클릭 → URL `sort=programs`, 첫 카드 programCount 최대
 4. **운영중 토글 스위치**: 클릭 → URL `onlyActive=true`, 종료 센터 카드 미노출, 스위치 핸들 오른쪽 이동
-5. **카드 클릭 → 상세 패널 open**: 첫 카드 클릭 → URL `/centers/{id}?...(filters)`, 리스트 폭 240 로 축소 (compact 카드), 상세 패널 320 노출, 정렬 pill 숨김
-6. **URL 직접 접근**: 새 탭 `/centers/3?onlyActive=true` → 목록 필터 유지 + 3번 상세 패널 자동 open
-7. **닫기 버튼**: 상세 패널 × 클릭 → `/centers?...(filters)` 로 이동, 리스트 폭 360 복귀
+5. **카드 클릭 → 상세 패널 open (client-side)**: 첫 카드 클릭 → **full page reload 없음** (network 탭에 document 요청 없어야 함, fragment 2건만 발생: `/centers/{id}/detail-fragment` + `/centers/cards?compact=true&activeId={id}&...`). `.centers-list-col` 에 `.has-detail` 클래스 추가, 폭 transition 250ms 후 240 도달, 상세 패널 320 노출, 정렬 pill 숨김, `history.state` 갱신되어 `location.pathname === '/centers/{id}'`. **추가 assertion (2026-07-09)**: `centers:detail-open` 이벤트가 `document` 에 dispatch 되고, 지도 마커가 selected 상태(pill 확장 + 인포윈도우 open) 로 전환됨
+6. **URL 직접 접근**: 새 탭 `/centers/3?onlyActive=true` → 서버가 초기 렌더에 상세 패널 fragment 포함해 반환. 목록 필터 유지 + 3번 상세 패널 자동 open + 리스트 컬럼 compact 상태 (`.has-detail` 클래스 서버 렌더)
+7. **닫기 버튼 (client-side)**: 상세 패널 × 클릭 → **full page reload 없음**. `.has-detail` 제거되어 폭 transition 360 복귀, 상세 패널 숨김, 리스트 카드 fragment 재요청 (`/centers/cards?...` — compact=false), `history.pushState` 로 URL `/centers?...(filters)` 로 갱신
+8. **뒤로가기 (popstate)**: 시나리오 5 이후 브라우저 뒤로가기 → `popstate` 이벤트로 상세 패널 close, `.has-detail` 제거, URL 이 `/centers?...(filters)` 로 복귀. **추가 assertion (2026-07-09)**: `centers:detail-close` dispatch → 지도 마커 원형 복귀 + 인포윈도우 제거. **필터 재조회는 c4 스코프** (popstate 시점 URL query 와 현재 화면 필터 상태가 다를 경우 처리는 후속 티켓에서)
+
+### 양방향 연동 시나리오 (2026-07-09 두번째 개정 신설)
+- **N#1** 카드 클릭 → 지도 마커 pill 확장 (시각 확인 항목). `centers:detail-open` listener 가 `selectMarker(id)` 호출
+- **N#2** 인포윈도우 CTA 클릭 → detail 인라인 open, **페이지 전체 재로드 없음** (network 계측: document navigation 요청 부재, fragment 2건만 발생)
+- **N#3** 상세 close (X 또는 popstate) → 마커 원형 복귀 (`centers:detail-close` 수신 처리)
+- **N#4** 지도 재초기화 회귀 방어 — `htmx:afterSwap` 마다 `new kakao.maps.Map()` 이 반복 호출되지 않는지 (JS 유닛 테스트 또는 DevTools memory heap 스냅샷으로 map instance 1개 유지 확인)
 
 ### 시각 검증 (사용자)
 - 3 컬럼 정렬 · 카드 hover 상태 · 드롭다운 open 애니메이션 · 토글 스위치 slide · 리스트 폭 transition (250ms)
@@ -290,7 +389,7 @@ public record CenterListItem(
 |---|---|
 | 작업 ID | F0h-c2 |
 | 우선순위 | 상 (F0h 사고 후속) |
-| 추정 단위 | 1 PR (Java 3 파일 + template 1 + css + test) |
-| 상태 | `spec_confirmed` |
-| 결정 확정 | Q1=B (인라인+route 병존), Q4=Region 엔티티 조회 |
+| 추정 단위 | 1 PR (Java 3 파일 + template 1 + css + centers-detail.js + test) |
+| 상태 | `spec_confirmed` (2026-07-09 개정) |
+| 결정 확정 | Q1=B (인라인+route 병존), Q4=Region 엔티티 조회, O1=HTMX fragment, O2=pushState, O3=anchor href 유지, O4=centers-detail.js 분리, O5=popstate 재조회는 c4 |
 | PR 예상 라벨 | `layout`, `centers`, `f0h-followup` |

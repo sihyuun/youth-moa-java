@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<!--
+  F0h-c4 (2026-07-09) — lucide 스타일 SVG 아이콘 fragment 모음.
+  prototype.tsx L54~77 의 path 데이터를 그대로 이식.
+  파라미터: size(px), color(CSS color 문자열)
+-->
+<body>
+
+<svg th:fragment="pin(size, color)"
+     th:attr="width=${size},height=${size}"
+     viewBox="0 0 24 24" fill="none"
+     stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+     th:attrappend="style='flex-shrink:0;'">
+    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" th:attr="stroke=${color}"/>
+    <circle cx="12" cy="10" r="3" th:attr="stroke=${color}"/>
+</svg>
+
+<svg th:fragment="calendar(size, color)"
+     th:attr="width=${size},height=${size}"
+     viewBox="0 0 24 24" fill="none"
+     stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+     th:attrappend="style='flex-shrink:0;'">
+    <rect x="3" y="4" width="18" height="18" rx="2" th:attr="stroke=${color}"/>
+    <path d="M16 2v4M8 2v4M3 10h18" th:attr="stroke=${color}"/>
+</svg>
+
+<svg th:fragment="user(size, color)"
+     th:attr="width=${size},height=${size}"
+     viewBox="0 0 24 24" fill="none"
+     stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+     th:attrappend="style='flex-shrink:0;'">
+    <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" th:attr="stroke=${color}"/>
+    <circle cx="12" cy="7" r="4" th:attr="stroke=${color}"/>
+</svg>
+
+<svg th:fragment="close(size, color)"
+     th:attr="width=${size},height=${size}"
+     viewBox="0 0 24 24" fill="none"
+     stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+     th:attrappend="style='flex-shrink:0;'">
+    <path d="M18 6L6 18M6 6l12 12" th:attr="stroke=${color}"/>
+</svg>
+
+</body>
+</html>

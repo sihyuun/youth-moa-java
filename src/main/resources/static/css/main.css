@@ -3956,14 +3956,14 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
   align-items: flex-start;
   padding-top: 16px;
 }
-.centers-list-panel {
+.centers-list-col {
   width: 360px;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
   transition: width 250ms ease;
 }
-.centers-layout.has-detail .centers-list-panel {
+.centers-list-col.has-detail {
   width: 240px;
 }
 .centers-list-head {
@@ -4140,7 +4140,7 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
 }
 
 /* ── 인라인 상세 패널 (320px) ── */
-.centers-detail-panel {
+.centers-detail-col {
   width: 320px;
   flex-shrink: 0;
   background: var(--color-surface);
@@ -4149,6 +4149,9 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
   box-shadow: 0 4px 16px rgba(63, 48, 233, 0.08);
   overflow: hidden;
   position: relative;
+}
+.centers-detail-col[hidden] {
+  display: none;
 }
 .centers-detail-close {
   position: absolute;
@@ -4163,7 +4166,6 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
   align-items: center;
   justify-content: center;
   text-decoration: none;
-  font-size: 16px;
   z-index: 5;
 }
 .centers-detail-image {
@@ -4184,10 +4186,6 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
   inset: 0;
   background: linear-gradient(transparent 50%, rgba(0, 0, 0, 0.45));
   pointer-events: none;
-}
-.centers-detail-image-placeholder {
-  font-size: 40px;
-  color: var(--color-text-tri);
 }
 /* prototype: 이미지 좌하단 open badge 오버레이 */
 .centers-detail-image-badge {
@@ -4253,10 +4251,21 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
   color: var(--color-text-sec);
   margin-bottom: 14px;
 }
-.centers-detail-meta-icon {
-  display: inline-block;
-  width: 18px;
-  color: var(--color-text-tri);
+/* F0h-c4: prototype L2056~2086 — 26x26 primaryLight 박스 안에 lucide SVG */
+.centers-detail-meta-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+.centers-detail-meta-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-md);
+  background: var(--color-primary-bg);
+  flex-shrink: 0;
 }
 .centers-detail-cta {
   display: block;
@@ -4314,7 +4323,305 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
   display: none;
 }
 .centers-map-search-here-icon {
-  font-size: 14px;
+  display: inline-flex;
+  width: 14px;
+  height: 14px;
+  color: var(--color-primary);
+}
+.centers-map-search-here-icon svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* "내 위치" 버튼 — 지도 좌하단 (kakao ZoomControl 은 우측에 있어 좌측으로 배치) */
+.centers-map-my-location {
+  position: absolute;
+  bottom: 24px;
+  left: 16px;
+  z-index: 30;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.16);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-sec);
+  transition: all 150ms ease;
+}
+.centers-map-my-location:hover {
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+.centers-map-my-location.is-loading {
+  pointer-events: none;
+  opacity: 0.6;
+}
+.centers-map-my-location.is-active {
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+/*
+ * F0h-c4 §3-1 지도 마커 (CSS 클래스 기반).
+ * - wrapper 는 30×38 고정. tail 이 항상 wrapper 하단 중앙(=좌표 anchor).
+ * - body 는 wrapper 하단 8px(=tail 위)에 absolute. left:50% + translateX(-50%) 로 tail 중심에 정렬.
+ * - 선택 시 body 만 auto width 로 확장(라벨 표시). wrapper 크기·좌표 anchor 는 불변 → 시각 위치 이동 없음.
+ * - 클릭 hit: wrapper 자체. 내부 SVG stroke-only 라도 body 배경이 클릭 수신 → 정확도 문제 없음.
+ */
+.center-marker {
+  position: relative;
+  width: 30px;
+  height: 38px;
+  cursor: pointer;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+  transition: filter 200ms ease;
+}
+.center-marker.is-selected {
+  filter: drop-shadow(0 4px 8px rgba(63, 48, 233, 0.45));
+  z-index: 20;
+}
+.center-marker__body {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  height: 30px;
+  width: 30px;
+  box-sizing: border-box;
+  border-radius: 50%;
+  border: 2.5px solid var(--color-primary);
+  background: #fff;
+  color: var(--color-primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  transition: width 200ms ease, background 200ms ease, border-radius 200ms ease, padding 200ms ease;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.center-marker__icon {
+  display: inline-flex;
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+  pointer-events: none;
+}
+.center-marker__icon svg {
+  width: 15px;
+  height: 15px;
+}
+.center-marker__label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+  display: none;
+  pointer-events: none;
+}
+/* tail — spec §3-1: 선택 시 primary / 미선택 시 border */
+.center-marker__tail {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 2px;
+  height: 8px;
+  background: var(--color-border);
+}
+/* 비활성 (운영종료) */
+.center-marker.is-inactive:not(.is-selected) .center-marker__body {
+  background: #E5E7EB;
+  border-color: var(--color-border);
+  color: var(--color-text-tri);
+}
+/* 선택 상태 — pill 로 확장, 라벨 표시 */
+.center-marker.is-selected .center-marker__body {
+  width: auto;
+  padding: 0 12px;
+  border-radius: 14px;
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #fff;
+}
+.center-marker.is-selected .center-marker__tail {
+  background: var(--color-primary);
+}
+.center-marker.is-selected .center-marker__label {
+  display: inline;
+}
+.center-marker.is-selected .center-marker__icon {
+  color: #fff;
+}
+
+/* F0h-c4 spec 3-2: 마커 클릭 인포윈도우 (이미지+뱃지+주소+운영시간+CTA/공유) */
+.center-info-window {
+  width: 300px;
+  border-radius: 14px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+  background: var(--color-surface);
+  overflow: hidden;
+  position: relative;
+  font-family: Pretendard, sans-serif;
+}
+.center-info-window-media {
+  position: relative;
+  width: 100%;
+  height: 110px;
+  background: #E5E7EB;
+}
+.center-info-window-image {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+}
+.center-info-window-image.is-placeholder {
+  background: linear-gradient(135deg, #E5E7EB, #CBD5E1);
+}
+.center-info-window-scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(transparent 40%, rgba(0, 0, 0, 0.4));
+  pointer-events: none;
+}
+.center-info-window-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.3);
+  color: #fff;
+  border: none;
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.center-info-window-badge {
+  position: absolute;
+  bottom: 8px;
+  left: 10px;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+}
+.center-info-window-badge.active {
+  background: var(--color-success);
+}
+.center-info-window-badge.inactive {
+  background: #9CA3AF;
+}
+.center-info-window-body {
+  padding: 12px 14px;
+}
+.center-info-window-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: 3px;
+}
+.center-info-window-address {
+  font-size: 12px;
+  color: var(--color-text-sec);
+  line-height: 1.5;
+  margin-bottom: 8px;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+.center-info-window-hours {
+  font-size: 11px;
+  color: var(--color-text-tri);
+  margin-bottom: 10px;
+}
+.center-info-window-actions {
+  display: flex;
+  gap: 8px;
+}
+.center-info-window-cta {
+  flex: 1;
+  height: 32px;
+  background: var(--color-primary);
+  color: #fff;
+  border-radius: 7px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 150ms ease;
+}
+.center-info-window-cta:hover {
+  background: var(--color-primary-dark);
+}
+.center-info-window-share {
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--color-border);
+  border-radius: 7px;
+  background: var(--color-surface);
+  color: var(--color-text-sec);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 150ms ease;
+}
+.center-info-window-share:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+.center-info-window-share.is-copied {
+  border-color: var(--color-success);
+  color: var(--color-success);
+}
+/*
+ * 공통 floating toast (프로젝트 최초 도입).
+ * - mypage-toast (인라인 플래시) 와 컬러 팔레트 통일: success-light bg + success text.
+ * - 화면 우하단 고정. JS 에서 body 에 append → 자동 페이드 아웃 → 제거.
+ * - 여러 개 동시 발생 시 세로로 스택.
+ */
+.toast-stack {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 9999;
+  pointer-events: none;
+}
+.toast {
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  background: var(--color-success-light);
+  color: var(--color-success);
+  font-size: 13px;
+  font-weight: 500;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 180ms ease, transform 180ms ease;
+  pointer-events: auto;
+}
+.toast.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.toast.toast--error {
+  background: #FEE2E2;
+  color: var(--color-error);
 }
 
 /* Fallback grid placeholder */
@@ -4336,8 +4643,14 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
   padding: 20px;
 }
 .center-map-fallback-icon {
-  font-size: 48px;
+  display: inline-flex;
+  width: 48px;
+  height: 48px;
   color: var(--color-primary);
+}
+.center-map-fallback-icon svg {
+  width: 48px;
+  height: 48px;
 }
 .center-map-fallback-title {
   font-size: 14px;

@@ -1,6 +1,6 @@
 ---
 name: resume
-description: youth-moa-java 프로젝트 세션 재개 시 진행 현황 요약과 다음 작업 우선순위를 제시한다.
+description: youth-moa-java 프로젝트 전용 세션 재개. 사용자가 "/resume", "이어서 하자", "어디까지 했지", "다음 작업 뭐야" 등 진행 현황 파악이나 작업 재개를 요청할 때 발동한다. project_youth_moa_java.md 메모리와 git log 를 대조해 완료 항목·다음 작업 우선순위·회사 PC 미검증 항목을 요약한다. 다른 프로젝트(qms-app 등)의 세션 재개에는 사용하지 않는다.
 ---
 
 사용자가 "/resume" 를 입력하면:
