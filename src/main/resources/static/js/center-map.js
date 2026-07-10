@@ -281,12 +281,16 @@
       var centerId = card.getAttribute('data-center-id');
       var name = (card.querySelector('.center-card-name') || card.querySelector('.center-card-compact-name'));
       var nameText = name ? name.textContent.trim() : '';
-      var isActive = !card.querySelector('.center-card-badge.inactive');
+      // F0h-operating-hours-badge (spec §9-5): isActive + isOpenNow 조합. schedule 없으면 배지 자체 미표시.
+      var isActive = card.getAttribute('data-center-active') === 'true';
+      var isOpenNow = card.getAttribute('data-center-open-now') === 'true';
+      var hasSchedule = card.getAttribute('data-center-has-schedule') === 'true';
       // F0h-c4 spec 3-2 준수: 인포윈도우 콘텐츠용 데이터 (list.html data-* attr 에서 조회)
       var addressText = card.getAttribute('data-center-address') || '';
       var hoursText = card.getAttribute('data-center-hours') || '';
       var imageUrlText = card.getAttribute('data-center-image') || '';
 
+      // 마커 파스텔 색상은 kill-switch (isActive) 만 반영 — 지도상 폐업 센터 구분용.
       var markerEl = buildMarkerElement(nameText, isActive);
       markerEl.setAttribute('data-marker-id', centerId);
 
@@ -311,6 +315,8 @@
         el: markerEl,
         name: nameText,
         isActive: isActive,
+        isOpenNow: isOpenNow,
+        hasSchedule: hasSchedule,
         address: addressText,
         hours: hoursText,
         imageUrl: imageUrlText
@@ -474,15 +480,21 @@
         ? '<div class="center-info-window-image" style="background-image:url(' +
             encodeURI(target.imageUrl).replace(/"/g, '') + ');"></div>'
         : '<div class="center-info-window-image is-placeholder"></div>';
-      var badgeClass = target.isActive ? 'active' : 'inactive';
-      var badgeText = target.isActive ? '운영중' : '운영종료';
+      // F0h-operating-hours-badge (spec §9-5): schedule 있는 센터만 인포윈도우 배지 표시.
+      // 판정식은 리스트/상세와 동일 — isActive kill-switch + isOpenNow 조합.
+      var openCombined = target.isActive && target.isOpenNow;
+      var badgeClass = openCombined ? 'active' : 'inactive';
+      var badgeText = openCombined ? '운영중' : '운영종료';
+      var badgeBlock = target.hasSchedule
+        ? '<span class="center-info-window-badge ' + badgeClass + '">' + badgeText + '</span>'
+        : '';
 
       container.innerHTML =
         '<div class="center-info-window-media">' +
           imageBlock +
           '<div class="center-info-window-scrim"></div>' +
           '<button type="button" class="center-info-window-close" data-info-close aria-label="닫기">×</button>' +
-          '<span class="center-info-window-badge ' + badgeClass + '">' + badgeText + '</span>' +
+          badgeBlock +
         '</div>' +
         '<div class="center-info-window-body">' +
           '<div class="center-info-window-name">' + escapeHtml(target.name) + '</div>' +

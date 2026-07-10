@@ -3,6 +3,7 @@ package io.github.sihyuuun.youthmoa.common;
 import com.opencsv.CSVReader;
 import com.opencsv.CSVReaderBuilder;
 import com.opencsv.exceptions.CsvValidationException;
+import io.github.sihyuuun.youthmoa.center.OperatingHours;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -11,6 +12,9 @@ import java.io.PushbackReader;
 import java.io.Reader;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -37,8 +41,23 @@ public class CenterCsvLoader {
 
   private static final String RESOURCE_PATH = "data/centers.csv";
   private static final String[] EXPECTED_HEADERS = {
-    "name", "region", "address", "latitude", "longitude", "phone", "operatingHours", "isActive"
+    "name",
+    "region",
+    "address",
+    "latitude",
+    "longitude",
+    "phone",
+    "operatingHours",
+    "isActive",
+    "weekdayOpen",
+    "weekdayClose",
+    "saturdayOpen",
+    "saturdayClose",
+    "sundayOpen",
+    "sundayClose",
+    "holidayClosed"
   };
+  private static final DateTimeFormatter TIME_FMT = DateTimeFormatter.ofPattern("HH:mm");
   private static final BigDecimal LAT_MIN = new BigDecimal("33");
   private static final BigDecimal LAT_MAX = new BigDecimal("39");
   private static final BigDecimal LNG_MIN = new BigDecimal("124");
@@ -112,7 +131,79 @@ public class CenterCsvLoader {
     String phone = cols[5].trim();
     String operatingHours = cols[6].trim();
     boolean isActive = parseIsActive(cols[7], lineNumber);
-    return new CenterCsvRow(name, region, address, lat, lng, phone, operatingHours, isActive);
+    OperatingHours schedule = parseSchedule(cols, lineNumber);
+    return new CenterCsvRow(
+        name, region, address, lat, lng, phone, operatingHours, isActive, schedule);
+  }
+
+  /**
+   * F0h-operating-hours-badge (spec §9-4): CSV 9~15컬럼 → {@link OperatingHours} 파싱.
+   *
+   * <p>파싱 불가 케이스 (weekday open/close 둘 다 빈값) → {@code null} 반환. spec §9-2 안전 default 로 배지 미표시.
+   *
+   * <p>hour 필드 fail-fast: 잘못된 시간 포맷 (예: "10.00") 은 IllegalStateException.
+   */
+  private OperatingHours parseSchedule(String[] cols, int lineNumber) {
+    LocalTime weekdayOpen = parseTime(cols[8], "weekdayOpen", lineNumber);
+    LocalTime weekdayClose = parseTime(cols[9], "weekdayClose", lineNumber);
+    // spec §9-2: 파싱 불가 3행 (weekday 컬럼 모두 빈 값) → schedule 자체를 null.
+    if (weekdayOpen == null && weekdayClose == null) {
+      return null;
+    }
+    LocalTime saturdayOpen = parseTime(cols[10], "saturdayOpen", lineNumber);
+    LocalTime saturdayClose = parseTime(cols[11], "saturdayClose", lineNumber);
+    LocalTime sundayOpen = parseTime(cols[12], "sundayOpen", lineNumber);
+    LocalTime sundayClose = parseTime(cols[13], "sundayClose", lineNumber);
+    boolean holidayClosed = parseHolidayClosed(cols[14], lineNumber);
+    try {
+      return OperatingHours.builder()
+          .weekdayOpen(weekdayOpen)
+          .weekdayClose(weekdayClose)
+          .saturdayOpen(saturdayOpen)
+          .saturdayClose(saturdayClose)
+          .sundayOpen(sundayOpen)
+          .sundayClose(sundayClose)
+          .holidayClosed(holidayClosed)
+          .build();
+    } catch (IllegalArgumentException e) {
+      throw new IllegalStateException(
+          "centers.csv line " + lineNumber + ": OperatingHours 검증 실패 — " + e.getMessage(), e);
+    }
+  }
+
+  private LocalTime parseTime(String raw, String field, int lineNumber) {
+    if (raw == null) return null;
+    String v = raw.trim();
+    if (v.isEmpty()) return null;
+    try {
+      return LocalTime.parse(v, TIME_FMT);
+    } catch (DateTimeParseException e) {
+      throw new IllegalStateException(
+          "centers.csv line "
+              + lineNumber
+              + ": "
+              + field
+              + " 파싱 실패 — '"
+              + raw
+              + "' (HH:mm 포맷 필요)",
+          e);
+    }
+  }
+
+  /**
+   * holidayClosed 파싱. 빈 값 → spec §9-7 default {@code true}. true/false 외 값은 fail-fast.
+   */
+  private boolean parseHolidayClosed(String raw, int lineNumber) {
+    String v = raw == null ? "" : raw.trim();
+    if (v.isEmpty()) return true; // spec §9-7 default
+    if (v.equalsIgnoreCase("true")) return true;
+    if (v.equalsIgnoreCase("false")) return false;
+    throw new IllegalStateException(
+        "centers.csv line "
+            + lineNumber
+            + ": holidayClosed 값은 true/false/빈값 만 허용 — '"
+            + raw
+            + "'");
   }
 
   private BigDecimal parseCoordinate(String raw, String field, int lineNumber) {

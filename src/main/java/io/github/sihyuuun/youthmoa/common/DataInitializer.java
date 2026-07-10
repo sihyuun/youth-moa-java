@@ -353,6 +353,8 @@ public class DataInitializer implements ApplicationRunner {
               .latitude(row.latitude())
               .longitude(row.longitude())
               .isActive(row.isActive())
+              // F0h-operating-hours-badge (spec §9-1): CSV 파싱한 구조화 운영시간. 파싱 불가 3행은 null.
+              .schedule(row.schedule())
               .build());
     }
 

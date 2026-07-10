@@ -32,6 +32,9 @@ dependencies {
 	implementation("org.webjars:webjars-locator-core")
 	// F0h-real-coords: CSV 시드 로더 (RFC 4180 파싱). 48행 규모, DataInitializer 에서만 사용.
 	implementation("com.opencsv:opencsv:5.9")
+	// F0h-operating-hours-badge (spec §9-2): 한국 공휴일 판정.
+	// 초기 impl 은 하드코딩 KoreanHolidayRegistry (2026·2027 공휴일 리스트) 로 진행.
+	// jollyday 라이브러리 정확한 Maven 좌표 확인 후 별도 티켓에서 전환 예정.
 	compileOnly("org.projectlombok:lombok")
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
 	runtimeOnly("org.postgresql:postgresql")
