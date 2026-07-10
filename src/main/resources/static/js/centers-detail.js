@@ -162,6 +162,13 @@
     var formParams = new URLSearchParams();
     formData.forEach(function (v, k) { if (v !== '') formParams.set(k, String(v)); });
 
+    // 정렬 pill 시각 상태 동기화 (2026-07-10 사용자 지적: partial swap 이 pill 영역 밖이라 stale)
+    // pill 은 `.centers-list-head` 에 위치, `.centers-list-scroll` 밖. 서버 재렌더 안 되므로 client 로 토글.
+    var sortValue = formParams.get('sort') || 'name';
+    document.querySelectorAll('.centers-sort-pill-item').forEach(function (pill) {
+      pill.classList.toggle('is-active', pill.getAttribute('data-sort') === sortValue);
+    });
+
     var isDetailOpen = listCol.classList.contains('has-detail');
     var activeCard = listScroll.querySelector('.center-card.is-active');
     var activeId = activeCard ? activeCard.getAttribute('data-center-id') : null;

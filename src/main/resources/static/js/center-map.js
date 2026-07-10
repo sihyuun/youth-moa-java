@@ -404,8 +404,46 @@
         map.setLevel(MAX_LEVEL);
       }
     }
+    // 2026-07-10 race fix: geolocation 성공 시 후속 fitAndClamp 가 사용자 위치를 덮어쓰지 않도록 flag.
+    var userLocationApplied = false;
+
     fitAndClamp();
-    setTimeout(fitAndClamp, 100);
+    setTimeout(function () {
+      if (!userLocationApplied) fitAndClamp();
+    }, 100);
+
+    // 2026-07-10 사용자 요청: /centers 진입 시 기본 위치 = 사용자 위치 (geolocation).
+    // 성공 → 내 위치 중심 + level 5 (시·군 시야) + 파란 점 표식.
+    // 실패·거부·미지원 → 위 fitAndClamp (48개 마커 bounds + MAX_LEVEL=7) 그대로 유지 (fallback).
+    // silent — permission 거부는 alert 안 함 (사용자 액션 아닌 초기 진입이라 방해 최소).
+    // 실행 위치: fitAndClamp 이후. geolocation 성공 시점이 setTimeout(fitAndClamp,100) 보다
+    // 빠르거나 늦을 수 있어 flag 로 race 방어.
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        function (pos) {
+          var lat = pos.coords.latitude;
+          var lng = pos.coords.longitude;
+          var here = new kakao.maps.LatLng(lat, lng);
+          userLocationApplied = true;   // 후속 fitAndClamp 덮어쓰기 방지
+          map.setCenter(here);
+          map.setLevel(5);
+          if (myLocationOverlay) myLocationOverlay.setMap(null);
+          var dot = document.createElement('div');
+          dot.style.cssText =
+            'width:16px;height:16px;border-radius:50%;background:#4285F4;' +
+            'border:3px solid #fff;box-shadow:0 0 0 2px rgba(66,133,244,0.35);';
+          myLocationOverlay = new kakao.maps.CustomOverlay({
+            position: here, content: dot, yAnchor: 0.5, xAnchor: 0.5, zIndex: 50
+          });
+          myLocationOverlay.setMap(map);
+          if (myLocationBtn) myLocationBtn.classList.add('is-active');
+        },
+        function (err) {
+          // silent fallback — fitAndClamp 결과 그대로. permission 거부(1) / 시간초과(3) 등
+        },
+        { enableHighAccuracy: false, timeout: 5000, maximumAge: 300000 }
+      );
+    }
 
     function selectMarker(id) {
       selectedId = id;
