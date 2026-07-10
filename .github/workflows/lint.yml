@@ -20,6 +20,11 @@ jobs:
   secret-scan:
     name: Secret Scan (gitleaks)
     runs-on: ubuntu-latest
+    # gitleaks-action 이 PR 이벤트에서 커밋 목록을 API 로 조회 → 기본 토큰 권한으로는
+    # "Resource not accessible by integration" 실패 (2026-07-10 첫 실행 실측). 명시 권한 필요.
+    permissions:
+      contents: read
+      pull-requests: read
     steps:
       - uses: actions/checkout@v7
         with:
@@ -27,6 +32,8 @@ jobs:
       - uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_ENABLE_COMMENTS: "false"
+          GITLEAKS_ENABLE_SUMMARY: "true"
 
   custom-lint:
     name: Custom Anti-Pattern Check
