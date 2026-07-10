@@ -119,9 +119,7 @@ public class CenterService {
     return centerRepository.findById(id);
   }
 
-  /**
-   * F0h-center-desc-image (spec §9-1): 상세 패널용 CenterContent 조회. 없으면 empty (View 는 fallback).
-   */
+  /** F0h-center-desc-image (spec §9-1): 상세 패널용 CenterContent 조회. 없으면 empty (View 는 fallback). */
   public Optional<CenterContent> findContentByCenterId(Long centerId) {
     return centerContentRepository.findByCenterId(centerId);
   }

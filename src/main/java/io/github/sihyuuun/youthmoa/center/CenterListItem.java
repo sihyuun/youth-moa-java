@@ -56,7 +56,8 @@ public record CenterListItem(
   }
 
   /** 하위 호환 — content 미상 시 desc/imageUrl 없이 채움. 테스트·구 호출자용. */
-  public static CenterListItem of(Center c, int programCount, LocalDateTime now, boolean isHoliday) {
+  public static CenterListItem of(
+      Center c, int programCount, LocalDateTime now, boolean isHoliday) {
     return of(c, programCount, now, isHoliday, null);
   }
 
