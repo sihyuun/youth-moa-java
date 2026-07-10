@@ -85,9 +85,7 @@ class CenterControllerTest {
             .phone("031-228-1234")
             .latitude(new BigDecimal("37.2636000"))
             .longitude(new BigDecimal("127.0286000"))
-            .description("청년 창업과 네트워킹")
             .operatingHours("평일 09:00~18:00")
-            .imageUrl("/images/centers/placeholder-1.png")
             .build();
     given(centerService.findById(1L)).willReturn(Optional.of(c));
     given(centerService.list(any(), any(), anyBoolean(), any(), any(), anyBoolean())).willReturn(List.of(sampleItem()));

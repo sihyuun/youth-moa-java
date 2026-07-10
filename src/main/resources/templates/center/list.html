@@ -119,7 +119,7 @@
                    th:hidden="${detailCenter == null}"
                    data-centers-detail-col>
                 <th:block th:if="${detailCenter != null}">
-                    <th:block th:replace="~{center/list-fragments :: detail-panel-content(detailCenter=${detailCenter}, detailProgramCount=${detailProgramCount}, detailIsOpenNow=${detailIsOpenNow}, detailHasSchedule=${detailHasSchedule}, filterQ=${filterQ}, filterRegion=${filterRegion}, filterOnlyActive=${filterOnlyActive}, filterSort=${filterSort})}"></th:block>
+                    <th:block th:replace="~{center/list-fragments :: detail-panel-content(detailCenter=${detailCenter}, detailContent=${detailContent}, detailProgramCount=${detailProgramCount}, detailIsOpenNow=${detailIsOpenNow}, detailHasSchedule=${detailHasSchedule}, filterQ=${filterQ}, filterRegion=${filterRegion}, filterOnlyActive=${filterOnlyActive}, filterSort=${filterSort})}"></th:block>
                 </th:block>
             </aside>
 

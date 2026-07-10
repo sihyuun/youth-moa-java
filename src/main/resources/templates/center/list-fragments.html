@@ -55,7 +55,7 @@
     </a>
 </th:block>
 
-<th:block th:fragment="detail-panel-content(detailCenter, detailProgramCount, detailIsOpenNow, detailHasSchedule, filterQ, filterRegion, filterOnlyActive, filterSort)">
+<th:block th:fragment="detail-panel-content(detailCenter, detailContent, detailProgramCount, detailIsOpenNow, detailHasSchedule, filterQ, filterRegion, filterOnlyActive, filterSort)">
     <a class="centers-detail-close"
        th:href="@{/centers(q=${filterQ},region=${filterRegion},onlyActive=${filterOnlyActive},sort=${filterSort})}"
        data-centers-detail-close
@@ -63,7 +63,7 @@
         <svg th:replace="~{fragments/icons :: close(14, '#ffffff')}"></svg>
     </a>
     <div class="centers-detail-image"
-         th:style="${detailCenter.imageUrl != null} ? |background-image:url(${detailCenter.imageUrl})| : ''">
+         th:style="${detailContent != null and detailContent.imageUrl != null} ? |background-image:url(${detailContent.imageUrl})| : ''">
         <!-- F0h-operating-hours-badge: schedule 있는 센터만 배지 렌더. isActive kill-switch + detailIsOpenNow 조합. -->
         <span th:if="${detailHasSchedule}"
               class="centers-detail-image-badge"
@@ -74,8 +74,8 @@
         <div class="centers-detail-head">
             <h3 class="centers-detail-name" th:text="${detailCenter.name}">센터명</h3>
         </div>
-        <p class="centers-detail-desc" th:if="${detailCenter.description != null}"
-           th:text="${detailCenter.description}">설명</p>
+        <p class="centers-detail-desc" th:if="${detailContent != null and detailContent.description != null}"
+           th:text="${detailContent.description}">설명</p>
         <div class="centers-detail-meta">
             <div class="centers-detail-meta-row">
                 <span class="centers-detail-meta-badge">

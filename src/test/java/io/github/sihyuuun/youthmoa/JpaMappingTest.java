@@ -8,6 +8,8 @@ import io.github.sihyuuun.youthmoa.application.ApplicationStatus;
 import io.github.sihyuuun.youthmoa.bookmark.Bookmark;
 import io.github.sihyuuun.youthmoa.bookmark.BookmarkRepository;
 import io.github.sihyuuun.youthmoa.center.Center;
+import io.github.sihyuuun.youthmoa.center.CenterContent;
+import io.github.sihyuuun.youthmoa.center.CenterContentRepository;
 import io.github.sihyuuun.youthmoa.center.CenterRepository;
 import io.github.sihyuuun.youthmoa.common.config.JpaConfig;
 import io.github.sihyuuun.youthmoa.notice.Notice;
@@ -38,6 +40,7 @@ class JpaMappingTest {
 
   @Autowired UserRepository userRepository;
   @Autowired CenterRepository centerRepository;
+  @Autowired CenterContentRepository centerContentRepository;
   @Autowired ProgramRepository programRepository;
   @Autowired ApplicationRepository applicationRepository;
   @Autowired BookmarkRepository bookmarkRepository;
@@ -155,7 +158,10 @@ class JpaMappingTest {
     assertThat(reloaded.getEligibility().getEtc()).isEqualTo("전 회차 참석 가능자");
   }
 
-  /** F0h-c1: Center 신규 3필드 (description / operatingHours / imageUrl) 왕복 검증. */
+  /**
+   * F0h-center-desc-image (spec §9-1): description·imageUrl 은 {@link CenterContent} 로 분리됨. Center
+   * 는 팩트(operatingHours 포함) 만 유지. CenterContent @OneToOne 매핑·round-trip 검증.
+   */
   @Test
   void centerContentFieldsPersist() {
     Center c =
@@ -163,23 +169,38 @@ class JpaMappingTest {
             Center.builder()
                 .name("테스트센터")
                 .region("수원시")
-                .description("설명 텍스트")
                 .operatingHours("평일 09~18")
-                .imageUrl("/images/centers/x.png")
                 .build());
     centerRepository.flush();
     Center loaded = centerRepository.findById(c.getId()).orElseThrow();
-    assertThat(loaded.getDescription()).isEqualTo("설명 텍스트");
     assertThat(loaded.getOperatingHours()).isEqualTo("평일 09~18");
-    assertThat(loaded.getImageUrl()).isEqualTo("/images/centers/x.png");
 
-    // updateContent 도메인 메서드 반영 검증
-    loaded.updateContent("변경된 설명", "주말 10~17", "/images/centers/y.png");
+    // updateOperatingHours 도메인 메서드 반영 검증
+    loaded.updateOperatingHours("주말 10~17");
     centerRepository.flush();
-    Center reloaded = centerRepository.findById(c.getId()).orElseThrow();
-    assertThat(reloaded.getDescription()).isEqualTo("변경된 설명");
-    assertThat(reloaded.getOperatingHours()).isEqualTo("주말 10~17");
-    assertThat(reloaded.getImageUrl()).isEqualTo("/images/centers/y.png");
+    assertThat(centerRepository.findById(c.getId()).orElseThrow().getOperatingHours())
+        .isEqualTo("주말 10~17");
+
+    // CenterContent 저장·조회·업데이트 round-trip
+    CenterContent content =
+        centerContentRepository.save(
+            CenterContent.builder()
+                .center(loaded)
+                .description("설명 텍스트")
+                .imageUrl("/images/centers/x.png")
+                .build());
+    centerContentRepository.flush();
+    CenterContent foundByCenter =
+        centerContentRepository.findByCenterId(c.getId()).orElseThrow();
+    assertThat(foundByCenter.getDescription()).isEqualTo("설명 텍스트");
+    assertThat(foundByCenter.getImageUrl()).isEqualTo("/images/centers/x.png");
+    assertThat(foundByCenter.getCenter().getId()).isEqualTo(c.getId());
+
+    foundByCenter.update("변경된 설명", "/images/centers/y.png");
+    centerContentRepository.flush();
+    CenterContent reloadedContent = centerContentRepository.findById(content.getId()).orElseThrow();
+    assertThat(reloadedContent.getDescription()).isEqualTo("변경된 설명");
+    assertThat(reloadedContent.getImageUrl()).isEqualTo("/images/centers/y.png");
   }
 
   @Autowired io.github.sihyuuun.youthmoa.common.SiteImageRepository siteImageRepository;

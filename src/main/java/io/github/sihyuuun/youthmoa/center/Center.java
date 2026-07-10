@@ -56,17 +56,9 @@ public class Center extends BaseTimeEntity {
   @Column(precision = 10, scale = 7)
   private BigDecimal longitude;
 
-  /** F0h-c1: 센터 서브 텍스트 (prototype `desc`). null 허용. */
-  @Column(length = 500)
-  private String description;
-
   /** F0h-c1: 운영시간 자유서식 (prototype `hours`). null 허용, 기본 시드 "평일 09:00~18:00". */
   @Column(name = "operating_hours", length = 100)
   private String operatingHours;
-
-  /** F0h-c1: 카드/상세 이미지 URL (상대·절대). null 이면 placeholder 표시. */
-  @Column(name = "image_url", length = 500)
-  private String imageUrl;
 
   /**
    * F0h-operating-hours-badge (spec §9-1): 구조화된 요일별 운영시간. 배지 판정의 진리 소스. null 이면 판정 skip →
@@ -85,9 +77,7 @@ public class Center extends BaseTimeEntity {
       Boolean isFeatured,
       BigDecimal latitude,
       BigDecimal longitude,
-      String description,
       String operatingHours,
-      String imageUrl,
       OperatingHours schedule) {
     this.name = name;
     this.region = region;
@@ -97,9 +87,7 @@ public class Center extends BaseTimeEntity {
     this.isFeatured = isFeatured != null && isFeatured;
     this.latitude = latitude;
     this.longitude = longitude;
-    this.description = description;
     this.operatingHours = operatingHours;
-    this.imageUrl = imageUrl;
     this.schedule = schedule;
   }
 
@@ -116,11 +104,12 @@ public class Center extends BaseTimeEntity {
     return schedule != null;
   }
 
-  /** F0h-c1: 관리자 페이지 확장 대비 컨텐츠 갱신 도메인 메서드. */
-  public void updateContent(String description, String operatingHours, String imageUrl) {
-    this.description = description;
+  /**
+   * F0h-center-desc-image (spec §9-1): description·imageUrl 은 {@link CenterContent} 로 분리됨. 이 메서드는
+   * 운영시간만 갱신 (관리자 CRUD 대비).
+   */
+  public void updateOperatingHours(String operatingHours) {
     this.operatingHours = operatingHours;
-    this.imageUrl = imageUrl;
   }
 
   public void markFeatured() {

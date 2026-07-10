@@ -4,6 +4,8 @@ import io.github.sihyuuun.youthmoa.application.Application;
 import io.github.sihyuuun.youthmoa.application.ApplicationRepository;
 import io.github.sihyuuun.youthmoa.application.ApplicationStatus;
 import io.github.sihyuuun.youthmoa.center.Center;
+import io.github.sihyuuun.youthmoa.center.CenterContent;
+import io.github.sihyuuun.youthmoa.center.CenterContentRepository;
 import io.github.sihyuuun.youthmoa.center.CenterRepository;
 import io.github.sihyuuun.youthmoa.notice.Notice;
 import io.github.sihyuuun.youthmoa.notice.NoticeAttachment;
@@ -23,7 +25,7 @@ import io.github.sihyuuun.youthmoa.user.UserRepository;
 import io.github.sihyuuun.youthmoa.user.UserRole;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -53,6 +55,8 @@ public class DataInitializer implements ApplicationRunner {
   private final NotificationRepository notificationRepository;
   private final PasswordEncoder passwordEncoder;
   private final CenterCsvLoader centerCsvLoader;
+  private final CenterContentCsvLoader centerContentCsvLoader;
+  private final CenterContentRepository centerContentRepository;
 
   @Override
   @Transactional
@@ -358,54 +362,9 @@ public class DataInitializer implements ApplicationRunner {
               .build());
     }
 
-    // (F0h-real-coords) legacy hardcoded block (48-name list + coord map + offset for-loop +
-    // 이름별 상세정보 lookup map 제거됨. CSV row 자체가 진리 소스.
-
-    // F0h-c1: 이름 키워드 기반 desc 자동 생성 (5종 로테이션) — 대표 8개는 아래 seedContent 로 override.
-    // imageUrl 은 unsplash 워크스페이스/커뮤니티 사진 6장 로테이션.
-    String[] imagePool = {
-      "https://images.unsplash.com/photo-1497366216548-37526070297c?w=400&h=200&fit=crop&auto=format",
-      "https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=400&h=200&fit=crop&auto=format",
-      "https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=400&h=200&fit=crop&auto=format",
-      "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=400&h=200&fit=crop&auto=format",
-      "https://images.unsplash.com/photo-1517048676732-d65bc937f952?w=400&h=200&fit=crop&auto=format",
-      "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=400&h=200&fit=crop&auto=format"
-    };
-    int imgIdx = 0;
-    for (Center c : centers) {
-      String desc;
-      String name = c.getName();
-      if (name.contains("창업")) {
-        desc = "청년 창업과 네트워킹을 지원하는 복합공간";
-      } else if (name.contains("취업") || name.contains("일자리") || name.contains("잡")) {
-        desc = "취업·진로 전문 청년 지원센터";
-      } else if (name.contains("역량") || name.contains("LAB") || name.contains("발전소")) {
-        desc = "청년 역량 강화·성장 프로그램 운영";
-      } else if (name.contains("문화") || name.contains("톡톡") || name.contains("바람") || name.contains("꿈")) {
-        desc = "청년 문화·창작 커뮤니티 공간";
-      } else {
-        desc = c.getRegion() + " 청년의 자립과 성장을 지원하는 공간";
-      }
-      c.updateContent(desc, c.getOperatingHours(), imagePool[imgIdx % imagePool.length]);
-      imgIdx++;
-    }
-
-    // F0h-c1: 대표 8개 센터 desc override (실제 기획 문안, 좌표에 대응)
-    Map<String, String> featuredDesc = new LinkedHashMap<>();
-    featuredDesc.put("청년바람지대", "청년 창업과 네트워킹을 위한 복합문화공간");
-    featuredDesc.put("청년이봄", "취업·역량강화 특화 청년지원센터");
-    featuredDesc.put("안양청년1번가", "정신건강·힐링 프로그램 전문 센터");
-    featuredDesc.put("소사청년공간 소사로움", "취업·역량강화 특화 청년지원센터");
-    featuredDesc.put("화성시청년지원센터 H.E.Y", "취업·진로 전문 지원 청년센터");
-    featuredDesc.put("광명시 청년동", "지역사회 연계 청년 커뮤니티 허브");
-    featuredDesc.put("양평청년공간 오름", "소셜벤처·사회적 경제 청년 지원");
-    featuredDesc.put("의왕청년발전소", "지역사회 연계 청년 커뮤니티 허브");
-    for (Center c : centers) {
-      String d = featuredDesc.get(c.getName());
-      if (d != null) {
-        c.updateContent(d, c.getOperatingHours(), c.getImageUrl());
-      }
-    }
+    // F0h-center-desc-image (spec §9-1): description·imageUrl 파생 시드 제거.
+    // 기존 unsplash 6장 로테이션·이름 키워드 5종 desc·featured 8건 override 로직 완전 삭제 → centers-content.csv 로 이관.
+    // CenterContent 저장은 centerRepository.saveAll(centers) 이후 실행 (아래).
 
     // name 가나다순으로 상위 5개 featured 표시
     Set<String> featuredNames =
@@ -422,6 +381,28 @@ public class DataInitializer implements ApplicationRunner {
 
     centerRepository.saveAll(centers);
     log.info("Seeded {} centers ({} featured)", centers.size(), featuredNames.size());
+
+    // F0h-center-desc-image (spec §9-1): CenterContent 시드 — CSV 로부터 로드.
+    Map<String, Center> centerByName = new HashMap<>();
+    for (Center c : centers) centerByName.put(c.getName(), c);
+    List<CenterContentCsvRow> contentRows = centerContentCsvLoader.load();
+    List<CenterContent> contents = new ArrayList<>();
+    for (CenterContentCsvRow row : contentRows) {
+      Center matched = centerByName.get(row.name());
+      if (matched == null) {
+        log.warn(
+            "centers-content.csv: name '{}' 이 centers.csv 와 매칭되지 않음 (skip)", row.name());
+        continue;
+      }
+      contents.add(
+          CenterContent.builder()
+              .center(matched)
+              .description(row.description())
+              .imageUrl(row.imageUrl())
+              .build());
+    }
+    centerContentRepository.saveAll(contents);
+    log.info("Seeded {} center contents", contents.size());
   }
 
   private void seedPrograms() {
