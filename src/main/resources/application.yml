@@ -13,8 +13,18 @@ spring:
 
   jpa:
     hibernate:
+      # P0-1 Flyway 로 전환 완료 후 이 값은 validate 로 (`JPA_DDL_AUTO=validate` 환경변수) 변경 예정.
+      # 현재는 학습 단계 create-drop 유지 (Flyway enabled=false 상태).
       ddl-auto: ${JPA_DDL_AUTO:create-drop}
     open-in-view: false
+
+  flyway:
+    # P0-1 준비 (ADMIN-00 §4). V1__baseline.sql 생성 후 enabled=true 로 전환.
+    # baseline 은 desc-image 티켓 머지 후 최종 스키마 기준으로 dump 예정.
+    enabled: ${FLYWAY_ENABLED:false}
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    baseline-version: 0
     properties:
       hibernate:
         format_sql: true
