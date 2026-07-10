@@ -5,12 +5,44 @@ type: project
 originSessionId: 51da8e75-f7a2-4b05-b2b6-963ce41efb6a
 ---
 
-> **마지막 갱신**: 2026-07-09.
+> **마지막 갱신**: 2026-07-10.
 > 프로젝트 루트의 `CLAUDE.md` 가 디자인 시스템·작업 규칙·검증 규칙·환경 분리·패키지 구조·엔티티 규칙·Git 컨벤션 등 코드 작업 컨텍스트의 최우선 가이드라인. 본 메모리는 **시점적 진행 상태·DB·열린 PR·다음 액션** 중심으로 유지.
 
 ---
 
-## 🟠 2026-07-09 진행 중 — feature/F0h-centers-rework (미커밋)
+## 🟢 2026-07-10 세션 진행 상황
+
+### 오늘 머지된 PR (2건)
+- **PR #78** — F0h: 청년센터 3-column 재설계 + 실좌표 CSV 시드 + 확장성 원칙 강화 (b7cddf8, 8커밋 squash). feature/F0h-centers-rework + fix/F0h-real-coords 통합. 완결.
+- **PR #79** — fix: ProgramController.detail 에 @Transactional(readOnly=true) (f61a410). 2026-07-09 ym-verify FAIL #2 잔여 해소.
+
+### 오늘 완료된 작업 요약
+- F0h-c2 client-state 재설계 (X 버튼·카드 클릭 서버 왕복 제거, pushState/popstate)
+- 지도 양방향 연동 CustomEvent 3종 (detail-open/close/request-detail)
+- 카드 클릭 시 setLevel(4) 동 단위 확대 + panBy 로 인포윈도우 중앙 정렬
+- 필터 partial swap (form intercept + fetch, 지도 리로드 회피)
+- 상세 패널 SVG 아이콘 이식 (pin/calendar/user/close, `templates/fragments/icons.html`)
+- 인포윈도우 CTA 를 `<button data-info-detail>` + `centers:request-detail`
+- 홈 "전체 센터 보기" 링크 `/programs` → `/centers` fix
+- 48개 실좌표 CSV 시드 (`src/main/resources/data/centers.csv`), regionCoords 파생 근절
+- 재발방지 규칙 4종 (CLAUDE.md): fragment 별도 파일·th:if+th:replace·SVG vs 이모지·파생 시드 금지
+- build-check 스킬 렌더 테스트 자동 편입
+
+### 🟠 진행 중 — fix/F0h-operating-hours-badge (다른 세션 병행)
+- **spec `spec_confirmed`**: `Center.isActive` kill-switch 재정의 + `@Embeddable OperatingHours` + `isCurrentlyOpen(now)` + jollyday
+- **CSV 확장 (다른 세션)**: 8→15컬럼 확장 진행 중. 가이드 문서 `docs/00_assets/region_center_list.md` 부록 2 참고
+- **결정 확정 (§9)**: A(@Embeddable) / jollyday / 자정넘김 제외 / CSV 단일파일 15컬럼 / Controller 사전계산 / 파라미터 방식 / `Center.schedule` / record 필드 / holidayClosed=true default / Embeddable 생성자 검증
+- **파싱 불가 3행 처리**: 배지 숨김 (28청춘·양주시·의정부 청년다락방)
+- CSV 완료 대기 → ym-impl 착수 예정
+
+### 📋 다음 티켓 spec
+- **`fix/F0h-center-desc-image`** (`spec_draft`): desc/imageUrl 파생 시드 근절. 8건 오픈 이슈 결정 대기 (옵션 A=CenterContent @OneToOne 엔티티 권장)
+
+### 🟠 열린 PR 없음 (모두 머지됨)
+
+---
+
+## 🟢 2026-07-09 세션 진행 완료 (참고 — 위 PR #78 로 통합됨)
 
 **세션 흐름**: ym-verify 워킹트리 검증 → FAIL #12 필터 풀리로드 fix → 사용자 시각 확인 → X 버튼 액션 prototype 불일치 지적 → ym-verify 재검증 (FAIL 2건, spec 결함 확정) → F0h-c2 spec 개정안 산출 → 사용자 O1~O5 결정 (모두 권장안) → ym-spec 이 `docs/specs/F0h-c2-list-3col.md` 재작성 → ym-impl 로 client-state 구현 진행 중.
 
@@ -263,29 +295,30 @@ gh auth setup-git
 
 ---
 
-## 🟡 다음 작업 큐 (2026-07-09 갱신)
+## 🟡 다음 작업 큐 (2026-07-10 갱신)
 
 ### 🔴 진행 중
 | 순서 | 브랜치 | 범위 | 상태 |
 |---|---|---|---|
-| **P0** | `feature/F0h-centers-rework` | F0h-c2 client-state 재설계 (X 버튼 prototype 불일치 fix) + requestSubmit 필터 부분 swap | ym-impl 실행 중 (2026-07-09) |
+| **P0** | `fix/F0h-operating-hours-badge` | isActive 의미 재정의 + @Embeddable OperatingHours + isCurrentlyOpen(now) + jollyday | ym-research 완료 · CSV 확장 대기 (다른 세션) · ym-impl 대기 |
 
-### 🟠 곧 착수 (F0h-c2 머지 후)
+### 🟠 곧 착수 (badge 티켓 완료 후)
 | 순서 | 브랜치 후보 | 범위 | 비고 |
 |---|---|---|---|
-| ① | `feature/F0h-c4-htmx-filter` | 필터 form submit 도 pushState 로 통일 → popstate 로 필터 되돌리기 지원 (c2 개정안 §10 O5 이월분) | c2 완료 전제 |
-| ② | E2E 확장 — `/centers` | 카드 클릭·X 클릭·pushState·popstate·transition 계측 spec | c2 stable 후 |
-| ③ | E2E 확장 — `/mypage`, `/find-account` | Playwright spec 신설 | 개인 PC |
+| ① | `fix/F0h-center-desc-image` | desc/imageUrl 파생 시드 근절 → CenterContent @OneToOne 엔티티 or 별도 자원파일 | spec `spec_draft` 상태, 8건 오픈 이슈 결정 대기 |
+| ② | `feature/F0h-c4-htmx-filter` | 필터 form submit 도 pushState 로 통일 → popstate 로 필터 되돌리기 지원 (c2 개정안 §10 O5 이월분) | fetch partial swap 은 이미 이번 세션에 반영, popstate 만 잔여 |
+| ③ | E2E 확장 — `/centers` | 카드 클릭·X 클릭·pushState·popstate·transition 계측 spec | 개인 PC |
+| ④ | E2E 확장 — `/mypage`, `/find-account` | Playwright spec 신설 | 개인 PC |
 
 ### 🟡 대기 (기술 부채·인프라)
 | 순서 | 브랜치 | 범위 | 우선도 |
 |---|---|---|---|
-| ④ | `fix/text-tri-token` | main.css 자기참조 변수 실제 위험도 재확인 (`--color-text-tri: var(--color-text-tri)`) | 확인 후 결정 |
-| ⑤ | `fix/webjars-htmx-path` | `/webjars/htmx` 302 redirect 재확인 (2.0.4 revert 이후 정상이면 close) | 재확인 |
-| ⑥ | `chore/testcontainers-fix` | `YouthMoaApplicationTests` Docker daemon 연결 확인 | 개인 PC 확인 |
-| ⑦ | `chore/flyway-intro` | Flyway 도입 (현재 ddl-auto: create-drop → 학습 진척 시점 판단) | 낮음 |
-| ⑧ | `feature/admin-siteimage-crud` | SiteImage admin CRUD — 관리자 페이지 첫 진입 시 우선 대상 | 관리자 페이지 시작 시 |
-| ⑨ | UNVERIFIED 4건 (F0h ym-verify) | Kakao MarkerClusterer CustomOverlay 수용 / 인포윈도우 좌우 보정 / overlay.setZIndex hover / zoom MAX_LEVEL=7 초기 뷰포트 이탈 | 개인 PC 시각 확인 |
+| ⑤ | `fix/text-tri-token` | main.css 자기참조 변수 실제 위험도 재확인 (`--color-text-tri: var(--color-text-tri)`) | 확인 후 결정 |
+| ⑥ | `fix/webjars-htmx-path` | `/webjars/htmx` 302 redirect 재확인 (2.0.4 revert 이후 정상이면 close) | 재확인 |
+| ⑦ | `chore/testcontainers-fix` | `YouthMoaApplicationTests` Docker daemon 연결 확인 | 개인 PC 확인 |
+| ⑧ | `chore/flyway-intro` | Flyway 도입 (현재 ddl-auto: create-drop → 학습 진척 시점 판단) | 낮음 · admin CRUD 실효성 확보와 연관 |
+| ⑨ | `feature/admin-siteimage-crud` | SiteImage admin CRUD — 관리자 페이지 첫 진입 시 우선 대상 | 관리자 페이지 시작 시 |
+| ⑩ | UNVERIFIED 4건 (F0h ym-verify) | Kakao MarkerClusterer CustomOverlay 수용 / 인포윈도우 좌우 보정 / overlay.setZIndex hover / zoom MAX_LEVEL=7 초기 뷰포트 (사용자 유지 결정) | 개인 PC 시각 확인 |
 
 ### ✅ 최근 완료 (참고 — 2026-07-01 이후 머지분)
 - **7/1** F0e (홈 prototype 정렬 + SiteImage) / F0f (프로그램 목록 필터 재설계)
@@ -293,7 +326,7 @@ gh auth setup-git
 - **7/3** F0g 공지사항 / F0e-hero-refresh / Top 5 E2E / integration_render_test / helpers.ts
 - **7/6** F0i 아이디·비번 찾기 / F0e-2 Hero 로테이션 / F2 알림 종 / F2b 알림 이벤트 / D5-mypage / D4-search / F0h-centers (초판)
 - **7/7** kakao_sdk_https / F4 자격요건 / F2c header transparent / F0c apply wizard / prevent_prototype_drift / F0h specs (c1·c2·c4)
-- **7/9** (진행) F0h-c2 client-state 재설계
+- **7/10** F0h-c2 client-state 재설계 + 실좌표 CSV + 확장성 원칙 (PR #78) / ProgramController.detail @Transactional (PR #79)
 
 ### 🧪 E2E 커버리지 확장 (2026-07-02 사용자: QA 최우선 원칙)
 
