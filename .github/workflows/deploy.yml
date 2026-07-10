@@ -1,23 +1,35 @@
 name: Deploy to Fly.io
 
-# main 브랜치 push 시 자동 배포
-# 전제: GitHub Secrets 에 FLY_API_TOKEN 설정 필요
-# 발급: fly auth token → GitHub repo Settings → Secrets → FLY_API_TOKEN
+# CI(main) 성공 후에만 실행. 기본 OFF — repo Settings > Variables 에 FLY_DEPLOY_ENABLED=true 설정 시 활성화.
+#
+# [2026-07-10 수정 배경]
+# 이전 버전은 jobs.deploy.if 에서 `secrets.FLY_API_TOKEN` 을 참조했으나,
+# GitHub Actions 는 job-level if 에서 secrets 컨텍스트를 지원하지 않아
+# 워크플로우 유효성 검증 자체가 실패 → 매 push 마다 0초 startup_failure 기록.
+# → vars 게이트(vars 는 job-level if 지원) + workflow_run 트리거(CI 성공 후 배포 순서 보장)로 전환.
+#
+# 활성화 절차:
+# 1. fly auth token 발급 → repo Settings > Secrets > FLY_API_TOKEN 등록
+# 2. repo Settings > Variables > FLY_DEPLOY_ENABLED = true 등록
 
 on:
-  push:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
     branches: [main]
 
-# CI 통과 후 배포 (ci.yml 와 별도 job 이라 순서 보장 안 됨 — 필요 시 needs 추가)
 jobs:
   deploy:
     name: Deploy
     runs-on: ubuntu-latest
-    # FLY_API_TOKEN 시크릿이 없으면 스킵 (초기 셋업 전 오류 방지)
-    if: ${{ secrets.FLY_API_TOKEN != '' }}
+    if: ${{ github.event.workflow_run.conclusion == 'success' && vars.FLY_DEPLOY_ENABLED == 'true' }}
 
     steps:
       - uses: actions/checkout@v7
+        with:
+          # workflow_run 은 기본적으로 default branch 최신을 checkout 하지만,
+          # CI 를 통과한 바로 그 커밋을 배포하도록 명시 고정
+          ref: ${{ github.event.workflow_run.head_sha }}
 
       - name: Setup Fly CLI
         uses: superfly/flyctl-actions/setup-flyctl@master

@@ -15,8 +15,8 @@ import org.springframework.web.server.ResponseStatusException;
 /**
  * 청년센터 3-column 목록 + 인라인 상세 패널.
  *
- * <p>F0h-c2: `/centers` 와 `/centers/{id}` 를 단일 메서드로 처리. detailId 존재 시 인라인 상세 패널 렌더. 별도 `detail.html`
- * 라우트는 제거.
+ * <p>F0h-c2: `/centers` 와 `/centers/{id}` 를 단일 메서드로 처리. detailId 존재 시 인라인 상세 패널 렌더. 별도
+ * `detail.html` 라우트는 제거.
  */
 @Controller
 @RequiredArgsConstructor
@@ -109,8 +109,8 @@ public class CenterController {
   }
 
   /**
-   * F0h-c2 개정(2026-07-09): 카드 리스트 fragment. `.centers-list-scroll` 내부 innerHTML 로 주입.
-   * compact=true 면 compact 카드, false 면 full 카드. activeId 일치 카드에 is-active 클래스 부여.
+   * F0h-c2 개정(2026-07-09): 카드 리스트 fragment. `.centers-list-scroll` 내부 innerHTML 로 주입. compact=true
+   * 면 compact 카드, false 면 full 카드. activeId 일치 카드에 is-active 클래스 부여.
    */
   @GetMapping("/centers/cards")
   public String cardsFragment(

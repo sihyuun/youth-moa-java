@@ -40,7 +40,12 @@ public class CenterService {
    * @param isHoliday 공휴일 여부 (Controller 가 KoreanHolidayRegistry 로 사전 계산해 전달)
    */
   public List<CenterListItem> list(
-      String q, String region, boolean onlyActive, String sort, LocalDateTime now, boolean isHoliday) {
+      String q,
+      String region,
+      boolean onlyActive,
+      String sort,
+      LocalDateTime now,
+      boolean isHoliday) {
     List<Center> base;
     if (region != null && !region.isBlank()) {
       base =
@@ -132,9 +137,7 @@ public class CenterService {
     return 0;
   }
 
-  /**
-   * 필터 UI 의 지역 드롭다운용 — F0h-c2: Region 엔티티 기반으로 교체. 이름 오름차순.
-   */
+  /** 필터 UI 의 지역 드롭다운용 — F0h-c2: Region 엔티티 기반으로 교체. 이름 오름차순. */
   public List<String> distinctActiveRegions() {
     return regionRepository.findAllByOrderByNameAsc().stream().map(Region::getName).toList();
   }

@@ -15,7 +15,7 @@
 | DB | PostgreSQL (개인 Supabase 신규 프로젝트, 학습 단계 `ddl-auto: update` — 2026-07-13 create-drop 에서 전환. e2e 프로파일은 자체 create-drop 유지) |
 | ORM | Spring Data JPA / Hibernate |
 | 보안 | Spring Security 7 + BCrypt |
-| 테스트 | JUnit 5 + H2 (`@DataJpaTest`) + Testcontainers (개인 PC 전용) |
+| 테스트 | JUnit 5 + H2 (`@DataJpaTest`) + Testcontainers (양 PC + CI ubuntu 러너) |
 
 자세한 환경/상태는 메모리 `~/.claude/.../memory/project_youth_moa_java.md` 를 참고합니다.
 
@@ -96,9 +96,11 @@ prototype 이 참조하는 mock 데이터 (예: `CENTER_DATA`, `PROGRAMS`) 의 *
 ## 실행 환경 분리 규칙
 
 ### 회사 PC (현재 PC)
-- Docker 없음 → **Testcontainers 테스트 실행 불가**
-- 매핑 검증은 `JpaMappingTest` (H2 기반 `@DataJpaTest`) 로만 진행
-- E2E / Playwright / Selenium 류 실행 불가 → 필요 시 메모리 "개인 PC 확인 필요" 섹션에 기록
+- **Docker 사용 가능** (2026-07-10 실증 — Docker Desktop 29.x, Testcontainers 포함 전체 테스트 로컬 통과). 이전 "Docker 없음" 기록은 폐기
+  - 데몬이 안 떠 있으면 Docker Desktop 기동 후 `docker version` 으로 엔진 확인
+  - 기동 crash (`remove ...sock: The file cannot be accessed by the system`) 시: stale AF_UNIX 소켓 이슈 — 조치법은 메모리 `reference_docker_stale_socket_fix.md` (부모 디렉토리 rename 격리, settings-store.json 은 BOM 없이 저장)
+- 매핑 검증은 `JpaMappingTest` (H2) 우선, 통합 검증은 `YouthMoaApplicationTests` (Testcontainers) 로 가능
+- CI `integration-test` job 이 ubuntu 러너(Docker 내장)에서 전체 테스트를 항상 실행하므로, 로컬 Docker 상태와 무관하게 매 PR 통합 검증됨
 - **bootRun 자체는 가능** — `.claude/scripts/bootrun-e2e.cmd` 로 e2e 프로파일(H2 in-memory + 시드) + 포트 8090 기동. Supabase 자격증명 불필요. IntelliJ 8080 무충돌. **회사 PC 에서 curl 렌더 실측을 이 경로로 필수 수행**한다. (2026-07-07 도입, 2026-07-09 F0h-c2 사고 후 재강조)
 
 ### 개인 PC (Mac, 추후 작업 환경)
@@ -332,8 +334,9 @@ git pull
 
 ### main 보호 정책
 
-- 현재: GitHub branch protection **미설정** (솔로 dev 마찰 회피)
-- 추후 CI 도입 시: `gradlew test` status check 필수화 검토
+- **GitHub branch protection 사용 불가** (2026-07-10 확인 — Free 플랜 + private repo 는 API 403 "Upgrade to GitHub Pro or make public". secret scanning push protection 도 동일 제약)
+- 대체 통제: ① self-PR 워크플로우 유지 (main 직접 push 지양) ② CI/Lint/E2E 워크플로우가 매 PR 실행 — **머지 전 check 전부 green 확인은 사람(및 /wrap-up)이 수행** ③ 시크릿은 lint.yml 의 gitleaks job 이 스캔
+- repo 를 public 전환하거나 GitHub Pro 결제 시 required status check 활성화 (설정 JSON: 세션 스크래치 참조 — contexts: "Build + Test (H2)", "Gradle Check (compile + spotless)")
 
 ---
 

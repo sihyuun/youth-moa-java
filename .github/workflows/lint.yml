@@ -14,6 +14,20 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # 시크릿 유출 스캔 — 2026-06-26 Supabase 비밀번호 노출 사고 재발 방지 2차 방어선.
+  # (1차 방어 = git add -A 금지 규칙. 3차 = GitHub push protection — private repo 는 GHAS 필요라 미적용)
+  # 과거 이력의 이미 회전(rotate)된 시크릿이 걸리면 .gitleaksignore 에 fingerprint 추가로 무시 처리.
+  secret-scan:
+    name: Secret Scan (gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   custom-lint:
     name: Custom Anti-Pattern Check
     runs-on: ubuntu-latest
