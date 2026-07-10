@@ -27,6 +27,7 @@ public class CenterService {
   private final CenterRepository centerRepository;
   private final RegionRepository regionRepository;
   private final ProgramRepository programRepository;
+  private final CenterContentRepository centerContentRepository;
 
   /**
    * 필터·정렬 적용된 센터 목록.
@@ -73,9 +74,25 @@ public class CenterService {
       countByOrg.put(org, cnt.intValue());
     }
 
+    // F0h-center-desc-image: CenterContent 일괄 조회 (N+1 방어)
+    List<Long> centerIds = filtered.stream().map(Center::getId).toList();
+    Map<Long, CenterContent> contentByCenterId = new HashMap<>();
+    if (!centerIds.isEmpty()) {
+      for (CenterContent cc : centerContentRepository.findByCenterIdIn(centerIds)) {
+        contentByCenterId.put(cc.getCenter().getId(), cc);
+      }
+    }
+
     List<CenterListItem> items =
         filtered.stream()
-            .map(c -> CenterListItem.of(c, countByOrg.getOrDefault(c.getName(), 0), now, isHoliday))
+            .map(
+                c ->
+                    CenterListItem.of(
+                        c,
+                        countByOrg.getOrDefault(c.getName(), 0),
+                        now,
+                        isHoliday,
+                        contentByCenterId.get(c.getId())))
             .collect(java.util.stream.Collectors.toList());
 
     Comparator<CenterListItem> cmp;
@@ -95,6 +112,13 @@ public class CenterService {
 
   public Optional<Center> findById(Long id) {
     return centerRepository.findById(id);
+  }
+
+  /**
+   * F0h-center-desc-image (spec §9-1): 상세 패널용 CenterContent 조회. 없으면 empty (View 는 fallback).
+   */
+  public Optional<CenterContent> findContentByCenterId(Long centerId) {
+    return centerContentRepository.findByCenterId(centerId);
   }
 
   /** F0h gap fix: 상세 패널의 "진행중인 프로그램 N건" 카드용. organization 문자열 매칭. */

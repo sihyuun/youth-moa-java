@@ -10,6 +10,9 @@ import java.time.LocalDateTime;
  * F0h-operating-hours-badge (spec §9-1, §9-5): {@code isOpenNow} + {@code hasSchedule} 추가 —
  * Controller 에서 사전 계산해 View 렌더 부담 감소. schedule 없는 센터는 배지 자체 미노출.
  *
+ * <p>F0h-center-desc-image (spec §9-1): description/imageUrl 의 진리 소스는 {@link CenterContent} 로 분리됨.
+ * View 는 template 무변경을 위해 record 필드는 그대로 유지. 팩토리 {@link #of} 가 CenterContent 를 인자로 받아 매핑.
+ *
  * <p>좌표는 nullable — 미확정 센터는 리스트만 표시하고 마커 skip.
  */
 public record CenterListItem(
@@ -29,9 +32,11 @@ public record CenterListItem(
     boolean hasSchedule) {
 
   /**
-   * F0h-operating-hours-badge: 배지 판정용 시각·공휴일 파라미터를 받아 실시간 운영 여부 계산 후 필드에 채운다.
+   * F0h-center-desc-image (spec §9-1): {@link CenterContent} 를 명시적 파라미터로 받아 desc/imageUrl 을 채운다.
+   * content 가 null 이면 두 필드 null 로 두고 View 에서 fallback (설명 미노출 · placeholder 이미지).
    */
-  public static CenterListItem of(Center c, int programCount, LocalDateTime now, boolean isHoliday) {
+  public static CenterListItem of(
+      Center c, int programCount, LocalDateTime now, boolean isHoliday, CenterContent content) {
     boolean openNow = c.isCurrentlyOpen(now, isHoliday);
     return new CenterListItem(
         c.getId(),
@@ -43,18 +48,21 @@ public record CenterListItem(
         c.getLongitude(),
         c.isActive(),
         programCount,
-        c.getDescription(),
+        content != null ? content.getDescription() : null,
         c.getOperatingHours(),
-        c.getImageUrl(),
+        content != null ? content.getImageUrl() : null,
         openNow,
         c.hasSchedule());
   }
 
-  /**
-   * 하위 호환 — 카운트/시각 미상 시 현재 시각·공휴일 false 기본값 사용. 테스트·구 호출자용.
-   */
+  /** 하위 호환 — content 미상 시 desc/imageUrl 없이 채움. 테스트·구 호출자용. */
+  public static CenterListItem of(Center c, int programCount, LocalDateTime now, boolean isHoliday) {
+    return of(c, programCount, now, isHoliday, null);
+  }
+
+  /** 하위 호환 — 카운트/시각 미상 시 현재 시각·공휴일 false 기본값 사용. 테스트·구 호출자용. */
   public static CenterListItem from(Center c) {
-    return of(c, 0, LocalDateTime.now(), false);
+    return of(c, 0, LocalDateTime.now(), false, null);
   }
 
   public boolean hasCoordinates() {

@@ -42,6 +42,7 @@ public class CenterController {
     List<String> regions = centerService.distinctActiveRegions();
 
     Center detailCenter = null;
+    CenterContent detailContent = null;
     Integer detailProgramCount = null;
     Boolean detailIsOpenNow = null;
     Boolean detailHasSchedule = null;
@@ -51,6 +52,7 @@ public class CenterController {
               .findById(detailId)
               .orElseThrow(
                   () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "청년센터를 찾을 수 없습니다."));
+      detailContent = centerService.findContentByCenterId(detailId).orElse(null);
       detailProgramCount = centerService.programCountFor(detailCenter.getName());
       detailIsOpenNow = detailCenter.isCurrentlyOpen(now, isHoliday);
       detailHasSchedule = detailCenter.hasSchedule();
@@ -60,6 +62,7 @@ public class CenterController {
     model.addAttribute("centers", centers);
     model.addAttribute("regions", regions);
     model.addAttribute("detailCenter", detailCenter);
+    model.addAttribute("detailContent", detailContent);
     model.addAttribute("detailProgramCount", detailProgramCount);
     model.addAttribute("detailIsOpenNow", detailIsOpenNow);
     model.addAttribute("detailHasSchedule", detailHasSchedule);
@@ -88,11 +91,13 @@ public class CenterController {
             .findById(id)
             .orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "청년센터를 찾을 수 없습니다."));
+    CenterContent detailContent = centerService.findContentByCenterId(id).orElse(null);
     Integer detailProgramCount = centerService.programCountFor(detailCenter.getName());
     LocalDateTime now = LocalDateTime.now();
     boolean isHoliday = holidayRegistry.isHoliday(now.toLocalDate());
 
     model.addAttribute("detailCenter", detailCenter);
+    model.addAttribute("detailContent", detailContent);
     model.addAttribute("detailProgramCount", detailProgramCount);
     model.addAttribute("detailIsOpenNow", detailCenter.isCurrentlyOpen(now, isHoliday));
     model.addAttribute("detailHasSchedule", detailCenter.hasSchedule());
