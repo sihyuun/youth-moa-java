@@ -13,6 +13,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -98,7 +99,11 @@ public class ProgramController {
     return chips;
   }
 
+  // ym-verify (2026-07-09 전체화면 검증 FAIL #2): open-in-view: false + @Lob 조합에서
+  // Program.content 가 auto-commit 오류로 렌더 시 실패할 잠재 위험 → 컨트롤러 트랜잭션 부착으로 안전 확보.
+  // Hibernate 6+ 기본은 @Lob String 이 TEXT 매핑이라 대개 즉시 로드되지만, PG oid 매핑 케이스 방어.
   @GetMapping("/programs/{id}")
+  @Transactional(readOnly = true)
   public String detail(
       @PathVariable Long id, @AuthenticationPrincipal UserDetails principal, Model model) {
     Program program = programService.findById(id);
