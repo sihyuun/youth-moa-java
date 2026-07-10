@@ -230,20 +230,20 @@ public class CenterContent extends BaseTimeEntity {
 
 ---
 
-## 9. 오픈 이슈 (사용자 결정 필요)
+## 9. 결정 확정 (2026-07-10)
 
-| # | 이슈 | 옵션 | 권장 |
-|---|---|---|---|
-| 1 | **도메인 설계** | A: `CenterContent` 엔티티 / B: `SiteImage` slot + Center desc 유지 / C: `centers-content.csv` 별도 CSV | **A** |
-| 2 | **description 초기값 정책** | (a) 현재 파생 로직으로 만들어진 문안을 그대로 이관 / (b) 처음부터 새로 작성 | **(a) 파생 결과 이관** — 관리자 편집 전제, 초기값은 현행 유지로 회귀 최소화 |
-| 3 | **imageUrl unsplash 6장 유지** | (a) 초기값 그대로 이관, admin 편집으로 실 이미지 대체 / (b) 처음부터 실 이미지 준비 | **(a)** — prototype 도 unsplash 사용, 실 이미지는 admin CRUD 화면 도입 후 교체 |
-| 4 | **`featuredDesc` 대표 8개 override** | (a) CSV 초기값에 반영 / (b) 폐기하고 균일 desc 로 재작성 | **(a) 반영** — 기존 톤 유지 |
-| 5 | **F0e 홈 프로그램 카드 imageUrl** | 옵션 A 채택 시 `program.center.content.imageUrl` 접근 경로 vs Program 자체 imageUrl 필드 신설 | 결정 필요 — Program 이미지는 별도 필드 방향이 자연스러움 (Program 은 회차별 배너가 다를 수 있음) |
-| 6 | **`Center.description` / `Center.imageUrl` 컬럼 처리** | (a) 옵션 A 도입 시 Center 컬럼 제거 / (b) `@Deprecated` 로 유지하며 점진 이관 | **(a) 즉시 제거** — create-drop 학습 단계이므로 데이터 손실 리스크 없음 |
-| 7 | **CSV 파일 위치** | `src/main/resources/data/centers-content.csv` (좌표 CSV 와 동일 폴더) | 좌표 CSV 와 세트로 관리 |
-| 8 | **description 여러 줄 처리** | CSV `\n` 리터럴 vs `"..."` quote + 실제 개행 | quote + 개행 (가독성) |
+| # | 이슈 | 확정 |
+|---|---|---|
+| 1 | **도메인 설계** | **A** — `CenterContent @OneToOne Center` 엔티티. Center 엔티티는 팩트만 유지, 마케팅 콘텐츠(desc·imageUrl) 는 별도 엔티티로 분리 |
+| 2 | **description 초기값** | **(a) 파생 결과 이관** — 현재 이름 키워드 기반 5종 로테이션 결과를 CSV 초기값에 그대로 반영. admin CRUD 로 편집 예정 |
+| 3 | **imageUrl unsplash 유지** | **(a) 초기값 이관** — 기존 6장 unsplash URL 을 각 Center 에 매핑해 CSV 반영. 실 이미지는 admin CRUD 화면 도입 후 교체 |
+| 4 | **`featuredDesc` 대표 8개 override** | **(a) CSV 초기값 반영** — 대표 8개 (수원 청년바람지대·부천 원미청년정점구역 등) 의 문안을 그대로 사용 |
+| 5 | **F0e 홈 프로그램 카드 imageUrl** | **Y — Program 엔티티에 imageUrl 필드 신설** — Program 은 회차별 배너가 다를 수 있어 자체 필드가 자연스러움. F0e 홈 카드 = `program.imageUrl`, /centers 상세 = `center.content.imageUrl` 로 관심사 분리 |
+| 6 | **`Center.description` / `Center.imageUrl` 컬럼 처리** | **(a) 즉시 제거** — create-drop 학습 단계, 데이터 손실 리스크 없음. Center 엔티티가 팩트-only 로 슬림해짐 |
+| 7 | **CSV 파일 위치** | **`src/main/resources/data/centers-content.csv`** — 좌표 CSV(`centers.csv`) 와 동일 폴더에 세트로 관리 |
+| 8 | **description 여러 줄 처리** | **quote + 실제 개행** — RFC 4180 이스케이프. 가독성 우선 |
 
-**결정 후**: 옵션 확정 시 이 문서를 `spec_confirmed` 로 승격하고 §1~§4 를 채택안 기준으로 재정리한 뒤 ym-impl 인계.
+**상태**: `spec_confirmed`. `fix/F0h-operating-hours-badge` 완료 후 착수 예정.
 
 ---
 
