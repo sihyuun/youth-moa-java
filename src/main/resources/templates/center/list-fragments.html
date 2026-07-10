@@ -18,7 +18,7 @@
        th:href="@{'/centers/' + ${c.id}(q=${filterQ},region=${filterRegion},onlyActive=${filterOnlyActive},sort=${filterSort})}"
        class="center-card"
        th:classappend="${activeId != null and activeId == c.id} ? 'is-active' : ''"
-       th:attr="data-center-id=${c.id},data-lat=${c.latitude},data-lng=${c.longitude},data-center-address=${c.address},data-center-hours=${c.operatingHours},data-center-image=${c.imageUrl},data-center-active=${c.isActive},data-center-programs=${c.programCount}">
+       th:attr="data-center-id=${c.id},data-lat=${c.latitude},data-lng=${c.longitude},data-center-address=${c.address},data-center-hours=${c.operatingHours},data-center-image=${c.imageUrl},data-center-active=${c.isActive},data-center-open-now=${c.isOpenNow},data-center-has-schedule=${c.hasSchedule},data-center-programs=${c.programCount}">
         <!-- Compact 모드 -->
         <div class="center-card-compact" th:if="${compact}">
             <div class="center-card-compact-icon"
@@ -29,15 +29,20 @@
                 <div class="center-card-compact-name" th:text="${c.name}">센터명</div>
                 <div class="center-card-compact-region" th:text="${c.region}">지역</div>
             </div>
-            <span th:if="${c.isActive}" class="center-card-badge active">운영중</span>
-            <span th:unless="${c.isActive}" class="center-card-badge inactive">운영종료</span>
+            <!-- F0h-operating-hours-badge: schedule 있는 센터만 배지 렌더. isActive kill-switch + isOpenNow 조합. -->
+            <th:block th:if="${c.hasSchedule}">
+                <span th:if="${c.isActive and c.isOpenNow}" class="center-card-badge active">운영중</span>
+                <span th:unless="${c.isActive and c.isOpenNow}" class="center-card-badge inactive">운영종료</span>
+            </th:block>
         </div>
         <!-- Full 모드 -->
         <div class="center-card-full" th:unless="${compact}">
             <div class="center-card-head">
                 <span class="center-card-name" th:text="${c.name}">센터명</span>
-                <span th:if="${c.isActive}" class="center-card-badge active">운영중</span>
-                <span th:unless="${c.isActive}" class="center-card-badge inactive">운영종료</span>
+                <th:block th:if="${c.hasSchedule}">
+                    <span th:if="${c.isActive and c.isOpenNow}" class="center-card-badge active">운영중</span>
+                    <span th:unless="${c.isActive and c.isOpenNow}" class="center-card-badge inactive">운영종료</span>
+                </th:block>
             </div>
             <div class="center-card-address" th:text="${c.address}">주소</div>
             <div class="center-card-foot">
@@ -50,7 +55,7 @@
     </a>
 </th:block>
 
-<th:block th:fragment="detail-panel-content(detailCenter, detailProgramCount, filterQ, filterRegion, filterOnlyActive, filterSort)">
+<th:block th:fragment="detail-panel-content(detailCenter, detailProgramCount, detailIsOpenNow, detailHasSchedule, filterQ, filterRegion, filterOnlyActive, filterSort)">
     <a class="centers-detail-close"
        th:href="@{/centers(q=${filterQ},region=${filterRegion},onlyActive=${filterOnlyActive},sort=${filterSort})}"
        data-centers-detail-close
@@ -59,9 +64,11 @@
     </a>
     <div class="centers-detail-image"
          th:style="${detailCenter.imageUrl != null} ? |background-image:url(${detailCenter.imageUrl})| : ''">
-        <span class="centers-detail-image-badge"
-              th:classappend="${detailCenter.isActive} ? 'active' : 'inactive'"
-              th:text="${detailCenter.isActive} ? '운영중' : '운영종료'">운영중</span>
+        <!-- F0h-operating-hours-badge: schedule 있는 센터만 배지 렌더. isActive kill-switch + detailIsOpenNow 조합. -->
+        <span th:if="${detailHasSchedule}"
+              class="centers-detail-image-badge"
+              th:classappend="${detailCenter.isActive and detailIsOpenNow} ? 'active' : 'inactive'"
+              th:text="${detailCenter.isActive and detailIsOpenNow} ? '운영중' : '운영종료'">운영중</span>
     </div>
     <div class="centers-detail-body">
         <div class="centers-detail-head">

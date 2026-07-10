@@ -281,12 +281,16 @@
       var centerId = card.getAttribute('data-center-id');
       var name = (card.querySelector('.center-card-name') || card.querySelector('.center-card-compact-name'));
       var nameText = name ? name.textContent.trim() : '';
-      var isActive = !card.querySelector('.center-card-badge.inactive');
+      // F0h-operating-hours-badge (spec §9-5): isActive + isOpenNow 조합. schedule 없으면 배지 자체 미표시.
+      var isActive = card.getAttribute('data-center-active') === 'true';
+      var isOpenNow = card.getAttribute('data-center-open-now') === 'true';
+      var hasSchedule = card.getAttribute('data-center-has-schedule') === 'true';
       // F0h-c4 spec 3-2 준수: 인포윈도우 콘텐츠용 데이터 (list.html data-* attr 에서 조회)
       var addressText = card.getAttribute('data-center-address') || '';
       var hoursText = card.getAttribute('data-center-hours') || '';
       var imageUrlText = card.getAttribute('data-center-image') || '';
 
+      // 마커 파스텔 색상은 kill-switch (isActive) 만 반영 — 지도상 폐업 센터 구분용.
       var markerEl = buildMarkerElement(nameText, isActive);
       markerEl.setAttribute('data-marker-id', centerId);
 
@@ -311,6 +315,8 @@
         el: markerEl,
         name: nameText,
         isActive: isActive,
+        isOpenNow: isOpenNow,
+        hasSchedule: hasSchedule,
         address: addressText,
         hours: hoursText,
         imageUrl: imageUrlText
@@ -398,8 +404,46 @@
         map.setLevel(MAX_LEVEL);
       }
     }
+    // 2026-07-10 race fix: geolocation 성공 시 후속 fitAndClamp 가 사용자 위치를 덮어쓰지 않도록 flag.
+    var userLocationApplied = false;
+
     fitAndClamp();
-    setTimeout(fitAndClamp, 100);
+    setTimeout(function () {
+      if (!userLocationApplied) fitAndClamp();
+    }, 100);
+
+    // 2026-07-10 사용자 요청: /centers 진입 시 기본 위치 = 사용자 위치 (geolocation).
+    // 성공 → 내 위치 중심 + level 5 (시·군 시야) + 파란 점 표식.
+    // 실패·거부·미지원 → 위 fitAndClamp (48개 마커 bounds + MAX_LEVEL=7) 그대로 유지 (fallback).
+    // silent — permission 거부는 alert 안 함 (사용자 액션 아닌 초기 진입이라 방해 최소).
+    // 실행 위치: fitAndClamp 이후. geolocation 성공 시점이 setTimeout(fitAndClamp,100) 보다
+    // 빠르거나 늦을 수 있어 flag 로 race 방어.
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        function (pos) {
+          var lat = pos.coords.latitude;
+          var lng = pos.coords.longitude;
+          var here = new kakao.maps.LatLng(lat, lng);
+          userLocationApplied = true;   // 후속 fitAndClamp 덮어쓰기 방지
+          map.setCenter(here);
+          map.setLevel(5);
+          if (myLocationOverlay) myLocationOverlay.setMap(null);
+          var dot = document.createElement('div');
+          dot.style.cssText =
+            'width:16px;height:16px;border-radius:50%;background:#4285F4;' +
+            'border:3px solid #fff;box-shadow:0 0 0 2px rgba(66,133,244,0.35);';
+          myLocationOverlay = new kakao.maps.CustomOverlay({
+            position: here, content: dot, yAnchor: 0.5, xAnchor: 0.5, zIndex: 50
+          });
+          myLocationOverlay.setMap(map);
+          if (myLocationBtn) myLocationBtn.classList.add('is-active');
+        },
+        function (err) {
+          // silent fallback — fitAndClamp 결과 그대로. permission 거부(1) / 시간초과(3) 등
+        },
+        { enableHighAccuracy: false, timeout: 5000, maximumAge: 300000 }
+      );
+    }
 
     function selectMarker(id) {
       selectedId = id;
@@ -474,15 +518,21 @@
         ? '<div class="center-info-window-image" style="background-image:url(' +
             encodeURI(target.imageUrl).replace(/"/g, '') + ');"></div>'
         : '<div class="center-info-window-image is-placeholder"></div>';
-      var badgeClass = target.isActive ? 'active' : 'inactive';
-      var badgeText = target.isActive ? '운영중' : '운영종료';
+      // F0h-operating-hours-badge (spec §9-5): schedule 있는 센터만 인포윈도우 배지 표시.
+      // 판정식은 리스트/상세와 동일 — isActive kill-switch + isOpenNow 조합.
+      var openCombined = target.isActive && target.isOpenNow;
+      var badgeClass = openCombined ? 'active' : 'inactive';
+      var badgeText = openCombined ? '운영중' : '운영종료';
+      var badgeBlock = target.hasSchedule
+        ? '<span class="center-info-window-badge ' + badgeClass + '">' + badgeText + '</span>'
+        : '';
 
       container.innerHTML =
         '<div class="center-info-window-media">' +
           imageBlock +
           '<div class="center-info-window-scrim"></div>' +
           '<button type="button" class="center-info-window-close" data-info-close aria-label="닫기">×</button>' +
-          '<span class="center-info-window-badge ' + badgeClass + '">' + badgeText + '</span>' +
+          badgeBlock +
         '</div>' +
         '<div class="center-info-window-body">' +
           '<div class="center-info-window-name">' + escapeHtml(target.name) + '</div>' +

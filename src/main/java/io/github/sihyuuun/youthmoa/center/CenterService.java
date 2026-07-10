@@ -3,6 +3,7 @@ package io.github.sihyuuun.youthmoa.center;
 import io.github.sihyuuun.youthmoa.program.ProgramRepository;
 import io.github.sihyuuun.youthmoa.region.Region;
 import io.github.sihyuuun.youthmoa.region.RegionRepository;
+import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -34,8 +35,11 @@ public class CenterService {
    * @param region 지역명 완전일치 (nullable → 전체)
    * @param onlyActive true = isActive 만
    * @param sort "name"(기본) | "programs"(진행중 프로그램 수 내림차순, 동률 시 이름 asc) | "region"(하위호환)
+   * @param now 배지 판정 기준 시각 (F0h-operating-hours-badge spec §9-6)
+   * @param isHoliday 공휴일 여부 (Controller 가 KoreanHolidayRegistry 로 사전 계산해 전달)
    */
-  public List<CenterListItem> list(String q, String region, boolean onlyActive, String sort) {
+  public List<CenterListItem> list(
+      String q, String region, boolean onlyActive, String sort, LocalDateTime now, boolean isHoliday) {
     List<Center> base;
     if (region != null && !region.isBlank()) {
       base =
@@ -71,7 +75,7 @@ public class CenterService {
 
     List<CenterListItem> items =
         filtered.stream()
-            .map(c -> CenterListItem.of(c, countByOrg.getOrDefault(c.getName(), 0)))
+            .map(c -> CenterListItem.of(c, countByOrg.getOrDefault(c.getName(), 0), now, isHoliday))
             .collect(java.util.stream.Collectors.toList());
 
     Comparator<CenterListItem> cmp;

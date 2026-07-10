@@ -300,3 +300,130 @@ CSV 저장 완료 후 담당 에이전트에게 아래 실행 요청:
    - 각 Center 의 `latitude`/`longitude` non-null
    - 같은 region 내 두 Center 의 좌표가 다름 (파생 미사용 확인)
    - `DataInitializer` 소스 파일에 `regionCoords` 문자열 부재 (grep 수준 회귀 방어)
+
+---
+
+# 부록 2: 운영시간 구조화 CSV 확장 팁 (2026-07-10 추가, fix/F0h-operating-hours-badge)
+
+## 배경
+현재 `centers.csv` 8컬럼에 `operatingHours` 는 free-text (예: `"평일 10:00~21:00, 토 10:00~17:00, 일·공휴일 휴관"`).
+새 티켓 `fix/F0h-operating-hours-badge` 는 배지 판정을 **접속 시간 기준** 으로 바꾸는데, 이를 위해 요일별 open/close 시간을 **구조화된 컬럼** 으로 저장해야 함.
+
+- 현재 배지: `Center.isActive` boolean 하나로만 결정 (시드 시점 true 로 고정)
+- 개정 후 배지: `isActive && isCurrentlyOpen(now)` — 관리자 kill-switch(isActive) + 현재 요일·시각별 판정
+- `Center.isActive` 의미 재정의: "영업 중단/폐업 kill-switch" (관리자 수동 토글)
+
+## 파일 위치
+```
+src/main/resources/data/centers.csv
+```
+**기존 파일 그대로 확장** (8 → 15 컬럼). 파일명 변경 없음. 헤더 순서 고정.
+
+## 컬럼 명세 (15컬럼 = 기존 8 + 신규 7)
+
+```csv
+name,region,address,latitude,longitude,phone,operatingHours,isActive,weekdayOpen,weekdayClose,saturdayOpen,saturdayClose,sundayOpen,sundayClose,holidayClosed
+```
+
+| # | 컬럼 | 기존/신규 | 예시 | 비고 |
+|---|---|---|---|---|
+| 1 | `name` | 기존 | 내일스퀘어 양평 | 유지 |
+| 2 | `region` | 기존 | 양평군 | 유지 |
+| 3 | `address` | 기존 | 경기도 양평군 양평읍 양근로 196 G타워 2층 | 유지 |
+| 4 | `latitude` | 기존 | 37.4923 | 유지 |
+| 5 | `longitude` | 기존 | 127.4884 | 유지 |
+| 6 | `phone` | 기존 | 031-770-3921 | 유지 |
+| 7 | `operatingHours` | 기존 (**자연어 유지**) | "평일 10:00~21:00, 토 10:00~17:00, 일·공휴일 휴무" | **삭제 X** — 화면 표시용으로 유지. 배지 판정은 신규 7컬럼 사용 |
+| 8 | `isActive` | 기존 | true | 의미 재정의됨 (kill-switch). 기본 true |
+| 9 | **`weekdayOpen`** | 신규 | `10:00` | 평일(월~금) open. 빈 문자열=미운영 |
+| 10 | **`weekdayClose`** | 신규 | `21:00` | 평일 close. **weekdayClose > weekdayOpen** (자정 넘김 미지원, fail-fast) |
+| 11 | **`saturdayOpen`** | 신규 | `10:00` 또는 빈 문자열 | 토요일 open. 빈 문자열=토요일 미운영 |
+| 12 | **`saturdayClose`** | 신규 | `17:00` 또는 빈 문자열 | 토요일 close |
+| 13 | **`sundayOpen`** | 신규 | 빈 문자열 (대부분 휴관) | 일요일 open |
+| 14 | **`sundayClose`** | 신규 | 빈 문자열 (대부분 휴관) | 일요일 close |
+| 15 | **`holidayClosed`** | 신규 | `true` (대부분) 또는 `false` | 공휴일 휴관 여부 |
+
+### 시간 포맷
+- `HH:mm` 24시간제 (`10:00`, `18:30`, `21:00`)
+- 미운영 요일: **빈 문자열** (예: 일요일 휴관이면 `sundayOpen` `sundayClose` 둘 다 빈 문자열)
+
+### close > open 규칙 (자정 넘김 금지)
+- `10:00~22:00` OK
+- `22:00~02:00` **불가** (fail-fast) — 현재 48행에 이런 케이스 없음. 신규 데이터 추가 시 주의
+
+## 예시 (2행)
+
+```csv
+name,region,address,latitude,longitude,phone,operatingHours,isActive,weekdayOpen,weekdayClose,saturdayOpen,saturdayClose,sundayOpen,sundayClose,holidayClosed
+내일스퀘어 양평,양평군,경기도 양평군 양평읍 양근로 196 G타워 2층,37.4923,127.4884,031-770-3921,"평일 10:00~21:00, 토 10:00~17:00, 일·공휴일 휴무",true,10:00,21:00,10:00,17:00,,,true
+청년쉼표,평택시,경기도 평택시 평택1로 9번길 23,36.99343,127.085829,031-691-9917,"평일 10:00~21:00, 토 10:00~17:00, 일·공휴일 휴관",true,10:00,21:00,10:00,17:00,,,true
+```
+
+## 행별 결정 필요 케이스 (15행)
+
+**48행 중 아래 15행은 자연어에서 구조화 값을 뽑을 때 판단이 필요합니다.** 나머지 33행은 "평일 10:00~21:00, 토 10:00~17:00, 일·공휴일 휴관" 같은 표준 패턴이라 그대로 옮기면 됩니다.
+
+### A. 요일별 개별 시간 (8행)
+`@Embeddable OperatingHours` 스펙이 (weekday 통합, sat, sun) 3그룹이라 요일별 다른 시간은 근사 필요. **가장 긴 운영 시간 을 weekday 값으로 채택** 을 기본 규칙으로 제안 (사용자 최종 판단).
+
+| 센터 | 원문 | 제안 |
+|---|---|---|
+| 광명시 청년동 (광명시) | 화~토 09:00~22:00, 일 09:00~18:00 | weekday: 09:00~22:00, sat: 09:00~22:00, sun: 09:00~18:00, holidayClosed: true |
+| 청춘곳간 (광명시) | 화~토 09:00~22:00, 일 09:00~18:00 | 위와 동일 |
+| 남양주 청년꽃간 | 화~일 09:00~21:00, 월 휴관 | weekday: 09:00~21:00 (월요일은 근사로 open, 실제 휴관), sat: 09:00~21:00, sun: 09:00~21:00, holidayClosed: true. **⚠️ 월요일 휴관이 구조상 표현 불가 → 자연어 UI 로 안내** |
+| 양평청년공간 딴딴회관 | 월 10:00~18:00, 화~금 10:00~21:00, 토 10:00~17:00 | weekday: 10:00~21:00 (월요일 18시 종료 근사 손실), sat: 10:00~17:00, sun: 빈값, holidayClosed: true |
+| 화성 청년취업끝까지 | 평일 09:00~18:00, 주말·공휴일 휴무 | weekday: 09:00~18:00, sat: 빈값, sun: 빈값, holidayClosed: true |
+| 화성 H.E.Y | 월·금 09:00~18:00, 화·수·목 09:00~21:00, 토 10:00~18:00 | weekday: 09:00~21:00 (긴 값), sat: 10:00~18:00, sun: 빈값, holidayClosed: true |
+| 여주시 푸릇 | 화~금 10:00~21:00, 토~일 10:00~18:00 (월·공휴일 휴관) | weekday: 10:00~21:00 (월요일 close 근사 X), sat: 10:00~18:00, sun: 10:00~18:00, holidayClosed: true |
+| 오산 이루잡 | 평일 10:00~21:00, 토~일 10:00~18:00 | weekday: 10:00~21:00, sat: 10:00~18:00, sun: 10:00~18:00, holidayClosed: true |
+
+### B. 시즌 분기 (2행)
+계절에 따라 시간이 바뀌는 케이스. `@Embeddable` 은 계절 지원 없음 → **가장 긴 시즌 값 채택** 권장. 실 정확 데이터는 자연어에 이미 있으므로 UI 는 자연어로 보완.
+
+| 센터 | 원문 | 제안 |
+|---|---|---|
+| 군포시 플라잉 | 월~토 09:30~21:00 (동절기 12~2월 20:30까지) | weekday: 09:30~21:00, sat: 09:30~21:00, sun: 빈값, holidayClosed: true |
+| 연천군 일자리센터 | 3~12월 평일 09:00~21:00 / 1~2월 평일 09:00~18:00 (점심 12~13 휴게, 주말·공휴일 휴무) | weekday: 09:00~21:00, sat: 빈값, sun: 빈값, holidayClosed: true |
+
+### C. 점심 휴게 (2행)
+점심시간 중 배지 상태에 관해서는 스펙 지원 없음. **휴게 무시하고 통합 open 시간 채택** 권장.
+
+| 센터 | 원문 | 제안 |
+|---|---|---|
+| 안산 상상스테이션 | 평일 09:00~18:00 (점심 12~13 휴게) | weekday: 09:00~18:00, sat: 빈값, sun: 빈값, holidayClosed: true |
+
+### D. 파싱 불가 (3행)
+**전 시간 필드를 빈 문자열로**. 배지 자체가 화면에서 숨겨짐 (`schedule=null` 처리, 사용자 배려 UX).
+
+| 센터 | 원문 | 제안 |
+|---|---|---|
+| 28청춘창업소 | 확인 불가 (입주기업 전용, 직접 문의) | 신규 7컬럼 모두 빈 문자열 · holidayClosed 도 빈 문자열 (null) |
+| 양주시 청년센터 | 확인 필요 (주말 운영 미확인) | 위와 동일 |
+| 의정부 청년다락방 | ※직접 확인 권장 | 위와 동일 |
+
+## 작성 규칙
+- **UTF-8 무 BOM**, LF 개행 (기존과 동일)
+- **48행** (헤더 제외) 유지, 순서 변경 금지
+- 시간 포맷: `HH:mm` 24시간제
+- 빈 값은 `,` 사이에 아무것도 없이 (`,,`) 처리
+- `holidayClosed` 는 `true`/`false` (대소문자 무시). 빈 문자열은 null 로 파싱됨
+- **주말·일요일 미운영 다수** — 관례상 `holidayClosed=true` 기본. 파싱 불가 3행만 빈 문자열
+
+## 검증 체크리스트
+- [ ] 헤더 15컬럼 정확 (`name,region,address,latitude,longitude,phone,operatingHours,isActive,weekdayOpen,weekdayClose,saturdayOpen,saturdayClose,sundayOpen,sundayClose,holidayClosed`)
+- [ ] 총 49행 (헤더 1 + 데이터 48). 순서·이름 무변경
+- [ ] 모든 `weekdayClose > weekdayOpen` (자정 넘김 없음). saturday/sunday 는 값이 있는 경우에만 검증
+- [ ] 파싱 불가 3행 (28청춘창업소·양주시·의정부 청년다락방) 은 신규 7컬럼 모두 빈 문자열
+- [ ] 개별 시간 8행 (§A) 에서 손실 근사 판단 각각 확인
+- [ ] operatingHours (자연어) 컬럼은 변경 없이 그대로 유지
+
+## impl 인계 정보
+CSV 저장 완료 후 담당 에이전트에게 아래 실행 요청:
+1. `CenterCsvRow` record 에 7개 `LocalTime`/`Boolean` 필드 추가 (nullable)
+2. `CenterCsvLoader.EXPECTED_HEADERS` 를 15개로 확장 + `parseTime()` 헬퍼 추가 (빈 문자열 → null)
+3. `OperatingHours @Embeddable` 신규 (`Center.schedule` 필드)
+4. `Center.isCurrentlyOpen(LocalDateTime now, boolean isHoliday)` 도메인 메서드
+5. `KoreanHolidayRegistry` (jollyday 1.5.3 `HolidayCalendar.SOUTH_KOREA`)
+6. `CenterListItem.isOpenNow` 필드 + `CenterListItem.of(Center, count, now, isHoliday)` 시그니처
+7. View (list-fragments.html·center-map.js) 배지 조건을 `isActive && isOpenNow` 로 변경 + `schedule=null` 케이스 배지 숨김
+8. 회귀 방어: `CenterOpeningTimeTest` (평일 낮/야간, 토, 일, 공휴일, isActive false, schedule null 등 10 케이스)

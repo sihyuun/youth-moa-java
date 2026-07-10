@@ -1,5 +1,6 @@
 package io.github.sihyuuun.youthmoa.center;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,6 +23,7 @@ import org.springframework.web.server.ResponseStatusException;
 public class CenterController {
 
   private final CenterService centerService;
+  private final KoreanHolidayRegistry holidayRegistry;
 
   @Value("${youthmoa.kakao.map-app-key:}")
   private String kakaoMapAppKey;
@@ -34,11 +36,15 @@ public class CenterController {
       @RequestParam(required = false, defaultValue = "false") boolean onlyActive,
       @RequestParam(required = false, defaultValue = "name") String sort,
       Model model) {
-    List<CenterListItem> centers = centerService.list(q, region, onlyActive, sort);
+    LocalDateTime now = LocalDateTime.now();
+    boolean isHoliday = holidayRegistry.isHoliday(now.toLocalDate());
+    List<CenterListItem> centers = centerService.list(q, region, onlyActive, sort, now, isHoliday);
     List<String> regions = centerService.distinctActiveRegions();
 
     Center detailCenter = null;
     Integer detailProgramCount = null;
+    Boolean detailIsOpenNow = null;
+    Boolean detailHasSchedule = null;
     if (detailId != null) {
       detailCenter =
           centerService
@@ -46,6 +52,8 @@ public class CenterController {
               .orElseThrow(
                   () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "청년센터를 찾을 수 없습니다."));
       detailProgramCount = centerService.programCountFor(detailCenter.getName());
+      detailIsOpenNow = detailCenter.isCurrentlyOpen(now, isHoliday);
+      detailHasSchedule = detailCenter.hasSchedule();
     }
 
     model.addAttribute("currentPage", "centers");
@@ -53,6 +61,8 @@ public class CenterController {
     model.addAttribute("regions", regions);
     model.addAttribute("detailCenter", detailCenter);
     model.addAttribute("detailProgramCount", detailProgramCount);
+    model.addAttribute("detailIsOpenNow", detailIsOpenNow);
+    model.addAttribute("detailHasSchedule", detailHasSchedule);
     model.addAttribute("filterQ", q == null ? "" : q);
     model.addAttribute("filterRegion", region == null ? "" : region);
     model.addAttribute("filterOnlyActive", onlyActive);
@@ -79,9 +89,13 @@ public class CenterController {
             .orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "청년센터를 찾을 수 없습니다."));
     Integer detailProgramCount = centerService.programCountFor(detailCenter.getName());
+    LocalDateTime now = LocalDateTime.now();
+    boolean isHoliday = holidayRegistry.isHoliday(now.toLocalDate());
 
     model.addAttribute("detailCenter", detailCenter);
     model.addAttribute("detailProgramCount", detailProgramCount);
+    model.addAttribute("detailIsOpenNow", detailCenter.isCurrentlyOpen(now, isHoliday));
+    model.addAttribute("detailHasSchedule", detailCenter.hasSchedule());
     model.addAttribute("filterQ", q == null ? "" : q);
     model.addAttribute("filterRegion", region == null ? "" : region);
     model.addAttribute("filterOnlyActive", onlyActive);
@@ -102,7 +116,9 @@ public class CenterController {
       @RequestParam(required = false, defaultValue = "false") boolean onlyActive,
       @RequestParam(required = false, defaultValue = "name") String sort,
       Model model) {
-    List<CenterListItem> centers = centerService.list(q, region, onlyActive, sort);
+    LocalDateTime now = LocalDateTime.now();
+    boolean isHoliday = holidayRegistry.isHoliday(now.toLocalDate());
+    List<CenterListItem> centers = centerService.list(q, region, onlyActive, sort, now, isHoliday);
     model.addAttribute("centers", centers);
     model.addAttribute("compact", compact);
     model.addAttribute("activeId", activeId);
