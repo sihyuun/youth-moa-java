@@ -16,6 +16,7 @@
   // 모듈 스코프 selectMarker/clearSelection 참조를 위해 initListMap 내부에서 위 함수를 module-scope 로 승격.
   var _selectMarker = null;
   var _clearSelection = null;
+  var _applyOverlayFilter = null;
   document.addEventListener('centers:detail-open', function (e) {
     if (_selectMarker && e.detail && e.detail.centerId) {
       _selectMarker(String(e.detail.centerId));
@@ -23,6 +24,13 @@
   });
   document.addEventListener('centers:detail-close', function () {
     if (_clearSelection) _clearSelection();
+  });
+  // 2026-07-10 필터 partial swap: centers-detail.js 가 form submit 을 intercept 하고
+  // 여기로 visible ID 리스트를 전달. 지도는 풀 리로드 없이 overlay setMap toggle 만 수행.
+  document.addEventListener('centers:filter-changed', function (e) {
+    if (_applyOverlayFilter && e.detail && Array.isArray(e.detail.visibleIds)) {
+      _applyOverlayFilter(e.detail.visibleIds);
+    }
   });
 
   // 전역 공통 toast 헬퍼 (프로젝트 최초 도입). 인포윈도우 공유 버튼 외에도 다른 화면에서 재사용 가능.
@@ -324,23 +332,52 @@
     //   - 공식 문서의 addMarkers 타입은 Marker 전용이지만 CustomOverlay 도 getPosition/setMap
     //     인터페이스 호환으로 동작 (duck-typing, 공식 미보장) → 실패 시 개별 렌더 fallback.
     //   - 클러스터 스타일은 기본 유지 (커스텀 스킨은 별도 티켓).
+    var _clusterer = null;   // 필터 partial swap 을 위해 module-scope 로 (2026-07-10)
     (function registerOverlays() {
       var CLUSTER_THRESHOLD = 20;
       if (validCards.length >= CLUSTER_THRESHOLD && typeof kakao.maps.MarkerClusterer === 'function') {
         try {
-          var clusterer = new kakao.maps.MarkerClusterer({
+          _clusterer = new kakao.maps.MarkerClusterer({
             map: map,
             averageCenter: true,
             disableClickZoom: false
           });
-          clusterer.addMarkers(overlays.map(function (o) { return o.overlay; }));
+          _clusterer.addMarkers(overlays.map(function (o) { return o.overlay; }));
           return;
         } catch (err) {
+          _clusterer = null;
           // CustomOverlay 미지원 SDK 버전 → 아래 개별 렌더로 fallback
         }
       }
       overlays.forEach(function (o) { o.overlay.setMap(map); });
     })();
+
+    // 필터 partial swap (2026-07-10): visible ID 리스트에 맞춰 overlay 표시/숨김 토글.
+    // - clusterer 사용 중이면 clusterer 재구성 (clear + addMarkers)
+    // - 개별 렌더면 setMap(null/map) 로 토글
+    // - 인포윈도우·selected 상태는 유지 (필터로 인해 사라진 마커에 인포윈도우가 걸려있으면 정리)
+    function applyOverlayFilter(visibleIds) {
+      var visibleSet = {};
+      visibleIds.forEach(function (id) { visibleSet[String(id)] = true; });
+      var visible = [];
+      var hidden = [];
+      overlays.forEach(function (o) {
+        if (visibleSet[String(o.id)]) visible.push(o);
+        else hidden.push(o);
+      });
+      if (_clusterer) {
+        _clusterer.clear();
+        _clusterer.addMarkers(visible.map(function (o) { return o.overlay; }));
+      } else {
+        visible.forEach(function (o) { o.overlay.setMap(map); });
+        hidden.forEach(function (o) { o.overlay.setMap(null); });
+      }
+      // 선택된 마커가 숨겨졌다면 인포윈도우도 정리
+      if (selectedId && !visibleSet[String(selectedId)]) {
+        clearSelection();
+      }
+    }
+    _applyOverlayFilter = applyOverlayFilter;
 
     // (A + C) bounds fit + zoom clamp
     //   - 필터 결과 (validCards) 만 bounds 에 포함되므로 지역 필터 시 자동으로 그 지역 중심 fit (C)
@@ -386,14 +423,16 @@
           map.setLevel(4);                            // 동 단위 확대
           map.setCenter(latlng);                       // 마커를 지도 중앙에
           openInfoWindow(target);                      // 인포윈도우 open (마커 위에 뜸)
-          // 인포윈도우 open 후 DOM 렌더 완료 대기 → 실제 인포윈도우 높이로 정확 offset 계산
+          // 인포윈도우 CustomOverlay yAnchor:1.4 (js:536) 기준 계산:
+          //   - content center = position.y − 0.9 × infoH  (yAnchor 1.4 → position 은 content 하단에서 40% 아래)
+          //   - viewport 중앙 정렬 위해 marker 를 viewport center + 0.9 × infoH 로 이동 필요
+          //   - panBy(0, -N) = map view 를 N px 위로 이동 = content(marker) 는 N px 아래로 이동
+          // setTimeout: DOM 렌더·이미지 로드 대기 (setLevel/setCenter 애니메이션 완료 후 실제 높이 측정)
           setTimeout(function () {
             var infoEl = document.querySelector('.center-info-window');
-            var infoH = infoEl ? infoEl.offsetHeight : 260; // fallback 260
-            // 마커를 아래로 밀어 인포윈도우가 중앙에 오도록 지도를 위로 이동
-            // panBy 음수 y = 지도를 위로 pan (viewport 안 콘텐츠는 위로 이동)
-            map.panBy(0, -(infoH / 2));
-          }, 120);
+            var infoH = infoEl ? infoEl.offsetHeight : 260; // fallback
+            map.panBy(0, -(0.9 * infoH));
+          }, 180);
         } else {
           openInfoWindow(target);
         }

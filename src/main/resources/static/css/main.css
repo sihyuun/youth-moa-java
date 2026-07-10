@@ -4252,10 +4252,16 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
   margin-bottom: 14px;
 }
 /* F0h-c4: prototype L2056~2086 — 26x26 primaryLight 박스 안에 lucide SVG */
+/* 사용자 요청 (2026-07-10): badge 를 텍스트 블록 수직 중앙과 정확히 정렬.
+   기존 flex-start + padding-top 4 는 브라우저 기본 line-height 차이로 미묘하게 어긋남.
+   align-items: center 로 전환: 1줄 텍스트는 라인 중앙과, 여러 줄은 블록 중앙과 badge 정렬. */
 .centers-detail-meta-row {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 8px;
+}
+.centers-detail-meta-row > *:not(.centers-detail-meta-badge) {
+  line-height: 1.5;
 }
 .centers-detail-meta-badge {
   display: inline-flex;
@@ -4559,9 +4565,11 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
 }
 .center-info-window-hours-text {
   flex: 1;
+  min-width: 0;              /* flex 아이템 자연 shrink 허용 — 없으면 nowrap 텍스트가 부모 폭 넘어감 */
   line-height: 1.5;
   word-break: keep-all;
   overflow-wrap: anywhere;
+  white-space: normal;
 }
 .center-info-window-actions {
   display: flex;

@@ -194,16 +194,19 @@ class CenterListRenderTest {
 
   @Test
   void F0h_centers_detail_js_CustomEvent_dispatch() throws Exception {
+    // 2026-07-10 사용자 요청: detail X 닫기 시 지도 인포윈도우/마커는 유지.
+    //   → centers:detail-close 는 dispatch 안 함 (map 완전 초기화는 인포윈도우 자체 X 로만).
+    //   → detail-open + request-detail 만 검증.
     mockMvc
         .perform(get("/js/centers-detail.js"))
         .andExpect(status().isOk())
         .andExpect(content().string(containsString("centers:detail-open")))
-        .andExpect(content().string(containsString("centers:detail-close")))
         .andExpect(content().string(containsString("centers:request-detail")));
   }
 
   @Test
   void F0h_center_map_js_CustomEvent_listener() throws Exception {
+    // center-map.js 는 listener 를 그대로 유지 (미래 확장 대비, 현재는 dispatcher 부재로 no-op)
     mockMvc
         .perform(get("/js/center-map.js"))
         .andExpect(status().isOk())
