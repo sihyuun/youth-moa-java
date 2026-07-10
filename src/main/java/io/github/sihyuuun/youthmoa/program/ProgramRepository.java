@@ -23,4 +23,17 @@ public interface ProgramRepository
 
   /** 홈 Quick Stats — 모집중 프로그램 카운트. */
   long countByIsActiveTrue();
+
+  /**
+   * F0h-c2: 특정 센터(organization 매칭) 의 진행중 프로그램 카운트.
+   *
+   * <p>Program 은 Center FK 를 갖지 않으므로 organization 문자열 매칭으로 근사. isActive=true 이고 endDate 가
+   * 오늘 이후(포함) 인 프로그램만 카운트.
+   */
+  @org.springframework.data.jpa.repository.Query(
+      "SELECT p.organization, COUNT(p) FROM Program p "
+          + "WHERE p.isActive = true "
+          + "AND (p.endDate IS NULL OR p.endDate >= CURRENT_DATE) "
+          + "GROUP BY p.organization")
+  java.util.List<Object[]> countActiveGroupByOrganization();
 }

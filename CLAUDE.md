@@ -99,6 +99,7 @@ prototype 이 참조하는 mock 데이터 (예: `CENTER_DATA`, `PROGRAMS`) 의 *
 - Docker 없음 → **Testcontainers 테스트 실행 불가**
 - 매핑 검증은 `JpaMappingTest` (H2 기반 `@DataJpaTest`) 로만 진행
 - E2E / Playwright / Selenium 류 실행 불가 → 필요 시 메모리 "개인 PC 확인 필요" 섹션에 기록
+- **bootRun 자체는 가능** — `.claude/scripts/bootrun-e2e.cmd` 로 e2e 프로파일(H2 in-memory + 시드) + 포트 8090 기동. Supabase 자격증명 불필요. IntelliJ 8080 무충돌. **회사 PC 에서 curl 렌더 실측을 이 경로로 필수 수행**한다. (2026-07-07 도입, 2026-07-09 F0h-c2 사고 후 재강조)
 
 ### 개인 PC (Mac, 추후 작업 환경)
 - Docker 사용 가능 → Testcontainers + 실 PostgreSQL 통합 테스트 실행
@@ -142,6 +143,8 @@ sdk use java 21-tem  # 또는 17
 ### 정적 검증 — 매 작업 필수
 
 - `./gradlew compileJava test --tests <class>` 통과
+- **화면 변경 시 `*RenderTest` 도 반드시 함께 실행** — `compileJava` + `JpaMappingTest` 만으로는 Thymeleaf 파싱·SpEL 평가·`th:fragment` 인라인 실행 이슈를 감지 못 함 (2026-07-09 F0h-c2 사고 회고)
+- `/build-check` 스킬이 자동으로 `*RenderTest` 를 포함하도록 갱신됨
 - 보고 시 **"정적 검증 ✅"** 으로 명시
 
 ### 동적 검증 — 화면 변경 포함 작업은 매 PR 필수
@@ -498,6 +501,59 @@ Spring Boot 4.1 (Spring Security 7) + `thymeleaf-extras-springsecurity6` 조합�
 - 감지 방법: `curl /` 응답에 `<sec:authentication`이 grep 되면 문제. 정상이면 그런 문자열 없음.
 - **2026-07-03 E2E 대량 실패 사고**: 헤더 사용자 이름이 `. header-user-name` 안에서 whitespace + "님" 만 렌더됨 → login/header-nav spec 3개 실패.
 
+### prototype 이 SVG 인 곳에 이모지로 대체 금지
+
+**배경 (2026-07-09 F0h-c4 사고)**: `/centers` 상세 패널에 `📍`, `🕒`, `📞`, `🏢`, `×` 등을 사용했으나 prototype 은 lucide 스타일 인라인 SVG(`Icon` 컴포넌트) 를 사용. 이모지는 폰트별 렌더 편차·시각 편차·색상 제어 불가·아이콘 종류 오류(prototype 은 `📞` 대신 `user`, `🕒` 대신 `calendar` 사용) 등 여러 문제를 야기.
+
+**규칙**:
+- prototype.tsx 에 `<Icon n="...">` 또는 lucide 아이콘이 있으면 이모지 대체 금지. `templates/fragments/icons.html` 의 SVG fragment 를 재사용
+- 새 아이콘 필요 시 prototype.tsx 의 `Icon` 컴포넌트 정의부(L54~77) 에서 path 데이터 그대로 이식
+- 아이콘 종류(pin/calendar/user/close 등) 는 prototype 명시 값 그대로 사용 — "폰이니까 phone" 같은 임의 판단 금지
+- `CenterListRenderTest.F0h_c4_*` 처럼 이모지 리터럴 부재 + `<svg` 존재 assertion 을 렌더 테스트에 포함해 회귀 방어
+
+### `th:fragment` 는 반드시 별도 파일에 두기 (부모 body 안 금지)
+
+**배경 (2026-07-09 F0h-c2 사고)**: `templates/center/list.html` 하단에 `<th:block th:fragment="detail-panel-content(...)">` 를 두었더니, `/centers` 렌더 시 fragment BODY 도 인라인 실행되어 `detailCenter=null` 상태에서 `${detailCenter.imageUrl}` 평가 → SpelEvaluationException.
+
+Thymeleaf 는 "natural template" 특성상 부모 템플릿을 렌더할 때 body 내부 모든 요소를 평가한다. `th:fragment` 만으로는 실행을 막지 못하므로:
+
+```
+❌ templates/center/list.html
+   <body>
+     ...
+     <th:block th:fragment="detail-panel-content(detailCenter, ...)">
+       <div th:text="${detailCenter.name}">...  ← /centers 렌더 시 detailCenter=null 로 실행됨
+     </th:block>
+   </body>
+
+✅ templates/center/list-fragments.html  (별도 파일)
+   <body>
+     <th:block th:fragment="detail-panel-content(detailCenter, ...)">
+       <div th:text="${detailCenter.name}">...  ← th:replace 로 호출될 때만 실행
+     </th:block>
+   </body>
+
+   templates/center/list.html:
+     <th:block th:replace="~{center/list-fragments :: detail-panel-content(...)}"></th:block>
+```
+
+**규칙**: `th:fragment` 를 정의할 때는 항상 `<파일명>-fragments.html` 같은 별도 파일에 배치. 부모 body 안에 두지 말 것. 컨트롤러가 fragment 를 반환할 때(`return "center/list-fragments :: card-list-content";`)도 fragments 파일 참조.
+
+### `th:if + th:replace` 같은 element 조합 금지
+
+**배경 (2026-07-09 F0h-c2 사고)**: 다음 조합은 th:if 가 false 인데도 th:replace 가 실행되어 fragment body NPE 발생.
+
+```html
+❌ <th:block th:if="${detailCenter != null}"
+             th:replace="~{center/list-fragments :: detail-panel-content(...)}"></th:block>
+
+✅ <th:block th:if="${detailCenter != null}">
+     <th:block th:replace="~{center/list-fragments :: detail-panel-content(...)}"></th:block>
+   </th:block>
+```
+
+th:if(precedence 4) 와 th:replace(precedence 100) 는 서로 다른 요소에 두어 확실히 격리한다.
+
 ### HTMX 프래그먼트 재렌더 시 스타일 파라미터 왕복 (`hx-vals` 패턴)
 
 HTMX `outerHTML` swap 으로 부분 렌더할 때, 프래그먼트가 **자신을 렌더한 컨텍스트를 다시 필요로 하면** (예: card 인지 detail 인지 구분하는 `styleClass`) 그 값을 서버가 알 방법이 없다. HTTP 요청은 stateless 이므로 클라이언트가 `hx-vals` 로 되돌려주는 패턴을 사용한다.
@@ -608,6 +664,27 @@ Optional<Application> findWithProgramAndUserById(Long id);
 - 프로그램 카테고리 (`Category` 엔티티 예정, 현재 코드 삭제 상태)
 - 카드 정렬 default·홈 표시 지표 순서 등 화면 policy
 
+### 파생 시드 금지 (2026-07-09 추가)
+
+**배경 (2026-07-09 F0h 좌표 사고)**: `DataInitializer` 가 `regionCoords.put("양평군", {37.xxx, 127.xxx})` 로 시·군청 대표 좌표만 매핑하고, 모든 Center 의 lat/lng 를 `base + offset(idx*15)` 파생으로 채웠음. 결과:
+- 양평군의 3개 센터(딴딴회관·내일스퀘어·오름) 가 모두 양평군청 근처 100m offset 지점에 렌더 → 카카오맵 클러스터가 "3" 으로 뭉침
+- 실주소 데이터(`DataInitializer.java:663~665`)는 존재하나 좌표에 반영 안 됨
+- 관리자가 좌표 편집해도 재기동 시 파생 로직이 덮어씀 → **admin CRUD 무력화**
+
+**규칙**:
+1. **엔티티 필드는 각 row 자체가 진리 소스** (single source of truth). 다른 필드나 컬렉션 규칙으로부터 파생 시드하지 말 것. 예: Center.lat/lng 는 Center row 자체에 개별 저장. Region 이나 시·군 대표 좌표 파생 금지
+2. **시드 데이터는 자원 파일에서 로드** (`src/main/resources/data/*.csv` or `.yml`). Java 코드 내 Map 하드코딩은 소규모(≤ 10건) 데이터에 한함. 대규모 데이터는 자원 파일 분리
+3. **파생이 필요하면 도메인 메서드** (예: `Center.isCurrentlyOpen(now)`) 로 런타임 계산. DB 저장값은 원천 필드만
+4. **감지 방법**: DataInitializer 리뷰 시 `Map<String, ...>` 내부에 지역·타입 등 그룹 키가 있고, 이걸 forEach 로 각 row 에 파생 적용하는 패턴 발견 시 → 즉시 자원 파일 로드 방식으로 전환
+
+**언제 발동**: 신규 엔티티 시드 작성 시. 기존 DataInitializer 리팩터 시.
+
+### 관리자 CRUD 실효성 체크
+
+관리자 페이지에서 편집 가능하도록 만든 필드가 실제 편집 결과가 유지되는지 검증:
+- 재기동 시 시드가 덮어쓰지 않는가? (`ddl-auto: create-drop` 이 유지되는 학습 단계에는 검증 어려우나, Flyway 도입 후 반드시 확인)
+- 파생 로직이 편집값을 무력화하지 않는가? (좌표 사고 재발 방지)
+
 ### 하드코딩 OK
 - CSS 토큰 (색·spacing·radius) — 디자인 시스템 일관성
 - 라우팅 경로 (`/programs`, `/signup` 등)
@@ -637,6 +714,7 @@ SiteImage(slot="HOME_SPACE_1", imageUrl="...", sortOrder=1, ...)
 | `ym-spec` 에이전트 | `~/.claude/agents/ym-spec.md` | 새 화면 작업 명세 산출 (prototype 3자산 비교) |
 | `ym-impl` 에이전트 | `~/.claude/agents/ym-impl.md` | 명세 → 풀스택 구현 |
 | `ym-qa` 에이전트 | `~/.claude/agents/ym-qa.md` | 단위 테스트 + 정적/동적/회귀 검증 |
+| `ym-verify` 에이전트 | `~/.claude/agents/ym-verify.md` | 적대적 검증 (refute-first) — 커밋 전 최종 관문. spec 구현 매핑 행 단위 재대조, PASS/FAIL/UNVERIFIED 3단 판정 |
 | `/pm-review` Skill | `.claude/skills/pm-review/SKILL.md` | ym-pm 페르소나 단발성 슬래시 호출 |
 | `/qa` Skill | `.claude/skills/qa/SKILL.md` | 정적·동적·E2E·시각 4영역 분리 리포트 |
 | `/prototype-check` Skill | `.claude/skills/prototype-check/SKILL.md` | prototype vs Thymeleaf 갭 정기 스캔 |
@@ -647,7 +725,7 @@ SiteImage(slot="HOME_SPACE_1", imageUrl="...", sortOrder=1, ...)
 | Claude Preview | `.claude/launch.json` | `preview_start(name: "youth-moa-e2e")` 로 bootRun 자동 기동 (H2+시드, 자격증명 불필요) 후 snapshot/inspect/console_logs/network 로 동적·시각 검증. 실 DB 필요 시 `youth-moa` 설정 (DATABASE_* 환경변수 필요) |
 | 확정 명세 큐 | `docs/specs/` | ym-spec 산출 + 사용자 결정 반영된 명세. `spec_confirmed` 상태면 ym-impl 이 바로 인계 가능. 병렬 실행 규칙은 `docs/specs/README.md` |
 
-화면 작업 표준 사이클: **ym-spec → 사용자 컨펌 → ym-impl → ym-qa → 머지**.
+화면 작업 표준 사이클: **ym-spec → 사용자 컨펌 → ym-impl → ym-qa → ym-verify → 머지**.
 선택 0단계 (사고): **ym-pm** — prototype·정책 검토, 대안 제시 후 ym-spec 인계.
 
 에이전트 파일 우선순위: repo `.claude/agents/` 가 전역 `~/.claude/agents/` 보다 우선. 같은 이름이면 repo 판이 채택됨. 원격 루틴(CCR) 은 전역을 못 보므로 repo 판이 필수.

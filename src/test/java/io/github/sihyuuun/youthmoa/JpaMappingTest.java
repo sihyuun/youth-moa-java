@@ -155,6 +155,33 @@ class JpaMappingTest {
     assertThat(reloaded.getEligibility().getEtc()).isEqualTo("전 회차 참석 가능자");
   }
 
+  /** F0h-c1: Center 신규 3필드 (description / operatingHours / imageUrl) 왕복 검증. */
+  @Test
+  void centerContentFieldsPersist() {
+    Center c =
+        centerRepository.save(
+            Center.builder()
+                .name("테스트센터")
+                .region("수원시")
+                .description("설명 텍스트")
+                .operatingHours("평일 09~18")
+                .imageUrl("/images/centers/x.png")
+                .build());
+    centerRepository.flush();
+    Center loaded = centerRepository.findById(c.getId()).orElseThrow();
+    assertThat(loaded.getDescription()).isEqualTo("설명 텍스트");
+    assertThat(loaded.getOperatingHours()).isEqualTo("평일 09~18");
+    assertThat(loaded.getImageUrl()).isEqualTo("/images/centers/x.png");
+
+    // updateContent 도메인 메서드 반영 검증
+    loaded.updateContent("변경된 설명", "주말 10~17", "/images/centers/y.png");
+    centerRepository.flush();
+    Center reloaded = centerRepository.findById(c.getId()).orElseThrow();
+    assertThat(reloaded.getDescription()).isEqualTo("변경된 설명");
+    assertThat(reloaded.getOperatingHours()).isEqualTo("주말 10~17");
+    assertThat(reloaded.getImageUrl()).isEqualTo("/images/centers/y.png");
+  }
+
   @Autowired io.github.sihyuuun.youthmoa.common.SiteImageRepository siteImageRepository;
 
   /** F0e-2: SiteImage slot 은 unique 아니어야 함 (HERO_BANNER 다건 시드). */

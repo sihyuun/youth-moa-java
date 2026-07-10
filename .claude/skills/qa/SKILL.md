@@ -111,7 +111,7 @@ Playwright 가 못 잡는 영역만:
 
 ---
 
-## Step 5 — 표준 리포트 출력
+## Step 6 — 표준 리포트 출력
 
 ```markdown
 # /qa 검증 리포트 — <YYYY-MM-DD HH:mm> / branch <name>

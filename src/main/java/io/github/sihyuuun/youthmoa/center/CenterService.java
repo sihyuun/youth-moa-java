@@ -1,7 +1,12 @@
 package io.github.sihyuuun.youthmoa.center;
 
+import io.github.sihyuuun.youthmoa.program.ProgramRepository;
+import io.github.sihyuuun.youthmoa.region.Region;
+import io.github.sihyuuun.youthmoa.region.RegionRepository;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -10,8 +15,8 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * 청년센터 목록·상세 조회.
  *
- * <p>@Transactional(readOnly=true) — 조회 전용. Spring 의 트랜잭션 프록시가 DB 세션을 열어 두므로 JPA 지연 로딩·LOB 접근이 안전.
- * 여기선 lazy 관계·LOB 이 없어도 관례상 유지 (조회 성능 힌트 포함).
+ * <p>F0h-c2: RegionRepository 기반 지역 드롭다운, ProgramRepository 배치 카운트로 programCount 채움, sort=programs
+ * 지원.
  */
 @Service
 @RequiredArgsConstructor
@@ -19,6 +24,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class CenterService {
 
   private final CenterRepository centerRepository;
+  private final RegionRepository regionRepository;
+  private final ProgramRepository programRepository;
 
   /**
    * 필터·정렬 적용된 센터 목록.
@@ -26,7 +33,7 @@ public class CenterService {
    * @param q 센터명/지역 부분일치 검색어 (nullable, blank → 무시)
    * @param region 지역명 완전일치 (nullable → 전체)
    * @param onlyActive true = isActive 만
-   * @param sort "name"(기본) | "region" — region 지정 시 region asc, name asc 로 이차 정렬
+   * @param sort "name"(기본) | "programs"(진행중 프로그램 수 내림차순, 동률 시 이름 asc) | "region"(하위호환)
    */
   public List<CenterListItem> list(String q, String region, boolean onlyActive, String sort) {
     List<Center> base;
@@ -52,26 +59,55 @@ public class CenterService {
                       || (c.getRegion() != null && c.getRegion().contains(kw)));
     }
 
-    Comparator<Center> cmp;
-    if ("region".equalsIgnoreCase(sort)) {
-      cmp = Comparator.comparing(Center::getRegion).thenComparing(Center::getName);
-    } else {
-      cmp = Comparator.comparing(Center::getName);
+    List<Center> filtered = stream.toList();
+
+    // programCount 배치 조회 (organization 문자열 매칭 근사)
+    Map<String, Integer> countByOrg = new HashMap<>();
+    for (Object[] row : programRepository.countActiveGroupByOrganization()) {
+      String org = (String) row[0];
+      Long cnt = (Long) row[1];
+      countByOrg.put(org, cnt.intValue());
     }
 
-    return stream.sorted(cmp).map(CenterListItem::from).toList();
+    List<CenterListItem> items =
+        filtered.stream()
+            .map(c -> CenterListItem.of(c, countByOrg.getOrDefault(c.getName(), 0)))
+            .collect(java.util.stream.Collectors.toList());
+
+    Comparator<CenterListItem> cmp;
+    if ("programs".equalsIgnoreCase(sort)) {
+      cmp =
+          Comparator.comparingInt(CenterListItem::programCount)
+              .reversed()
+              .thenComparing(CenterListItem::name);
+    } else if ("region".equalsIgnoreCase(sort)) {
+      cmp = Comparator.comparing(CenterListItem::region).thenComparing(CenterListItem::name);
+    } else {
+      cmp = Comparator.comparing(CenterListItem::name);
+    }
+    items.sort(cmp);
+    return items;
   }
 
   public Optional<Center> findById(Long id) {
     return centerRepository.findById(id);
   }
 
-  /** 필터 UI 의 지역 드롭다운용 — 활성 센터의 지역 distinct. */
+  /** F0h gap fix: 상세 패널의 "진행중인 프로그램 N건" 카드용. organization 문자열 매칭. */
+  public int programCountFor(String centerName) {
+    if (centerName == null) return 0;
+    for (Object[] row : programRepository.countActiveGroupByOrganization()) {
+      if (centerName.equals(row[0])) {
+        return ((Long) row[1]).intValue();
+      }
+    }
+    return 0;
+  }
+
+  /**
+   * 필터 UI 의 지역 드롭다운용 — F0h-c2: Region 엔티티 기반으로 교체. 이름 오름차순.
+   */
   public List<String> distinctActiveRegions() {
-    return centerRepository.findAllByIsActiveTrueOrderByRegionAscNameAsc().stream()
-        .map(Center::getRegion)
-        .distinct()
-        .sorted()
-        .toList();
+    return regionRepository.findAllByOrderByNameAsc().stream().map(Region::getName).toList();
   }
 }

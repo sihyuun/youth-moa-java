@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<!--
+  F0h-c2 개정(2026-07-09) — /centers 화면용 fragment 정의 파일.
+  card-list-content : /centers/cards 응답 + 초기 리스트 컬럼 innerHTML 공용
+  detail-panel-content : /centers/{id}/detail-fragment 응답 + 초기 상세 컬럼 innerHTML 공용
+  별도 파일로 분리한 이유: fragment 정의를 list.html body 안에 두면 부모 렌더 시에도
+  인라인 실행되어 detailCenter=null 에서 NPE 발생. 별도 파일로 분리하면 th:replace 로
+  호출될 때만 파라미터와 함께 실행됨.
+-->
+<body>
+
+<th:block th:fragment="card-list-content(centers, compact, activeId, filterQ, filterRegion, filterOnlyActive, filterSort)">
+    <div th:if="${#lists.isEmpty(centers)}" class="centers-list-empty">
+        조건에 맞는 센터가 없습니다.
+    </div>
+    <a th:each="c : ${centers}"
+       th:href="@{'/centers/' + ${c.id}(q=${filterQ},region=${filterRegion},onlyActive=${filterOnlyActive},sort=${filterSort})}"
+       class="center-card"
+       th:classappend="${activeId != null and activeId == c.id} ? 'is-active' : ''"
+       th:attr="data-center-id=${c.id},data-lat=${c.latitude},data-lng=${c.longitude},data-center-address=${c.address},data-center-hours=${c.operatingHours},data-center-image=${c.imageUrl},data-center-active=${c.isActive},data-center-programs=${c.programCount}">
+        <!-- Compact 모드 -->
+        <div class="center-card-compact" th:if="${compact}">
+            <div class="center-card-compact-icon"
+                 th:classappend="${activeId != null and activeId == c.id} ? 'is-active' : ''">
+                <svg th:replace="~{fragments/icons :: pin(15, ${activeId != null and activeId == c.id} ? '#ffffff' : 'var(--color-text-tri)')}"/>
+            </div>
+            <div class="center-card-compact-body">
+                <div class="center-card-compact-name" th:text="${c.name}">센터명</div>
+                <div class="center-card-compact-region" th:text="${c.region}">지역</div>
+            </div>
+            <span th:if="${c.isActive}" class="center-card-badge active">운영중</span>
+            <span th:unless="${c.isActive}" class="center-card-badge inactive">운영종료</span>
+        </div>
+        <!-- Full 모드 -->
+        <div class="center-card-full" th:unless="${compact}">
+            <div class="center-card-head">
+                <span class="center-card-name" th:text="${c.name}">센터명</span>
+                <span th:if="${c.isActive}" class="center-card-badge active">운영중</span>
+                <span th:unless="${c.isActive}" class="center-card-badge inactive">운영종료</span>
+            </div>
+            <div class="center-card-address" th:text="${c.address}">주소</div>
+            <div class="center-card-foot">
+                <span class="center-card-programs">
+                    프로그램 <strong th:text="${c.programCount}">0</strong>건
+                </span>
+                <span class="center-card-more">상세보기 →</span>
+            </div>
+        </div>
+    </a>
+</th:block>
+
+<th:block th:fragment="detail-panel-content(detailCenter, detailProgramCount, filterQ, filterRegion, filterOnlyActive, filterSort)">
+    <a class="centers-detail-close"
+       th:href="@{/centers(q=${filterQ},region=${filterRegion},onlyActive=${filterOnlyActive},sort=${filterSort})}"
+       data-centers-detail-close
+       title="닫기" aria-label="닫기">
+        <svg th:replace="~{fragments/icons :: close(14, '#ffffff')}"></svg>
+    </a>
+    <div class="centers-detail-image"
+         th:style="${detailCenter.imageUrl != null} ? |background-image:url(${detailCenter.imageUrl})| : ''">
+        <span class="centers-detail-image-badge"
+              th:classappend="${detailCenter.isActive} ? 'active' : 'inactive'"
+              th:text="${detailCenter.isActive} ? '운영중' : '운영종료'">운영중</span>
+    </div>
+    <div class="centers-detail-body">
+        <div class="centers-detail-head">
+            <h3 class="centers-detail-name" th:text="${detailCenter.name}">센터명</h3>
+        </div>
+        <p class="centers-detail-desc" th:if="${detailCenter.description != null}"
+           th:text="${detailCenter.description}">설명</p>
+        <div class="centers-detail-meta">
+            <div class="centers-detail-meta-row">
+                <span class="centers-detail-meta-badge">
+                    <svg th:replace="~{fragments/icons :: pin(13, 'var(--color-primary)')}"></svg>
+                </span>
+                <span th:text="${detailCenter.address}">주소</span>
+            </div>
+            <div class="centers-detail-meta-row" th:if="${detailCenter.operatingHours != null}">
+                <span class="centers-detail-meta-badge">
+                    <svg th:replace="~{fragments/icons :: calendar(13, 'var(--color-primary)')}"></svg>
+                </span>
+                <!-- F0h-real-coords §9-8 (2026-07-09 재개정): 컨테이너 폭 넘어가면 CSS 자동 줄바꿈.
+                     ", " split 방식은 "확인 불가 (입주기업 전용, 직접 문의)" 같은 괄호 케이스에서 어색하게 깨짐. -->
+                <span class="centers-detail-hours" th:text="${detailCenter.operatingHours}">운영시간</span>
+            </div>
+            <div class="centers-detail-meta-row" th:if="${detailCenter.phone != null}">
+                <span class="centers-detail-meta-badge">
+                    <svg th:replace="~{fragments/icons :: user(13, 'var(--color-primary)')}"></svg>
+                </span>
+                <span th:text="${detailCenter.phone}">전화</span>
+            </div>
+        </div>
+        <div class="centers-detail-programs">
+            <div class="centers-detail-programs-label">진행중인 프로그램</div>
+            <div class="centers-detail-programs-count">
+                <strong th:text="${detailProgramCount != null} ? ${detailProgramCount} : 0">0</strong>건
+            </div>
+        </div>
+        <a class="centers-detail-cta"
+           th:href="@{/programs(region=${detailCenter.region})}">프로그램 전체보기</a>
+    </div>
+</th:block>
+
+</body>
+</html>

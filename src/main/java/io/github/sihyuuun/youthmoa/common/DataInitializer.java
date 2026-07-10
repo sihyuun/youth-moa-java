@@ -52,6 +52,7 @@ public class DataInitializer implements ApplicationRunner {
   private final ApplicationRepository applicationRepository;
   private final NotificationRepository notificationRepository;
   private final PasswordEncoder passwordEncoder;
+  private final CenterCsvLoader centerCsvLoader;
 
   @Override
   @Transactional
@@ -324,91 +325,83 @@ public class DataInitializer implements ApplicationRunner {
       return;
     }
 
-    // region_center_list.md — 48 청년공간 / 30 시·군
-    Map<String, List<String>> centersByRegion = new LinkedHashMap<>();
-    centersByRegion.put("고양시", List.of("내일꿈제작소", "28청춘창업소"));
-    centersByRegion.put("과천시", List.of("과천시 청년공간 비행지구"));
-    centersByRegion.put("광명시", List.of("청춘곳간", "광명시 청년동"));
-    centersByRegion.put("광주시", List.of("광주시 청년지원센터"));
-    centersByRegion.put("구리시", List.of("청년내일센터"));
-    centersByRegion.put("군포시", List.of("군포시 청년공간 플라잉"));
-    centersByRegion.put("김포시", List.of("김포시청년지원센터"));
-    centersByRegion.put("남양주시", List.of("남양주시 청년창업센터 / 청년꽃간"));
-    centersByRegion.put("동두천시", List.of("동두천시 청년창업지원센터"));
-    centersByRegion.put("부천시", List.of("소사청년공간 소사로움", "원미청(년)정(점)구역", "오정청년공간"));
-    centersByRegion.put("성남시", List.of("청년이봄", "청년이봄 야탑", "청년이봄 정자"));
-    centersByRegion.put("수원시", List.of("청누리", "청년바람지대"));
-    centersByRegion.put("시흥시", List.of("청년협업마을", "청년스테이션"));
-    centersByRegion.put("안산시", List.of("안산시 청년센터 상상대로", "안산시 청년센터 상상스테이션"));
-    centersByRegion.put("안성시", List.of("안성시청년문화공간 '청년톡톡'"));
-    centersByRegion.put("안양시", List.of("범계역 청년출구", "동안 청년오피스", "만안 청년오피스", "안양청년1번가"));
-    centersByRegion.put("양주시", List.of("양주시청년센터"));
-    centersByRegion.put("양평군", List.of("양평청년공간 딴딴회관", "내일스퀘어 양평", "양평청년공간 오름"));
-    centersByRegion.put("여주시", List.of("여주시청년활동지원센터 푸릇"));
-    centersByRegion.put("연천군", List.of("연천군일자리통합지원센터"));
-    centersByRegion.put("오산시", List.of("오산청년일자리지원센터 이루잡"));
-    centersByRegion.put("용인시", List.of("용인청년LAB 기흥", "용인청년LAB 수지", "용인청년LAB 처인"));
-    centersByRegion.put("의왕시", List.of("의왕청년발전소"));
-    centersByRegion.put("의정부시", List.of("의정부시 청년공감터", "의정부시 청년다락방"));
-    centersByRegion.put("이천시", List.of("청년일자리카페 '청년e-room'"));
-    centersByRegion.put("파주시", List.of("파주시청년공간 GP1939"));
-    centersByRegion.put("평택시", List.of("청년쉼표"));
-    centersByRegion.put("포천시", List.of("포천시 청년센터"));
-    centersByRegion.put("하남시", List.of("하남시청년지원센터"));
-    centersByRegion.put("화성시", List.of("화성시 청년취업끝까지 지원센터", "화성시청년지원센터 H.E.Y"));
+    // F0h-real-coords: CSV(classpath:/data/centers.csv) 로 실좌표 + 전화 + 운영시간 + isActive 로드.
+    // 시·군 대표 좌표 파생 시드 완전 제거 — CLAUDE.md §확장성 원칙 §파생 시드 금지 준수 (2026-07-09 F0h 사고 회고).
+    List<CenterCsvRow> csvRows = centerCsvLoader.load();
+    if (csvRows.size() != 48) {
+      log.warn("centers.csv 시드 예상 48행과 다름 (실제 {}행)", csvRows.size());
+    }
 
-    // 전체 (region, name) 펼친 뒤 name 가나다순으로 상위 5개 isFeatured=true
+    // Region 테이블 존재 여부 사전 조회 — 없으면 warn (spec §9-2 유연성 원칙, 저장은 진행)
+    java.util.Set<String> knownRegions =
+        regionRepository.findAll().stream()
+            .map(Region::getName)
+            .collect(java.util.stream.Collectors.toSet());
+
     List<Center> centers = new ArrayList<>();
-    centersByRegion.forEach(
-        (region, names) ->
-            names.forEach(n -> centers.add(Center.builder().name(n).region(region).build())));
+    for (CenterCsvRow row : csvRows) {
+      if (!knownRegions.contains(row.region())) {
+        log.warn("centers.csv: region '{}' 이 Region 테이블에 없음 ({} 는 저장은 진행)", row.region(), row.name());
+      }
+      centers.add(
+          Center.builder()
+              .name(row.name())
+              .region(row.region())
+              .address(row.address())
+              .phone(row.phone())
+              .operatingHours(row.operatingHours())
+              .latitude(row.latitude())
+              .longitude(row.longitude())
+              .isActive(row.isActive())
+              .build());
+    }
 
-    // F0h — 대표 8개 센터에 실좌표 (경기도 각 시 청년센터 대략 위치). 나머지는 null → 마커 skip.
-    Map<String, java.math.BigDecimal[]> seedCoords = new LinkedHashMap<>();
-    seedCoords.put(
-        "청년바람지대",
-        new java.math.BigDecimal[] {
-          new java.math.BigDecimal("37.2636000"), new java.math.BigDecimal("127.0286000")
-        });
-    seedCoords.put(
-        "청년이봄",
-        new java.math.BigDecimal[] {
-          new java.math.BigDecimal("37.4200000"), new java.math.BigDecimal("127.1265000")
-        });
-    seedCoords.put(
-        "안양청년1번가",
-        new java.math.BigDecimal[] {
-          new java.math.BigDecimal("37.3943000"), new java.math.BigDecimal("126.9569000")
-        });
-    seedCoords.put(
-        "소사청년공간 소사로움",
-        new java.math.BigDecimal[] {
-          new java.math.BigDecimal("37.5035000"), new java.math.BigDecimal("126.7660000")
-        });
-    seedCoords.put(
-        "화성시청년지원센터 H.E.Y",
-        new java.math.BigDecimal[] {
-          new java.math.BigDecimal("37.1996000"), new java.math.BigDecimal("126.8311000")
-        });
-    seedCoords.put(
-        "광명시 청년동",
-        new java.math.BigDecimal[] {
-          new java.math.BigDecimal("37.4772000"), new java.math.BigDecimal("126.8664000")
-        });
-    seedCoords.put(
-        "양평청년공간 오름",
-        new java.math.BigDecimal[] {
-          new java.math.BigDecimal("37.4917000"), new java.math.BigDecimal("127.4874000")
-        });
-    seedCoords.put(
-        "의왕청년발전소",
-        new java.math.BigDecimal[] {
-          new java.math.BigDecimal("37.3448000"), new java.math.BigDecimal("126.9682000")
-        });
+    // (F0h-real-coords) legacy hardcoded block (48-name list + coord map + offset for-loop +
+    // 이름별 상세정보 lookup map 제거됨. CSV row 자체가 진리 소스.
+
+    // F0h-c1: 이름 키워드 기반 desc 자동 생성 (5종 로테이션) — 대표 8개는 아래 seedContent 로 override.
+    // imageUrl 은 unsplash 워크스페이스/커뮤니티 사진 6장 로테이션.
+    String[] imagePool = {
+      "https://images.unsplash.com/photo-1497366216548-37526070297c?w=400&h=200&fit=crop&auto=format",
+      "https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=400&h=200&fit=crop&auto=format",
+      "https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=400&h=200&fit=crop&auto=format",
+      "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=400&h=200&fit=crop&auto=format",
+      "https://images.unsplash.com/photo-1517048676732-d65bc937f952?w=400&h=200&fit=crop&auto=format",
+      "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=400&h=200&fit=crop&auto=format"
+    };
+    int imgIdx = 0;
     for (Center c : centers) {
-      java.math.BigDecimal[] latlng = seedCoords.get(c.getName());
-      if (latlng != null) {
-        c.updateCoordinates(latlng[0], latlng[1]);
+      String desc;
+      String name = c.getName();
+      if (name.contains("창업")) {
+        desc = "청년 창업과 네트워킹을 지원하는 복합공간";
+      } else if (name.contains("취업") || name.contains("일자리") || name.contains("잡")) {
+        desc = "취업·진로 전문 청년 지원센터";
+      } else if (name.contains("역량") || name.contains("LAB") || name.contains("발전소")) {
+        desc = "청년 역량 강화·성장 프로그램 운영";
+      } else if (name.contains("문화") || name.contains("톡톡") || name.contains("바람") || name.contains("꿈")) {
+        desc = "청년 문화·창작 커뮤니티 공간";
+      } else {
+        desc = c.getRegion() + " 청년의 자립과 성장을 지원하는 공간";
+      }
+      c.updateContent(desc, c.getOperatingHours(), imagePool[imgIdx % imagePool.length]);
+      imgIdx++;
+    }
+
+    // F0h-c1: 대표 8개 센터 desc override (실제 기획 문안, 좌표에 대응)
+    Map<String, String> featuredDesc = new LinkedHashMap<>();
+    featuredDesc.put("청년바람지대", "청년 창업과 네트워킹을 위한 복합문화공간");
+    featuredDesc.put("청년이봄", "취업·역량강화 특화 청년지원센터");
+    featuredDesc.put("안양청년1번가", "정신건강·힐링 프로그램 전문 센터");
+    featuredDesc.put("소사청년공간 소사로움", "취업·역량강화 특화 청년지원센터");
+    featuredDesc.put("화성시청년지원센터 H.E.Y", "취업·진로 전문 지원 청년센터");
+    featuredDesc.put("광명시 청년동", "지역사회 연계 청년 커뮤니티 허브");
+    featuredDesc.put("양평청년공간 오름", "소셜벤처·사회적 경제 청년 지원");
+    featuredDesc.put("의왕청년발전소", "지역사회 연계 청년 커뮤니티 허브");
+    for (Center c : centers) {
+      String d = featuredDesc.get(c.getName());
+      if (d != null) {
+        c.updateContent(d, c.getOperatingHours(), c.getImageUrl());
       }
     }
 

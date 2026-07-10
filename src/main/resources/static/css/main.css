@@ -3754,25 +3754,33 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
 /* ============================================================
    F0h — 청년센터 목록 / 상세 + 카카오맵
    ============================================================ */
+/* F0h — 3-column 재구성 (리스트 + 인라인 상세 + 지도) */
 .centers-container {
-  padding-top: 20px;
-  padding-bottom: 60px;
+  padding-top: 16px;
+  padding-bottom: 40px;
 }
 
-/* 필터 바 */
-.centers-filter {
+/* ── 필터 바 (full-width, height 56, gap 12) ── */
+.centers-filter-bar {
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border-light);
+}
+.centers-filter-inner {
+  height: 56px;
+  display: flex;
+  align-items: center;
+}
+.centers-filter-form {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 20px;
-  padding: 12px 16px;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border-light);
-  border-radius: var(--radius-md);
+  width: 100%;
+}
+.centers-filter-search-wrap {
+  position: relative;
 }
 .centers-filter-search {
-  flex: 1;
-  min-width: 240px;
+  width: 250px;
   height: 38px;
   padding: 0 12px;
   border: 1px solid var(--color-border);
@@ -3786,70 +3794,223 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
 .centers-filter-search:focus {
   border-color: var(--color-primary);
 }
-.centers-filter-region {
-  height: 38px;
-  padding: 0 12px;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  font-size: 14px;
-  font-family: inherit;
-  color: var(--color-text);
-  background: #fff;
-  min-width: 140px;
-  cursor: pointer;
+
+/* 커스텀 지역 드롭다운 */
+.centers-filter-region-dropdown {
+  position: relative;
 }
-.centers-filter-toggle {
-  display: flex;
+.centers-filter-region-trigger {
+  display: inline-flex;
   align-items: center;
   gap: 6px;
+  min-width: 140px;
+  height: 38px;
+  padding: 0 12px;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: #fff;
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--color-text-tri);
+  cursor: pointer;
+  transition: all 150ms ease;
+}
+.centers-filter-region-trigger.is-selected {
+  border-color: var(--color-primary);
+  background: var(--color-primary-bg);
+  color: var(--color-primary);
+  font-weight: 600;
+}
+.centers-filter-region-pin {
+  font-size: 13px;
+}
+.centers-filter-region-text {
+  flex: 1;
+  text-align: left;
+}
+.centers-filter-region-clear {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  cursor: pointer;
+}
+.centers-filter-region-chevron {
+  font-size: 10px;
+  color: var(--color-text-tri);
+}
+.centers-filter-region-panel {
+  position: absolute;
+  top: 44px;
+  left: 0;
+  width: 260px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.14);
+  padding: 10px;
+  z-index: 300;
+}
+.centers-filter-region-panel[hidden] {
+  display: none;
+}
+.centers-filter-region-search {
+  width: 100%;
+  height: 34px;
+  padding: 0 10px;
+  border: 1.5px solid var(--color-primary);
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+  margin-bottom: 8px;
+  box-sizing: border-box;
+}
+.centers-filter-region-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 220px;
+  overflow-y: auto;
+}
+.centers-filter-region-item {
+  padding: 9px 14px;
   font-size: 13px;
   color: var(--color-text);
   cursor: pointer;
-  user-select: none;
-}
-.centers-filter-submit {
-  height: 38px;
-  padding: 0 18px;
-  border: none;
   border-radius: var(--radius-md);
-  background: var(--color-primary);
-  color: #fff;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
+  transition: background 120ms ease;
 }
-.centers-filter-submit:hover {
-  background: var(--color-primary-dark);
+.centers-filter-region-item:hover {
+  background: var(--color-primary-bg);
+}
+.centers-filter-region-item.is-selected {
+  background: var(--color-primary-bg);
+  color: var(--color-primary);
+  font-weight: 600;
+}
+.centers-filter-region-item mark {
+  background: #FEF08A;
+  color: inherit;
+  font-weight: 700;
+  padding: 0;
 }
 
-/* 좌 리스트 / 우 지도 */
+.centers-filter-spacer {
+  flex: 1;
+}
+
+/* 운영중 토글 스위치 */
+.centers-filter-toggle-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+}
+.centers-filter-toggle-switch input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+.centers-filter-toggle-track {
+  position: relative;
+  display: inline-block;
+  width: 40px;
+  height: 22px;
+  background: var(--color-border);
+  border-radius: 11px;
+  transition: background 200ms ease;
+}
+.centers-filter-toggle-handle {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  transition: left 200ms ease;
+}
+.centers-filter-toggle-switch input:checked + .centers-filter-toggle-track {
+  background: var(--color-primary);
+}
+.centers-filter-toggle-switch input:checked + .centers-filter-toggle-track .centers-filter-toggle-handle {
+  left: 20px;
+}
+.centers-filter-toggle-label {
+  font-size: 13px;
+  color: var(--color-text);
+}
+
+/* ── 3-column 레이아웃 ── */
 .centers-layout {
   display: flex;
   gap: 16px;
-  align-items: stretch;
-  min-height: 640px;
+  align-items: flex-start;
+  padding-top: 16px;
 }
-.centers-list-panel {
-  width: 400px;
+.centers-list-col {
+  width: 360px;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
+  transition: width 250ms ease;
+}
+.centers-list-col.has-detail {
+  width: 240px;
+}
+.centers-list-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  gap: 8px;
 }
 .centers-list-count {
   font-size: 13px;
   color: var(--color-text-sec);
-  margin-bottom: 10px;
 }
 .centers-list-count strong {
   color: var(--color-text);
   font-weight: 700;
 }
+
+/* 정렬 pill */
+.centers-sort-pill {
+  display: inline-flex;
+  gap: 4px;
+  background: var(--color-bg);
+  border-radius: var(--radius-pill);
+  padding: 2px;
+}
+.centers-sort-pill-item {
+  padding: 4px 10px;
+  border: none;
+  background: transparent;
+  border-radius: var(--radius-pill);
+  font-size: 12px;
+  color: var(--color-text-tri);
+  cursor: pointer;
+  font-family: inherit;
+}
+.centers-sort-pill-item.is-active {
+  background: var(--color-primary-bg);
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
 .centers-list-scroll {
-  flex: 1;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  max-height: 640px;
+  max-height: 600px;
   overflow-y: auto;
   padding-right: 4px;
 }
@@ -3859,32 +4020,35 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
   color: var(--color-text-tri);
   font-size: 14px;
 }
+
+/* ── 카드 (Full / Compact) ── */
 .center-card {
   display: block;
-  padding: 14px;
   background: var(--color-surface);
   border: 1.5px solid var(--color-border-light);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   text-decoration: none;
   color: inherit;
-  transition: background 200ms, border-color 200ms, transform 150ms;
+  transition: background 200ms, border-color 200ms;
   cursor: pointer;
 }
 .center-card:hover,
-.center-card.is-hover {
-  border-color: var(--color-primary);
-  background: var(--color-primary-bg);
-}
+.center-card.is-hover,
+.center-card.is-active,
 .center-card.is-highlighted {
   border-color: var(--color-primary);
   background: var(--color-primary-bg);
-  box-shadow: var(--shadow-md);
+}
+
+/* Full mode */
+.center-card-full {
+  padding: 14px;
 }
 .center-card-head {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
 }
 .center-card-name {
   font-weight: 700;
@@ -3892,10 +4056,11 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
   color: var(--color-text);
 }
 .center-card-badge {
-  padding: 2px 8px;
+  padding: 2px 7px;
   border-radius: var(--radius-pill);
   font-size: 11px;
   font-weight: 600;
+  white-space: nowrap;
 }
 .center-card-badge.active {
   background: var(--color-success-light);
@@ -3905,100 +4070,627 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
   background: var(--color-border-light);
   color: var(--color-text-tri);
 }
-.center-card-region {
-  font-size: 12px;
-  color: var(--color-text-tri);
-  margin-bottom: 4px;
-}
 .center-card-address {
-  font-size: 13px;
-  color: var(--color-text-sec);
-  margin-bottom: 4px;
-}
-.center-card-phone {
   font-size: 12px;
+  color: var(--color-text-sec);
+  margin-bottom: 8px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.center-card-foot {
+  border-top: 1px solid var(--color-border-light);
+  padding-top: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.center-card-programs {
+  color: var(--color-primary);
+  font-weight: 600;
+  font-size: 12px;
+}
+.center-card-more {
   color: var(--color-text-tri);
+  font-size: 12px;
 }
 
-/* 지도 패널 */
+/* Compact mode */
+.center-card-compact {
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.center-card-compact-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  background: var(--color-border-light);
+  color: var(--color-text-tri);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+.center-card-compact-icon.is-active {
+  background: var(--color-primary);
+  color: #fff;
+}
+.center-card-compact-body {
+  flex: 1;
+  min-width: 0;
+}
+.center-card-compact-name {
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--color-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.center-card-compact-region {
+  font-size: 11px;
+  color: var(--color-text-tri);
+}
+.center-card-compact .center-card-badge {
+  padding: 1px 6px;
+  font-size: 10px;
+}
+
+/* ── 인라인 상세 패널 (320px) ── */
+.centers-detail-col {
+  width: 320px;
+  flex-shrink: 0;
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border-light);
+  box-shadow: 0 4px 16px rgba(63, 48, 233, 0.08);
+  overflow: hidden;
+  position: relative;
+}
+.centers-detail-col[hidden] {
+  display: none;
+}
+.centers-detail-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.35);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  z-index: 5;
+}
+.centers-detail-image {
+  position: relative;
+  width: 100%;
+  height: 160px;
+  background: var(--color-border-light);
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+/* prototype: 실 이미지 위에 하단 gradient (텍스트 가독) */
+.centers-detail-image::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(transparent 50%, rgba(0, 0, 0, 0.45));
+  pointer-events: none;
+}
+/* prototype: 이미지 좌하단 open badge 오버레이 */
+.centers-detail-image-badge {
+  position: absolute;
+  bottom: 10px;
+  left: 12px;
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+  font-size: 11px;
+  font-weight: 600;
+  color: #fff;
+  z-index: 1;
+}
+.centers-detail-image-badge.active {
+  background: var(--color-success);
+}
+.centers-detail-image-badge.inactive {
+  background: #9ca3af;
+}
+/* prototype: "진행중인 프로그램 N건" 강조 카드 */
+.centers-detail-programs {
+  background: var(--color-bg);
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
+  margin-bottom: 14px;
+}
+.centers-detail-programs-label {
+  font-size: 12px;
+  color: var(--color-text-sec);
+  margin-bottom: 6px;
+}
+.centers-detail-programs-count {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+.centers-detail-body {
+  padding: 16px;
+}
+.centers-detail-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.centers-detail-name {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0;
+}
+.centers-detail-desc {
+  font-size: 13px;
+  color: var(--color-text-sec);
+  margin: 0 0 12px;
+  line-height: 1.5;
+}
+.centers-detail-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--color-text-sec);
+  margin-bottom: 14px;
+}
+/* F0h-c4: prototype L2056~2086 — 26x26 primaryLight 박스 안에 lucide SVG */
+/* 사용자 요청 (2026-07-10): badge 를 텍스트 블록 수직 중앙과 정확히 정렬.
+   기존 flex-start + padding-top 4 는 브라우저 기본 line-height 차이로 미묘하게 어긋남.
+   align-items: center 로 전환: 1줄 텍스트는 라인 중앙과, 여러 줄은 블록 중앙과 badge 정렬. */
+.centers-detail-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.centers-detail-meta-row > *:not(.centers-detail-meta-badge) {
+  line-height: 1.5;
+}
+.centers-detail-meta-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-md);
+  background: var(--color-primary-bg);
+  flex-shrink: 0;
+}
+/* F0h-real-coords §9-8 (2026-07-09 재개정): 운영시간 자동 줄바꿈. 컨테이너 폭 넘어가면 브라우저가 자연스럽게 wrap. */
+.centers-detail-hours {
+  line-height: 1.5;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+.centers-detail-cta {
+  display: block;
+  text-align: center;
+  padding: 10px;
+  background: var(--color-primary);
+  color: #fff;
+  text-decoration: none;
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  font-weight: 600;
+}
+.centers-detail-cta:hover {
+  background: var(--color-primary-dark);
+}
+
+/* ── 지도 컬럼 ── */
 .centers-map-panel {
   flex: 1;
   position: relative;
+  height: 640px;
   min-height: 640px;
-  background: var(--color-border-light);
-  border-radius: var(--radius-md);
+  background: var(--color-bg);
+  border-radius: var(--radius-lg);
   overflow: hidden;
   border: 1px solid var(--color-border-light);
 }
 .center-map-container {
   width: 100%;
-  height: 640px; /* 명시적 height — height:100% 는 flex 부모 실높이 미확정 시 0 초기화 → 회색 지도 사고 */
+  height: 640px;
 }
-.map-fallback {
+
+/* "이 지역에서 검색" floating */
+.centers-map-search-here {
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 25;
+  padding: 8px 16px;
+  background: var(--color-surface);
+  border: none;
+  border-radius: 20px;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.16);
+  color: var(--color-primary);
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.centers-map-search-here[hidden] {
+  display: none;
+}
+.centers-map-search-here-icon {
+  display: inline-flex;
+  width: 14px;
+  height: 14px;
+  color: var(--color-primary);
+}
+.centers-map-search-here-icon svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* "내 위치" 버튼 — 지도 좌하단 (kakao ZoomControl 은 우측에 있어 좌측으로 배치) */
+.centers-map-my-location {
+  position: absolute;
+  bottom: 24px;
+  left: 16px;
+  z-index: 30;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.16);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-sec);
+  transition: all 150ms ease;
+}
+.centers-map-my-location:hover {
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+.centers-map-my-location.is-loading {
+  pointer-events: none;
+  opacity: 0.6;
+}
+.centers-map-my-location.is-active {
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+/*
+ * F0h-c4 §3-1 지도 마커 (CSS 클래스 기반).
+ * - wrapper 는 30×38 고정. tail 이 항상 wrapper 하단 중앙(=좌표 anchor).
+ * - body 는 wrapper 하단 8px(=tail 위)에 absolute. left:50% + translateX(-50%) 로 tail 중심에 정렬.
+ * - 선택 시 body 만 auto width 로 확장(라벨 표시). wrapper 크기·좌표 anchor 는 불변 → 시각 위치 이동 없음.
+ * - 클릭 hit: wrapper 자체. 내부 SVG stroke-only 라도 body 배경이 클릭 수신 → 정확도 문제 없음.
+ */
+.center-marker {
+  position: relative;
+  width: 30px;
+  height: 38px;
+  cursor: pointer;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+  transition: filter 200ms ease;
+}
+.center-marker.is-selected {
+  filter: drop-shadow(0 4px 8px rgba(63, 48, 233, 0.45));
+  z-index: 20;
+}
+.center-marker__body {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  height: 30px;
+  width: 30px;
+  box-sizing: border-box;
+  border-radius: 50%;
+  border: 2.5px solid var(--color-primary);
+  background: #fff;
+  color: var(--color-primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  transition: width 200ms ease, background 200ms ease, border-radius 200ms ease, padding 200ms ease;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.center-marker__icon {
+  display: inline-flex;
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+  pointer-events: none;
+}
+.center-marker__icon svg {
+  width: 15px;
+  height: 15px;
+}
+.center-marker__label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+  display: none;
+  pointer-events: none;
+}
+/* tail — spec §3-1: 선택 시 primary / 미선택 시 border */
+.center-marker__tail {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 2px;
+  height: 8px;
+  background: var(--color-border);
+}
+/* 비활성 (운영종료) */
+.center-marker.is-inactive:not(.is-selected) .center-marker__body {
+  background: #E5E7EB;
+  border-color: var(--color-border);
+  color: var(--color-text-tri);
+}
+/* 선택 상태 — pill 로 확장, 라벨 표시 */
+.center-marker.is-selected .center-marker__body {
+  width: auto;
+  padding: 0 12px;
+  border-radius: 14px;
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #fff;
+}
+.center-marker.is-selected .center-marker__tail {
+  background: var(--color-primary);
+}
+.center-marker.is-selected .center-marker__label {
+  display: inline;
+}
+.center-marker.is-selected .center-marker__icon {
+  color: #fff;
+}
+
+/* F0h-c4 spec 3-2: 마커 클릭 인포윈도우 (이미지+뱃지+주소+운영시간+CTA/공유) */
+.center-info-window {
+  width: 300px;
+  border-radius: 14px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+  background: var(--color-surface);
+  overflow: hidden;
+  position: relative;
+  font-family: Pretendard, sans-serif;
+}
+.center-info-window-media {
+  position: relative;
+  width: 100%;
+  height: 110px;
+  background: #E5E7EB;
+}
+.center-info-window-image {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+}
+.center-info-window-image.is-placeholder {
+  background: linear-gradient(135deg, #E5E7EB, #CBD5E1);
+}
+.center-info-window-scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(transparent 40%, rgba(0, 0, 0, 0.4));
+  pointer-events: none;
+}
+.center-info-window-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.3);
+  color: #fff;
+  border: none;
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.center-info-window-badge {
+  position: absolute;
+  bottom: 8px;
+  left: 10px;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+}
+.center-info-window-badge.active {
+  background: var(--color-success);
+}
+.center-info-window-badge.inactive {
+  background: #9CA3AF;
+}
+.center-info-window-body {
+  padding: 12px 14px;
+}
+.center-info-window-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: 3px;
+}
+.center-info-window-address {
+  font-size: 12px;
+  color: var(--color-text-sec);
+  line-height: 1.5;
+  margin-bottom: 8px;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+.center-info-window-hours {
+  font-size: 11px;
+  color: var(--color-text-tri);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+}
+.center-info-window-hours-icon {
+  flex-shrink: 0;
+  line-height: 1.5;
+}
+.center-info-window-hours-text {
+  flex: 1;
+  min-width: 0;              /* flex 아이템 자연 shrink 허용 — 없으면 nowrap 텍스트가 부모 폭 넘어감 */
+  line-height: 1.5;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+.center-info-window-actions {
+  display: flex;
+  gap: 8px;
+}
+.center-info-window-cta {
+  flex: 1;
+  height: 32px;
+  background: var(--color-primary);
+  color: #fff;
+  border-radius: 7px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 150ms ease;
+}
+.center-info-window-cta:hover {
+  background: var(--color-primary-dark);
+}
+.center-info-window-share {
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--color-border);
+  border-radius: 7px;
+  background: var(--color-surface);
+  color: var(--color-text-sec);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 150ms ease;
+}
+.center-info-window-share:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+.center-info-window-share.is-copied {
+  border-color: var(--color-success);
+  color: var(--color-success);
+}
+/*
+ * 공통 floating toast (프로젝트 최초 도입).
+ * - mypage-toast (인라인 플래시) 와 컬러 팔레트 통일: success-light bg + success text.
+ * - 화면 우하단 고정. JS 에서 body 에 append → 자동 페이드 아웃 → 제거.
+ * - 여러 개 동시 발생 시 세로로 스택.
+ */
+.toast-stack {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 9999;
+  pointer-events: none;
+}
+.toast {
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  background: var(--color-success-light);
+  color: var(--color-success);
+  font-size: 13px;
+  font-weight: 500;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 180ms ease, transform 180ms ease;
+  pointer-events: auto;
+}
+.toast.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.toast.toast--error {
+  background: #FEE2E2;
+  color: var(--color-error);
+}
+
+/* Fallback grid placeholder */
+.center-map-fallback {
   position: absolute;
   inset: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  text-align: center;
-  color: var(--color-text-sec);
-  font-size: 14px;
-  line-height: 1.6;
-  padding: 20px;
-  background: var(--color-border-light);
-  pointer-events: none;
-}
-.map-fallback small {
-  display: block;
-  margin-top: 8px;
-  font-size: 12px;
-  color: var(--color-text-tri);
-}
-
-/* 상세 페이지 */
-.center-detail-container {
-  padding-top: 30px;
-  padding-bottom: 60px;
-  position: relative;
-}
-.center-detail-title {
-  font-size: 28px;
-  font-weight: 700;
-  color: var(--color-text);
-  margin: 12px 0 8px;
-}
-.center-detail-meta {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 20px;
-  font-size: 14px;
-  color: var(--color-text-sec);
-}
-.center-detail-info {
-  padding: 16px 20px;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border-light);
-  border-radius: var(--radius-md);
-  margin-bottom: 20px;
-  display: flex;
-  flex-direction: column;
   gap: 8px;
+  background-color: var(--color-bg);
+  background-image:
+    linear-gradient(to right, var(--color-border-light) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--color-border-light) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  text-align: center;
+  padding: 20px;
+}
+.center-map-fallback-icon {
+  display: inline-flex;
+  width: 48px;
+  height: 48px;
+  color: var(--color-primary);
+}
+.center-map-fallback-icon svg {
+  width: 48px;
+  height: 48px;
+}
+.center-map-fallback-title {
   font-size: 14px;
+  font-weight: 600;
   color: var(--color-text);
 }
-.center-detail-info strong {
-  display: inline-block;
-  width: 60px;
+.center-map-fallback-sub {
+  font-size: 12px;
   color: var(--color-text-sec);
-  font-weight: 600;
 }
-.center-detail-map-wrap {
-  min-height: 400px;
-}
-.center-detail-map-wrap .center-map-container {
-  min-height: 400px;
+/* card 는 out-of-bounds 시 숨김 (F0h-c4 bounds 필터) */
+.center-card.is-out-of-bounds {
+  display: none;
 }
 /* ═══════════════════════════════════════════════
  * D5 마이페이지 (My Page)

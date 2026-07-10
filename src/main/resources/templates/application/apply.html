@@ -154,21 +154,23 @@
                 <button type="button" class="btn-auth btn-auth--primary apply-nav-next" id="applyNavNext">다음</button>
                 <button type="submit" class="btn-auth btn-auth--primary apply-nav-submit" id="applyNavSubmit">신청 완료</button>
             </div>
+
+            <!-- 서버 검증 실패 시 에러 있는 스텝을 초기 표시 (JS 가 읽음).
+                 #fields 는 th:object 스코프(form 내부) 에서만 유효 → 반드시 </form> 앞에 위치 -->
+            <script th:inline="javascript">
+                /*<![CDATA[*/
+                window.__applyErrors = {
+                    applyReason: /*[[${#fields.hasErrors('applyReason')}]]*/ false,
+                    privacyAgreed: /*[[${#fields.hasErrors('privacyAgreed')}]]*/ false
+                };
+                /*]]>*/
+            </script>
         </form>
     </div>
 </main>
 
 <div th:replace="~{fragments/footer :: footer}"></div>
 
-<!-- 서버 검증 실패 시 에러 있는 스텝을 초기 표시 (JS 가 읽음) -->
-<script th:inline="javascript">
-    /*<![CDATA[*/
-    window.__applyErrors = {
-        applyReason: /*[[${#fields.hasErrors('applyReason')}]]*/ false,
-        privacyAgreed: /*[[${#fields.hasErrors('privacyAgreed')}]]*/ false
-    };
-    /*]]>*/
-</script>
 <script>
 (function () {
     const TOTAL = 3;
