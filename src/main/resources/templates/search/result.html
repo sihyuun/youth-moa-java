@@ -115,7 +115,8 @@
                                     colorClass=${dto.colorClass},
                                     barLabel=${dto.barLabel},
                                     capacityText=${dto.capacityText},
-                                    showBar=${dto.capacity != null})}"></div>
+                                    showBar=${dto.capacity != null},
+                                    openDateLabel=${dto.openDateLabel})}"></div>
                             </div>
                         </a>
                         <div th:replace="~{fragments/bookmark-button :: button(programId=${dto.id}, bookmarked=${bookmarkedIds.contains(dto.id)}, styleClass='card-bookmark-btn')}"></div>

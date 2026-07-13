@@ -1,10 +1,13 @@
 package io.github.sihyuuun.youthmoa.program;
 
+import java.time.format.DateTimeFormatter;
 import lombok.Getter;
 
 /** 프로그램 카드 표시용 DTO. Program 엔티티에 실시간 신청자 수(applicantCount)를 조합한 뷰 모델. */
 @Getter
 public class ProgramCardDto {
+
+  private static final DateTimeFormatter OPEN_DATE_FORMAT = DateTimeFormatter.ofPattern("MM/dd");
 
   private final Program program;
   private final long applicantCount;
@@ -14,6 +17,8 @@ public class ProgramCardDto {
   private final String colorClass;
   private final String barLabel;
   private final String capacityText;
+  /** UPCOMING 인 경우 startDate 기준 "MM/dd 오픈" 라벨. 그 외 null. (Q1=b 결정) */
+  private final String openDateLabel;
 
   public ProgramCardDto(Program program, long applicantCount) {
     this.program = program;
@@ -53,6 +58,13 @@ public class ProgramCardDto {
       this.capacityText = "정원 제한 없음";
     } else {
       this.capacityText = "정원 " + applicantCount + "/" + capacity + "명";
+    }
+
+    // UPCOMING 시 startDate 를 오픈일로 재활용 (Q1=b 확정, admin 트랙 이월)
+    if (status == ProgramStatus.UPCOMING && program.getStartDate() != null) {
+      this.openDateLabel = program.getStartDate().format(OPEN_DATE_FORMAT) + " 오픈";
+    } else {
+      this.openDateLabel = null;
     }
   }
 

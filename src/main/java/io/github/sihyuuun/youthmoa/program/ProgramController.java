@@ -122,12 +122,23 @@ public class ProgramController {
       competitionRatio = String.format("%.1f", ratio);
     }
 
+    // D5 — 상세 페이지 CapacityBar 통일. ProgramCardDto 계산 로직 재사용 후
+    // fragment 파라미터를 모델 attribute 로 노출 (홈/목록/검색과 동일 fragment 호출).
+    ProgramCardDto capacityCard = new ProgramCardDto(program, appliedCount);
+
     model.addAttribute("currentPage", "programs");
     model.addAttribute("program", program);
     model.addAttribute("bookmarked", bookmarked);
     model.addAttribute("appliedCount", appliedCount);
     model.addAttribute("applicationRate", applicationRate);
     model.addAttribute("competitionRatio", competitionRatio);
+    // CapacityBar fragment 파라미터 (D5)
+    model.addAttribute("capacityPct", capacityCard.getPct());
+    model.addAttribute("capacityColorClass", capacityCard.getColorClass());
+    model.addAttribute("capacityBarLabel", capacityCard.getBarLabel());
+    model.addAttribute("capacityText", capacityCard.getCapacityText());
+    model.addAttribute("capacityShowBar", program.getCapacity() != null);
+    model.addAttribute("capacityOpenDateLabel", capacityCard.getOpenDateLabel());
     return "program/detail";
   }
 }

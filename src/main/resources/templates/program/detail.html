@@ -68,11 +68,14 @@
                         </span>
                     </div>
 
-                    <!-- Progress bar (prototype CapacityBar) -->
-                    <div class="detail-capacity-bar" th:if="${program.capacity != null}">
-                        <div class="detail-capacity-bar-fill"
-                             th:style="'width: ' + ${applicationRate} + '%'"></div>
-                    </div>
+                    <!-- Progress bar — D5: fragment 통일 (홈/목록/검색과 동일) -->
+                    <div th:replace="~{fragments/capacity-bar :: capacityBar(
+                        pct=${capacityPct},
+                        colorClass=${capacityColorClass},
+                        barLabel=${capacityBarLabel},
+                        capacityText=${capacityText},
+                        showBar=${capacityShowBar},
+                        openDateLabel=${capacityOpenDateLabel})}"></div>
 
                     <!-- 하단: 활성=신청률/경쟁률 · 마감=마감안내 · 진행예정=오픈안내 -->
                     <p class="detail-status-note" th:if="${program.status.name() == 'ACTIVE' and program.capacity != null}"

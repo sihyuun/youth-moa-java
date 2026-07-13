@@ -944,24 +944,7 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
   color: var(--color-text-sec);
 }
 
-/* Progress bar — prototype.tsx CapacityBar (height 6px, primary fill) */
-.detail-capacity-bar {
-  width: 100%;
-  height: 6px;
-  border-radius: 3px;
-  background: var(--color-border-light);
-  overflow: hidden;
-  margin: 8px 0;
-}
-.detail-capacity-bar-fill {
-  height: 100%;
-  border-radius: 3px;
-  background: var(--color-primary);
-  transition: width 0.3s ease;
-}
-.detail-status-card--closed .detail-capacity-bar-fill {
-  background: var(--color-text-tri);
-}
+/* Progress bar — D5(2026-07-13): CapacityBar fragment 통일. .detail-capacity-bar* 규칙 제거. */
 
 .detail-status-note {
   font-size: 12px;
@@ -3059,9 +3042,11 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
   font-size: 15px;
 }
 
-/* ===== CapacityBar ===== */
+/* ===== CapacityBar (D5 개편 — prototype 매칭) ===== */
 .capacity-bar-wrap { width: 100%; margin-bottom: 10px; }
 .capacity-bar-label { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+.capacity-bar-label--status { margin-top: 4px; margin-bottom: 0; }
+.capacity-bar-opendate { font-size: 11px; color: var(--color-text-tri); }
 .capacity-bar-status { font-size: 12px; font-weight: 600; }
 .capacity-bar-status--primary   { color: var(--color-primary); }
 .capacity-bar-status--warning   { color: var(--color-warning); }
@@ -3079,7 +3064,7 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
 .capacity-bar-fill--error     { background: var(--color-error); }
 .capacity-bar-fill--secondary { background: var(--color-secondary); }
 .capacity-bar-fill--muted     { background: var(--color-text-tri); }
-.capacity-bar-count { font-size: 11px; color: var(--color-text-tri); margin-top: 4px; }
+.capacity-bar-count { font-size: 12px; color: var(--color-text-sec); font-weight: 500; }
 
 /* ===== 카드 액션 버튼 ===== */
 .program-card-actions {
