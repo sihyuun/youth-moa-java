@@ -62,8 +62,15 @@ public class SecurityConfig {
                         "/api/users/check-email",
                         "/find-id",
                         "/find-password",
-                        "/find-password/**")
+                        "/find-password/**",
+                        // P0-2 A1 이월: /admin/login 페이지·성공 리다이렉트는 후속 티켓.
+                        // 지금은 매처만 등록해 후속에서 formLogin 재설정 시 곧바로 permit 되도록 준비.
+                        "/admin/login")
                     .permitAll()
+                    // P0-2: 관리자 영역 전체 hasAnyRole 매처. anyRequest() 앞에 삽입하여
+                    // "/admin/**" 하위 URL 은 CENTER_ADMIN / SYSTEM_ADMIN 만 접근 가능.
+                    .requestMatchers("/admin/**")
+                    .hasAnyRole("CENTER_ADMIN", "SYSTEM_ADMIN")
                     // 인증 필요 (먼저 매칭되어 permitAll 보다 우선)
                     .requestMatchers(
                         "/programs/*/apply",
@@ -119,8 +126,11 @@ public class SecurityConfig {
                     // 로그아웃 시 세션 + remember-me cookie 모두 제거
                     // DB 의 persistent_logins row 는 Spring 의 RememberMeServices.logout() 이 자동 제거
                     .deleteCookies("JSESSIONID", "remember-me")
-                    .permitAll())
-        .csrf(csrf -> csrf.disable());
+                    .permitAll());
+    // P0-2: CSRF 활성. Spring Security 7 기본 = 세션 저장 CsrfTokenRepository (HttpSessionCsrfTokenRepository).
+    //   - Thymeleaf 는 ${_csrf.token} / ${_csrf.headerName} 로 접근
+    //   - HTMX 는 static/js/htmx-csrf.js 가 meta 태그 값을 configRequest 에서 헤더로 부착
+    //   - 기존 .csrf(csrf -> csrf.disable()) 삭제 (직접 disable 하지 않음, 기본 활성 유지)
     return http.build();
   }
 
