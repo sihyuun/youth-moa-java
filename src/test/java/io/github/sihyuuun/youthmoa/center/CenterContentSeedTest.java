@@ -19,7 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @SpringBootTest
 @ActiveProfiles("e2e")
-@Transactional  // @OneToOne(LAZY) center 참조를 assertion 메시지에서 사용 → 트랜잭션 스코프 필수
+@Transactional // @OneToOne(LAZY) center 참조를 assertion 메시지에서 사용 → 트랜잭션 스코프 필수
 class CenterContentSeedTest {
 
   /** spec §11: featured 8건 description 정확 문안 매핑 (centers-content.csv 원본 기준). */

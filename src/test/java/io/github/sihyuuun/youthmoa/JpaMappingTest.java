@@ -159,18 +159,14 @@ class JpaMappingTest {
   }
 
   /**
-   * F0h-center-desc-image (spec §9-1): description·imageUrl 은 {@link CenterContent} 로 분리됨. Center
-   * 는 팩트(operatingHours 포함) 만 유지. CenterContent @OneToOne 매핑·round-trip 검증.
+   * F0h-center-desc-image (spec §9-1): description·imageUrl 은 {@link CenterContent} 로 분리됨. Center 는
+   * 팩트(operatingHours 포함) 만 유지. CenterContent @OneToOne 매핑·round-trip 검증.
    */
   @Test
   void centerContentFieldsPersist() {
     Center c =
         centerRepository.save(
-            Center.builder()
-                .name("테스트센터")
-                .region("수원시")
-                .operatingHours("평일 09~18")
-                .build());
+            Center.builder().name("테스트센터").region("수원시").operatingHours("평일 09~18").build());
     centerRepository.flush();
     Center loaded = centerRepository.findById(c.getId()).orElseThrow();
     assertThat(loaded.getOperatingHours()).isEqualTo("평일 09~18");
@@ -190,8 +186,7 @@ class JpaMappingTest {
                 .imageUrl("/images/centers/x.png")
                 .build());
     centerContentRepository.flush();
-    CenterContent foundByCenter =
-        centerContentRepository.findByCenterId(c.getId()).orElseThrow();
+    CenterContent foundByCenter = centerContentRepository.findByCenterId(c.getId()).orElseThrow();
     assertThat(foundByCenter.getDescription()).isEqualTo("설명 텍스트");
     assertThat(foundByCenter.getImageUrl()).isEqualTo("/images/centers/x.png");
     assertThat(foundByCenter.getCenter().getId()).isEqualTo(c.getId());

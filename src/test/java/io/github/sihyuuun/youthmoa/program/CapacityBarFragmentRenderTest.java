@@ -19,8 +19,8 @@ import org.thymeleaf.context.Context;
 /**
  * D5 — CapacityBar fragment 실 렌더 검증 (prototype.tsx L204~228 2-line 매칭).
  *
- * <p>DTO 계산 로직 단위 테스트는 ProgramCardDtoTest 담당. 여기서는 fragment 자체가 파라미터 조합에 대해 의도한 마크업 (2-line
- * 레이아웃, primary/secondary label, colorClass 클래스 조합) 을 렌더하는지, 상세 페이지 통합 렌더가 되는지 확인.
+ * <p>DTO 계산 로직 단위 테스트는 ProgramCardDtoTest 담당. 여기서는 fragment 자체가 파라미터 조합에 대해 의도한 마크업 (2-line 레이아웃,
+ * primary/secondary label, colorClass 클래스 조합) 을 렌더하는지, 상세 페이지 통합 렌더가 되는지 확인.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -149,8 +149,7 @@ class CapacityBarFragmentRenderTest {
   @DisplayName("UPCOMING → 신청 오픈 예정 + MM/dd 오픈 (secondary color)")
   void render_upcoming_showsOpenDate() {
     LocalDate future = LocalDate.now().plusDays(7);
-    String expected =
-        future.format(java.time.format.DateTimeFormatter.ofPattern("MM/dd")) + " 오픈";
+    String expected = future.format(java.time.format.DateTimeFormatter.ofPattern("MM/dd")) + " 오픈";
     String html = renderFragment(new ProgramCardDto(upcomingProgram(future), 0));
     assertThat(html).contains("신청 오픈 예정");
     assertThat(html).contains(expected);

@@ -45,13 +45,14 @@ class CenterControllerTest {
         "청년 창업과 네트워킹",
         "평일 09:00~18:00",
         "/images/centers/placeholder-1.png",
-        true,   // isOpenNow — F0h-operating-hours-badge
-        true);  // hasSchedule — F0h-operating-hours-badge
+        true, // isOpenNow — F0h-operating-hours-badge
+        true); // hasSchedule — F0h-operating-hours-badge
   }
 
   @Test
   void list_returnsListView_withDetailNull() throws Exception {
-    given(centerService.list(any(), any(), anyBoolean(), any(), any(), anyBoolean())).willReturn(List.of(sampleItem()));
+    given(centerService.list(any(), any(), anyBoolean(), any(), any(), anyBoolean()))
+        .willReturn(List.of(sampleItem()));
     given(centerService.distinctActiveRegions()).willReturn(List.of("수원시", "성남시"));
 
     mockMvc
@@ -65,7 +66,8 @@ class CenterControllerTest {
 
   @Test
   void list_withRegionFilter_passesParam() throws Exception {
-    given(centerService.list(any(), any(), anyBoolean(), any(), any(), anyBoolean())).willReturn(List.of());
+    given(centerService.list(any(), any(), anyBoolean(), any(), any(), anyBoolean()))
+        .willReturn(List.of());
     given(centerService.distinctActiveRegions()).willReturn(List.of());
 
     mockMvc
@@ -88,7 +90,8 @@ class CenterControllerTest {
             .operatingHours("평일 09:00~18:00")
             .build();
     given(centerService.findById(1L)).willReturn(Optional.of(c));
-    given(centerService.list(any(), any(), anyBoolean(), any(), any(), anyBoolean())).willReturn(List.of(sampleItem()));
+    given(centerService.list(any(), any(), anyBoolean(), any(), any(), anyBoolean()))
+        .willReturn(List.of(sampleItem()));
     given(centerService.distinctActiveRegions()).willReturn(List.of("수원시"));
 
     mockMvc
@@ -101,7 +104,8 @@ class CenterControllerTest {
   @Test
   void detailRoute_missing_returns404() throws Exception {
     given(centerService.findById(999L)).willReturn(Optional.empty());
-    given(centerService.list(any(), any(), anyBoolean(), any(), any(), anyBoolean())).willReturn(List.of());
+    given(centerService.list(any(), any(), anyBoolean(), any(), any(), anyBoolean()))
+        .willReturn(List.of());
     given(centerService.distinctActiveRegions()).willReturn(List.of());
     mockMvc.perform(get("/centers/999")).andExpect(status().isNotFound());
   }

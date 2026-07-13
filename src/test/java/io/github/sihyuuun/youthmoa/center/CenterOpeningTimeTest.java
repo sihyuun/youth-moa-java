@@ -10,8 +10,8 @@ import org.junit.jupiter.api.Test;
 /**
  * F0h-operating-hours-badge (spec §6): OperatingHours + Center.isCurrentlyOpen 시나리오별 회귀 방어.
  *
- * <p>구조: 순수 POJO 단위 테스트 — Spring context / DB 필요 없음. 시각 파라미터 방식(spec §9-6) 덕분에 명시적
- * LocalDateTime 주입으로 결정론적 검증 가능.
+ * <p>구조: 순수 POJO 단위 테스트 — Spring context / DB 필요 없음. 시각 파라미터 방식(spec §9-6) 덕분에 명시적 LocalDateTime
+ * 주입으로 결정론적 검증 가능.
  */
 class CenterOpeningTimeTest {
 
@@ -88,7 +88,8 @@ class CenterOpeningTimeTest {
 
   @Test
   void TC07_isActive_false_이면_시각_무관_운영종료() {
-    // Center 레벨에서 isActive kill-switch 조합은 호출자 (View/Service) 책임. isCurrentlyOpen 자체는 schedule 만 본다.
+    // Center 레벨에서 isActive kill-switch 조합은 호출자 (View/Service) 책임. isCurrentlyOpen 자체는 schedule 만
+    // 본다.
     Center c = centerWith(defaultSchedule(), false);
     LocalDateTime now = LocalDateTime.of(2026, 7, 14, 15, 0);
     // isCurrentlyOpen 만으로는 true (schedule 관점) — kill-switch 는 View 조합 시점

@@ -64,7 +64,9 @@ class CenterCoordinateSeedTest {
     assertThat(내일꿈제작소.getOperatingHours()).startsWith("월~토 10:00~18:00");
     // 전체적으로 fallback 문자열 부재 확인
     for (Center c : centerRepository.findAll()) {
-      assertThat(c.getAddress()).as("fallback 주소 미사용: " + c.getName()).isNotEqualTo("경기도 " + c.getRegion());
+      assertThat(c.getAddress())
+          .as("fallback 주소 미사용: " + c.getName())
+          .isNotEqualTo("경기도 " + c.getRegion());
     }
   }
 
@@ -80,7 +82,8 @@ class CenterCoordinateSeedTest {
       if (DUP_COORD_WHITELIST_REGIONS.contains(region)) continue;
       Set<String> coords = new HashSet<>();
       for (Center c : list) {
-        String key = c.getLatitude().stripTrailingZeros() + "|" + c.getLongitude().stripTrailingZeros();
+        String key =
+            c.getLatitude().stripTrailingZeros() + "|" + c.getLongitude().stripTrailingZeros();
         assertThat(coords.add(key))
             .as("region '%s' 에 좌표 중복 발견 (파생 시드 흔적?) — %s", region, c.getName())
             .isTrue();
@@ -109,20 +112,12 @@ class CenterCoordinateSeedTest {
 
   @Test
   void TC07_DataInitializer_소스에_regionCoords_문자열_부재() throws Exception {
-    Path source =
-        Path.of(
-            "src/main/java/io/github/sihyuuun/youthmoa/common/DataInitializer.java");
+    Path source = Path.of("src/main/java/io/github/sihyuuun/youthmoa/common/DataInitializer.java");
     assertThat(Files.exists(source)).as("DataInitializer 소스 파일 존재").isTrue();
     String content = Files.readString(source);
-    assertThat(content)
-        .as("파생 시드 로직(regionCoords) 재도입 방지")
-        .doesNotContain("regionCoords");
-    assertThat(content)
-        .as("파생 시드 로직(regionOffsetIdx) 재도입 방지")
-        .doesNotContain("regionOffsetIdx");
-    assertThat(content)
-        .as("하드코딩 lookup(centerDetails) 재도입 방지")
-        .doesNotContain("centerDetails");
+    assertThat(content).as("파생 시드 로직(regionCoords) 재도입 방지").doesNotContain("regionCoords");
+    assertThat(content).as("파생 시드 로직(regionOffsetIdx) 재도입 방지").doesNotContain("regionOffsetIdx");
+    assertThat(content).as("하드코딩 lookup(centerDetails) 재도입 방지").doesNotContain("centerDetails");
   }
 
   @Test
@@ -140,12 +135,8 @@ class CenterCoordinateSeedTest {
   @Test
   void 좌표_한반도_범위_내() {
     for (Center c : centerRepository.findAll()) {
-      assertThat(c.getLatitude())
-          .as("latitude 범위: %s", c.getName())
-          .isBetween(LAT_MIN, LAT_MAX);
-      assertThat(c.getLongitude())
-          .as("longitude 범위: %s", c.getName())
-          .isBetween(LNG_MIN, LNG_MAX);
+      assertThat(c.getLatitude()).as("latitude 범위: %s", c.getName()).isBetween(LAT_MIN, LAT_MAX);
+      assertThat(c.getLongitude()).as("longitude 범위: %s", c.getName()).isBetween(LNG_MIN, LNG_MAX);
     }
   }
 }

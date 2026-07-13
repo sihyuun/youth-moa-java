@@ -82,26 +82,46 @@ tasks.test {
 	finalizedBy(tasks.jacocoTestReport)
 }
 
+// Entity, DTO, 설정 클래스 제외 (비즈니스 로직 커버리지에 집중) — report/verification 공유
+val jacocoExcludePatterns = listOf(
+	"**/YouthMoaApplication.class",
+	"**/*Entity.class",
+	"**/*Dto.class",
+	"**/*Request.class",
+	"**/*Response.class",
+	"**/config/**",
+	"**/common/DataInitializer.class"
+)
+
 tasks.jacocoTestReport {
 	dependsOn(tasks.test)
 	reports {
 		xml.required = true   // CI coverage badge 툴·SonarQube 연동용
 		html.required = true  // 로컬 브라우저 확인용
 	}
-	// Entity, DTO, 설정 클래스 제외 (비즈니스 로직 커버리지에 집중)
 	classDirectories.setFrom(
 		files(classDirectories.files.map {
-			fileTree(it) {
-				exclude(
-					"**/YouthMoaApplication.class",
-					"**/*Entity.class",
-					"**/*Dto.class",
-					"**/*Request.class",
-					"**/*Response.class",
-					"**/config/**",
-					"**/common/DataInitializer.class"
-				)
+			fileTree(it) { exclude(jacocoExcludePatterns) }
+		})
+	)
+}
+
+// 커버리지 최소선 강제 — CI integration-test job 에서 전체 테스트 후 실행.
+// 기준선 55% = 도입 시점(2026-07-10) 실측 LINE 64.6% 에서 여유를 둔 값. 커버리지가 오르면 점진 상향.
+tasks.jacocoTestCoverageVerification {
+	dependsOn(tasks.test)
+	violationRules {
+		rule {
+			limit {
+				counter = "LINE"
+				value = "COVEREDRATIO"
+				minimum = "0.55".toBigDecimal()
 			}
+		}
+	}
+	classDirectories.setFrom(
+		files(classDirectories.files.map {
+			fileTree(it) { exclude(jacocoExcludePatterns) }
 		})
 	)
 }

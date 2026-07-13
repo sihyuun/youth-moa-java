@@ -38,9 +38,8 @@ public class Center extends BaseTimeEntity {
   private String phone;
 
   /**
-   * F0h-operating-hours-badge (spec §9-3): 영업 중단·폐업 kill-switch. 관리자가 폐업 처리한 센터는 {@code false} 로
-   * 두어 배지가 시각 무관 "운영종료" 로 표시된다. 실시간 운영 여부는 {@link #isCurrentlyOpen}. 두 값이 모두 true 여야 "운영중"
-   * 배지가 붙는다.
+   * F0h-operating-hours-badge (spec §9-3): 영업 중단·폐업 kill-switch. 관리자가 폐업 처리한 센터는 {@code false} 로 두어
+   * 배지가 시각 무관 "운영종료" 로 표시된다. 실시간 운영 여부는 {@link #isCurrentlyOpen}. 두 값이 모두 true 여야 "운영중" 배지가 붙는다.
    */
   @Column(nullable = false)
   private boolean isActive;
@@ -61,11 +60,10 @@ public class Center extends BaseTimeEntity {
   private String operatingHours;
 
   /**
-   * F0h-operating-hours-badge (spec §9-1): 구조화된 요일별 운영시간. 배지 판정의 진리 소스. null 이면 판정 skip →
-   * {@link #isCurrentlyOpen} 이 항상 false 반환하며, View 에서는 배지 자체 미노출 (spec §9-2 안전 default).
+   * F0h-operating-hours-badge (spec §9-1): 구조화된 요일별 운영시간. 배지 판정의 진리 소스. null 이면 판정 skip → {@link
+   * #isCurrentlyOpen} 이 항상 false 반환하며, View 에서는 배지 자체 미노출 (spec §9-2 안전 default).
    */
-  @Embedded
-  private OperatingHours schedule;
+  @Embedded private OperatingHours schedule;
 
   @Builder
   private Center(
@@ -93,7 +91,8 @@ public class Center extends BaseTimeEntity {
 
   /**
    * F0h-operating-hours-badge (spec §9-1): 주어진 시각의 실시간 운영 여부. schedule 미확보 시 false (안전 default,
-   * spec §9-2). isActive kill-switch 는 호출자가 별도 조합 — {@code isActive && isCurrentlyOpen(now, isHoliday)}.
+   * spec §9-2). isActive kill-switch 는 호출자가 별도 조합 — {@code isActive && isCurrentlyOpen(now,
+   * isHoliday)}.
    */
   public boolean isCurrentlyOpen(LocalDateTime now, boolean isHoliday) {
     if (schedule == null) return false;

@@ -36,6 +36,7 @@ public class ProgramCardDto {
   private final String colorClass;
   private final String primaryLabel;
   private final String secondaryLabel;
+
   /** 카드 기간 라벨. prototype 매칭: 같은 해 `2024-08-01~08-31`, 다른 해 `2024-12-25~2025-01-15`. */
   private final String dateLabel;
 
@@ -142,9 +143,7 @@ public class ProgramCardDto {
     } else {
       // ACTIVE with capacity — 마감까지 N일 + 신청률 · 경쟁률
       long daysUntilDeadline =
-          program.getEndDate() != null
-              ? ChronoUnit.DAYS.between(today, program.getEndDate())
-              : -1;
+          program.getEndDate() != null ? ChronoUnit.DAYS.between(today, program.getEndDate()) : -1;
       String stateWord;
       if ("error".equals(this.colorClass)) stateWord = "마감임박";
       else if ("warning".equals(this.colorClass)) stateWord = "서두르세요";
