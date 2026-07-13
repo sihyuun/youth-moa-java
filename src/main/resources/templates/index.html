@@ -130,10 +130,9 @@
                     <div th:replace="~{fragments/capacity-bar :: capacityBar(
                         pct=${dto.pct},
                         colorClass=${dto.colorClass},
-                        barLabel=${dto.barLabel},
-                        capacityText=${dto.capacityText},
-                        showBar=${dto.capacity != null},
-                        openDateLabel=${dto.openDateLabel})}"></div>
+                        primaryLabel=${dto.primaryLabel},
+                        secondaryLabel=${dto.secondaryLabel},
+                        showBar=${dto.capacity != null})}"></div>
                 </div>
             </a>
         </div>

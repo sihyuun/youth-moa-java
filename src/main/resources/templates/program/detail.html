@@ -72,10 +72,9 @@
                     <div th:replace="~{fragments/capacity-bar :: capacityBar(
                         pct=${capacityPct},
                         colorClass=${capacityColorClass},
-                        barLabel=${capacityBarLabel},
-                        capacityText=${capacityText},
-                        showBar=${capacityShowBar},
-                        openDateLabel=${capacityOpenDateLabel})}"></div>
+                        primaryLabel=${capacityPrimaryLabel},
+                        secondaryLabel=${capacitySecondaryLabel},
+                        showBar=${capacityShowBar})}"></div>
 
                     <!-- 하단: 활성=신청률/경쟁률 · 마감=마감안내 · 진행예정=오픈안내 -->
                     <p class="detail-status-note" th:if="${program.status.name() == 'ACTIVE' and program.capacity != null}"

@@ -3,40 +3,32 @@
 <body>
 
 <!--
-    CapacityBar fragment. (D5 개편 — prototype.tsx 매칭)
+    CapacityBar fragment — prototype.tsx L204~228 정확 매칭 (2-line 레이아웃).
     파라미터:
-      pct           — 0~100 정수
-      colorClass    — primary | warning | error | secondary | muted
-      barLabel      — "모집중" / "서두르세요" / "마감임박" / "신청 오픈 예정" / "모집 마감"
-      capacityText  — "정원 N/M명" 또는 "정원 제한 없음"
-      showBar       — true 이면 bar 표시 (capacity null 이면 false)
-      openDateLabel — UPCOMING 시 "MM/dd 오픈" (그 외 null)
+      pct            — 0~100 정수 (bar 폭)
+      colorClass     — primary | warning | error | secondary | muted (bar 색 + primaryLabel 색)
+      primaryLabel   — "정원 N/M명" / "신청 오픈 예정" / "모집 마감" / "모집중"
+      secondaryLabel — "70%" / "MM/dd 오픈" / null (그 외)
+      showBar        — true 이면 bar 표시 (capacity=null 또는 정원 제한 없음이면 false)
 
-    레이아웃 (prototype 매칭):
-      상단 라벨 line: [capacityText]                       [openDateLabel? MM/dd 오픈]
-      진행 바
-      상태 라벨 line: [barLabel — colorClass 색]           [pct?]
+    레이아웃:
+      [primaryLabel (colorClass 색)]      [secondaryLabel (textTri)]
+      [━━━━━━ bar (colorClass 색, pct 폭) ━━━━━━]
 -->
-<th:block th:fragment="capacityBar(pct, colorClass, barLabel, capacityText, showBar, openDateLabel)">
+<th:block th:fragment="capacityBar(pct, colorClass, primaryLabel, secondaryLabel, showBar)">
     <div class="capacity-bar-wrap">
         <div class="capacity-bar-label">
-            <span class="capacity-bar-count" th:text="${capacityText}">정원 0/0명</span>
-            <span class="capacity-bar-opendate"
-                  th:if="${openDateLabel != null}"
-                  th:text="${openDateLabel}">07/20 오픈</span>
+            <span class="capacity-bar-primary"
+                  th:classappend="'capacity-bar-primary--' + ${colorClass}"
+                  th:text="${primaryLabel}">정원 0/0명</span>
+            <span class="capacity-bar-secondary"
+                  th:if="${secondaryLabel != null}"
+                  th:text="${secondaryLabel}">0%</span>
         </div>
         <div th:if="${showBar}" class="capacity-bar">
             <div class="capacity-bar-fill"
                  th:classappend="'capacity-bar-fill--' + ${colorClass}"
                  th:style="'width:' + ${pct} + '%'"></div>
-        </div>
-        <div class="capacity-bar-label capacity-bar-label--status">
-            <span class="capacity-bar-status"
-                  th:classappend="'capacity-bar-status--' + ${colorClass}"
-                  th:text="${barLabel}">모집중</span>
-            <span class="capacity-bar-pct"
-                  th:if="${showBar}"
-                  th:text="${pct} + '%'">0%</span>
         </div>
     </div>
 </th:block>

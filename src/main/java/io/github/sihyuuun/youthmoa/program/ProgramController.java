@@ -132,13 +132,12 @@ public class ProgramController {
     model.addAttribute("appliedCount", appliedCount);
     model.addAttribute("applicationRate", applicationRate);
     model.addAttribute("competitionRatio", competitionRatio);
-    // CapacityBar fragment 파라미터 (D5)
+    // CapacityBar fragment 파라미터 (D5, prototype 2-line 매칭)
     model.addAttribute("capacityPct", capacityCard.getPct());
     model.addAttribute("capacityColorClass", capacityCard.getColorClass());
-    model.addAttribute("capacityBarLabel", capacityCard.getBarLabel());
-    model.addAttribute("capacityText", capacityCard.getCapacityText());
+    model.addAttribute("capacityPrimaryLabel", capacityCard.getPrimaryLabel());
+    model.addAttribute("capacitySecondaryLabel", capacityCard.getSecondaryLabel());
     model.addAttribute("capacityShowBar", program.getCapacity() != null);
-    model.addAttribute("capacityOpenDateLabel", capacityCard.getOpenDateLabel());
     return "program/detail";
   }
 }
