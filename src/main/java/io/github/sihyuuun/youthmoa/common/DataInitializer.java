@@ -31,6 +31,7 @@ import java.util.Map;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Profile;
@@ -43,6 +44,18 @@ import org.springframework.transaction.annotation.Transactional;
 @Profile("!test")
 @RequiredArgsConstructor
 public class DataInitializer implements ApplicationRunner {
+
+  // P0-2: 관리자 시드 비밀번호. 환경변수로 override 가능. dev/e2e 기본값 = "Admin!234".
+  //   - 운영 배포 시 반드시 환경변수로 강력한 값 주입.
+  //   - BCrypt encode 후 저장되므로 재기동 시 매번 같은 값으로 유지되지 않음 (encode 는 salt 로 매번 다른 해시).
+  @Value("${admin.seed.password.system:Admin!234}")
+  private String adminSeedPasswordSystem;
+
+  @Value("${admin.seed.password.center1:Admin!234}")
+  private String adminSeedPasswordCenter1;
+
+  @Value("${admin.seed.password.center2:Admin!234}")
+  private String adminSeedPasswordCenter2;
 
   private final ProgramRepository programRepository;
   private final RegionRepository regionRepository;
@@ -67,6 +80,53 @@ public class DataInitializer implements ApplicationRunner {
     seedNotices();
     seedApplications();
     seedNotifications();
+    seedAdmins();
+  }
+
+  /**
+   * P0-2: 관리자 계정 시드. 재기동 시 멱등 (existsByEmail 체크). 시스템관리자 1명 + 센터관리자 2명 (centers[0], centers[1]
+   * 매칭). center 시드 이후 실행되므로 centerRepository 조회 안전.
+   */
+  private void seedAdmins() {
+    // 시스템 관리자
+    if (!userRepository.existsByEmail("sysadmin@youth-moa.test")) {
+      userRepository.save(
+          User.builder()
+              .email("sysadmin@youth-moa.test")
+              .password(passwordEncoder.encode(adminSeedPasswordSystem))
+              .name("시스템관리자")
+              .role(UserRole.SYSTEM_ADMIN)
+              .build());
+      log.info("Seeded SYSTEM_ADMIN: sysadmin@youth-moa.test");
+    } else {
+      log.info("SYSTEM_ADMIN already seeded, skip");
+    }
+
+    // 센터 관리자 2명 — centers[0], centers[1] 매칭
+    List<Center> centers = centerRepository.findAll();
+    if (centers.size() < 2) {
+      log.warn("Not enough centers to seed CENTER_ADMIN (need >= 2, got {})", centers.size());
+      return;
+    }
+    seedCenterAdmin("center1@youth-moa.test", "센터1관리자", centers.get(0), adminSeedPasswordCenter1);
+    seedCenterAdmin("center2@youth-moa.test", "센터2관리자", centers.get(1), adminSeedPasswordCenter2);
+  }
+
+  private void seedCenterAdmin(String email, String name, Center center, String rawPassword) {
+    if (userRepository.existsByEmail(email)) {
+      log.info("CENTER_ADMIN already seeded: {} , skip", email);
+      return;
+    }
+    User admin =
+        User.builder()
+            .email(email)
+            .password(passwordEncoder.encode(rawPassword))
+            .name(name)
+            .role(UserRole.USER) // 임시 세팅 후 assignRole() 로 CENTER_ADMIN + center + scope 부여
+            .build();
+    admin.assignRole(UserRole.CENTER_ADMIN, center, center.getName());
+    userRepository.save(admin);
+    log.info("Seeded CENTER_ADMIN: {} (center={})", email, center.getName());
   }
 
   /** F2 헤더 종 UX 검증용 — seed1, seed30 에 알림 각 4건 시드. */

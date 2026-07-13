@@ -8,12 +8,15 @@
           rel="stylesheet">
     <link rel="icon" type="image/png" th:href="@{/images/logo_symbol.png}">
     <link rel="stylesheet" th:href="@{/css/main.css}">
+    <meta name="_csrf" th:content="${_csrf?.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf?.headerName}"/>
     <!--/* Kakao Maps SDK — KAKAO_MAP_APP_KEY 미설정 시 script 태그 자체를 렌더 안 함.
            clusterer 라이브러리 상시 로드 (F0h-c4). 파서 주석: 응답 HTML 에 노출되지 않음. */-->
     <script th:if="${!#strings.isEmpty(kakaoMapAppKey)}"
             th:src="'https://dapi.kakao.com/v2/maps/sdk.js?appkey=' + ${kakaoMapAppKey} + '&autoload=false&libraries=clusterer'"></script>
     <!-- HTMX — 카드 클릭·상세 닫기 부분 swap (풀 페이지 리로드 회피) -->
     <script th:src="@{/webjars/htmx.org/2.0.4/dist/htmx.min.js}" defer></script>
+    <script th:src="@{/js/htmx-csrf.js}" defer></script>
     <script th:src="@{/js/center-map.js}" defer></script>
     <!-- F0h-c2 개정(2026-07-09): 카드 클릭 시 client-state 로 상세 패널 open/close.
          history.pushState 로 URL 만 갱신, HTMX ajax 로 fragment innerHTML 주입. 풀 리로드 없음. -->

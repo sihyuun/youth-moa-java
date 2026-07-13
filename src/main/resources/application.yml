@@ -66,6 +66,15 @@ youthmoa:
   kakao:
     map-app-key: ${KAKAO_MAP_APP_KEY:}
 
+# P0-2 관리자 시드 비밀번호 (DataInitializer.seedAdmins)
+# - dev/e2e 기본값 Admin!234, 운영은 반드시 환경변수 주입
+admin:
+  seed:
+    password:
+      system: ${ADMIN_SEED_PASSWORD_SYSTEM:Admin!234}
+      center1: ${ADMIN_SEED_PASSWORD_CENTER_1:Admin!234}
+      center2: ${ADMIN_SEED_PASSWORD_CENTER_2:Admin!234}
+
 logging:
   level:
     root: INFO

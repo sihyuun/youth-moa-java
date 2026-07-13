@@ -8,6 +8,8 @@
           rel="stylesheet">
     <link rel="icon" type="image/png" th:href="@{/images/logo_symbol.png}">
     <link rel="stylesheet" th:href="@{/css/main.css}">
+    <meta name="_csrf" th:content="${_csrf?.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf?.headerName}"/>
     <!-- Daum Postcode API — 무료·API 키 불필요·도메인 등록 불필요 -->
     <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
 </head>
