@@ -47,6 +47,19 @@ export async function login(
 }
 
 /**
+ * 신청 폼 3단계 위저드 (PR #75 F0c) 의 "다음" 버튼으로 스텝을 전환한다.
+ * 비활성 스텝 카드는 display:none (.apply-step-card.is-active 만 노출) 이므로
+ * 입력 전에 대상 스텝 카드가 실제로 표시될 때까지 명시적으로 대기한다.
+ *
+ * step 1: 신청자 정보 (readonly) / step 2: 지원 동기 #applyReason /
+ * step 3: 개인정보 동의 + 제출 버튼 #applyNavSubmit
+ */
+export async function applyNextStep(page: Page, expectStep: 2 | 3): Promise<void> {
+    await page.locator('#applyNavNext').click();
+    await expect(page.locator(`[data-step-card="${expectStep}"]`)).toBeVisible();
+}
+
+/**
  * HTMX 스크립트 로드 완료를 대기한다 (window.htmx 존재 확인).
  * HTMX 를 쓰는 페이지 (프로그램 목록 필터 등) 진입 직후 호출.
  */

@@ -8,6 +8,13 @@ import { defineConfig, devices } from '@playwright/test';
 const isWindows = process.platform === 'win32';
 const gradleCmd = isWindows ? 'gradlew.bat bootRun' : './gradlew bootRun';
 
+/**
+ * BASE_URL 환경변수 지원 (기본 8080).
+ * - CI (e2e-playwright.yml) 는 이미 BASE_URL=http://localhost:8080 을 넘기고 있음
+ * - 회사 PC 로컬 재현: bootrun-e2e.cmd 가 8090 에 기동 → BASE_URL=http://localhost:8090
+ */
+const baseURL = process.env.BASE_URL ?? 'http://localhost:8080';
+
 export default defineConfig({
     testDir: './tests',
     timeout: 60_000,                    // 30s → 60s (회사 PC SSL 프록시 + 시드 부담 회피)
@@ -16,7 +23,7 @@ export default defineConfig({
     workers: 1,
     reporter: [['list'], ['html', { open: 'never' }]],
     use: {
-        baseURL: 'http://localhost:8080',
+        baseURL,
         ignoreHTTPSErrors: true,
         trace: 'retain-on-failure',
         screenshot: 'only-on-failure',
@@ -30,7 +37,7 @@ export default defineConfig({
         command: gradleCmd,
         cwd: '..',
         // actuator 미도입 상태 → 로그인 페이지 (permitAll, 인증 불필요) 로 readiness 체크
-        url: 'http://localhost:8080/login',
+        url: `${baseURL}/login`,
         reuseExistingServer: true,
         timeout: 180_000,               // Boot 4 + 시드 초기화 최대 2~3분 (JDK cold start 포함)
         stdout: 'pipe',
