@@ -1,6 +1,8 @@
 package io.github.sihyuuun.youthmoa.program;
 
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import lombok.Getter;
 
 /**
@@ -36,6 +38,20 @@ public class ProgramCardDto {
   private final String secondaryLabel;
   /** 카드 기간 라벨. prototype 매칭: 같은 해 `2024-08-01~08-31`, 다른 해 `2024-12-25~2025-01-15`. */
   private final String dateLabel;
+
+  // ─── 상세 페이지 전용 CapacityBar (prototype L945~951 매칭) ─────────
+  /** 상세 화면 강조 라벨 예: "신청 오픈까지 5일" / "모집중 · 마감까지 3일" / "모집 마감" */
+  private final String detailHeadline;
+
+  /** 상세 화면 부가 안내 문구 예: "현재 신청률 30% · 경쟁률 0.3:1" */
+  private final String detailSubtext;
+
+  /**
+   * 상세 배경 강조 여부. true = primaryBg 강조 / false = borderLight (마감·중단 케이스).
+   *
+   * <p>prototype L945 background 분기 매칭.
+   */
+  private final boolean detailEmphasized;
 
   public ProgramCardDto(Program program, long applicantCount) {
     this.program = program;
@@ -99,6 +115,49 @@ public class ProgramCardDto {
         this.primaryLabel = "정원 " + applicantCount + "/" + capacity + "명";
         this.secondaryLabel = this.pct + "%";
       }
+    }
+
+    // ── 상세 페이지 전용 라벨 (prototype L947~951) ──
+    LocalDate today = LocalDate.now();
+    boolean full =
+        (status != ProgramStatus.UPCOMING)
+            && capacity != null
+            && capacity > 0
+            && applicantCount >= capacity;
+    boolean closedByDate = (status == ProgramStatus.CLOSED);
+
+    if (status == ProgramStatus.UPCOMING && program.getStartDate() != null) {
+      long daysUntilOpen = ChronoUnit.DAYS.between(today, program.getStartDate());
+      this.detailHeadline = "신청 오픈까지 " + daysUntilOpen + "일";
+      this.detailSubtext = "오픈 알림을 신청하면 시작 시 알려드려요.";
+      this.detailEmphasized = true;
+    } else if (full || closedByDate) {
+      this.detailHeadline = "모집 마감";
+      this.detailSubtext = "정원이 마감되었습니다. 알림을 신청하면 빈자리가 생길 시 알려드려요.";
+      this.detailEmphasized = false;
+    } else if (capacity == null || capacity == 0) {
+      this.detailHeadline = "모집중";
+      this.detailSubtext = "정원 제한 없이 신청 가능합니다.";
+      this.detailEmphasized = true;
+    } else {
+      // ACTIVE with capacity — 마감까지 N일 + 신청률 · 경쟁률
+      long daysUntilDeadline =
+          program.getEndDate() != null
+              ? ChronoUnit.DAYS.between(today, program.getEndDate())
+              : -1;
+      String stateWord;
+      if ("error".equals(this.colorClass)) stateWord = "마감임박";
+      else if ("warning".equals(this.colorClass)) stateWord = "서두르세요";
+      else stateWord = "모집중";
+      String deadlineText;
+      if (daysUntilDeadline < 0) deadlineText = "";
+      else if (daysUntilDeadline == 0) deadlineText = " · 오늘 마감";
+      else deadlineText = " · 마감까지 " + daysUntilDeadline + "일";
+      this.detailHeadline = stateWord + deadlineText;
+      double ratio = (double) applicantCount / capacity;
+      double competition = Math.round(ratio * 10.0) / 10.0;
+      this.detailSubtext = "현재 신청률 " + this.pct + "% · 경쟁률 " + competition + ":1";
+      this.detailEmphasized = true;
     }
   }
 

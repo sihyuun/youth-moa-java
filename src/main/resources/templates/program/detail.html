@@ -47,50 +47,15 @@
                 <p class="detail-subtitle"
                    th:text="${program.organization + ' · ' + program.region}">기관 · 지역</p>
 
-                <!-- 모집 상태 카드 — prototype.tsx (상단 row + CapacityBar + 하단 신청률·경쟁률) -->
-                <div th:class="${program.status.name() == 'CLOSED'} ?
-                               'detail-status-card detail-status-card--closed' :
-                               'detail-status-card'">
-                    <!-- 상단 row: 좌(모집중 + 마감까지) / 우(applied / capacity) -->
-                    <div class="detail-status-card-row">
-                        <span class="detail-status-headline"
-                              th:text="${program.status.name() == 'ACTIVE' ?
-                                        '모집중 · 마감까지 ' +
-                                        (program.daysUntilDeadline == 0 ? '오늘' : program.daysUntilDeadline + '일') :
-                                        program.status.label}">상태</span>
-                        <span class="detail-capacity" th:if="${program.capacity != null}">
-                            <strong th:text="${appliedCount}">0</strong>
-                            <span class="detail-capacity-unit"
-                                  th:text="' / ' + ${program.capacity} + '명'"> / 30명</span>
-                        </span>
-                        <span class="detail-capacity" th:if="${program.capacity == null}">
-                            정원 제한 없음
-                        </span>
-                    </div>
-
-                    <!-- Progress bar — D5: fragment 통일 (홈/목록/검색과 동일) -->
-                    <div th:replace="~{fragments/capacity-bar :: capacityBar(
-                        pct=${capacityPct},
-                        colorClass=${capacityColorClass},
-                        primaryLabel=${capacityPrimaryLabel},
-                        secondaryLabel=${capacitySecondaryLabel},
-                        showBar=${capacityShowBar})}"></div>
-
-                    <!-- 하단: 활성=신청률/경쟁률 · 마감=마감안내 · 진행예정=오픈안내 -->
-                    <p class="detail-status-note" th:if="${program.status.name() == 'ACTIVE' and program.capacity != null}"
-                       th:text="'현재 신청률 ' + ${applicationRate} + '% · 경쟁률 ' + ${competitionRatio} + ':1'">
-                        현재 신청률 60% · 경쟁률 0.6:1
-                    </p>
-                    <p class="detail-status-note" th:if="${program.status.name() == 'ACTIVE' and program.capacity == null}">
-                        현재 모집 중인 프로그램입니다. 자격 요건 확인 후 신청해주세요.
-                    </p>
-                    <p class="detail-status-note" th:if="${program.status.name() == 'UPCOMING'}">
-                        곧 시작 예정인 프로그램입니다. 오픈 알림을 신청하면 시작 시 알려드려요.
-                    </p>
-                    <p class="detail-status-note" th:if="${program.status.name() == 'CLOSED'}">
-                        모집이 마감된 프로그램입니다.
-                    </p>
-                </div>
+                <!-- 모집 상태 카드 — prototype.tsx L945~951 (배경 강조 + 상단 헤드라인/카운트 + bar + 부가 안내) -->
+                <div th:replace="~{fragments/capacity-bar :: detailCapacityBar(
+                    pct=${capacityPct},
+                    colorClass=${capacityColorClass},
+                    headline=${detailHeadline},
+                    subtext=${detailSubtext},
+                    applied=${appliedCount},
+                    capacity=${program.capacity},
+                    emphasized=${detailEmphasized})}"></div>
 
                 <!-- Meta table — prototype.tsx (신청기간 / 진행기간 / 진행장소+지도 / 모집인원 / 문의처) -->
                 <dl class="detail-meta">

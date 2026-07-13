@@ -181,27 +181,29 @@ class CapacityBarFragmentRenderTest {
   // ─── 상세 페이지 통합 ───
 
   @Test
-  @DisplayName("상세 페이지 /programs/{id} 는 CapacityBar fragment 를 렌더")
-  void detail_page_rendersFragment() throws Exception {
+  @DisplayName("상세 페이지 /programs/{id} 는 detailCapacityBar fragment 를 렌더 (prototype L945~951 매칭)")
+  void detail_page_rendersDetailFragment() throws Exception {
     MvcResult result = mockMvc.perform(get("/programs/1")).andReturn();
     assertThat(result.getResponse().getStatus()).isEqualTo(200);
     String html = result.getResponse().getContentAsString();
-    assertThat(html).contains("capacity-bar-wrap");
-    assertThat(html).contains("capacity-bar-primary");
-    // 임계 클래스 중 하나 필수
+    // 상세 전용 확장형 마크업
+    assertThat(html).contains("detail-capacity-box");
+    assertThat(html).contains("detail-capacity-headline");
+    assertThat(html).contains("detail-capacity-subtext");
+    // bar (bar-only 재사용 — capacity-bar / capacity-bar-fill--*)
     assertThat(html)
         .containsAnyOf(
             "capacity-bar-fill--primary",
             "capacity-bar-fill--warning",
             "capacity-bar-fill--error",
-            "capacity-bar-fill--muted",
-            "capacity-bar-primary--secondary");
-    // 이전 3-line 잔재·상세 전용 dead 마크업 없음
-    assertThat(html).doesNotContain("detail-capacity-bar-fill");
+            "capacity-bar-fill--muted");
+    // 카드용 label wrap 은 상세에 재사용 안 됨 (상세는 headline 별도)
+    assertThat(html).doesNotContain("detail-status-card-row");
+    // 이전 3-line / dead 마크업 없음
     assertThat(html).doesNotContain("capacity-bar-status");
     assertThat(html).doesNotContain("capacity-bar-label--status");
     // Thymeleaf 표현식 잔존 없음
-    assertThat(html).doesNotContain("${capacityPct");
+    assertThat(html).doesNotContain("${detailHeadline");
     assertThat(html).doesNotContain("th:replace=");
   }
 }
