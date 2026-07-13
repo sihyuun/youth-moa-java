@@ -34,6 +34,8 @@ public class ProgramCardDto {
   private final String colorClass;
   private final String primaryLabel;
   private final String secondaryLabel;
+  /** 카드 기간 라벨. prototype 매칭: 같은 해 `2024-08-01~08-31`, 다른 해 `2024-12-25~2025-01-15`. */
+  private final String dateLabel;
 
   public ProgramCardDto(Program program, long applicantCount) {
     this.program = program;
@@ -41,6 +43,21 @@ public class ProgramCardDto {
 
     ProgramStatus status = program.getStatus();
     Integer capacity = program.getCapacity();
+
+    // 기간 라벨 (prototype 매칭)
+    if (program.getStartDate() == null || program.getEndDate() == null) {
+      this.dateLabel = null;
+    } else if (program.getStartDate().getYear() == program.getEndDate().getYear()) {
+      this.dateLabel =
+          program.getStartDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+              + "~"
+              + program.getEndDate().format(DateTimeFormatter.ofPattern("MM-dd"));
+    } else {
+      this.dateLabel =
+          program.getStartDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+              + "~"
+              + program.getEndDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+    }
 
     if (status == ProgramStatus.UPCOMING) {
       this.pct = 0;

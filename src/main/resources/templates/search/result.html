@@ -99,17 +99,11 @@
                                       th:text="${dto.ddayLabel}">D-3</span>
                             </div>
                             <div class="program-card-body">
-                                <div class="program-card-badges">
-                                    <span th:class="'status-badge ' + ${dto.status.cssClass}"
-                                          th:text="${dto.status.label}">진행중</span>
-                                </div>
                                 <h3 class="program-card-title" th:text="${dto.title}">프로그램 제목</h3>
-                                <p class="program-card-org" th:text="${dto.organization + ' · ' + dto.region}">기관 · 지역</p>
+                                <p class="program-card-org" th:text="${dto.organization}">주관 기관</p>
                                 <p class="program-card-date"
-                                   th:if="${dto.startDate != null and dto.endDate != null}"
-                                   th:text="${#temporals.format(dto.startDate,'yyyy.MM.dd') + ' ~ ' + #temporals.format(dto.endDate,'yyyy.MM.dd')}">
-                                    기간
-                                </p>
+                                   th:if="${dto.dateLabel != null}"
+                                   th:text="${dto.dateLabel}">2024-08-01~08-31</p>
                                 <div th:replace="~{fragments/capacity-bar :: capacityBar(
                                     pct=${dto.pct},
                                     colorClass=${dto.colorClass},
