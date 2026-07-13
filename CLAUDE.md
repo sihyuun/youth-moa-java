@@ -12,7 +12,7 @@
 | 프레임워크 | Spring Boot 4.1.0 |
 | 빌드 | Gradle (Kotlin DSL) |
 | 뷰 | Thymeleaf + HTMX 2.0.4 (webjar) |
-| DB | PostgreSQL (개인 Supabase 신규 프로젝트, 학습 단계에선 `ddl-auto: create-drop`) |
+| DB | PostgreSQL (개인 Supabase 신규 프로젝트, 학습 단계 `ddl-auto: update` — 2026-07-13 create-drop 에서 전환. e2e 프로파일은 자체 create-drop 유지) |
 | ORM | Spring Data JPA / Hibernate |
 | 보안 | Spring Security 7 + BCrypt |
 | 테스트 | JUnit 5 + H2 (`@DataJpaTest`) + Testcontainers (개인 PC 전용) |
@@ -374,9 +374,11 @@ io.github.sihyuuun.youthmoa/
 
 ## DB / 마이그레이션 (현재 학습 단계)
 
-- `ddl-auto: create-drop` 사용 — 기동 시 스키마 재생성, `DataInitializer` 가 시드
-- **Flyway / Liquibase 미도입** — 학습 진척에 따라 이후 도입 예정
-- 도입 시점에는 별도 SKILL (`/db-migrate`) 추가하고 본 규칙도 갱신
+- `ddl-auto: update` (default, 2026-07-13 create-drop 에서 전환) — 재기동 시 스키마 유지 + 데이터 누적. signup 등 사용자 상호작용 검증 시 데이터 초기화 방지 목적.
+- `DataInitializer` 는 `existsByEmail` 등 idempotent 체크로 중복 시드 방지 → update 모드와 호환.
+- 파괴적 스키마 변경 (컬럼 삭제·타입 변경) 시 일시적으로 `JPA_DDL_AUTO=create-drop` 환경변수 override 후 재기동, 이후 다시 update 로 복귀.
+- e2e 프로파일 (`application-e2e.properties`) 은 자체 `ddl-auto: create-drop` 명시 → CI 회귀 없음.
+- **Flyway 는 P0-1 로 준비 완료** (`spring.flyway.enabled=false` 대기). `V1__baseline.sql` 생성 후 활성화 시 ddl-auto=validate 로 최종 전환.
 
 ---
 
@@ -682,7 +684,7 @@ Optional<Application> findWithProgramAndUserById(Long id);
 ### 관리자 CRUD 실효성 체크
 
 관리자 페이지에서 편집 가능하도록 만든 필드가 실제 편집 결과가 유지되는지 검증:
-- 재기동 시 시드가 덮어쓰지 않는가? (`ddl-auto: create-drop` 이 유지되는 학습 단계에는 검증 어려우나, Flyway 도입 후 반드시 확인)
+- 재기동 시 시드가 덮어쓰지 않는가? (`ddl-auto: update` 로 전환된 이후 `existsByEmail` 등 idempotent 체크로 중복 방지 확인. Flyway 도입 후 최종 검증)
 - 파생 로직이 편집값을 무력화하지 않는가? (좌표 사고 재발 방지)
 
 ### 하드코딩 OK
