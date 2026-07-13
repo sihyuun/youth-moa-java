@@ -321,6 +321,38 @@ border-color: #3F30E9 !important;
 
 ---
 
+## 4-S. 공통화 표준 결정 (Toast / Modal / Dropdown)
+
+> **배경(현행 코드베이스 결함):** Toast JS가 `center-map.js` 내부에만 존재해 재사용 불가 · 범용 Modal 클래스 없이 `.mypage-modal` 1건만 존재 · `alert()` 14곳 산재(notice/program/signup 등) · 헤더 드롭다운이 CSS `:hover`/`:focus-within`만으로 열려 JS 토글·`slideDown` 미적용.
+> 아래는 프로토타입(`Youth-Moa Prototype.html`)에 이미 구현된 표준을 기준으로 한 **확정 스펙**. 각 프리미티브를 전역 공용 모듈로 1벌만 두고 개별 화면은 이를 호출한다.
+
+### 4-S.1 Toast — 전역 단일 인스턴스 (`alert()` 전면 대체)
+- **구조:** 앱 루트에 `ToastProvider` 1개 → `useToast()` 훅이 반환하는 `toast(msg)` 호출. 개별 화면·스크립트에 Toast DOM/타이머를 두지 않는다(center-map.js 내부 정의 제거).
+- **스펙:** 상단 중앙 `top:90px`, `z-index:1000`, 흰 배경 카드(radius 12 · shadow `0 8px 32px rgba(0,0,0,0.14)` · `1px borderLight`), 좌측 성공 원형 아이콘(22px · `#22C55E` 체크) + 15px/500 메시지. 진입 `slideDown 300ms`, **2800ms 후 자동 소멸**.
+- **`alert()` 14곳 → `toast()` 치환**: 저장/신청/취소/복사/즐겨찾기 등 단순 피드백은 전부 Toast. **파괴적 확인이 필요한 것만** `ConfirmDialog`로(신청취소·로그아웃·회원탈퇴). 로딩 지연 안내 등 긴 문구는 Toast 대신 인라인 상태.
+- `role="status"` / `aria-live="polite"` 부착(§10-A).
+
+### 4-S.2 Modal — 범용 3계층 (§4.9 재확인) + M1~M3 결정
+`.mypage-modal` 같은 화면 전용 클래스 금지. **모든 팝업 = `Modal`(백드롭) → `ModalCard`(제목셸) / `ConfirmDialog`(확인·알림)** 조합으로만 생성.
+
+- **M1 — 포커스 트랩(Tab 순환 범위):** 트랩 대상 = **모달 카드(`role="dialog"` `aria-modal="true"`) 내부의 포커서블 요소 전체**(닫기 X 버튼 포함, 백드롭 제외). 열릴 때 첫 포커스 = 제목 다음 첫 인터랙티브 요소(없으면 카드 컨테이너 `tabindex=-1`). Tab이 마지막 요소를 넘어가면 첫 요소로, Shift+Tab이 첫 요소 앞이면 마지막으로 순환. `Esc` 닫기 + **닫힐 때 열기 전 트리거로 포커스 복귀**. 배경 본문은 `inert`(또는 `aria-hidden`)로 스크린리더·탭 이동 차단.
+- **M2 — 모바일 풀스크린 전환:** **`<768px`(모바일 브레이크포인트, §9)에서 중앙 카드 → 화면 꽉 채우는 시트**로 전환.
+  - 기본(콘텐츠형 `ModalCard`, 예: 필터 전체보기·지도·알림설정) = **하단 시트**: `width:100vw`, 하단 정렬, 상단만 radius 16, `max-height:90vh` 내부 스크롤, 상단 그랩 핸들 표시.
+  - 짧은 확인창(`ConfirmDialog`) = 모바일에서도 중앙 카드 유지(풀스크린 과함), 좌우 마진 20px·`width:calc(100vw-40px)`.
+- **M3 — 다중 모달 스태킹:** z-index를 겹칠 때마다 **백드롭 1겹만** 쓴다(백드롭 누적 금지 — 어두워짐 방지). 규칙: 최상위 모달만 자기 백드롭 `rgba(0,0,0,0.45)`를 렌더, 그 아래 모달은 백드롭 없이 카드만 유지. z-index는 base 500에서 스택마다 +10(백드롭 500 / 카드 501, 다음 스택 510 / 511…). 파생 모달을 닫으면 이전 모달과 그 포커스 트랩으로 복귀. **가능하면 스택은 2단까지만** — 그 이상은 단일 모달 내부 스텝(멀티스텝) 패턴으로 대체 권장.
+
+### 4-S.3 Dropdown — D1~D3 결정 (헤더 유저/알림 · 필터 드롭다운 공통)
+- **D1 — 트리거 정책: 클릭 토글(hover 아님).** 데스크톱·모바일·터치 모두 동일하게 **click/tap 토글**. CSS `:hover`/`:focus-within` 개폐 제거 → JS `open` 상태로 제어. 열림 시 `slideDown 180ms`(`.dropdown-enter`). 닫힘: 바깥 클릭(전체 오버레이 캐치) · `Esc` · 항목 선택. `aria-haspopup="menu"` `aria-expanded` 부착, 방향키 항목 이동 권장(§10-A). *(hover 오픈은 터치·키보드·모바일에서 불가·오작동하므로 배제.)*
+- **D2 — 유저 드롭다운 항목(§4.13 정정):** 현재 확정본은 **A안 = 프로필 요약 행 1개(아바타+{이름}님+이메일, 클릭 시 마이페이지) + 구분선 + 로그아웃**, 2개 항목만. 신청내역·즐겨찾기·**알림 설정**·개인정보 수정 딥링크는 드롭다운이 아니라 **마이페이지 상단 탭 바**로 이동(§5.8 A안). → §4.13의 4개 메뉴 리스트는 **폐기**, 이 A안이 최신. (이메일은 노출 유지.)
+  - 알림 벨 드롭다운(§4.12 `NotificationPanel`)은 별도 유지: 리스트 + 모두읽음 + 빈상태 + "알림 전체보기".
+- **D3 — shadow / radius / hover 값(스크린샷: `screenshots/d3-user-dropdown.png`):**
+  - 패널: `background #FFFFFF`, `border 1px borderLight`(oklch(0.95 0.007 280)), **radius 14px**, **shadow `0 12px 40px rgba(0,0,0,0.14)`**, `overflow:hidden`. 유저메뉴 width 220~240px, 알림 패널 380px.
+  - 항목 hover: `.btn-hover` = `filter:brightness(0.92)` + `translateY(-1px)`, transition 150ms. (드롭다운 항목엔 translateY 없이 배경 `primaryBg`(oklch(0.96 0.0255 280)) hover만 적용 권장.)
+  - 항목 구분선 `1px borderLight`, 항목 padding `11~16px 18px`, 아이콘-라벨 gap 10px.
+  - 필터 드롭다운(§5.2 지역/센터): 위와 동일 셸 + radius 12 · `border 1px border` · 항목 8개↑면 상단 내부 검색창 + 스크롤.
+
+---
+
 ## 5. 페이지 구조
 
 ### 5.1 홈 (`/`)
@@ -1028,6 +1060,7 @@ MFooter
 | — | 마이페이지 세그먼트형 탭+흰 카드 그룹(하드 라인 중복 제거), 상태 필터 칩(전체/승인/대기/반려/취소) |
 | — | **최신 UX/UI 8종 적용**: ①상세 Sticky 하단 CTA바 ②홈 히어로 검색+인기키워드+퀵메뉴 그리드 ③목록 상단 필터바(좌측 사이드바 대체)+정렬 ④상세 정보 카드 그리드 ⑤신청 3단계 위저드(스텝 프로그레스) ⑥스켈레톤 로딩(shimmer) ⑦센터 마커↔리스트 양방향 하이라이트 동기화 ⑧마이크로 인터랙션(버튼 press·카드 lift) |
 | — | **홈 히어로 배경 로테이션**(§5.1.1): Method A scrim(브랜드 틴트+하단 darken 2겹) 위에 텍스트 없는 사진 6종 8초 크로스페이드 순환. 후보 8종 시안 `Hero 배경 시안.html` 커밋, 운영 시 실제 청년센터 사진 교체 권장 |
+| — | **공통화 표준 결정 §4-S**: Toast 전역 단일화(alert() 14곳 대체) · Modal 범용 3계층 + M1 포커스트랩/M2 모바일 풀스크린(768px)/M3 다중모달 백드롭 1겹 · Dropdown D1 클릭토글(hover 폐지)/D2 유저메뉴 A안 2항목(§4.13 정정)/D3 radius14·shadow 0 12px 40px rgba(0,0,0,.14). 스크린샷 `screenshots/d3-user-dropdown.png` |
 
 ---
 
