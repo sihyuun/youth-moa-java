@@ -122,16 +122,14 @@
                     <div class="program-card-title" th:text="${dto.title}">프로그램 제목</div>
                     <div class="program-card-org" th:text="${dto.organization}">주관 기관</div>
                     <div class="program-card-date"
-                         th:if="${dto.startDate != null and dto.endDate != null}"
-                         th:text="${#temporals.format(dto.startDate,'yyyy.MM.dd') + ' ~ ' + #temporals.format(dto.endDate,'yyyy.MM.dd')}">
-                        기간
-                    </div>
+                         th:if="${dto.dateLabel != null}"
+                         th:text="${dto.dateLabel}">2024-08-01~08-31</div>
                     <!-- CapacityBar -->
                     <div th:replace="~{fragments/capacity-bar :: capacityBar(
                         pct=${dto.pct},
                         colorClass=${dto.colorClass},
-                        barLabel=${dto.barLabel},
-                        capacityText=${dto.capacityText},
+                        primaryLabel=${dto.primaryLabel},
+                        secondaryLabel=${dto.secondaryLabel},
                         showBar=${dto.capacity != null})}"></div>
                 </div>
             </a>

@@ -944,23 +944,49 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
   color: var(--color-text-sec);
 }
 
-/* Progress bar — prototype.tsx CapacityBar (height 6px, primary fill) */
-.detail-capacity-bar {
-  width: 100%;
-  height: 6px;
-  border-radius: 3px;
+/* 상세 페이지 CapacityBar 확장형 — prototype.tsx L945~951 매칭 (배경 박스 + 헤드라인/카운트 + bar + subtext) */
+.detail-capacity-box {
+  padding: 14px;
+  border-radius: var(--radius-md);
+  margin-bottom: 20px;
+}
+.detail-capacity-box--emphasized {
+  background: var(--color-primary-bg);
+  border: 1px solid var(--color-primary-light);
+}
+.detail-capacity-box--muted {
   background: var(--color-border-light);
-  overflow: hidden;
-  margin: 8px 0;
+  border: 1px solid var(--color-border);
 }
-.detail-capacity-bar-fill {
-  height: 100%;
-  border-radius: 3px;
-  background: var(--color-primary);
-  transition: width 0.3s ease;
+.detail-capacity-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
 }
-.detail-status-card--closed .detail-capacity-bar-fill {
-  background: var(--color-text-tri);
+.detail-capacity-headline {
+  font-size: 14px;
+  font-weight: 700;
+}
+.detail-capacity-headline--primary   { color: var(--color-primary); }
+.detail-capacity-headline--warning   { color: var(--color-warning); }
+.detail-capacity-headline--error     { color: var(--color-error); }
+.detail-capacity-headline--secondary { color: var(--color-secondary); }
+.detail-capacity-headline--muted     { color: var(--color-text-tri); }
+.detail-capacity-count strong {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+.detail-capacity-count-cap {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--color-text-sec);
+}
+.detail-capacity-subtext {
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--color-text-sec);
 }
 
 .detail-status-note {
@@ -3059,16 +3085,16 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
   font-size: 15px;
 }
 
-/* ===== CapacityBar ===== */
+/* ===== CapacityBar (D5 개편 — prototype 매칭) ===== */
 .capacity-bar-wrap { width: 100%; margin-bottom: 10px; }
 .capacity-bar-label { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
-.capacity-bar-status { font-size: 12px; font-weight: 600; }
-.capacity-bar-status--primary   { color: var(--color-primary); }
-.capacity-bar-status--warning   { color: var(--color-warning); }
-.capacity-bar-status--error     { color: var(--color-error); }
-.capacity-bar-status--secondary { color: var(--color-secondary); }
-.capacity-bar-status--muted     { color: var(--color-text-tri); }
-.capacity-bar-pct { font-size: 11px; color: var(--color-text-tri); }
+.capacity-bar-primary { font-size: 12px; font-weight: 600; }
+.capacity-bar-primary--primary   { color: var(--color-primary); }
+.capacity-bar-primary--warning   { color: var(--color-warning); }
+.capacity-bar-primary--error     { color: var(--color-error); }
+.capacity-bar-primary--secondary { color: var(--color-secondary); }
+.capacity-bar-primary--muted     { color: var(--color-text-tri); }
+.capacity-bar-secondary { font-size: 11px; color: var(--color-text-tri); }
 .capacity-bar {
   width: 100%; height: 6px; border-radius: 3px;
   background: var(--color-border-light); overflow: hidden;
@@ -3079,7 +3105,6 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
 .capacity-bar-fill--error     { background: var(--color-error); }
 .capacity-bar-fill--secondary { background: var(--color-secondary); }
 .capacity-bar-fill--muted     { background: var(--color-text-tri); }
-.capacity-bar-count { font-size: 11px; color: var(--color-text-tri); margin-top: 4px; }
 
 /* ===== 카드 액션 버튼 ===== */
 .program-card-actions {

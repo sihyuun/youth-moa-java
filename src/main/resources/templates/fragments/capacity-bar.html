@@ -3,30 +3,60 @@
 <body>
 
 <!--
-    CapacityBar fragment.
-    파라미터:
-      pct        — 0~100 정수
-      colorClass — primary | warning | error | secondary | muted
-      barLabel   — "모집중" / "서두르세요" / "마감임박" / "신청 오픈 예정" / "모집 마감"
-      capacityText — "정원 N/M명" 또는 "정원 제한 없음"
-      showBar    — true 이면 bar 표시 (capacity null 이면 false)
+    ============================================================
+    CapacityBar fragment 모음. (D5 개편 — prototype.tsx 매칭)
+    ============================================================
+
+    1) capacityBar(pct, colorClass, primaryLabel, secondaryLabel, showBar)
+       카드용 2-line (prototype L204~228 매칭)
+         [primaryLabel (colorClass 색)]      [secondaryLabel (textTri)]
+         [━━━━━━ bar (colorClass 색, pct 폭) ━━━━━━]
+
+    2) detailCapacityBar(pct, colorClass, headline, subtext, applied, capacity, emphasized)
+       상세 페이지 확장형 (prototype L945~951 매칭)
+         [padded container (emphasized ? primaryBg : borderLight)]
+           [headline (colored)]                [applied<large>/capacity 명]
+           [━━━━━━ bar (bar only, colorClass 색, pct 폭) ━━━━━━]
+           [subtext (textSec, small)]
 -->
-<th:block th:fragment="capacityBar(pct, colorClass, barLabel, capacityText, showBar)">
+
+<!-- (1) 카드용 CapacityBar -->
+<th:block th:fragment="capacityBar(pct, colorClass, primaryLabel, secondaryLabel, showBar)">
     <div class="capacity-bar-wrap">
         <div class="capacity-bar-label">
-            <span class="capacity-bar-status"
-                  th:classappend="'capacity-bar-status--' + ${colorClass}"
-                  th:text="${barLabel}">모집중</span>
-            <span class="capacity-bar-pct"
-                  th:if="${showBar}"
-                  th:text="${pct} + '%'">0%</span>
+            <span class="capacity-bar-primary"
+                  th:classappend="'capacity-bar-primary--' + ${colorClass}"
+                  th:text="${primaryLabel}">정원 0/0명</span>
+            <span class="capacity-bar-secondary"
+                  th:if="${secondaryLabel != null}"
+                  th:text="${secondaryLabel}">0%</span>
         </div>
         <div th:if="${showBar}" class="capacity-bar">
             <div class="capacity-bar-fill"
                  th:classappend="'capacity-bar-fill--' + ${colorClass}"
                  th:style="'width:' + ${pct} + '%'"></div>
         </div>
-        <div class="capacity-bar-count" th:text="${capacityText}">정원 0/0명</div>
+    </div>
+</th:block>
+
+<!-- (2) 상세 페이지 확장형 CapacityBar -->
+<th:block th:fragment="detailCapacityBar(pct, colorClass, headline, subtext, applied, capacity, emphasized)">
+    <div class="detail-capacity-box"
+         th:classappend="${emphasized} ? ' detail-capacity-box--emphasized' : ' detail-capacity-box--muted'">
+        <div class="detail-capacity-header">
+            <span class="detail-capacity-headline"
+                  th:classappend="'detail-capacity-headline--' + ${colorClass}"
+                  th:text="${headline}">신청 오픈까지 5일</span>
+            <span th:if="${capacity != null}" class="detail-capacity-count">
+                <strong th:text="${applied}">28</strong><span class="detail-capacity-count-cap"> / <span th:text="${capacity}">30</span>명</span>
+            </span>
+        </div>
+        <div th:if="${capacity != null}" class="capacity-bar">
+            <div class="capacity-bar-fill"
+                 th:classappend="'capacity-bar-fill--' + ${colorClass}"
+                 th:style="'width:' + ${pct} + '%'"></div>
+        </div>
+        <div class="detail-capacity-subtext" th:text="${subtext}">부가 안내</div>
     </div>
 </th:block>
 
