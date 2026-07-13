@@ -13,9 +13,12 @@ spring:
 
   jpa:
     hibernate:
-      # P0-1 Flyway 로 전환 완료 후 이 값은 validate 로 (`JPA_DDL_AUTO=validate` 환경변수) 변경 예정.
-      # 현재는 학습 단계 create-drop 유지 (Flyway enabled=false 상태).
-      ddl-auto: ${JPA_DDL_AUTO:create-drop}
+      # 학습 단계 default = update (재기동 시 스키마 유지 + 데이터 누적).
+      # signup 등 사용자 상호작용 검증 시 매번 초기화되면 UX 검증 불가하여 update 채택.
+      # e2e 프로파일은 자체적으로 create-drop 명시 (application-e2e.properties) → CI 는 영향 없음.
+      # 컬럼 삭제·타입 변경 등 파괴적 스키마 변경 시엔 일시적으로 JPA_DDL_AUTO=create-drop 로 override.
+      # P0-1 Flyway 활성화 후 이 값은 validate 로 (`JPA_DDL_AUTO=validate`) 최종 전환 예정.
+      ddl-auto: ${JPA_DDL_AUTO:update}
     open-in-view: false
 
   flyway:
