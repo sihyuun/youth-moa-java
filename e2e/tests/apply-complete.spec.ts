@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { abortExternal, login, seedEmail } from '../helpers';
+import { abortExternal, applyNextStep, login, seedEmail } from '../helpers';
 
 /**
  * D1b: 신청 완료 페이지 (/apply/complete?applicationId=...)
@@ -27,12 +27,14 @@ test.beforeEach(async ({ page }) => {
 test('신청 제출 후 완료 페이지가 렌더된다 (성공 아이콘·요약 카드·CTA)', async ({ page }) => {
     await login(page, FRESH_USER);
 
-    // 신청 폼 → 성공 제출
+    // 신청 폼 (3단계 위저드, PR #75 F0c) → 성공 제출
     await page.goto(`/programs/${FRESH_PROGRAM_ID}/apply`, { waitUntil: 'commit' });
+    await applyNextStep(page, 2);
     await page.locator('#applyReason').fill('E2E 완료 페이지 검증용 지원 동기 문장입니다.');
+    await applyNextStep(page, 3);
     // apply.html: 실제 input 은 opacity:0 + pointer-events:none (custom UI). Playwright actionable 대기 우회.
     await page.locator('input[name="privacyAgreed"]').check({ force: true });
-    await page.locator('button.apply-submit-btn').click();
+    await page.locator('#applyNavSubmit').click();
 
     // ApplicationController.apply() → "redirect:/apply/complete?applicationId=" + saved.getId()
     await page.waitForURL(/\/apply\/complete\?applicationId=\d+/);

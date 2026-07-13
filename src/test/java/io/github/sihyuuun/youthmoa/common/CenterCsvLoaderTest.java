@@ -10,8 +10,8 @@ import org.junit.jupiter.api.Test;
 /**
  * F0h-operating-hours-badge: CSV 15컬럼 파싱 회귀 방어.
  *
- * <p>파싱 불가 3행 (28청춘창업소·양주시청년센터·의정부 청년다락방) 은 weekdayOpen/Close 가 빈값 → schedule=null 반환.
- * 나머지 행은 요일별 open/close 채워진 {@link io.github.sihyuuun.youthmoa.center.OperatingHours} 를 갖는다.
+ * <p>파싱 불가 3행 (28청춘창업소·양주시청년센터·의정부 청년다락방) 은 weekdayOpen/Close 가 빈값 → schedule=null 반환. 나머지 행은 요일별
+ * open/close 채워진 {@link io.github.sihyuuun.youthmoa.center.OperatingHours} 를 갖는다.
  */
 class CenterCsvLoaderTest {
 

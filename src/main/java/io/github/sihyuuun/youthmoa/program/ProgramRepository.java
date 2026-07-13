@@ -27,8 +27,8 @@ public interface ProgramRepository
   /**
    * F0h-c2: 특정 센터(organization 매칭) 의 진행중 프로그램 카운트.
    *
-   * <p>Program 은 Center FK 를 갖지 않으므로 organization 문자열 매칭으로 근사. isActive=true 이고 endDate 가
-   * 오늘 이후(포함) 인 프로그램만 카운트.
+   * <p>Program 은 Center FK 를 갖지 않으므로 organization 문자열 매칭으로 근사. isActive=true 이고 endDate 가 오늘 이후(포함)
+   * 인 프로그램만 카운트.
    */
   @org.springframework.data.jpa.repository.Query(
       "SELECT p.organization, COUNT(p) FROM Program p "

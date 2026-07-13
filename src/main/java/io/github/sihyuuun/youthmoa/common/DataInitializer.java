@@ -405,7 +405,8 @@ public class DataInitializer implements ApplicationRunner {
     List<Center> centers = new ArrayList<>();
     for (CenterCsvRow row : csvRows) {
       if (!knownRegions.contains(row.region())) {
-        log.warn("centers.csv: region '{}' 이 Region 테이블에 없음 ({} 는 저장은 진행)", row.region(), row.name());
+        log.warn(
+            "centers.csv: region '{}' 이 Region 테이블에 없음 ({} 는 저장은 진행)", row.region(), row.name());
       }
       centers.add(
           Center.builder()
@@ -450,8 +451,7 @@ public class DataInitializer implements ApplicationRunner {
     for (CenterContentCsvRow row : contentRows) {
       Center matched = centerByName.get(row.name());
       if (matched == null) {
-        log.warn(
-            "centers-content.csv: name '{}' 이 centers.csv 와 매칭되지 않음 (skip)", row.name());
+        log.warn("centers-content.csv: name '{}' 이 centers.csv 와 매칭되지 않음 (skip)", row.name());
         continue;
       }
       contents.add(

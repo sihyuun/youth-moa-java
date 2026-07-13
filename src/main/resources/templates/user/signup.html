@@ -10,6 +10,8 @@
     <link rel="stylesheet" th:href="@{/css/main.css}">
     <meta name="_csrf" th:content="${_csrf?.token}"/>
     <meta name="_csrf_header" th:content="${_csrf?.headerName}"/>
+    <!-- Daum Postcode API — 무료·API 키 불필요·도메인 등록 불필요 -->
+    <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
 </head>
 <body>
 
@@ -188,8 +190,8 @@
                                 <input type="text" id="zipcode" th:field="*{zipcode}"
                                        placeholder="우편번호" readonly
                                        class="signup-input signup-input--readonly">
-                                <button type="button" class="btn-outline-sm signup-side-btn signup-search-btn"
-                                        onclick="window.applyDummyAddress && window.applyDummyAddress()">
+                                <button type="button" id="postcodeSearchBtn"
+                                        class="btn-outline-sm signup-side-btn signup-search-btn">
                                     <svg viewBox="0 0 24 24" width="14" height="14"
                                          fill="none" stroke="currentColor" stroke-width="1.5">
                                         <circle cx="11" cy="11" r="8"/>
@@ -399,17 +401,32 @@
         });
     })();
 
-    // 우편번호 검색 — prototype.tsx 패턴 (Kakao API 연동 전 임시 더미 데이터)
-    window.applyDummyAddress = function () {
-        const zip = document.getElementById('zipcode');
-        const addr = document.getElementById('address');
-        if (!zip || !addr) return;
-        zip.value = '14547';
-        addr.value = '경기도 부천시 원미구 부일로 123';
-        // input 이벤트 발생시켜 :not(:placeholder-shown) 같은 CSS 트리거 + 검증 갱신
-        zip.dispatchEvent(new Event('input', { bubbles: true }));
-        addr.dispatchEvent(new Event('input', { bubbles: true }));
-    };
+    // 우편번호 검색 — Daum Postcode API 연동 (무료·API 키 불필요)
+    (function () {
+        const btn = document.getElementById('postcodeSearchBtn');
+        if (!btn) return;
+
+        btn.addEventListener('click', function () {
+            if (typeof daum === 'undefined' || !daum.Postcode) {
+                alert('우편번호 서비스를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.');
+                return;
+            }
+            new daum.Postcode({
+                oncomplete: function (data) {
+                    const zip = document.getElementById('zipcode');
+                    const addr = document.getElementById('address');
+                    const detail = document.getElementById('addressDetail');
+                    if (!zip || !addr) return;
+                    zip.value = data.zonecode;
+                    addr.value = data.roadAddress || data.jibunAddress;
+                    // input 이벤트 발생시켜 :not(:placeholder-shown) 등 CSS 트리거 + 검증 갱신
+                    zip.dispatchEvent(new Event('input', { bubbles: true }));
+                    addr.dispatchEvent(new Event('input', { bubbles: true }));
+                    if (detail) detail.focus();
+                }
+            }).open();
+        });
+    })();
 </script>
 
 </body>

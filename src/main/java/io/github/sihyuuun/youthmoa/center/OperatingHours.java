@@ -13,8 +13,8 @@ import lombok.NoArgsConstructor;
 /**
  * F0h-operating-hours-badge (spec §9-1, §9-6): 청년센터 요일별 운영시간 값 객체.
  *
- * <p>Center 에 {@code @Embedded} 로 flatten 되며, {@link #isOpenAt(LocalDateTime, boolean)} 도메인
- * 메서드가 현재 시각의 운영 여부를 계산한다.
+ * <p>Center 에 {@code @Embedded} 로 flatten 되며, {@link #isOpenAt(LocalDateTime, boolean)} 도메인 메서드가 현재
+ * 시각의 운영 여부를 계산한다.
  *
  * <p>제약 (spec §9-3): 자정 넘김 미지원. {@code close > open} 위반 시 builder 에서 fail-fast.
  */
@@ -50,15 +50,15 @@ public class OperatingHours {
   /**
    * 공휴일 휴관 여부. spec §9-7: default true.
    *
-   * <p>@Embedded 상 부모 Center.schedule 이 null 일 수 있어 (파싱 불가 3행) 임베드 컬럼은 nullable=true 로 둠.
-   * 실제 배지 판정은 Center.hasSchedule() gate 이후에만 이 값을 읽으므로 nullable 이라도 안전.
+   * <p>@Embedded 상 부모 Center.schedule 이 null 일 수 있어 (파싱 불가 3행) 임베드 컬럼은 nullable=true 로 둠. 실제 배지 판정은
+   * Center.hasSchedule() gate 이후에만 이 값을 읽으므로 nullable 이라도 안전.
    */
   @Column(name = "holiday_closed")
   private boolean holidayClosed;
 
   /**
-   * spec §9-3: 자정 넘김 미지원. close &gt; open 위반 시 fail-fast. Builder 를 lombok 없이 직접 작성한 이유는
-   * 검증 로직을 강제하기 위함.
+   * spec §9-3: 자정 넘김 미지원. close &gt; open 위반 시 fail-fast. Builder 를 lombok 없이 직접 작성한 이유는 검증 로직을
+   * 강제하기 위함.
    */
   private OperatingHours(
       LocalTime weekdayOpen,
@@ -88,12 +88,7 @@ public class OperatingHours {
     }
     if (!close.isAfter(open)) {
       throw new IllegalArgumentException(
-          label
-              + " close("
-              + close
-              + ") 는 open("
-              + open
-              + ") 보다 뒤여야 합니다. 자정 넘김은 미지원 (spec §9-3).");
+          label + " close(" + close + ") 는 open(" + open + ") 보다 뒤여야 합니다. 자정 넘김은 미지원 (spec §9-3).");
     }
   }
 
@@ -110,19 +105,49 @@ public class OperatingHours {
     private LocalTime sundayClose;
     private boolean holidayClosed = true; // spec §9-7 default
 
-    public Builder weekdayOpen(LocalTime v) { this.weekdayOpen = v; return this; }
-    public Builder weekdayClose(LocalTime v) { this.weekdayClose = v; return this; }
-    public Builder saturdayOpen(LocalTime v) { this.saturdayOpen = v; return this; }
-    public Builder saturdayClose(LocalTime v) { this.saturdayClose = v; return this; }
-    public Builder sundayOpen(LocalTime v) { this.sundayOpen = v; return this; }
-    public Builder sundayClose(LocalTime v) { this.sundayClose = v; return this; }
-    public Builder holidayClosed(boolean v) { this.holidayClosed = v; return this; }
+    public Builder weekdayOpen(LocalTime v) {
+      this.weekdayOpen = v;
+      return this;
+    }
+
+    public Builder weekdayClose(LocalTime v) {
+      this.weekdayClose = v;
+      return this;
+    }
+
+    public Builder saturdayOpen(LocalTime v) {
+      this.saturdayOpen = v;
+      return this;
+    }
+
+    public Builder saturdayClose(LocalTime v) {
+      this.saturdayClose = v;
+      return this;
+    }
+
+    public Builder sundayOpen(LocalTime v) {
+      this.sundayOpen = v;
+      return this;
+    }
+
+    public Builder sundayClose(LocalTime v) {
+      this.sundayClose = v;
+      return this;
+    }
+
+    public Builder holidayClosed(boolean v) {
+      this.holidayClosed = v;
+      return this;
+    }
 
     public OperatingHours build() {
       return new OperatingHours(
-          weekdayOpen, weekdayClose,
-          saturdayOpen, saturdayClose,
-          sundayOpen, sundayClose,
+          weekdayOpen,
+          weekdayClose,
+          saturdayOpen,
+          saturdayClose,
+          sundayOpen,
+          sundayClose,
           holidayClosed);
     }
   }

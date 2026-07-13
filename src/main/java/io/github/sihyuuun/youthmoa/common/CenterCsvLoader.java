@@ -30,8 +30,8 @@ import org.springframework.stereotype.Component;
  * <p>정책:
  *
  * <ul>
- *   <li>파일 부재 · 헤더 불일치 · 컬럼 개수 미달 · 좌표 파싱 실패 · isActive 파싱 실패 → fail-fast
- *       ({@link IllegalStateException}) — spec §9-1, §9-7
+ *   <li>파일 부재 · 헤더 불일치 · 컬럼 개수 미달 · 좌표 파싱 실패 · isActive 파싱 실패 → fail-fast ({@link
+ *       IllegalStateException}) — spec §9-1, §9-7
  *   <li>좌표 범위(lat 33~39 / lng 124~132) 벗어남 → warn 로그만 (spec §9-2 유연성 원칙)
  * </ul>
  */
@@ -179,31 +179,19 @@ public class CenterCsvLoader {
       return LocalTime.parse(v, TIME_FMT);
     } catch (DateTimeParseException e) {
       throw new IllegalStateException(
-          "centers.csv line "
-              + lineNumber
-              + ": "
-              + field
-              + " 파싱 실패 — '"
-              + raw
-              + "' (HH:mm 포맷 필요)",
+          "centers.csv line " + lineNumber + ": " + field + " 파싱 실패 — '" + raw + "' (HH:mm 포맷 필요)",
           e);
     }
   }
 
-  /**
-   * holidayClosed 파싱. 빈 값 → spec §9-7 default {@code true}. true/false 외 값은 fail-fast.
-   */
+  /** holidayClosed 파싱. 빈 값 → spec §9-7 default {@code true}. true/false 외 값은 fail-fast. */
   private boolean parseHolidayClosed(String raw, int lineNumber) {
     String v = raw == null ? "" : raw.trim();
     if (v.isEmpty()) return true; // spec §9-7 default
     if (v.equalsIgnoreCase("true")) return true;
     if (v.equalsIgnoreCase("false")) return false;
     throw new IllegalStateException(
-        "centers.csv line "
-            + lineNumber
-            + ": holidayClosed 값은 true/false/빈값 만 허용 — '"
-            + raw
-            + "'");
+        "centers.csv line " + lineNumber + ": holidayClosed 값은 true/false/빈값 만 허용 — '" + raw + "'");
   }
 
   private BigDecimal parseCoordinate(String raw, String field, int lineNumber) {
@@ -217,12 +205,10 @@ public class CenterCsvLoader {
 
   private void warnIfOutOfRange(BigDecimal lat, BigDecimal lng, String name, int lineNumber) {
     if (lat.compareTo(LAT_MIN) < 0 || lat.compareTo(LAT_MAX) > 0) {
-      log.warn(
-          "centers.csv line {} ({}): latitude {} 가 한반도 범위(33~39) 밖", lineNumber, name, lat);
+      log.warn("centers.csv line {} ({}): latitude {} 가 한반도 범위(33~39) 밖", lineNumber, name, lat);
     }
     if (lng.compareTo(LNG_MIN) < 0 || lng.compareTo(LNG_MAX) > 0) {
-      log.warn(
-          "centers.csv line {} ({}): longitude {} 가 한반도 범위(124~132) 밖", lineNumber, name, lng);
+      log.warn("centers.csv line {} ({}): longitude {} 가 한반도 범위(124~132) 밖", lineNumber, name, lng);
     }
   }
 
