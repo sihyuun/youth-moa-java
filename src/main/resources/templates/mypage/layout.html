@@ -16,8 +16,8 @@
             <div class="mypage-summary-info">
                 <h2 class="mypage-summary-hello">반가워요, <span th:text="${myUser.name}">사용자</span>님!</h2>
                 <p class="mypage-summary-email" th:text="${myUser.email}">email@example.com</p>
-                <div class="mypage-summary-interests" th:if="${!#sets.isEmpty(myUser.interests)}">
-                    <span th:each="tag, iter : ${myUser.interests}"
+                <div class="mypage-summary-interests" th:if="${!#sets.isEmpty(myUserInterests)}">
+                    <span th:each="tag, iter : ${myUserInterests}"
                           th:if="${iter.index < 2}"
                           class="mypage-summary-tag"
                           th:text="'#' + ${tag}">태그</span>

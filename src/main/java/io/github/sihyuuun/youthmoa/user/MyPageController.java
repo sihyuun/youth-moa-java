@@ -173,6 +173,13 @@ public class MyPageController {
   }
 
   private void addSummary(User user, Model model) {
+    // interests 는 LAZY @ElementCollection — 뷰 렌더 시점엔 tx 종료 상태라 접근 불가.
+    // 트랜잭션 안에서 강제 초기화 후 plain HashSet 스냅샷으로 노출해 SpEL/Thymeleaf 가 안전하게 순회하도록 함.
+    java.util.Set<String> interestsSnapshot =
+        user.getInterests() == null
+            ? java.util.Collections.emptySet()
+            : new java.util.LinkedHashSet<>(user.getInterests());
+    model.addAttribute("myUserInterests", interestsSnapshot);
     List<Application> apps = applicationRepository.findAllByUserOrderByAppliedAtDesc(user);
     long ongoing =
         apps.stream()
