@@ -43,7 +43,7 @@ class WelcomeRenderTest {
   }
 
   @Test
-  void GET_welcome_로그인_200_지역12_분야7_SVG_렌더() throws Exception {
+  void GET_welcome_로그인_200_지역30_분야7_SVG_렌더() throws Exception {
     String body =
         mockMvc
             .perform(get("/welcome").with(authed()))
@@ -52,13 +52,29 @@ class WelcomeRenderTest {
             .getResponse()
             .getContentAsString();
 
-    // 관심 지역 12개 — prototype 명시 12건 모두 렌더
-    String[] regions = {
-      "수원시", "성남시", "고양시", "용인시", "부천시", "안양시", "안산시", "화성시", "남양주시", "평택시", "의정부시", "시흥시"
+    // 관심 지역 TOP 10 (isFeatured=true) — 상시 노출, prototype WELCOME_REGIONS_TOP
+    String[] topRegions = {
+      "수원시", "성남시", "고양시", "용인시", "부천시", "안양시", "안산시", "화성시", "남양주시", "평택시"
     };
-    for (String r : regions) {
-      org.junit.jupiter.api.Assertions.assertTrue(body.contains(r), "지역 누락: " + r);
+    for (String r : topRegions) {
+      org.junit.jupiter.api.Assertions.assertTrue(body.contains(r), "TOP 지역 누락: " + r);
     }
+    // 관심 지역 MORE 20 (isFeatured=false) — 마크업 존재 (hidden 상태 렌더)
+    String[] moreRegions = {
+      "의정부시", "시흥시", "파주시", "김포시", "광명시", "광주시", "군포시", "오산시", "이천시", "양주시",
+      "안성시", "구리시", "포천시", "의왕시", "하남시", "여주시", "동두천시", "과천시", "가평군", "양평군"
+    };
+    for (String r : moreRegions) {
+      org.junit.jupiter.api.Assertions.assertTrue(body.contains(r), "MORE 지역 누락: " + r);
+    }
+    // 더보기 버튼 (primary 텍스트 링크)
+    org.junit.jupiter.api.Assertions.assertTrue(
+        body.contains("data-toggle-more"), "더보기 링크 누락");
+    org.junit.jupiter.api.Assertions.assertTrue(
+        body.contains("지역 더 보기"), "더보기 라벨 누락");
+    // MORE 20 은 hidden 속성 부여됨
+    org.junit.jupiter.api.Assertions.assertTrue(
+        body.contains("welcome-toggle--more"), "MORE 클래스 누락");
     // 관심 분야 7종
     for (String c : UserInterestCategory.ALL) {
       org.junit.jupiter.api.Assertions.assertTrue(body.contains(c), "분야 누락: " + c);

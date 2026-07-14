@@ -36,9 +36,14 @@ public class WelcomeController {
 
   @GetMapping("/welcome")
   public String welcome(Model model) {
-    List<String> regionNames =
+    // HANDOFF §5.21 + prototype.html WELCOME_REGIONS_TOP/MORE:
+    //   TOP 10 (isFeatured=true) 기본 노출 + MORE 20 (isFeatured=false) 더보기 토글로 노출.
+    List<String> topRegions =
         regionRepository.findAllByIsFeaturedTrueOrderByNameAsc().stream().map(Region::getName).toList();
-    model.addAttribute("welcomeRegions", regionNames);
+    List<String> moreRegions =
+        regionRepository.findAllByIsFeaturedFalseOrderByNameAsc().stream().map(Region::getName).toList();
+    model.addAttribute("welcomeRegionsTop", topRegions);
+    model.addAttribute("welcomeRegionsMore", moreRegions);
     model.addAttribute("welcomeCategories", UserInterestCategory.ALL);
     if (!model.containsAttribute("welcomeForm")) {
       model.addAttribute("welcomeForm", new WelcomeForm());

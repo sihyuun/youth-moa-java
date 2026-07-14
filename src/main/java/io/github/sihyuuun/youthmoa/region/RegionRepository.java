@@ -7,5 +7,7 @@ public interface RegionRepository extends JpaRepository<Region, Long> {
 
   List<Region> findAllByIsFeaturedTrueOrderByNameAsc();
 
+  List<Region> findAllByIsFeaturedFalseOrderByNameAsc();
+
   List<Region> findAllByOrderByNameAsc();
 }

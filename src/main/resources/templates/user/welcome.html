@@ -13,8 +13,10 @@
 </head>
 <body>
 <!--
-  F-signup-03 WelcomeScreen — prototype.tsx L1541~1591 이식.
+  F-signup-03 WelcomeScreen — prototype.html + HANDOFF §5.21 이식.
   noHeader (fragments/header 미포함). footer 는 포함.
+  관심 지역: TOP 10 (welcomeRegionsTop) 상시 노출 + MORE 20 (welcomeRegionsMore) 더보기 토글.
+  더보기 접힘 상태에서도 MORE 영역에서 선택된 chip 은 항상 노출 유지 (JS 처리).
 -->
 
 <main class="welcome-page"
@@ -43,10 +45,10 @@
             <form th:action="@{/welcome}" th:object="${welcomeForm}" method="post"
                   id="welcomeForm" class="welcome-form">
 
-                <!-- 관심 지역 -->
+                <!-- 관심 지역 (TOP 10 + MORE 20 더보기) -->
                 <div style="margin-bottom:28px;">
                     <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;">
-                        <!-- pin icon (prototype.tsx Icon n="pin") -->
+                        <!-- pin icon -->
                         <svg viewBox="0 0 24 24" style="width:18px; height:18px;" xmlns="http://www.w3.org/2000/svg">
                             <path d="M12 22s-8-7.5-8-13a8 8 0 1 1 16 0c0 5.5-8 13-8 13z"
                                   stroke="var(--color-primary)" stroke-width="2" fill="none"
@@ -54,33 +56,59 @@
                             <circle cx="12" cy="9" r="3" stroke="var(--color-primary)" stroke-width="2" fill="none"/>
                         </svg>
                         <span style="font-size:16px; font-weight:700; color:var(--color-text);">관심 지역</span>
-                        <span style="font-size:13px; color:var(--color-text-tri);">중복 선택 가능</span>
+                        <span data-count-hint="regions"
+                              style="font-size:13px; color:var(--color-text-tri);">중복 선택 가능</span>
                     </div>
                     <div class="welcome-toggle-group" data-group="regions"
                          style="display:flex; flex-wrap:wrap; gap:8px;">
-                        <label th:each="r : ${welcomeRegions}" class="welcome-toggle" style="cursor:pointer;">
+                        <!-- TOP 10 (상시 노출) -->
+                        <label th:each="r : ${welcomeRegionsTop}" class="welcome-toggle" style="cursor:pointer;">
                             <input type="checkbox" name="regions" th:value="${r}" style="display:none;"/>
                             <span class="welcome-toggle-chip"
                                   style="display:inline-block; padding:9px 16px; border-radius:20px;
                                          border:1px solid var(--color-border); background:var(--color-surface);
                                          font-size:14px; font-weight:400; color:var(--color-text-sec);
-                                         transition:all 150ms;"
+                                         white-space:nowrap; transition:all 150ms;"
+                                  th:text="${r}">지역</span>
+                        </label>
+                        <!-- MORE 20 (기본 hidden, 더보기 클릭 시 노출. 단 선택된 chip 은 항상 노출) -->
+                        <label th:each="r : ${welcomeRegionsMore}"
+                               class="welcome-toggle welcome-toggle--more"
+                               data-more="1" hidden style="cursor:pointer;">
+                            <input type="checkbox" name="regions" th:value="${r}" style="display:none;"/>
+                            <span class="welcome-toggle-chip"
+                                  style="display:inline-block; padding:9px 16px; border-radius:20px;
+                                         border:1px solid var(--color-border); background:var(--color-surface);
+                                         font-size:14px; font-weight:400; color:var(--color-text-sec);
+                                         white-space:nowrap; transition:all 150ms;"
                                   th:text="${r}">지역</span>
                         </label>
                     </div>
+                    <!-- 지역 더 보기 (primary 텍스트 링크, HANDOFF §5.21) -->
+                    <a href="#" data-toggle-more
+                       style="display:inline-flex; align-items:center; gap:4px; margin-top:12px;
+                              font-size:14px; font-weight:600; color:var(--color-primary);
+                              text-decoration:none; cursor:pointer; white-space:nowrap;">
+                        <span data-more-label>지역 더 보기 (<span data-more-count>0</span>)</span>
+                        <svg data-more-chev viewBox="0 0 24 24" style="width:14px; height:14px;"
+                             xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6 9l6 6 6-6" stroke="var(--color-primary)" stroke-width="2" fill="none"
+                                  stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </a>
                 </div>
 
                 <!-- 관심 분야 -->
                 <div style="margin-bottom:36px;">
                     <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;">
-                        <!-- star icon (prototype.tsx Icon n="star") -->
                         <svg viewBox="0 0 24 24" style="width:18px; height:18px;" xmlns="http://www.w3.org/2000/svg">
                             <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
                                   stroke="var(--color-primary)" stroke-width="2" fill="none"
                                   stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
                         <span style="font-size:16px; font-weight:700; color:var(--color-text);">관심 분야</span>
-                        <span style="font-size:13px; color:var(--color-text-tri);">중복 선택 가능</span>
+                        <span data-count-hint="categories"
+                              style="font-size:13px; color:var(--color-text-tri);">중복 선택 가능</span>
                     </div>
                     <div class="welcome-toggle-group" data-group="categories"
                          style="display:flex; flex-wrap:wrap; gap:8px;">
@@ -90,14 +118,14 @@
                                   style="display:inline-block; padding:9px 16px; border-radius:20px;
                                          border:1px solid var(--color-border); background:var(--color-surface);
                                          font-size:14px; font-weight:400; color:var(--color-text-sec);
-                                         transition:all 150ms;"
+                                         white-space:nowrap; transition:all 150ms;"
                                   th:text="${c}">분야</span>
                         </label>
                     </div>
                 </div>
 
-                <!-- CTA -->
-                <button type="submit"
+                <!-- CTA — 선택 개수에 따라 문구 변경 (JS 로 갱신) -->
+                <button type="submit" id="welcomeSubmit"
                         style="width:100%; height:52px; border:none; border-radius:8px;
                                background:var(--color-primary); color:#fff; font-size:16px;
                                font-weight:700; cursor:pointer; margin-bottom:10px;
@@ -123,10 +151,10 @@
 </main>
 
 <script>
-    // 토글 chip 시각 스타일: 체크박스 상태를 chip span 에 반영.
-    // th:field 대신 raw checkbox 로 name/value 지정 → Set<String> 바인딩 자동 동작.
     (function () {
-        document.querySelectorAll('.welcome-toggle').forEach(function (label) {
+        // ── chip 스타일 paint ──────────────────────────────────
+        var toggles = document.querySelectorAll('.welcome-toggle');
+        toggles.forEach(function (label) {
             var input = label.querySelector('input[type="checkbox"]');
             var chip = label.querySelector('.welcome-toggle-chip');
             function paint() {
@@ -142,11 +170,95 @@
                     chip.style.fontWeight = '400';
                 }
             }
-            input.addEventListener('change', paint);
+            input.addEventListener('change', function () {
+                paint();
+                refreshCounts();
+                refreshMoreVisibility();
+                refreshCta();
+            });
             paint();
         });
+
+        // ── 선택 카운트 갱신 (제목 옆) ────────────────────────
+        function countSelected(group) {
+            return document.querySelectorAll(
+                '.welcome-toggle-group[data-group="' + group + '"] input[type=checkbox]:checked'
+            ).length;
+        }
+        function refreshCounts() {
+            ['regions', 'categories'].forEach(function (group) {
+                var hint = document.querySelector('[data-count-hint="' + group + '"]');
+                if (!hint) return;
+                var n = countSelected(group);
+                if (n > 0) {
+                    hint.textContent = n + '개 선택';
+                    hint.style.color = 'var(--color-primary)';
+                    hint.style.fontWeight = '700';
+                } else {
+                    hint.textContent = '중복 선택 가능';
+                    hint.style.color = 'var(--color-text-tri)';
+                    hint.style.fontWeight = '400';
+                }
+            });
+        }
+
+        // ── 더보기 접힘/펼침 + 선택된 MORE chip 은 항상 노출 ──
+        var moreOpen = false;
+        var moreLabels = document.querySelectorAll('.welcome-toggle--more');
+        var moreToggle = document.querySelector('[data-toggle-more]');
+        var moreLabelText = moreToggle && moreToggle.querySelector('[data-more-label]');
+        var moreCountEl = moreToggle && moreToggle.querySelector('[data-more-count]');
+        var moreChev = moreToggle && moreToggle.querySelector('[data-more-chev] path');
+
+        function refreshMoreVisibility() {
+            var hiddenSelCount = 0;
+            moreLabels.forEach(function (lb) {
+                var input = lb.querySelector('input[type=checkbox]');
+                var selected = input.checked;
+                if (moreOpen || selected) {
+                    lb.removeAttribute('hidden');
+                } else {
+                    lb.setAttribute('hidden', '');
+                }
+                if (selected) hiddenSelCount++;
+            });
+            // 더보기 카운트: MORE 20 - 이미 선택된 (접혀도 보이는) chip
+            if (moreCountEl) {
+                var remaining = moreLabels.length - hiddenSelCount;
+                moreCountEl.textContent = remaining;
+            }
+            if (moreLabelText) {
+                moreLabelText.innerHTML = moreOpen
+                    ? '지역 접기'
+                    : '지역 더 보기 (<span data-more-count>' + (moreLabels.length - hiddenSelCount) + '</span>)';
+            }
+            if (moreChev) {
+                moreChev.setAttribute('d', moreOpen ? 'M6 15l6-6 6 6' : 'M6 9l6 6 6-6');
+            }
+        }
+        if (moreToggle) {
+            moreToggle.addEventListener('click', function (e) {
+                e.preventDefault();
+                moreOpen = !moreOpen;
+                refreshMoreVisibility();
+            });
+        }
+
+        // ── CTA 문구 동적 ────────────────────────────────────
+        function refreshCta() {
+            var btn = document.getElementById('welcomeSubmit');
+            if (!btn) return;
+            var total = countSelected('regions') + countSelected('categories');
+            btn.textContent = total > 0
+                ? '관심 정보 ' + total + '개로 시작하기'
+                : '관심 정보 저장하고 시작하기';
+        }
+
+        // 초기 상태 반영
+        refreshCounts();
+        refreshMoreVisibility();
+        refreshCta();
     })();
 </script>
 </body>
 </html>
-</content>

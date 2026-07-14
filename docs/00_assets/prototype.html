@@ -1562,11 +1562,15 @@
   }
 
   // ── WELCOME (회원가입 직후 온보딩 + 관심설정) ──
-  const WELCOME_REGIONS = ['수원시','성남시','고양시','용인시','부천시','안양시','안산시','화성시','남양주시','평택시','의정부시','시흥시'];
+  const WELCOME_REGIONS_TOP = ['수원시','성남시','고양시','용인시','부천시','안양시','안산시','화성시','남양주시','평택시'];
+  const WELCOME_REGIONS_MORE = ['의정부시','시흥시','파주시','김포시','광명시','광주시','군포시','오산시','이천시','양주시','안성시','구리시','포천시','의왕시','하남시','여주시','동두천시','과천시','가평군','양평군'];
   const WELCOME_CATS = ['취업·역량','창업','심리·건강','문화·예술','주거','금융','네트워킹'];
   function WelcomeScreen({ go, addToast }) {
     const [regions, setRegions] = useState(new Set(['부천시']));
     const [cats, setCats] = useState(new Set(['취업·역량']));
+    const [regionsOpen, setRegionsOpen] = useState(false);
+    const hiddenSel = [...regions].filter(r=>WELCOME_REGIONS_MORE.includes(r));
+    const visibleRegions = regionsOpen ? [...WELCOME_REGIONS_TOP, ...WELCOME_REGIONS_MORE] : [...WELCOME_REGIONS_TOP, ...hiddenSel];
     const toggle = (setter) => (v) => setter(s=>{ const n=new Set(s); n.has(v)?n.delete(v):n.add(v); return n; });
     const finish = (personalized) => {
       addToast(personalized ? '관심 정보가 저장되었어요. 맞춤 추천을 받아보세요!' : '청년모아에 오신 걸 환영해요!');
@@ -1590,12 +1594,15 @@
               <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:12 }}>
                 <Icon n="pin" size={18} color={T.primary}/>
                 <span style={{ fontSize:16, fontWeight:700, color:T.text }}>관심 지역</span>
-                <span style={{ fontSize:13, color:T.textTri }}>중복 선택 가능</span>
+                {regions.size>0 ? <span style={{ fontSize:13, fontWeight:700, color:T.primary }}>{regions.size}개 선택</span> : <span style={{ fontSize:13, color:T.textTri }}>중복 선택 가능</span>}
               </div>
               <div style={{ display:'flex', flexWrap:'wrap', gap:8 }}>
-                {WELCOME_REGIONS.map(r=>{ const on=regions.has(r); return (
-                  <div key={r} className="btn-hover" onClick={()=>toggle(setRegions)(r)} style={{ padding:'9px 16px', borderRadius:T.tagR, border:`1px solid ${on?T.primary:T.border}`, background:on?T.primaryBg:T.surface, cursor:'pointer', fontSize:14, fontWeight:on?600:400, color:on?T.primary:T.textSec }}>{r}</div>
+                {visibleRegions.map(r=>{ const on=regions.has(r); return (
+                  <div key={r} className="btn-hover" onClick={()=>toggle(setRegions)(r)} style={{ padding:'9px 16px', borderRadius:T.tagR, border:`1px solid ${on?T.primary:T.border}`, background:on?T.primaryBg:T.surface, cursor:'pointer', fontSize:14, fontWeight:on?600:400, color:on?T.primary:T.textSec, whiteSpace:'nowrap' }}>{r}</div>
                 );})}
+              </div>
+              <div className="btn-hover" onClick={()=>setRegionsOpen(o=>!o)} style={{ marginTop:12, cursor:'pointer', fontSize:14, fontWeight:600, color:T.primary, display:'inline-flex', alignItems:'center', gap:4, whiteSpace:'nowrap' }}>
+                {regionsOpen ? '지역 접기' : `지역 더 보기 (${WELCOME_REGIONS_MORE.length - hiddenSel.length})`}<Icon n={regionsOpen?'chevU':'chevD'} size={14} color={T.primary}/>
               </div>
             </div>
 
@@ -1604,7 +1611,7 @@
               <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:12 }}>
                 <Icon n="star" size={18} color={T.primary}/>
                 <span style={{ fontSize:16, fontWeight:700, color:T.text }}>관심 분야</span>
-                <span style={{ fontSize:13, color:T.textTri }}>중복 선택 가능</span>
+                {cats.size>0 ? <span style={{ fontSize:13, fontWeight:700, color:T.primary }}>{cats.size}개 선택</span> : <span style={{ fontSize:13, color:T.textTri }}>중복 선택 가능</span>}
               </div>
               <div style={{ display:'flex', flexWrap:'wrap', gap:8 }}>
                 {WELCOME_CATS.map(cat=>{ const on=cats.has(cat); return (
@@ -1614,7 +1621,7 @@
             </div>
 
             {/* CTA */}
-            <Btn size="l" fullWidth onClick={()=>finish(true)} style={{ marginBottom:10 }}>관심 정보 저장하고 시작하기</Btn>
+            <Btn size="l" fullWidth onClick={()=>finish(true)} style={{ marginBottom:10 }}>{regions.size+cats.size>0 ? `관심 정보 ${regions.size+cats.size}개로 시작하기` : '관심 정보 저장하고 시작하기'}</Btn>
             <div style={{ textAlign:'center' }}>
               <span className="btn-hover" onClick={()=>finish(false)} style={{ fontSize:14, color:T.textTri, cursor:'pointer', padding:'8px 12px', display:'inline-block' }}>나중에 할게요 · 건너뛰기</span>
             </div>
