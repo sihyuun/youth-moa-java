@@ -4861,8 +4861,9 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
 .mypage-edit-note { margin-top: 24px; font-size: 13px; color: var(--color-text-sec); }
 .mypage-edit-note a { color: var(--color-primary); }
 
-/* 취소 모달 */
-.mypage-modal {
+/* 취소 모달 — [hidden] 상태에서 display:flex 가 발동되지 않도록 :not([hidden]) 사용.
+   (기본 [hidden] display:none 은 저자 CSS 의 display:flex 에 override 되므로 셀렉터로 방어) */
+.mypage-modal:not([hidden]) {
     position: fixed; inset: 0;
     background: rgba(0,0,0,.4);
     z-index: 200;

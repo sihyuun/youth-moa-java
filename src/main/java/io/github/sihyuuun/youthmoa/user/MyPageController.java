@@ -175,12 +175,20 @@ public class MyPageController {
 
   private void addSummary(User user, Model model) {
     // interests 는 LAZY @ElementCollection — 뷰 렌더 시점엔 tx 종료 상태라 접근 불가.
-    // 트랜잭션 안에서 강제 초기화 후 plain HashSet 스냅샷으로 노출.
-    // F-signup-03 이후 관심 지역과 분야가 분리됨. 마이페이지 요약은 둘을 합쳐 표기.
-    java.util.LinkedHashSet<String> merged = new java.util.LinkedHashSet<>();
-    if (user.getInterestRegions() != null) merged.addAll(user.getInterestRegions());
-    if (user.getInterestCategories() != null) merged.addAll(user.getInterestCategories());
-    model.addAttribute("myUserInterests", merged);
+    // 트랜잭션 안에서 강제 초기화 후 plain 스냅샷으로 노출.
+    // 프로필 요약 태그: prototype.tsx L1237 매칭 형식 (지역·분야 각 1개 태그, 접두어 라벨).
+    //   1) "관심 지역 · 수원시"                — 지역 대표 1개
+    //   2) "관심 · 취업·역량·창업"              — 분야 여러 개 `·` join
+    java.util.List<String> tags = new java.util.ArrayList<>();
+    if (user.getInterestRegions() != null && !user.getInterestRegions().isEmpty()) {
+      String repRegion = user.getInterestRegions().iterator().next();
+      tags.add("관심 지역 · " + repRegion);
+    }
+    if (user.getInterestCategories() != null && !user.getInterestCategories().isEmpty()) {
+      String catJoin = String.join("·", user.getInterestCategories());
+      tags.add("관심 · " + catJoin);
+    }
+    model.addAttribute("myUserTags", tags);
     List<Application> apps = applicationRepository.findAllByUserOrderByAppliedAtDesc(user);
     long ongoing =
         apps.stream()

@@ -163,10 +163,17 @@ public class User extends BaseTimeEntity {
     this.interestCategories = interestCategories != null ? interestCategories : new HashSet<>();
   }
 
-  /** F-signup-03: WelcomeScreen 에서 관심 정보만 저장 (프로필 다른 필드는 미변경). */
+  /**
+   * F-signup-03: WelcomeScreen 에서 관심 정보만 저장 (프로필 다른 필드는 미변경).
+   *
+   * <p>Hibernate {@code @ElementCollection} 은 필드 참조 재할당 시 트래킹이 끊겨 UPDATE 가 flush 되지 않을 수 있음. 반드시
+   * 동일 PersistentSet 인스턴스를 mutate (clear + addAll) 해야 DELETE + INSERT 이 정상 실행됨.
+   */
   public void updateInterests(Set<String> regions, Set<String> categories) {
-    this.interestRegions = regions != null ? regions : new HashSet<>();
-    this.interestCategories = categories != null ? categories : new HashSet<>();
+    this.interestRegions.clear();
+    if (regions != null) this.interestRegions.addAll(regions);
+    this.interestCategories.clear();
+    if (categories != null) this.interestCategories.addAll(categories);
   }
 
   public void assignRole(UserRole role, Center center, String centerScope) {
