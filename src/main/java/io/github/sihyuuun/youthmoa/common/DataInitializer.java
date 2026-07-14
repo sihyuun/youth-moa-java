@@ -370,18 +370,22 @@ public class DataInitializer implements ApplicationRunner {
     if (regionRepository.count() > 0) {
       log.info("Regions already seeded (count={}), skip", regionRepository.count());
     } else {
-      // 30 시·군 가나다순. 상위 5개 isFeatured=true (사이드바 노출 기본)
+      // 30 시·군 가나다순. F-signup-03 (spec §A-Q8): WelcomeScreen 관심 지역 옵션 prototype 12개를
+      // isFeatured=true 로 지정 (수원·성남·고양·용인·부천·안양·안산·화성·남양주·평택·의정부·시흥).
       List<String> regionNames =
           List.of(
               "고양시", "과천시", "광명시", "광주시", "구리시", "군포시", "김포시", "남양주시", "동두천시", "부천시", "성남시", "수원시",
               "시흥시", "안산시", "안성시", "안양시", "양주시", "양평군", "여주시", "연천군", "오산시", "용인시", "의왕시", "의정부시",
               "이천시", "파주시", "평택시", "포천시", "하남시", "화성시");
+      java.util.Set<String> featuredNames =
+          java.util.Set.of(
+              "수원시", "성남시", "고양시", "용인시", "부천시", "안양시", "안산시", "화성시", "남양주시", "평택시", "의정부시", "시흥시");
       List<Region> regions = new ArrayList<>();
-      for (int i = 0; i < regionNames.size(); i++) {
-        regions.add(Region.builder().name(regionNames.get(i)).isFeatured(i < 5).build());
+      for (String name : regionNames) {
+        regions.add(Region.builder().name(name).isFeatured(featuredNames.contains(name)).build());
       }
       regionRepository.saveAll(regions);
-      log.info("Seeded {} regions ({} featured)", regions.size(), 5);
+      log.info("Seeded {} regions ({} featured)", regions.size(), featuredNames.size());
     }
 
     if (centerRepository.count() > 0) {
