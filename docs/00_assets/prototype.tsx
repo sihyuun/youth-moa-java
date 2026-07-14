@@ -63,6 +63,7 @@ function Icon({ n, size=20, color='currentColor', style:xs, onClick }) {
 		pin: <><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" stroke={color} strokeWidth="1.5" fill="none"/><circle cx="12" cy="10" r="3" stroke={color} strokeWidth="1.5" fill="none"/></>,
 		share: <><circle cx="18" cy="5" r="3" stroke={color} strokeWidth="1.5" fill="none"/><circle cx="6" cy="12" r="3" stroke={color} strokeWidth="1.5" fill="none"/><circle cx="18" cy="19" r="3" stroke={color} strokeWidth="1.5" fill="none"/><path d="M8.59 13.51l6.83 3.98M15.41 6.51l-6.82 3.98" stroke={color} strokeWidth="1.5" fill="none"/></>,
 		close: <path d="M18 6L6 18M6 6l12 12" stroke={color} strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/>,
+		edit: <><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke={color} strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/><path d="M18.5 2.5a2.12 2.12 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke={color} strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/></>,
 		mail: <><rect x="3" y="5" width="18" height="14" rx="2" stroke={color} strokeWidth="1.5" fill="none"/><path d="M3 7l9 6 9-6" stroke={color} strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/></>,
 		login: <><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4M10 17l5-5-5-5M15 12H3" stroke={color} strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/></>,
 		user: <><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" stroke={color} strokeWidth="1.5" fill="none"/><circle cx="12" cy="7" r="4" stroke={color} strokeWidth="1.5" fill="none"/></>,
@@ -1232,11 +1233,24 @@ function MyPage({ go, addToast, initialTab }) {
 					<Avatar size={58}/>
 					<div style={{ flex:1, minWidth:0 }}>
 						<div style={{ fontSize:20, fontWeight:700, color:T.text, marginBottom:3 }}>반가워요, 박시현님!</div>
-						<div style={{ fontSize:13, color:T.textSec, marginBottom:9 }}>hyuuun0321@naver.com</div>
-						<div style={{ display:'flex', gap:6 }}>
-							{['관심 지역 · 수원시','관심 · 취업·창업'].map(t=>(
-								<span key={t} style={{ padding:'3px 10px', borderRadius:T.tagR, background:T.primaryLight, color:T.primary, fontSize:12, fontWeight:600 }}>{t}</span>
-							))}
+						<div style={{ fontSize:13, color:T.textSec, marginBottom:11 }}>hyuuun0321@naver.com</div>
+						<div style={{ display:'flex', flexWrap:'wrap', alignItems:'center', gap:'8px 16px' }}>
+							{[{icon:'pin',label:'관심 지역',vals:['수원시','성남시']},{icon:'star',label:'관심 분야',vals:['취업·창업','교육','문화·예술','주거']}].map(g=>{
+								const MAX=3, shown=g.vals.slice(0,MAX), rest=g.vals.length-MAX;
+								return (
+									<div key={g.label} style={{ display:'flex', alignItems:'center', gap:7, minWidth:0 }}>
+										<span style={{ display:'inline-flex', alignItems:'center', gap:4, fontSize:12.5, color:T.textTri, fontWeight:500, whiteSpace:'nowrap' }}><Icon n={g.icon} size={13} color={T.textTri}/>{g.label}</span>
+										<div style={{ display:'flex', flexWrap:'wrap', gap:5 }}>
+											{g.vals.length ? <>
+												{shown.map(v=>(
+													<span key={v} style={{ padding:'3px 10px', borderRadius:T.tagR, background:T.primaryLight, color:T.primary, fontSize:12, fontWeight:600, whiteSpace:'nowrap' }}>{v}</span>
+												))}
+												{rest>0 && <span title={g.vals.slice(MAX).join(', ')} style={{ padding:'3px 9px', borderRadius:T.tagR, background:T.borderLight, color:T.textTri, fontSize:12, fontWeight:600, whiteSpace:'nowrap' }}>+{rest}</span>}
+											</> : <span style={{ fontSize:12, color:T.textTri }}>미설정</span>}
+										</div>
+									</div>
+								);})}
+							<span className="btn-hover" onClick={()=>setTab('profile')} style={{ display:'inline-flex', alignItems:'center', gap:4, fontSize:12.5, fontWeight:600, color:T.primary, cursor:'pointer', whiteSpace:'nowrap' }}>관심 정보 수정<Icon n="edit" size={12} color={T.primary}/></span>
 						</div>
 					</div>
 					{/* KPI */}

@@ -176,19 +176,23 @@ public class MyPageController {
   private void addSummary(User user, Model model) {
     // interests 는 LAZY @ElementCollection — 뷰 렌더 시점엔 tx 종료 상태라 접근 불가.
     // 트랜잭션 안에서 강제 초기화 후 plain 스냅샷으로 노출.
-    // 프로필 요약 태그: prototype.tsx L1237 매칭 형식 (지역·분야 각 1개 태그, 접두어 라벨).
-    //   1) "관심 지역 · 수원시"                — 지역 대표 1개
-    //   2) "관심 · 취업·역량·창업"              — 분야 여러 개 `·` join
-    java.util.List<String> tags = new java.util.ArrayList<>();
-    if (user.getInterestRegions() != null && !user.getInterestRegions().isEmpty()) {
-      String repRegion = user.getInterestRegions().iterator().next();
-      tags.add("관심 지역 · " + repRegion);
-    }
-    if (user.getInterestCategories() != null && !user.getInterestCategories().isEmpty()) {
-      String catJoin = String.join("·", user.getInterestCategories());
-      tags.add("관심 · " + catJoin);
-    }
-    model.addAttribute("myUserTags", tags);
+    // 프로필 요약 관심 정보: prototype.tsx L1236~1252 매칭 그룹형.
+    //   - 지역·분야 각 그룹: 아이콘+라벨 + 값칩 (최대 3) + `+N` 축약칩
+    //   - 값 0개 그룹은 "미설정" 표시 (그룹 자체는 항상 노출)
+    //   - 끝에 "관심 정보 수정" 편집 링크 → ?tab=profile
+    java.util.List<String> regions =
+        user.getInterestRegions() == null
+            ? java.util.List.of()
+            : new java.util.ArrayList<>(user.getInterestRegions());
+    java.util.List<String> categories =
+        user.getInterestCategories() == null
+            ? java.util.List.of()
+            : new java.util.ArrayList<>(user.getInterestCategories());
+    java.util.List<InterestGroup> interestGroups =
+        java.util.List.of(
+            InterestGroup.of("pin", "관심 지역", regions),
+            InterestGroup.of("star", "관심 분야", categories));
+    model.addAttribute("interestGroups", interestGroups);
     List<Application> apps = applicationRepository.findAllByUserOrderByAppliedAtDesc(user);
     long ongoing =
         apps.stream()
