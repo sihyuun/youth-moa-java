@@ -60,10 +60,17 @@ public class User extends BaseTimeEntity {
   @Column(length = 10)
   private UserGender gender;
 
+  // F-signup-03: 관심 정보를 지역/분야 2개 컬럼으로 분리 (spec §A-Q7).
+  // 기존 interests 단일 컬럼은 제거. Hibernate update 모드에서 옛 user_interest 테이블은 DROP 되지 않지만 무해.
   @ElementCollection(fetch = FetchType.LAZY)
-  @CollectionTable(name = "user_interest", joinColumns = @JoinColumn(name = "user_id"))
-  @Column(name = "interest", length = 50)
-  private Set<String> interests = new HashSet<>();
+  @CollectionTable(name = "user_interest_region", joinColumns = @JoinColumn(name = "user_id"))
+  @Column(name = "region_name", length = 50)
+  private Set<String> interestRegions = new HashSet<>();
+
+  @ElementCollection(fetch = FetchType.LAZY)
+  @CollectionTable(name = "user_interest_category", joinColumns = @JoinColumn(name = "user_id"))
+  @Column(name = "category", length = 50)
+  private Set<String> interestCategories = new HashSet<>();
 
   @Enumerated(EnumType.STRING)
   @Column(nullable = false, length = 20)
@@ -99,7 +106,8 @@ public class User extends BaseTimeEntity {
       String addressDetail,
       LocalDate birthDate,
       UserGender gender,
-      Set<String> interests,
+      Set<String> interestRegions,
+      Set<String> interestCategories,
       UserRole role,
       Center center,
       String centerScope,
@@ -115,7 +123,8 @@ public class User extends BaseTimeEntity {
     this.addressDetail = addressDetail;
     this.birthDate = birthDate;
     this.gender = gender;
-    this.interests = interests != null ? interests : new HashSet<>();
+    this.interestRegions = interestRegions != null ? interestRegions : new HashSet<>();
+    this.interestCategories = interestCategories != null ? interestCategories : new HashSet<>();
     this.role = role != null ? role : UserRole.USER;
     this.center = center;
     this.centerScope = centerScope;
@@ -142,14 +151,22 @@ public class User extends BaseTimeEntity {
       String address,
       String addressDetail,
       LocalDate birthDate,
-      Set<String> interests) {
+      Set<String> interestRegions,
+      Set<String> interestCategories) {
     this.name = name;
     this.phone = phone;
     this.zipcode = zipcode;
     this.address = address;
     this.addressDetail = addressDetail;
     this.birthDate = birthDate;
-    this.interests = interests != null ? interests : new HashSet<>();
+    this.interestRegions = interestRegions != null ? interestRegions : new HashSet<>();
+    this.interestCategories = interestCategories != null ? interestCategories : new HashSet<>();
+  }
+
+  /** F-signup-03: WelcomeScreen 에서 관심 정보만 저장 (프로필 다른 필드는 미변경). */
+  public void updateInterests(Set<String> regions, Set<String> categories) {
+    this.interestRegions = regions != null ? regions : new HashSet<>();
+    this.interestCategories = categories != null ? categories : new HashSet<>();
   }
 
   public void assignRole(UserRole role, Center center, String centerScope) {

@@ -68,7 +68,7 @@ class JpaMappingTest {
                 .email("user@test.com")
                 .password("hashed")
                 .name("홍길동")
-                .interests(Set.of("취업", "주거"))
+                .interestCategories(Set.of("취업·역량", "주거"))
                 .role(UserRole.USER)
                 .birthDate(LocalDate.of(1995, 1, 1))
                 .build());

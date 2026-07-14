@@ -125,7 +125,8 @@ public class MyPageController {
       req.setAddress(currentUser.getAddress());
       req.setAddressDetail(currentUser.getAddressDetail());
       req.setBirthDate(currentUser.getBirthDate());
-      req.setInterests(currentUser.getInterests());
+      req.setInterestRegions(currentUser.getInterestRegions());
+      req.setInterestCategories(currentUser.getInterestCategories());
       model.addAttribute("profileUpdateRequest", req);
     }
     return "mypage/profile-edit";
@@ -174,12 +175,12 @@ public class MyPageController {
 
   private void addSummary(User user, Model model) {
     // interests 는 LAZY @ElementCollection — 뷰 렌더 시점엔 tx 종료 상태라 접근 불가.
-    // 트랜잭션 안에서 강제 초기화 후 plain HashSet 스냅샷으로 노출해 SpEL/Thymeleaf 가 안전하게 순회하도록 함.
-    java.util.Set<String> interestsSnapshot =
-        user.getInterests() == null
-            ? java.util.Collections.emptySet()
-            : new java.util.LinkedHashSet<>(user.getInterests());
-    model.addAttribute("myUserInterests", interestsSnapshot);
+    // 트랜잭션 안에서 강제 초기화 후 plain HashSet 스냅샷으로 노출.
+    // F-signup-03 이후 관심 지역과 분야가 분리됨. 마이페이지 요약은 둘을 합쳐 표기.
+    java.util.LinkedHashSet<String> merged = new java.util.LinkedHashSet<>();
+    if (user.getInterestRegions() != null) merged.addAll(user.getInterestRegions());
+    if (user.getInterestCategories() != null) merged.addAll(user.getInterestCategories());
+    model.addAttribute("myUserInterests", merged);
     List<Application> apps = applicationRepository.findAllByUserOrderByAppliedAtDesc(user);
     long ongoing =
         apps.stream()

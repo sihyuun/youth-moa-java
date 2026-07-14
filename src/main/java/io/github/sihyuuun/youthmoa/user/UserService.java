@@ -1,5 +1,6 @@
 package io.github.sihyuuun.youthmoa.user;
 
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -40,7 +41,18 @@ public class UserService implements UserDetailsService {
         request.getAddress(),
         request.getAddressDetail(),
         request.getBirthDate(),
-        request.getInterests());
+        request.getInterestRegions(),
+        request.getInterestCategories());
+  }
+
+  /** F-signup-03: WelcomeScreen 에서 관심 지역/분야 저장. */
+  @Transactional
+  public void updateInterests(String email, Set<String> regions, Set<String> categories) {
+    User user =
+        userRepository
+            .findByEmail(email)
+            .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다: " + email));
+    user.updateInterests(regions, categories);
   }
 
   /** D5: 알림 수신 채널(카카오/SMS/이메일) 갱신. */
