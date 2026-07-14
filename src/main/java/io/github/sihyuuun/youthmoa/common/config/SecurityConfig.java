@@ -11,6 +11,8 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
 import org.springframework.security.web.authentication.rememberme.JdbcTokenRepositoryImpl;
 import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
+import org.springframework.security.web.context.SecurityContextRepository;
 
 @Configuration
 public class SecurityConfig {
@@ -77,7 +79,10 @@ public class SecurityConfig {
                         "/bookmarks/**",
                         "/notifications/**",
                         "/mypage",
-                        "/mypage/**")
+                        "/mypage/**",
+                        // F-signup-03: 온보딩 화면 — signup 자동 로그인 후 진입.
+                        "/welcome",
+                        "/welcome/**")
                     .authenticated()
                     // 그 외 비인증 허용
                     .requestMatchers(
@@ -137,5 +142,14 @@ public class SecurityConfig {
   @Bean
   public PasswordEncoder passwordEncoder() {
     return new BCryptPasswordEncoder();
+  }
+
+  /**
+   * F-signup-03: signup 자동 로그인 시 세션에 SecurityContext 를 저장하기 위한 저장소. Spring Security 7 에서는 filter
+   * 체인이 자동으로 사용하는 저장소와 동일한 인스턴스를 직접 saveContext() 로 호출해야 signup 이후 다음 요청에서 인증 상태가 유지됨.
+   */
+  @Bean
+  public SecurityContextRepository securityContextRepository() {
+    return new HttpSessionSecurityContextRepository();
   }
 }

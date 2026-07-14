@@ -1,9 +1,12 @@
 package io.github.sihyuuun.youthmoa.user;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -20,6 +23,7 @@ public class UserController {
 
   private final UserService userService;
   private final UserRepository userRepository;
+  private final SecurityContextRepository securityContextRepository;
 
   /** 회원가입 — 아이디 중복확인 API. signup.html 의 [중복확인] 버튼에서 fetch 호출. */
   @GetMapping("/api/users/check-email")
@@ -60,6 +64,8 @@ public class UserController {
   public String signUp(
       @Validated(SignUpRequest.OrderedChecks.class) @ModelAttribute SignUpRequest signUpRequest,
       BindingResult bindingResult,
+      HttpServletRequest request,
+      HttpServletResponse response,
       Model model) {
     if (bindingResult.hasErrors()) {
       // password 의 @Size + @Pattern 위반을 한 문장으로 통합 → model 의 passwordPolicyMsg.
@@ -76,7 +82,10 @@ public class UserController {
       model.addAttribute("errorMsg", e.getMessage());
       return "user/signup";
     }
-    return "redirect:/login?registered";
+    // F-signup-03 (spec §A-Q6=a): 자동 로그인 후 /welcome 온보딩으로 이동.
+    WelcomeController.autoLogin(
+        signUpRequest.getEmail(), userService, request, response, securityContextRepository);
+    return "redirect:/welcome";
   }
 
   /**
