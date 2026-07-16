@@ -149,21 +149,26 @@
                             <input type="tel" id="phone" th:field="*{phone}"
                                    placeholder="숫자만 입력해주세요"
                                    class="signup-input">
+                            <!-- 사이드 버튼 1개 — 상태별 라벨 전환 (JS): 인증요청 / 재요청 / 재인증 -->
                             <button type="button" id="btn-send-code" class="btn-outline-sm signup-side-btn">인증요청</button>
-                            <span id="phone-verified-badge" class="signup-verified-badge" hidden>
-                                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                                인증완료
-                            </span>
                         </div>
-                        <!-- 인증코드 입력행 — 인증요청 후 노출 -->
+                        <!-- 인증코드 입력행 — SENT/EXPIRED 상태에서 노출. VERIFIED 시 숨김 후 배지로 대체 -->
                         <div id="code-row" class="signup-field-row signup-code-row" hidden>
-                            <input type="text" id="verify-code" inputmode="numeric" maxlength="6"
-                                   placeholder="6자리 인증번호" class="signup-input">
-                            <span id="code-timer" class="signup-code-timer">3:00</span>
-                            <button type="button" id="btn-verify-code" class="btn-outline-sm signup-side-btn">확인</button>
-                            <button type="button" id="btn-resend-code" class="btn-outline-sm signup-side-btn" disabled>재전송</button>
+                            <span class="signup-code-input-wrap">
+                                <input type="text" id="verify-code" inputmode="numeric" maxlength="6"
+                                       placeholder="인증번호 6자리" class="signup-input">
+                                <span id="code-timer" class="signup-code-timer">3:00</span>
+                            </span>
+                            <button type="button" id="btn-verify-code" class="btn-outline-sm signup-side-btn" disabled>확인</button>
                         </div>
-                        <p id="phone-verify-msg" class="signup-field-error" hidden></p>
+                        <!-- 인증완료 배지 — VERIFIED 시 code-row 자리 대체 노출 -->
+                        <div id="phone-verified-badge" class="signup-verified-badge" hidden>
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                            <span>휴대폰 인증이 완료되었어요.</span>
+                        </div>
+                        <!-- 안내 문구 (발송/만료 등) -->
+                        <p id="phone-verify-help" class="signup-help-msg" hidden></p>
+                        <p id="phone-verify-msg" class="signup-error-msg signup-field-error" hidden></p>
                         <!-- 서버 미신뢰 hidden — 폼 상태 UX 용 -->
                         <input type="hidden" th:field="*{phoneVerified}" id="phoneVerifiedHidden">
                         <p class="signup-field-error" th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}"></p>
