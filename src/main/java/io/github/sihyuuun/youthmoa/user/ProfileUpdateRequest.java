@@ -41,5 +41,8 @@ public class ProfileUpdateRequest {
   @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
   private LocalDate birthDate;
 
-  private Set<String> interests = new HashSet<>();
+  // F-signup-03: interests 를 2개 컬럼으로 분리 (관심 지역 + 관심 분야).
+  private Set<String> interestRegions = new HashSet<>();
+
+  private Set<String> interestCategories = new HashSet<>();
 }

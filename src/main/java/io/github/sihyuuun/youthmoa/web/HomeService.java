@@ -122,7 +122,9 @@ public class HomeService {
     // Page.getContent() 가 unmodifiable List 반환 → sort 위해 새 ArrayList 로 복사
     pool = new ArrayList<>(pool);
 
-    Set<String> interests = user.getInterests() != null ? user.getInterests() : Set.of();
+    // F-signup-03: interests → interestCategories (category 매칭용).
+    Set<String> interests =
+        user.getInterestCategories() != null ? user.getInterestCategories() : Set.of();
     String userRegion = null; // User 엔티티에 region 필드 없음. address 기반 확장 여지.
 
     // 스코어링: interests 매치 +10, region 매치 +5. 같은 점수 내에서 endDate ASC 유지.

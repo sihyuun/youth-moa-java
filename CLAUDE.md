@@ -80,6 +80,27 @@ prototype 이 참조하는 mock 데이터 (예: `CENTER_DATA`, `PROGRAMS`) 의 *
 **언제 발동**: ym-spec 산출 첫 단계.
 **위반 감지**: spec 에 이 표가 없거나 "조치" 컬럼이 비어 있으면 위반.
 
+### spec 산출 시 "데이터 소비 지점" 리스트 필수 (2026-07-14 추가)
+
+**배경**: F-signup-03 WelcomeScreen 이 관심 지역·분야를 저장하도록 구현했으나, 저장된 데이터가 mypage 프로필 요약 카드에 표시되는 것을 spec 이 커버하지 않아 태그 형식이 prototype 매칭 안 됨 (mypage 는 `#tag` 노출, prototype 은 `관심 지역 · X` + `관심 · Y·Z` 형식).
+
+**규칙**: 저장·수정·삭제 데이터를 다루는 spec 은 **해당 데이터가 표시·편집·요약되는 모든 화면**을 열거하고, 각 화면에 대해 prototype 매칭 상태를 확인·기록한다.
+
+| 소비 지점 (화면·컴포넌트) | prototype 참조 | 현재 상태 | 갭 |
+|---|---|---|---|
+| WelcomeScreen 저장 폼 | tsx L1541~1591 | 이번 티켓 신규 | — |
+| mypage 프로필 요약 태그 | tsx L1237 | `#tag` 혼재 | 형식 불일치 |
+| mypage 개인정보 수정 폼 | tsx L1380~ | 필드 부재 | 편집 UI 미구현 |
+
+**언제 발동**: ym-spec 산출 시. 데이터 필드 신설·마이그레이션 티켓은 반드시.
+**위반 감지**: spec 에 "데이터 소비 지점" 표가 없거나, 표에 나열된 소비 지점 중 prototype 매칭 확인 미기재 항목이 있으면 위반.
+
+### spec 산출 시 write→read 왕복 통합 시나리오 필수
+
+**규칙**: 저장·수정 티켓은 "저장 → 재로드 후 값 확인" 통합 시나리오를 spec 검증 항목에 명시. 각 소비 지점(위 표) 별로 저장 후 어떻게 표시되는지 시나리오화.
+
+**감지**: 렌더 테스트만 있고 write→read 왕복 assertion 없으면 위반.
+
 ---
 
 ## 협업·작업 규칙
@@ -579,6 +600,22 @@ HTMX `outerHTML` swap 으로 부분 렌더할 때, 프래그먼트가 **자신�
 - **2026-07-03 사고**: `BookmarkController.toggle()` 이 model 에 `styleClass` 를 안 넣어 HTMX 응답이 `class="null bookmark-btn is-bookmarked"` → bookmark spec 3개 실패.
 - 검증: `curl -X POST /bookmarks/programs/{id}/toggle` 응답의 `class="..."` 확인.
 
+### HTML `[hidden]` 속성과 CSS `display` override 사고 방지
+
+**배경 (2026-07-14 F-signup-03 이후 발견)**: `mypage/history.html` 취소 모달이 `<div class="mypage-modal" hidden>` 로 초기 숨김 의도였으나 CSS `.mypage-modal { display: flex; ... }` 가 브라우저 UA 의 기본 `[hidden] { display:none }` 을 override → 마이페이지 진입 시 취소 모달이 자동 노출됨.
+
+**규칙**: `hidden` 속성으로 토글하는 요소의 CSS 규칙은 반드시 `:not([hidden])` 셀렉터로 감싼다.
+
+```css
+/* ❌ hidden 속성 무시됨 */
+.my-modal { display: flex; position: fixed; ... }
+
+/* ✅ hidden 시 display:none 유지, 그 외에만 flex */
+.my-modal:not([hidden]) { display: flex; position: fixed; ... }
+```
+
+**감지**: `hidden` 속성 붙인 요소가 화면에 계속 보이면 CSS override 의심. `curl <path> | grep 'hidden'` 으로 마크업 존재 + 브라우저에서 display 실측 대조.
+
 ---
 
 ## JPA / PostgreSQL 주의사항
@@ -623,6 +660,28 @@ Optional<Application> findWithProgramAndUserById(Long id);
 컨트롤러에 `@Transactional(readOnly=true)` 만 부착해도 lazy 로딩은 되지만, 트랜잭션이 뷰 렌더 끝날 때까지 열려 있어야 하므로 커넥션 점유 시간이 길어짐. `@EntityGraph` 로 필요한 그래프만 로드하는 편이 성능·확장성 모두 유리.
 
 **주의**: `@EntityGraph` 는 필요한 관계만 명시. 지나치게 많이 넣으면 카티션 곱 발생 → 별도 쿼리 필요.
+
+### `@ElementCollection` 필드 참조 재할당 금지 — 반드시 mutate
+
+**배경 (2026-07-14 F-signup-03 WelcomeScreen 저장 사고)**: `User.updateInterests(regions, categories)` 가 필드를 재할당 (`this.interestRegions = regions`) 하도록 구현되어, welcome 화면에서 선택한 값이 mypage 태그에 반영되지 않음. Hibernate 는 엔티티 로드 시 `@ElementCollection` 필드에 `PersistentSet` 프록시를 세팅해 변경사항을 추적하는데, 새 컬렉션 인스턴스를 재할당하면 트래킹이 끊겨 flush 시 DELETE/INSERT 가 일부 또는 전혀 실행되지 않음.
+
+```java
+// ❌ 재할당 — Hibernate PersistentSet 트래킹 끊김, 저장 실패 or 부분 저장
+public void updateInterests(Set<String> regions, Set<String> categories) {
+    this.interestRegions = regions;
+    this.interestCategories = categories;
+}
+
+// ✅ 동일 인스턴스 mutate — DELETE + INSERT 정상 실행
+public void updateInterests(Set<String> regions, Set<String> categories) {
+    this.interestRegions.clear();
+    if (regions != null) this.interestRegions.addAll(regions);
+    this.interestCategories.clear();
+    if (categories != null) this.interestCategories.addAll(categories);
+}
+```
+
+**감지 방법**: 저장 API 200 응답 오는데 재조회 시 값이 옛 상태거나 빈 상태 → 재할당 패턴 의심. `@ElementCollection` `@OneToMany(orphanRemoval=true)` 등 컬렉션 관계 필드는 항상 mutate 패턴 사용.
 
 ### `@WebMvcTest` 는 실제 렌더링 하지 않음
 `@WebMvcTest(Controller.class)` 는 view name / model attribute 만 검증. Thymeleaf 실제 파싱·EL 평가·엔티티 lazy 접근은 실행되지 않아 위 두 사고 유형 모두 통과함.

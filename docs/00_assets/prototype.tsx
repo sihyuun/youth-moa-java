@@ -63,6 +63,7 @@ function Icon({ n, size=20, color='currentColor', style:xs, onClick }) {
 		pin: <><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" stroke={color} strokeWidth="1.5" fill="none"/><circle cx="12" cy="10" r="3" stroke={color} strokeWidth="1.5" fill="none"/></>,
 		share: <><circle cx="18" cy="5" r="3" stroke={color} strokeWidth="1.5" fill="none"/><circle cx="6" cy="12" r="3" stroke={color} strokeWidth="1.5" fill="none"/><circle cx="18" cy="19" r="3" stroke={color} strokeWidth="1.5" fill="none"/><path d="M8.59 13.51l6.83 3.98M15.41 6.51l-6.82 3.98" stroke={color} strokeWidth="1.5" fill="none"/></>,
 		close: <path d="M18 6L6 18M6 6l12 12" stroke={color} strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/>,
+		edit: <><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke={color} strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/><path d="M18.5 2.5a2.12 2.12 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke={color} strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/></>,
 		mail: <><rect x="3" y="5" width="18" height="14" rx="2" stroke={color} strokeWidth="1.5" fill="none"/><path d="M3 7l9 6 9-6" stroke={color} strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/></>,
 		login: <><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4M10 17l5-5-5-5M15 12H3" stroke={color} strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/></>,
 		user: <><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" stroke={color} strokeWidth="1.5" fill="none"/><circle cx="12" cy="7" r="4" stroke={color} strokeWidth="1.5" fill="none"/></>,
@@ -1232,11 +1233,24 @@ function MyPage({ go, addToast, initialTab }) {
 					<Avatar size={58}/>
 					<div style={{ flex:1, minWidth:0 }}>
 						<div style={{ fontSize:20, fontWeight:700, color:T.text, marginBottom:3 }}>반가워요, 박시현님!</div>
-						<div style={{ fontSize:13, color:T.textSec, marginBottom:9 }}>hyuuun0321@naver.com</div>
-						<div style={{ display:'flex', gap:6 }}>
-							{['관심 지역 · 수원시','관심 · 취업·창업'].map(t=>(
-								<span key={t} style={{ padding:'3px 10px', borderRadius:T.tagR, background:T.primaryLight, color:T.primary, fontSize:12, fontWeight:600 }}>{t}</span>
-							))}
+						<div style={{ fontSize:13, color:T.textSec, marginBottom:11 }}>hyuuun0321@naver.com</div>
+						<div style={{ display:'flex', flexWrap:'wrap', alignItems:'center', gap:'8px 16px' }}>
+							{[{icon:'pin',label:'관심 지역',vals:['수원시','성남시']},{icon:'star',label:'관심 분야',vals:['취업·창업','교육','문화·예술','주거']}].map(g=>{
+								const MAX=3, shown=g.vals.slice(0,MAX), rest=g.vals.length-MAX;
+								return (
+									<div key={g.label} style={{ display:'flex', alignItems:'center', gap:7, minWidth:0 }}>
+										<span style={{ display:'inline-flex', alignItems:'center', gap:4, fontSize:12.5, color:T.textTri, fontWeight:500, whiteSpace:'nowrap' }}><Icon n={g.icon} size={13} color={T.textTri}/>{g.label}</span>
+										<div style={{ display:'flex', flexWrap:'wrap', gap:5 }}>
+											{g.vals.length ? <>
+												{shown.map(v=>(
+													<span key={v} style={{ padding:'3px 10px', borderRadius:T.tagR, background:T.primaryLight, color:T.primary, fontSize:12, fontWeight:600, whiteSpace:'nowrap' }}>{v}</span>
+												))}
+												{rest>0 && <span title={g.vals.slice(MAX).join(', ')} style={{ padding:'3px 9px', borderRadius:T.tagR, background:T.borderLight, color:T.textTri, fontSize:12, fontWeight:600, whiteSpace:'nowrap' }}>+{rest}</span>}
+											</> : <span style={{ fontSize:12, color:T.textTri }}>미설정</span>}
+										</div>
+									</div>
+								);})}
+							<span className="btn-hover" onClick={()=>setTab('profile')} style={{ display:'inline-flex', alignItems:'center', gap:4, fontSize:12.5, fontWeight:600, color:T.primary, cursor:'pointer', whiteSpace:'nowrap' }}>관심 정보 수정<Icon n="edit" size={12} color={T.primary}/></span>
 						</div>
 					</div>
 					{/* KPI */}
@@ -1528,11 +1542,15 @@ function ApplicationDetail({ go, pg, addToast }) {
 }
 
 // ── WELCOME (회원가입 직후 온보딩 + 관심설정) ──
-const WELCOME_REGIONS = ['수원시','성남시','고양시','용인시','부천시','안양시','안산시','화성시','남양주시','평택시','의정부시','시흥시'];
+const WELCOME_REGIONS_TOP = ['수원시','성남시','고양시','용인시','부천시','안양시','안산시','화성시','남양주시','평택시'];
+const WELCOME_REGIONS_MORE = ['의정부시','시흥시','파주시','김포시','광명시','광주시','군포시','오산시','이천시','양주시','안성시','구리시','포천시','의왕시','하남시','여주시','동두천시','과천시','가평군','양평군'];
 const WELCOME_CATS = ['취업·역량','창업','심리·건강','문화·예술','주거','금융','네트워킹'];
 function WelcomeScreen({ go, addToast }) {
 	const [regions, setRegions] = useState(new Set(['부천시']));
 	const [cats, setCats] = useState(new Set(['취업·역량']));
+	const [regionsOpen, setRegionsOpen] = useState(false);
+	const hiddenSel = [...regions].filter(r=>WELCOME_REGIONS_MORE.includes(r));
+	const visibleRegions = regionsOpen ? [...WELCOME_REGIONS_TOP, ...WELCOME_REGIONS_MORE] : [...WELCOME_REGIONS_TOP, ...hiddenSel];
 	const toggle = (setter) => (v) => setter(s=>{ const n=new Set(s); n.has(v)?n.delete(v):n.add(v); return n; });
 	const finish = (personalized) => {
 		addToast(personalized ? '관심 정보가 저장되었어요. 맞춤 추천을 받아보세요!' : '청년모아에 오신 걸 환영해요!');
@@ -1556,12 +1574,15 @@ function WelcomeScreen({ go, addToast }) {
 						<div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:12 }}>
 							<Icon n="pin" size={18} color={T.primary}/>
 							<span style={{ fontSize:16, fontWeight:700, color:T.text }}>관심 지역</span>
-							<span style={{ fontSize:13, color:T.textTri }}>중복 선택 가능</span>
+							{regions.size>0 ? <span style={{ fontSize:13, fontWeight:700, color:T.primary }}>{regions.size}개 선택</span> : <span style={{ fontSize:13, color:T.textTri }}>중복 선택 가능</span>}
 						</div>
 						<div style={{ display:'flex', flexWrap:'wrap', gap:8 }}>
-							{WELCOME_REGIONS.map(r=>{ const on=regions.has(r); return (
+							{visibleRegions.map(r=>{ const on=regions.has(r); return (
 								<div key={r} className="btn-hover" onClick={()=>toggle(setRegions)(r)} style={{ padding:'9px 16px', borderRadius:T.tagR, border:`1px solid ${on?T.primary:T.border}`, background:on?T.primaryBg:T.surface, cursor:'pointer', fontSize:14, fontWeight:on?600:400, color:on?T.primary:T.textSec }}>{r}</div>
 							);})}
+							<div className="btn-hover" onClick={()=>setRegionsOpen(o=>!o)} style={{ padding:'9px 16px', borderRadius:T.tagR, border:`1px dashed ${T.border}`, background:'transparent', cursor:'pointer', fontSize:14, color:T.textSec, display:'flex', alignItems:'center', gap:5 }}>
+								{regionsOpen ? <>접기 <Icon n="chevU" size={13} color={T.textSec}/></> : <>+ 더보기 ({WELCOME_REGIONS_MORE.length - hiddenSel.length})</>}
+							</div>
 						</div>
 					</div>
 
@@ -1570,7 +1591,7 @@ function WelcomeScreen({ go, addToast }) {
 						<div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:12 }}>
 							<Icon n="star" size={18} color={T.primary}/>
 							<span style={{ fontSize:16, fontWeight:700, color:T.text }}>관심 분야</span>
-							<span style={{ fontSize:13, color:T.textTri }}>중복 선택 가능</span>
+							{cats.size>0 ? <span style={{ fontSize:13, fontWeight:700, color:T.primary }}>{cats.size}개 선택</span> : <span style={{ fontSize:13, color:T.textTri }}>중복 선택 가능</span>}
 						</div>
 						<div style={{ display:'flex', flexWrap:'wrap', gap:8 }}>
 							{WELCOME_CATS.map(cat=>{ const on=cats.has(cat); return (
@@ -1580,7 +1601,7 @@ function WelcomeScreen({ go, addToast }) {
 					</div>
 
 					{/* CTA */}
-					<Btn size="l" fullWidth onClick={()=>finish(true)} style={{ marginBottom:10 }}>관심 정보 저장하고 시작하기</Btn>
+					<Btn size="l" fullWidth onClick={()=>finish(true)} style={{ marginBottom:10 }}>{regions.size+cats.size>0 ? `관심 정보 ${regions.size+cats.size}개로 시작하기` : '관심 정보 저장하고 시작하기'}</Btn>
 					<div style={{ textAlign:'center' }}>
 						<span className="btn-hover" onClick={()=>finish(false)} style={{ fontSize:14, color:T.textTri, cursor:'pointer', padding:'8px 12px', display:'inline-block' }}>나중에 할게요 · 건너뛰기</span>
 					</div>

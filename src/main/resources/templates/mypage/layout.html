@@ -16,11 +16,36 @@
             <div class="mypage-summary-info">
                 <h2 class="mypage-summary-hello">반가워요, <span th:text="${myUser.name}">사용자</span>님!</h2>
                 <p class="mypage-summary-email" th:text="${myUser.email}">email@example.com</p>
-                <div class="mypage-summary-interests" th:if="${!#sets.isEmpty(myUserInterests)}">
-                    <span th:each="tag, iter : ${myUserInterests}"
-                          th:if="${iter.index < 2}"
-                          class="mypage-summary-tag"
-                          th:text="'#' + ${tag}">태그</span>
+                <!-- 관심 정보 그룹 (prototype.tsx L1236~1252 매칭) -->
+                <div class="mypage-interest-groups">
+                    <div class="mypage-interest-group" th:each="g : ${interestGroups}">
+                        <span class="mypage-interest-label">
+                            <!-- th:if + th:replace 같은 element 금지 (F0h-c2 사고 규칙). 아이콘 분기는 wrapper 로 격리. -->
+                            <th:block th:if="${g.icon == 'pin'}">
+                                <svg th:replace="~{fragments/icons :: pin(13, 'var(--color-text-tri)')}"></svg>
+                            </th:block>
+                            <th:block th:if="${g.icon == 'star'}">
+                                <svg th:replace="~{fragments/icons :: star(13, 'var(--color-text-tri)')}"></svg>
+                            </th:block>
+                            <span th:text="${g.label}">관심 지역</span>
+                        </span>
+                        <div class="mypage-interest-chips">
+                            <span th:if="${g.empty}" class="mypage-interest-empty">미설정</span>
+                            <th:block th:unless="${g.empty}">
+                                <span class="mypage-interest-chip"
+                                      th:each="v : ${g.shown}"
+                                      th:text="${v}">수원시</span>
+                                <span th:if="${g.restCount > 0}"
+                                      class="mypage-interest-more"
+                                      th:title="${g.restJoin}"
+                                      th:text="'+' + ${g.restCount}">+2</span>
+                            </th:block>
+                        </div>
+                    </div>
+                    <a class="mypage-interest-edit" th:href="@{/mypage(tab='profile')}">
+                        관심 정보 수정
+                        <svg th:replace="~{fragments/icons :: edit(12, 'var(--color-primary)')}"></svg>
+                    </a>
                 </div>
             </div>
             <div class="mypage-summary-kpis">

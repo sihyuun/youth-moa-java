@@ -218,7 +218,7 @@ class HomeServiceTest {
                 .email("u@test.com")
                 .password("p")
                 .name("테스터")
-                .interests(Set.of("힐링"))
+                .interestCategories(Set.of("힐링"))
                 .role(UserRole.USER)
                 .build());
 

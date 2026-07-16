@@ -125,7 +125,8 @@ public class MyPageController {
       req.setAddress(currentUser.getAddress());
       req.setAddressDetail(currentUser.getAddressDetail());
       req.setBirthDate(currentUser.getBirthDate());
-      req.setInterests(currentUser.getInterests());
+      req.setInterestRegions(currentUser.getInterestRegions());
+      req.setInterestCategories(currentUser.getInterestCategories());
       model.addAttribute("profileUpdateRequest", req);
     }
     return "mypage/profile-edit";
@@ -174,12 +175,24 @@ public class MyPageController {
 
   private void addSummary(User user, Model model) {
     // interests 는 LAZY @ElementCollection — 뷰 렌더 시점엔 tx 종료 상태라 접근 불가.
-    // 트랜잭션 안에서 강제 초기화 후 plain HashSet 스냅샷으로 노출해 SpEL/Thymeleaf 가 안전하게 순회하도록 함.
-    java.util.Set<String> interestsSnapshot =
-        user.getInterests() == null
-            ? java.util.Collections.emptySet()
-            : new java.util.LinkedHashSet<>(user.getInterests());
-    model.addAttribute("myUserInterests", interestsSnapshot);
+    // 트랜잭션 안에서 강제 초기화 후 plain 스냅샷으로 노출.
+    // 프로필 요약 관심 정보: prototype.tsx L1236~1252 매칭 그룹형.
+    //   - 지역·분야 각 그룹: 아이콘+라벨 + 값칩 (최대 3) + `+N` 축약칩
+    //   - 값 0개 그룹은 "미설정" 표시 (그룹 자체는 항상 노출)
+    //   - 끝에 "관심 정보 수정" 편집 링크 → ?tab=profile
+    java.util.List<String> regions =
+        user.getInterestRegions() == null
+            ? java.util.List.of()
+            : new java.util.ArrayList<>(user.getInterestRegions());
+    java.util.List<String> categories =
+        user.getInterestCategories() == null
+            ? java.util.List.of()
+            : new java.util.ArrayList<>(user.getInterestCategories());
+    java.util.List<InterestGroup> interestGroups =
+        java.util.List.of(
+            InterestGroup.of("pin", "관심 지역", regions),
+            InterestGroup.of("star", "관심 분야", categories));
+    model.addAttribute("interestGroups", interestGroups);
     List<Application> apps = applicationRepository.findAllByUserOrderByAppliedAtDesc(user);
     long ongoing =
         apps.stream()
