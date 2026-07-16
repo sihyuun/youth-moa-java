@@ -294,30 +294,21 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
   line-height: 1;
 }
 
-/* 드롭다운 (CSS hover/focus 만으로 — JS 없음) */
+/* 드롭다운 — U-COMMON-02: click 토글 (window.Dropdown 이 .is-open 부착).
+   D3 확정값: radius 14px, shadow 0 12px 40px rgba(0,0,0,0.14), min-width 240px. */
 .header-user-dropdown {
   position: absolute;
   top: calc(100% + 8px);
   right: 0;
-  min-width: 160px;
+  min-width: 240px;
   background: var(--color-surface);
-  border-radius: var(--radius-lg);
+  border-radius: 14px;
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.14);
   border: 1px solid var(--color-border-light);
   overflow: hidden;
-  opacity: 0;
-  visibility: hidden;
-  transform: translateY(-4px);
-  transition: opacity 0.15s, transform 0.15s, visibility 0.15s;
   z-index: 200;
 }
-
-.header-user-menu:hover .header-user-dropdown,
-.header-user-menu:focus-within .header-user-dropdown {
-  opacity: 1;
-  visibility: visible;
-  transform: translateY(0);
-}
+.header-user-dropdown[hidden] { display: none; }
 
 .header-dropdown-item {
   display: block;
@@ -342,6 +333,61 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
   border-top: 1px solid var(--color-border-light);
   margin: 0;
 }
+
+/* 프로필 카드 (D2 A안 — 아바타 + 이름 + 이메일, 클릭 시 /mypage) */
+.header-dropdown-profile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  color: var(--color-text);
+  text-decoration: none;
+  transition: background 0.1s;
+}
+.header-dropdown-profile:hover {
+  background: var(--color-primary-bg);
+}
+.header-dropdown-profile-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+  font-weight: 700;
+  font-size: 15px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.header-dropdown-profile-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.header-dropdown-profile-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.header-dropdown-profile-email {
+  font-size: 12px;
+  color: var(--color-text-sec);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* U-COMMON-02 공통 dropdown 애니메이션 (HANDOFF L1144). */
+@keyframes dropdown-enter {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.dropdown-enter { animation: dropdown-enter 180ms ease forwards; }
 
 /* ── Layout ───────────────────────────────────────────────── */
 .main-content {
@@ -3590,22 +3636,14 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
 }
 .header-bell-dot--hidden { display: none; }
 
+/* 알림 드롭다운 wrap — U-COMMON-02: click 토글 (window.Dropdown 이 .is-open + hidden 관리) */
 .header-bell-dropdown-wrap {
   position: absolute;
   top: calc(100% + 8px);
   right: -10px;
   z-index: 200;
-  opacity: 0;
-  visibility: hidden;
-  transform: translateY(-4px);
-  transition: opacity 0.15s, transform 0.15s, visibility 0.15s;
 }
-.header-bell-menu:hover .header-bell-dropdown-wrap,
-.header-bell-menu:focus-within .header-bell-dropdown-wrap {
-  opacity: 1;
-  visibility: visible;
-  transform: translateY(0);
-}
+.header-bell-dropdown-wrap[hidden] { display: none; }
 
 /* ── 알림 드롭다운 패널 본체 ── */
 .notif-panel {
