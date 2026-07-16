@@ -4638,42 +4638,161 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
   border-color: var(--color-success);
   color: var(--color-success);
 }
-/*
- * 공통 floating toast (프로젝트 최초 도입).
- * - mypage-toast (인라인 플래시) 와 컬러 팔레트 통일: success-light bg + success text.
- * - 화면 우하단 고정. JS 에서 body 에 append → 자동 페이드 아웃 → 제거.
- * - 여러 개 동시 발생 시 세로로 스택.
- */
+/* ═══════════════════════════════════════════════
+ * §4-S Common UI (Modal / Toast) — U-COMMON-01
+ * HANDOFF §4-S.1~2 준수. window.Toast / window.Modal 전역 API 와 결합.
+ * ═══════════════════════════════════════════════ */
+
+/* ── Toast ─────────────────────────────────────── */
 .toast-stack {
   position: fixed;
-  right: 24px;
-  bottom: 24px;
+  top: 90px;
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 8px;
-  z-index: 9999;
+  z-index: 1100;
   pointer-events: none;
 }
 .toast {
-  padding: 12px 16px;
-  border-radius: var(--radius-md);
-  background: var(--color-success-light);
-  color: var(--color-success);
-  font-size: 13px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 20px;
+  background: #FFFFFF;
+  border: 1px solid var(--color-border-light);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.14);
+  color: var(--color-text);
+  font-size: 15px;
   font-weight: 500;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   opacity: 0;
-  transform: translateY(8px);
-  transition: opacity 180ms ease, transform 180ms ease;
+  transform: translateY(-8px);
+  transition: opacity 300ms ease, transform 300ms ease;
   pointer-events: auto;
+  max-width: min(560px, calc(100vw - 40px));
 }
 .toast.is-visible {
   opacity: 1;
   transform: translateY(0);
+  animation: toast-slidedown 300ms ease-out;
 }
-.toast.toast--error {
-  background: #FEE2E2;
-  color: var(--color-error);
+.toast__icon { flex-shrink: 0; }
+.toast__message { line-height: 1.4; }
+.toast--success .toast__icon { color: #22C55E; }
+.toast--error   .toast__icon { color: var(--color-error); }
+.toast--info    .toast__icon { color: var(--color-primary); }
+@keyframes toast-slidedown {
+  from { opacity: 0; transform: translateY(-16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Modal ─────────────────────────────────────── */
+/* hidden 속성 존중 (CLAUDE.md 규칙). :not([hidden]) 로만 표시. */
+.modal-backdrop:not([hidden]) {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 500;
+  animation: modal-fade-in 180ms ease;
+}
+/* M3 스태킹: 최상위만 백드롭 표시, 하위는 카드만 렌더 */
+.modal-backdrop--transparent { background: transparent; }
+
+.modal-card {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  padding: 24px 28px;
+  width: 100%;
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.modal-card--sm { max-width: 400px; }
+.modal-card--md { max-width: 460px; }
+.modal-card--lg { max-width: 560px; }
+.modal-card--dialog {
+  text-align: center;
+  padding: 32px 28px 24px;
+}
+
+.modal-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.modal-card__title { font-size: 17px; font-weight: 700; margin: 0; color: var(--color-text); }
+.modal-card__close {
+  background: none;
+  border: none;
+  color: var(--color-text-tri);
+  cursor: pointer;
+  padding: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+}
+.modal-card__close:hover { color: var(--color-text); background: var(--color-bg); }
+.modal-card__body { font-size: 14px; color: var(--color-text-sec); line-height: 1.5; }
+.modal-card__message { margin: 0; keep-all: keep-all; word-break: keep-all; }
+.modal-card__footer {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+.modal-card--dialog .modal-card__footer { justify-content: center; }
+
+/* ConfirmDialog danger 변형 (Toast/Modal.confirm variant='danger') */
+.btn-auth.btn-auth--danger {
+  background: var(--color-error);
+  border: 1px solid var(--color-error);
+  color: #FFFFFF;
+}
+.btn-auth.btn-auth--danger:hover { filter: brightness(0.92); }
+
+@keyframes modal-fade-in { from { opacity: 0; } to { opacity: 1; } }
+
+/* ── 모바일 바텀 시트 (B-Q1) ──
+   콘텐츠형 modal-card 는 화면 하단 시트로 전환.
+   ConfirmDialog (.modal-card--dialog) 는 중앙 카드 유지, 좌우 마진만 부여. */
+@media (max-width: 767px) {
+  .modal-backdrop:not([hidden]):not(:has(.modal-card--dialog)) {
+    align-items: flex-end;
+  }
+  .modal-card:not(.modal-card--dialog) {
+    width: 100vw;
+    max-width: 100vw;
+    max-height: 90vh;
+    border-radius: 16px 16px 0 0;
+    padding-top: 20px;
+    position: relative;
+  }
+  .modal-card:not(.modal-card--dialog)::before {
+    content: '';
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 36px;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--color-border);
+  }
+  .modal-card--dialog {
+    max-width: calc(100vw - 40px);
+    margin: 0 20px;
+  }
 }
 
 /* Fallback grid placeholder */
