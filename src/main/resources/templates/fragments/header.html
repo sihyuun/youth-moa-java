@@ -69,7 +69,7 @@
                           class="header-bell-dot header-bell-dot--hidden"
                           aria-hidden="true"></span>
                 </button>
-                <div class="header-bell-dropdown-wrap" hidden>
+                <div id="header-notif-dropdown" class="header-bell-dropdown-wrap" role="menu" hidden>
                     <div th:replace="~{fragments/notification-panel :: panel}"></div>
                 </div>
             </div>
@@ -112,9 +112,24 @@
                             <span class="header-dropdown-profile-email"
                                   th:text="${#authentication.principal.email}">email@example.com</span>
                         </span>
+                        <!-- prototype Icon n="chevR" size=15 textTri — 마이페이지 이동 힌트 -->
+                        <svg class="header-dropdown-profile-chev" viewBox="0 0 24 24" width="15" height="15"
+                             fill="none" stroke="currentColor" stroke-width="2"
+                             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <polyline points="9 18 15 12 9 6"/>
+                        </svg>
                     </a>
                     <form th:action="@{/logout}" method="post" class="header-dropdown-logout">
-                        <button type="submit" class="header-dropdown-item" role="menuitem">로그아웃</button>
+                        <button type="submit" class="header-dropdown-item" role="menuitem">
+                            <!-- prototype Icon n="login" scaleX(-1) — exit(나가기) 화살표 -->
+                            <svg class="header-dropdown-item-icon" viewBox="0 0 24 24" width="17" height="17"
+                                 fill="none" stroke="currentColor" stroke-width="1.5"
+                                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"
+                                 style="transform:scaleX(-1)">
+                                <path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4M10 17l5-5-5-5M15 12H3"/>
+                            </svg>
+                            <span>로그아웃</span>
+                        </button>
                     </form>
                 </div>
             </div>
