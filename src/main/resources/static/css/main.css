@@ -5001,26 +5001,11 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
 .mypage-edit-note { margin-top: 24px; font-size: 13px; color: var(--color-text-sec); }
 .mypage-edit-note a { color: var(--color-primary); }
 
-/* 취소 모달 — [hidden] 상태에서 display:flex 가 발동되지 않도록 :not([hidden]) 사용.
-   (기본 [hidden] display:none 은 저자 CSS 의 display:flex 에 override 되므로 셀렉터로 방어) */
-.mypage-modal:not([hidden]) {
-    position: fixed; inset: 0;
-    background: rgba(0,0,0,.4);
-    z-index: 200;
-    display: flex; align-items: center; justify-content: center;
-}
-.mypage-modal-inner {
-    background: var(--color-surface);
-    border-radius: var(--radius-lg);
-    padding: 28px 32px;
-    width: 400px; max-width: calc(100% - 32px);
-    box-shadow: var(--shadow-lg);
-}
-.mypage-modal-inner h3 { font-size: 16px; margin: 0 0 4px; }
-.mypage-modal-subtitle { font-size: 13px; color: var(--color-text-sec); margin: 0 0 20px; }
-.mypage-reason-list { border: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+/* 신청 취소 모달 폼 전용 스타일 (공통 .modal-card 셸 위에 얹힘).
+   dead: .mypage-modal / .mypage-modal-inner / .mypage-modal-subtitle / .mypage-modal-actions
+         → §4-S .modal-* 공통 셸로 마이그레이션 (U-COMMON-01) */
+.mypage-reason-list { border: none; margin: 0; padding: 0; display: grid; gap: 10px; text-align: left; }
 .mypage-reason-list label { display: flex; align-items: center; gap: 10px; font-size: 14px; cursor: pointer; }
 #reasonText { width: 100%; margin-top: 12px; padding: 10px; border: 1px solid var(--color-border); border-radius: var(--radius-md); font-family: inherit; resize: vertical; min-height: 60px; }
-.mypage-modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
 
 .visually-hidden { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
