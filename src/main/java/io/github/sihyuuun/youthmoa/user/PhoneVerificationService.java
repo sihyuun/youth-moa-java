@@ -35,9 +35,6 @@ public class PhoneVerificationService {
   @Value("${youthmoa.coolsms.code-ttl-seconds:180}")
   private long codeTtlSeconds;
 
-  @Value("${youthmoa.coolsms.resend-cooldown-seconds:30}")
-  private long resendCooldownSeconds;
-
   @Value("${youthmoa.coolsms.max-attempts:5}")
   private int maxAttempts;
 

@@ -35,7 +35,6 @@ class PhoneVerificationServiceTest {
     inject("coolsmsEnabled", false);
     inject("mockFixedCode", "123456");
     inject("codeTtlSeconds", 180L);
-    inject("resendCooldownSeconds", 30L);
     inject("maxAttempts", 5);
 
     // save 시 인자 그대로 반환하도록 (id 없어도 서비스가 참조 안 함)
@@ -75,22 +74,27 @@ class PhoneVerificationServiceTest {
   }
 
   @Test
-  @DisplayName("sendCode: 기존 row 있으면 reissue (cooldown 없음 — prototype 재디자인 정합)")
+  @DisplayName("sendCode: 기존 row 있으면 reissue (cooldown 없음 · attempts 리셋 · verified 리셋)")
   void sendCode_기존_row_reissue() {
     PhoneVerification existing =
-        org.mockito.Mockito.spy(
-            PhoneVerification.builder()
-                .phone("01011112222")
-                .code("111111")
-                .expiresAt(LocalDateTime.now().plusMinutes(3))
-                .build());
+        PhoneVerification.builder()
+            .phone("01011112222")
+            .code("111111")
+            .expiresAt(LocalDateTime.now().plusMinutes(3))
+            .build();
+    // 기존 시도 흔적 시뮬레이션
+    existing.incrementAttempts();
+    existing.incrementAttempts();
+    org.junit.jupiter.api.Assertions.assertEquals(2, existing.getAttempts());
     when(repository.findByPhone("01011112222")).thenReturn(Optional.of(existing));
 
     service.sendCode("01011112222");
 
-    // reissue 호출 확인 (repository.save 는 재발송 시 호출 없음)
-    org.mockito.Mockito.verify(existing).reissue(org.mockito.ArgumentMatchers.anyString(), org.mockito.ArgumentMatchers.any());
-    org.mockito.Mockito.verify(smsSender).send(org.mockito.ArgumentMatchers.eq("01011112222"), org.mockito.ArgumentMatchers.anyString());
+    // reissue 이후 attempts 0 · verified false 리셋 확인 (회귀 방어)
+    org.junit.jupiter.api.Assertions.assertEquals(0, existing.getAttempts(), "reissue 시 attempts 리셋");
+    org.junit.jupiter.api.Assertions.assertFalse(existing.isVerified(), "reissue 시 verified 리셋");
+    org.mockito.Mockito.verify(smsSender)
+        .send(org.mockito.ArgumentMatchers.eq("01011112222"), org.mockito.ArgumentMatchers.anyString());
   }
 
   @Test

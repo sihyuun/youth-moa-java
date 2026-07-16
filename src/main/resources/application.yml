@@ -75,7 +75,7 @@ youthmoa:
     api-secret: ${COOLSMS_API_SECRET:}
     sender: ${COOLSMS_SENDER:}
     code-ttl-seconds: 180
-    resend-cooldown-seconds: 30
+    # per-phone cooldown 제거 (2026-07-16, prototype §5.7 정합). spam 방어는 SmsRateLimiter (IP 기반) 담당.
     max-attempts: 5
     session-valid-minutes: 30
     mock-fixed-code: "123456"
