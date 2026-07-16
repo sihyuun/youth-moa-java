@@ -242,6 +242,122 @@
     }
   };
 
+  // ── Dropdown ───────────────────────────────────────
+  // U-COMMON-02 (HANDOFF §4-S.3, D1~D3).
+  //
+  // 사용:
+  //   Dropdown.bind(triggerEl, panelEl)  → 1회 등록. 이후 click / outside / ESC 자동 처리.
+  //   Dropdown.open(id) / close(id) / closeAll()
+  //
+  // 동작:
+  //   - 클릭 토글 (hover 폐지, D1).
+  //   - 다른 dropdown 이 열려 있으면 auto-close (Q7).
+  //   - aria-expanded 동기, .is-open 클래스 부착, .dropdown-enter 로 slideDown 180ms.
+  //   - outside click / ESC 로 close. ESC 시 트리거로 포커스 복귀.
+  //
+  // DOMContentLoaded 시점에 [data-dropdown-trigger] + 대응 패널을 자동 bind.
+  var bound = []; // { trigger, panel, id }
+
+  function panelId(panel) {
+    return panel.id || panel.getAttribute('data-dropdown-panel') || '';
+  }
+
+  function closeOne(record) {
+    if (!record._open) return;
+    record._open = false;
+    record.panel.classList.remove('is-open', 'dropdown-enter');
+    record.panel.setAttribute('hidden', '');
+    record.trigger.setAttribute('aria-expanded', 'false');
+  }
+
+  function openOne(record) {
+    if (record._open) return;
+    // 다른 열린 dropdown 자동 close (Q7)
+    bound.forEach(function (r) { if (r !== record && r._open) closeOne(r); });
+    record._open = true;
+    record.panel.removeAttribute('hidden');
+    record.panel.classList.add('is-open', 'dropdown-enter');
+    record.trigger.setAttribute('aria-expanded', 'true');
+  }
+
+  function closeAll() {
+    bound.forEach(function (r) { if (r._open) closeOne(r); });
+  }
+
+  // 전역 outside-click / ESC 리스너 (1회만 등록)
+  var globalWired = false;
+  function ensureGlobal() {
+    if (globalWired) return;
+    globalWired = true;
+    document.addEventListener('click', function (e) {
+      bound.forEach(function (r) {
+        if (!r._open) return;
+        if (r.trigger.contains(e.target) || r.panel.contains(e.target)) return;
+        closeOne(r);
+      });
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== 'Escape') return;
+      bound.forEach(function (r) {
+        if (!r._open) return;
+        closeOne(r);
+        try { r.trigger.focus(); } catch (err) {}
+      });
+    });
+  }
+
+  var Dropdown = {
+    bind: function (trigger, panel) {
+      if (!trigger || !panel) return;
+      var record = { trigger: trigger, panel: panel, id: panelId(panel), _open: false };
+      // 초기 상태 정합: hidden + aria-expanded=false
+      panel.setAttribute('hidden', '');
+      panel.classList.remove('is-open', 'dropdown-enter');
+      trigger.setAttribute('aria-expanded', 'false');
+      trigger.setAttribute('aria-haspopup', trigger.getAttribute('aria-haspopup') || 'menu');
+      trigger.addEventListener('click', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (record._open) closeOne(record); else openOne(record);
+      });
+      // 항목 선택 시 close
+      panel.addEventListener('click', function (e) {
+        var target = e.target;
+        if (!target) return;
+        // 링크 or 버튼 클릭 시 close (form submit 은 제외 — 페이지 이동/재렌더로 자연 close)
+        if (target.closest('a[href], [data-dropdown-close]')) closeOne(record);
+      });
+      bound.push(record);
+      ensureGlobal();
+      return record;
+    },
+    open: function (id) {
+      bound.forEach(function (r) { if (r.id === id) openOne(r); });
+    },
+    close: function (id) {
+      bound.forEach(function (r) { if (r.id === id) closeOne(r); });
+    },
+    closeAll: closeAll
+  };
+
   window.Toast = Toast;
   window.Modal = Modal;
+  window.Dropdown = Dropdown;
+
+  // ── Auto-bind on DOMContentLoaded ──
+  // [data-dropdown-trigger="<panelId>"] + #<panelId> 페어를 자동 등록.
+  function autoBind() {
+    var triggers = document.querySelectorAll('[data-dropdown-trigger]');
+    Array.prototype.forEach.call(triggers, function (trigger) {
+      var pid = trigger.getAttribute('data-dropdown-trigger');
+      if (!pid) return;
+      var panel = document.getElementById(pid);
+      if (panel) Dropdown.bind(trigger, panel);
+    });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', autoBind);
+  } else {
+    autoBind();
+  }
 })();

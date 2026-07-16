@@ -45,10 +45,14 @@
                 </svg>
             </a>
 
-            <!-- 인증 상태: 알림 종 (hover 로 드롭다운). CSS :hover/:focus-within 방식. -->
+            <!-- 인증 상태: 알림 종 — U-COMMON-02 (§4-S.3 D1). click 토글 (hover 폐지). -->
             <div sec:authorize="isAuthenticated()" class="header-bell-menu">
-                <button type="button" class="header-icon-btn header-bell-trigger"
-                        aria-haspopup="menu" aria-controls="header-notif-dropdown"
+                <button type="button"
+                        class="header-icon-btn header-bell-trigger"
+                        data-dropdown-trigger="header-notif-dropdown"
+                        aria-haspopup="menu"
+                        aria-controls="header-notif-dropdown"
+                        aria-expanded="false"
                         aria-label="알림">
                     <svg viewBox="0 0 24 24" width="20" height="20" fill="none"
                          stroke="currentColor" stroke-width="1.5"
@@ -65,16 +69,19 @@
                           class="header-bell-dot header-bell-dot--hidden"
                           aria-hidden="true"></span>
                 </button>
-                <div class="header-bell-dropdown-wrap">
+                <div id="header-notif-dropdown" class="header-bell-dropdown-wrap" role="menu" hidden>
                     <div th:replace="~{fragments/notification-panel :: panel}"></div>
                 </div>
             </div>
 
-            <!-- 인증 상태: 아바타 + 이름 + ▾ 드롭다운 -->
+            <!-- 인증 상태: 아바타 + 이름 + ▾ 드롭다운 (U-COMMON-02 D2 A안). -->
             <div sec:authorize="isAuthenticated()" class="header-user-menu">
-                <!-- 드롭다운은 CSS :hover / :focus-within 만으로 열림. JS 토글 도입 시 aria-expanded 동기화 추가. -->
-                <button type="button" class="header-user-trigger"
-                        aria-haspopup="menu" aria-controls="header-user-dropdown">
+                <button type="button"
+                        class="header-user-trigger"
+                        data-dropdown-trigger="header-user-dropdown"
+                        aria-haspopup="menu"
+                        aria-controls="header-user-dropdown"
+                        aria-expanded="false">
                     <span class="header-avatar" aria-hidden="true"
                           th:text="${#strings.substring(#authentication.principal.displayName, 0, 1)}">박</span>
                     <!--/*
@@ -91,10 +98,38 @@
                         <polyline points="6 9 12 15 18 9"/>
                     </svg>
                 </button>
-                <div id="header-user-dropdown" class="header-user-dropdown" role="menu">
-                    <a th:href="@{/mypage}" class="header-dropdown-item" role="menuitem">마이페이지</a>
+                <!--
+                  D2 A안: [프로필 카드 (아바타 + 이름 + 이메일 · 클릭 시 /mypage)] + 구분선 + [로그아웃].
+                  hidden 속성 초기 세팅. window.Dropdown 이 클릭 시 removeAttribute('hidden') + .is-open + .dropdown-enter.
+                -->
+                <div id="header-user-dropdown" class="header-user-dropdown" role="menu" hidden>
+                    <a th:href="@{/mypage}" class="header-dropdown-profile" role="menuitem">
+                        <span class="header-dropdown-profile-avatar" aria-hidden="true"
+                              th:text="${#strings.substring(#authentication.principal.displayName, 0, 1)}">박</span>
+                        <span class="header-dropdown-profile-info">
+                            <span class="header-dropdown-profile-name"
+                                  th:text="|${#authentication.principal.displayName}님|">이름님</span>
+                            <span class="header-dropdown-profile-email"
+                                  th:text="${#authentication.principal.email}">email@example.com</span>
+                        </span>
+                        <!-- prototype Icon n="chevR" size=15 textTri — 마이페이지 이동 힌트 -->
+                        <svg class="header-dropdown-profile-chev" viewBox="0 0 24 24" width="15" height="15"
+                             fill="none" stroke="currentColor" stroke-width="2"
+                             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <polyline points="9 18 15 12 9 6"/>
+                        </svg>
+                    </a>
                     <form th:action="@{/logout}" method="post" class="header-dropdown-logout">
-                        <button type="submit" class="header-dropdown-item" role="menuitem">로그아웃</button>
+                        <button type="submit" class="header-dropdown-item" role="menuitem">
+                            <!-- prototype Icon n="login" scaleX(-1) — exit(나가기) 화살표 -->
+                            <svg class="header-dropdown-item-icon" viewBox="0 0 24 24" width="17" height="17"
+                                 fill="none" stroke="currentColor" stroke-width="1.5"
+                                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"
+                                 style="transform:scaleX(-1)">
+                                <path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4M10 17l5-5-5-5M15 12H3"/>
+                            </svg>
+                            <span>로그아웃</span>
+                        </button>
                     </form>
                 </div>
             </div>
