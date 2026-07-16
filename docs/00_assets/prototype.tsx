@@ -1,7 +1,8 @@
 // @ts-nocheck
-// Youth-Moa Prototype — 최신 동기화본 (2026-07-16)
-// 관심 정보 수정 모달(A안) · 500 일시적 오류 화면 · 회원가입 휴대폰 인증(3분 타이머·재요청·재인증) · input 라이트모드 고정
+// Youth-Moa Prototype — 최신 동기화본 (2026-07-16, 전체 검토 반영)
+// 비로그인 가드(즐겨찾기·빈자리/오픈 알림) · statusStyle 단일화 · 알림 전체 페이지(/notifications) · 목록 0건 빈 상태 · 연도 2026 통일
 // ⚠ 전역 CSS 필수: :root{color-scheme:light}  input,textarea,select{background:#fff}  input:disabled{background:#F3F4F6}
+// ⚠ 개발 이관 유의사항은 HANDOFF.md §12 참조 (전역 즐겨찾기 스토어, 데모 전용 요소 제외 등)
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { createRoot } from 'react-dom/client';
 
@@ -35,20 +36,20 @@ const IMGS = {
 };
 
 const PROGRAMS = [
-	{ id:1, title:'취업역량 강화 워크숍', center:'내일스퀘어', region:'부천시', status:'진행중', date:'2024-08-01~08-31', cap:30, applied:27, dday:3, cat:'취업' },
-	{ id:2, title:'청년 창업 아카데미', center:'상상대로', region:'수원시', status:'진행중', date:'2024-08-01~08-31', cap:25, applied:12, dday:12, cat:'창업' },
-	{ id:3, title:'마음건강 힐링 캠프', center:'범계역 청년출구', region:'안양시', status:'진행중', date:'2024-07-01~07-31', cap:20, applied:18, dday:6, cat:'힐링' },
-	{ id:4, title:'디지털 마케팅 실전반', center:'원미청정구역', region:'부천시', status:'마감', date:'2024-07-01~07-31', cap:15, applied:15, dday:0, cat:'교육' },
-	{ id:5, title:'AI 활용 실무 교육', center:'비행지구', region:'고양시', status:'진행예정', date:'2024-09-01~09-30', apply:'2024-08-20~08-31', cap:30, applied:0, openDday:14, cat:'교육' },
-	{ id:6, title:'소셜벤처 인큐베이팅', center:'오름', region:'용인시', status:'진행예정', date:'2024-09-05~09-30', apply:'2024-08-25~09-02', cap:20, applied:0, openDday:21, cat:'창업' },
-	{ id:7, title:'청년 목공 클래스 (비활성 데모)', center:'메이커스페이스', region:'성남시', status:'중단', date:'2024-08-10~08-30', cap:16, applied:9, dday:5, cat:'교육', demo:true },
+	{ id:1, title:'취업역량 강화 워크숍', center:'내일스퀘어', region:'부천시', status:'진행중', date:'2026-08-01~08-31', cap:30, applied:27, dday:3, cat:'취업' },
+	{ id:2, title:'청년 창업 아카데미', center:'상상대로', region:'수원시', status:'진행중', date:'2026-08-01~08-31', cap:25, applied:12, dday:12, cat:'창업' },
+	{ id:3, title:'마음건강 힐링 캠프', center:'범계역 청년출구', region:'안양시', status:'진행중', date:'2026-07-01~07-31', cap:20, applied:18, dday:6, cat:'힐링' },
+	{ id:4, title:'디지털 마케팅 실전반', center:'원미청정구역', region:'부천시', status:'마감', date:'2026-07-01~07-31', cap:15, applied:15, dday:0, cat:'교육' },
+	{ id:5, title:'AI 활용 실무 교육', center:'비행지구', region:'고양시', status:'진행예정', date:'2026-09-01~09-30', apply:'2026-08-20~08-31', cap:30, applied:0, openDday:14, cat:'교육' },
+	{ id:6, title:'소셜벤처 인큐베이팅', center:'오름', region:'용인시', status:'진행예정', date:'2026-09-05~09-30', apply:'2026-08-25~09-02', cap:20, applied:0, openDday:21, cat:'창업' },
+	{ id:7, title:'청년 목공 클래스 (비활성 데모)', center:'메이커스페이스', region:'성남시', status:'중단', date:'2026-08-10~08-30', cap:16, applied:9, dday:5, cat:'교육', demo:true },
 ];
 
 const NOTICES = [
-	{ id:1, cat:'행사', title:'제1회 청년의 날 축제 안내', date:'2024.07.30', views:756, pin:true },
-	{ id:2, cat:'공지', title:'7월 청년센터 프로그램 일정 안내', date:'2024.06.15', views:7178 },
-	{ id:3, cat:'운영', title:'7월 휴관 일정 안내', date:'2024.06.15', views:7756 },
-	{ id:4, cat:'기타', title:'[경기도] 2024 경기 사회적 경제 박람회', date:'2024.05.15', views:157 },
+	{ id:1, cat:'행사', title:'제1회 청년의 날 축제 안내', date:'2026.07.30', views:756, pin:true },
+	{ id:2, cat:'공지', title:'7월 청년센터 프로그램 일정 안내', date:'2026.06.15', views:7178 },
+	{ id:3, cat:'운영', title:'7월 휴관 일정 안내', date:'2026.06.15', views:7756 },
+	{ id:4, cat:'기타', title:'[경기도] 2026 경기 사회적 경제 박람회', date:'2026.05.15', views:157 },
 ];
 
 // ── Icon ──
@@ -289,13 +290,17 @@ function WaitlistModal({ pg, onClose, addToast }){
 }
 
 // ── Notification Panel ──
-function NotifPanel({ onClose }) {
-	const [items, setItems] = useState([
-		{ id:1, title:'프로그램 신청 승인', body:'[취업역량 강화 워크숍] 신청이 승인되었습니다.', time:'1시간 전', unread:true, icon:'check', tone:T.success },
-		{ id:2, title:'마감 임박', body:'[청년 창업 아카데미] 마감이 임박했어요. (D-1)', time:'3시간 전', unread:true, icon:'calendar', tone:T.warning },
-		{ id:3, title:'공지사항', body:'새 공지사항 — 7월 휴관 일정 안내', time:'1일 전', unread:false, icon:'bell', tone:T.primary },
-		{ id:4, title:'신청 취소 처리', body:'[마음건강 힐링 캠프] 취소가 처리되었습니다.', time:'2일 전', unread:false, icon:'close', tone:T.textTri },
-	]);
+const NOTIF_ITEMS = [
+	{ id:1, title:'프로그램 신청 승인', body:'[취업역량 강화 워크숍] 신청이 승인되었습니다.', time:'1시간 전', unread:true, icon:'check', tone:T.success },
+	{ id:2, title:'마감 임박', body:'[청년 창업 아카데미] 마감이 임박했어요. (D-1)', time:'3시간 전', unread:true, icon:'calendar', tone:T.warning },
+	{ id:3, title:'공지사항', body:'새 공지사항 — 7월 휴관 일정 안내', time:'1일 전', unread:false, icon:'bell', tone:T.primary },
+	{ id:4, title:'신청 취소 처리', body:'[마음건강 힐링 캠프] 취소가 처리되었습니다.', time:'2일 전', unread:false, icon:'close', tone:T.textTri },
+	{ id:5, title:'프로그램 시작 리마인더', body:'[취업역량 강화 워크숍]이 내일 시작돼요.', time:'5일 전', unread:false, icon:'calendar', tone:T.primary },
+	{ id:6, title:'빈자리 알림', body:'[면접 이미지 메이킹] 프로그램에 빈자리가 생겼어요.', time:'1주 전', unread:false, icon:'bell', tone:T.primary },
+	{ id:7, title:'공지사항', body:'개인정보처리방침 개정 안내', time:'2주 전', unread:false, icon:'bell', tone:T.textTri },
+];
+function NotifPanel({ onClose, go }) {
+	const [items, setItems] = useState(NOTIF_ITEMS.slice(0,4));
 	const unreadCount = items.filter(i=>i.unread).length;
 	const markAllRead = () => setItems(prev=>prev.map(i=>({...i,unread:false})));
 	const clearAll = () => setItems([]);
@@ -333,7 +338,7 @@ function NotifPanel({ onClose }) {
 					</div>
 				</div>
 			))}
-			<div style={{ padding:'12px 18px', textAlign:'center', cursor:'pointer', fontSize:13, fontWeight:600, color:T.primary }} className="btn-hover">알림 전체보기</div>
+			<div style={{ padding:'12px 18px', textAlign:'center', cursor:'pointer', fontSize:13, fontWeight:600, color:T.primary }} className="btn-hover" onClick={()=>{onClose(); go && go('notifications');}}>알림 전체보기</div>
 		</div>
 	);
 }
@@ -412,7 +417,7 @@ function Header({ screen, go, isLoggedIn, onLoginClick, onLogout, onMyPage, scro
 						</div>
 						{showNotif && (
 							<div style={{ position:'absolute', top:34, right:-10, zIndex:200 }}>
-								<NotifPanel onClose={()=>setShowNotif(false)}/>
+								<NotifPanel onClose={()=>setShowNotif(false)} go={go}/>
 							</div>
 						)}
 					</div>
@@ -460,7 +465,7 @@ function Footer() {
 						<span style={{ width:1, height:10, background:'#ccc' }}/>
 						<span onClick={()=>window.__ymGo && window.__ymGo('forbidden')} style={{ fontSize:11, fontWeight:500, color:'#444', cursor:'pointer' }}>관리자</span>
 					</div>
-					<span style={{ fontSize:11, color:'#888' }}>Copyright © 2024 청년모아 All Rights Reserved</span>
+					<span style={{ fontSize:11, color:'#888' }}>Copyright © 2026 청년모아 All Rights Reserved</span>
 				</div>
 				<div style={{ display:'flex', gap:8, alignItems:'center', flexShrink:0 }}>
 					{socials.map(s=><img key={s.l} src={s.src} alt={s.l} style={{ width:24, height:24, cursor:'pointer' }}/>)}
@@ -471,7 +476,7 @@ function Footer() {
 }
 
 // ── HOME ──
-function HomeScreen({ go, isLoggedIn }) {
+function HomeScreen({ go, isLoggedIn, onLoginClick }) {
 	const [search, setSearch] = useState('');
 	const [fav, setFav] = useState(new Set([1]));
 	const [waitlist, setWaitlist] = useState(null);
@@ -591,7 +596,7 @@ function HomeScreen({ go, isLoggedIn }) {
 								<div style={{ width:'100%', height:170, position:'relative', overflow:'hidden', background:'#e5e7eb' }}>
 									<img src={IMGS.pg[i%6]} alt="" style={{ width:'100%', height:'100%', objectFit:'cover', filter:c.full?'grayscale(0.5)':'none' }}/>
 									<div style={{ position:'absolute', top:10, left:10 }}><DdayChip pg={pg}/></div>
-									<div onClick={e=>{e.stopPropagation();setFav(f=>{const n=new Set(f);n.has(pg.id)?n.delete(pg.id):n.add(pg.id);return n;});}} style={{ position:'absolute', top:10, right:10, cursor:'pointer', zIndex:5 }}>
+									<div onClick={e=>{e.stopPropagation();if(!isLoggedIn){onLoginClick();return;}setFav(f=>{const n=new Set(f);n.has(pg.id)?n.delete(pg.id):n.add(pg.id);return n;});}} style={{ position:'absolute', top:10, right:10, cursor:'pointer', zIndex:5 }}>
 										<Icon n={fav.has(pg.id)?'starFill':'star'} size={20} color={fav.has(pg.id)?'#F59E0B':'rgba(255,255,255,0.9)'}/>
 									</div>
 								</div>
@@ -600,7 +605,7 @@ function HomeScreen({ go, isLoggedIn }) {
 									<div style={{ fontSize:12, color:T.textSec, marginBottom:2 }}>{pg.center}</div>
 									<div style={{ fontSize:12, color:T.textTri, marginBottom:10 }}>{pg.date}</div>
 									<div style={{ marginBottom:10 }}><CapacityBar pg={pg}/></div>
-									<div className="btn-hover" onClick={e=>{e.stopPropagation(); c.upcoming?go('program-detail',{pg}):c.full?setWaitlist(pg):go('program-detail',{pg});}} style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:5, height:34, border:`1px solid ${c.upcoming?T.secondary:c.full?T.border:T.primary}`, background:c.full?T.borderLight:'transparent', borderRadius:T.tagR, cursor:'pointer', fontSize:13, color:c.upcoming?T.secondary:c.full?T.textSec:T.primary, fontWeight:600 }}>
+									<div className="btn-hover" onClick={e=>{e.stopPropagation(); c.upcoming?go('program-detail',{pg}):c.full?(isLoggedIn?setWaitlist(pg):onLoginClick()):go('program-detail',{pg});}} style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:5, height:34, border:`1px solid ${c.upcoming?T.secondary:c.full?T.border:T.primary}`, background:c.full?T.borderLight:'transparent', borderRadius:T.tagR, cursor:'pointer', fontSize:13, color:c.upcoming?T.secondary:c.full?T.textSec:T.primary, fontWeight:600 }}>
 										<Icon n={(c.upcoming||c.full)?'bell':'check'} size={15} color={c.upcoming?T.secondary:c.full?T.textSec:T.primary}/>
 										{c.upcoming?'오픈 알림 받기':c.full?'빈자리 알림 받기':'신청하기'}
 									</div>
@@ -627,7 +632,7 @@ function HomeScreen({ go, isLoggedIn }) {
 						<div style={{ padding:'16px 20px 20px' }}>
 							<Badge text="📌 주요" variant="primary"/>
 							<div style={{ fontWeight:700, fontSize:17, color:T.text, margin:'8px 0' }}>제1회 청년의 날 축제 안내</div>
-							<div style={{ fontSize:13, color:T.textSec }}>2024.07.30 · 조회 756</div>
+							<div style={{ fontSize:13, color:T.textSec }}>2026.07.30 · 조회 756</div>
 						</div>
 					</div>
 					<div style={{ flex:1, background:T.surface, borderRadius:T.radius, boxShadow:T.shadow, overflow:'hidden' }}>
@@ -701,7 +706,7 @@ function FilterPopChip({ label, options, sel, setSel }){
 }
 function ProgramCalendar({ filtered, go }){
 	const dayMap = {1:5,2:8,3:12,4:15,5:19,6:23};
-	const firstDow=4, days=31; // 2024년 8월
+	const firstDow=4, days=31; // 2026년 8월
 	const byDay={};
 	filtered.forEach(pg=>{ const d=dayMap[pg.id]||((pg.id*4)%28)+1; (byDay[d]=byDay[d]||[]).push(pg); });
 	const [selDay, setSelDay] = useState(null);
@@ -720,7 +725,7 @@ function ProgramCalendar({ filtered, go }){
 					</div>
 					<div style={{ display:'flex', alignItems:'center', gap:18 }}>
 						<span className="btn-hover" style={{ fontSize:16, color:T.textTri, cursor:'pointer' }}>‹</span>
-						<span style={{ fontSize:18, fontWeight:700, color:T.text }}>2024년 8월</span>
+						<span style={{ fontSize:18, fontWeight:700, color:T.text }}>2026년 8월</span>
 						<span className="btn-hover" style={{ fontSize:16, color:T.textTri, cursor:'pointer' }}>›</span>
 					</div>
 					<div style={{ width:62 }}/>
@@ -786,7 +791,7 @@ function ProgramCalendar({ filtered, go }){
 		</div>
 	);
 }
-function ProgramList({ go }) {
+function ProgramList({ go, isLoggedIn, onLoginClick }) {
 	const [sel, setSel] = useState(new Set());
 	const [active, setActive] = useState('전체');
 	const [sort, setSort] = useState('기본');
@@ -854,12 +859,19 @@ function ProgramList({ go }) {
 						<div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:16 }}>
 							{loading
 								? [0,1,2,3,4,5].map(i=><ProgramCardSkeleton key={i}/>)
-								: filtered.map((pg,i)=>{ const c=capInfo(pg); return (
+								: filtered.length===0 ? (
+									<div style={{ gridColumn:'1/-1', padding:'60px 0', textAlign:'center', background:T.surface, borderRadius:T.radius, border:'1px solid '+T.borderLight }}>
+										<Icon n="search" size={38} color={T.border}/>
+										<div style={{ fontSize:16, fontWeight:600, color:T.text, marginTop:14 }}>조건에 맞는 프로그램이 없어요</div>
+										<div style={{ fontSize:13.5, color:T.textSec, marginTop:6 }}>필터를 바꾸거나 초기화해 보세요</div>
+										<div className="btn-hover" onClick={()=>{setActive('전체'); setSort('기본'); setSel(new Set());}} style={{ display:'inline-flex', alignItems:'center', gap:6, marginTop:18, padding:'10px 18px', borderRadius:8, border:'1.5px solid '+T.primary, color:T.primary, fontSize:13.5, fontWeight:600, cursor:'pointer' }}><Icon n="refresh" size={14} color={T.primary}/>필터 초기화</div>
+									</div>
+								) : filtered.map((pg,i)=>{ const c=capInfo(pg); return (
 									<div key={pg.id} className="card-hover" onClick={()=>go('program-detail',{pg})} style={{ borderRadius:T.radius, overflow:'hidden', background:T.surface, boxShadow:T.shadow, border:`1px solid ${T.borderLight}` }}>
 										<div style={{ width:'100%', height:160, position:'relative', overflow:'hidden', background:'#e5e7eb' }}>
 											<img src={IMGS.pg[i%6]} alt="" style={{ width:'100%', height:'100%', objectFit:'cover', filter:c.full?'grayscale(0.5)':'none' }}/>
 											<div style={{ position:'absolute', top:10, left:10 }}><DdayChip pg={pg}/></div>
-											<div onClick={e=>{e.stopPropagation();setFav(f=>{const n=new Set(f);n.has(pg.id)?n.delete(pg.id):n.add(pg.id);return n;});}} style={{ position:'absolute', top:10, right:10, cursor:'pointer' }}>
+											<div onClick={e=>{e.stopPropagation();if(!isLoggedIn){onLoginClick();return;}setFav(f=>{const n=new Set(f);n.has(pg.id)?n.delete(pg.id):n.add(pg.id);return n;});}} style={{ position:'absolute', top:10, right:10, cursor:'pointer' }}>
 												<Icon n={fav.has(pg.id)?'starFill':'star'} size={20} color={fav.has(pg.id)?'#F59E0B':'rgba(255,255,255,0.85)'}/>
 											</div>
 										</div>
@@ -871,7 +883,7 @@ function ProgramList({ go }) {
 											{c.inactive ? (
 												<div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:5, height:34, border:`1px solid ${T.border}`, background:T.borderLight, borderRadius:T.tagR, fontSize:13, color:T.textTri, fontWeight:600 }}>운영이 중단되었어요</div>
 											) : (
-												<div className="btn-hover" onClick={e=>{e.stopPropagation(); c.upcoming?go('program-detail',{pg}):c.full?setWaitlist(pg):go('program-detail',{pg});}} style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:5, height:34, border:`1px solid ${c.upcoming?T.secondary:c.full?T.border:T.primary}`, background:c.full?T.borderLight:'transparent', borderRadius:T.tagR, cursor:'pointer', fontSize:13, color:c.upcoming?T.secondary:c.full?T.textSec:T.primary, fontWeight:600 }}>
+												<div className="btn-hover" onClick={e=>{e.stopPropagation(); c.upcoming?go('program-detail',{pg}):c.full?(isLoggedIn?setWaitlist(pg):onLoginClick()):go('program-detail',{pg});}} style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:5, height:34, border:`1px solid ${c.upcoming?T.secondary:c.full?T.border:T.primary}`, background:c.full?T.borderLight:'transparent', borderRadius:T.tagR, cursor:'pointer', fontSize:13, color:c.upcoming?T.secondary:c.full?T.textSec:T.primary, fontWeight:600 }}>
 													<Icon n={(c.upcoming||c.full)?'bell':'check'} size={15} color={c.upcoming?T.secondary:c.full?T.textSec:T.primary}/>
 													{c.upcoming?'오픈 알림 받기':c.full?'빈자리 알림 받기':'신청하기'}
 												</div>
@@ -950,10 +962,10 @@ function ProgramDetail({ go, pg, isLoggedIn, onLoginClick, addToast }) {
 								<span style={{ fontSize:13, fontWeight:700, color:T.text }}>{c.applied}<span style={{ fontSize:12, fontWeight:400, color:T.textSec }}> / {pg.cap}명</span></span>
 							</div>
 							<CapacityBar pg={pg} showLabel={false}/>
-							<div style={{ fontSize:12, color:T.textSec, marginTop:8 }}>{inactive?'운영 사정으로 모집이 중단되었습니다.':c.upcoming?`${pg.apply? pg.apply.replace('~',' ~ ').replace(/2024-/g,'') : ''} 신청 예정입니다. 오픈 알림을 신청하면 시작 시 알려드려요.`:c.full?'정원이 마감되었습니다. 알림을 신청하면 빈자리가 생길 시 알려드려요.':`현재 신청률 ${c.pct}% · 경쟁률 ${(c.applied/pg.cap).toFixed(1)}:1`}</div>
+							<div style={{ fontSize:12, color:T.textSec, marginTop:8 }}>{inactive?'운영 사정으로 모집이 중단되었습니다.':c.upcoming?`${pg.apply? pg.apply.replace('~',' ~ ').replace(/2026-/g,'') : ''} 신청 예정입니다. 오픈 알림을 신청하면 시작 시 알려드려요.`:c.full?'정원이 마감되었습니다. 알림을 신청하면 빈자리가 생길 시 알려드려요.':`현재 신청률 ${c.pct}% · 경쟁률 ${(c.applied/pg.cap).toFixed(1)}:1`}</div>
 						</div>
 						<div style={{ display:'grid', gridTemplateColumns:'repeat(2,1fr)', gap:10 }}>
-							{[['calendar','신청 기간',pg.apply? pg.apply.replace('~',' ~ ') : '2024-07-01 ~ 07-31'],['calendar','진행 기간',pg.date],['pin','진행 장소','__MAP__'],['user','모집인원',pg.cap+'명'],['bell','문의처','031-123-4567']].map(([ic,k,v])=>(
+							{[['calendar','신청 기간',pg.apply? pg.apply.replace('~',' ~ ') : '2026-07-01 ~ 07-31'],['calendar','진행 기간',pg.date],['pin','진행 장소','__MAP__'],['user','모집인원',pg.cap+'명'],['bell','문의처','031-123-4567']].map(([ic,k,v])=>(
 								<div key={k} style={{ display:'flex', alignItems:'flex-start', gap:11, padding:'14px 16px', borderRadius:T.radius, background:T.bg, border:`1px solid ${T.borderLight}` }}>
 									<div style={{ width:34, height:34, borderRadius:9, background:T.primaryBg, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}><Icon n={ic} size={16} color={T.primary}/></div>
 									<div style={{ minWidth:0 }}>
@@ -971,7 +983,7 @@ function ProgramDetail({ go, pg, isLoggedIn, onLoginClick, addToast }) {
 							))}
 						</div>
 						<div style={{ display:'flex', gap:10, marginTop:20 }}>
-							<div className="btn-hover" onClick={()=>{setFav(v=>!v); addToast(fav?'즐겨찾기 해제되었습니다.':'즐겨찾기에 추가되었습니다.');}} style={{ width:42, height:42, borderRadius:8, border:`1px solid ${T.border}`, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
+							<div className="btn-hover" onClick={()=>{if(!isLoggedIn){onLoginClick();return;}setFav(v=>!v); addToast(fav?'즐겨찾기 해제되었습니다.':'즐겨찾기에 추가되었습니다.');}} style={{ width:42, height:42, borderRadius:8, border:`1px solid ${T.border}`, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
 								<Icon n={fav?'starFill':'star'} size={20} color={fav?'#F59E0B':T.textSec}/>
 							</div>
 							<div className="btn-hover" onClick={()=>addToast('URL이 클립보드에 복사되었습니다.')} style={{ width:42, height:42, borderRadius:8, border:`1px solid ${T.border}`, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
@@ -982,7 +994,7 @@ function ProgramDetail({ go, pg, isLoggedIn, onLoginClick, addToast }) {
 									<span style={{ color:T.textTri, fontSize:15, fontWeight:600 }}>신청이 중단된 프로그램입니다</span>
 								</div>
 							) : (
-								<div className="btn-hover" onClick={()=>{ if(c.upcoming){addToast('오픈 알림을 신청했어요. 신청 시작 시 알려드릴게요.');return;} if(c.full){setWaitlist(pg);return;} if(!isLoggedIn){onLoginClick();return;} go('program-apply',{pg}); }} style={{ flex:1, height:42, background:(c.full||c.upcoming)?'transparent':T.primary, border:(c.full||c.upcoming)?`1.5px solid ${T.primary}`:'none', borderRadius:T.tagR, display:'flex', alignItems:'center', justifyContent:'center', gap:6, cursor:'pointer' }}>
+								<div className="btn-hover" onClick={()=>{ if((c.upcoming||c.full)&&!isLoggedIn){onLoginClick();return;} if(c.upcoming){addToast('오픈 알림을 신청했어요. 신청 시작 시 알려드릴게요.');return;} if(c.full){setWaitlist(pg);return;} if(!isLoggedIn){onLoginClick();return;} go('program-apply',{pg}); }} style={{ flex:1, height:42, background:(c.full||c.upcoming)?'transparent':T.primary, border:(c.full||c.upcoming)?`1.5px solid ${T.primary}`:'none', borderRadius:T.tagR, display:'flex', alignItems:'center', justifyContent:'center', gap:6, cursor:'pointer' }}>
 									<Icon n={(c.full||c.upcoming)?'bell':'check'} size={18} color={(c.full||c.upcoming)?T.primary:'#fff'}/>
 									<span style={{ color:(c.full||c.upcoming)?T.primary:'#fff', fontSize:15, fontWeight:(c.full||c.upcoming)?700:600 }}>{c.upcoming?'오픈 알림 받기':c.full?'빈자리 알림 받기':'신청하기'}</span>
 								</div>
@@ -1054,7 +1066,7 @@ function ProgramDetail({ go, pg, isLoggedIn, onLoginClick, addToast }) {
 						<div style={{ fontSize:15, fontWeight:700, color:T.text, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{pg.title}</div>
 						<div style={{ fontSize:12.5, color:inactive?T.textTri:c.full?T.textTri:T.primary, fontWeight:600 }}>{inactive?'모집 중단':c.upcoming?`신청 오픈까지 ${pg.openDday}일`:c.full?'모집 마감':`마감까지 ${pg.dday===0?'오늘':pg.dday+'일'} · ${c.applied}/${pg.cap}명`}</div>
 					</div>
-					<div onClick={()=>setFav(v=>!v)} className="btn-hover" style={{ width:48, height:48, flexShrink:0, borderRadius:12, border:`1px solid ${T.border}`, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
+					<div onClick={()=>{if(!isLoggedIn){onLoginClick();return;}setFav(v=>!v);}} className="btn-hover" style={{ width:48, height:48, flexShrink:0, borderRadius:12, border:`1px solid ${T.border}`, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
 						<Icon n={fav?'starFill':'star'} size={22} color={fav?'#F59E0B':T.textSec}/>
 					</div>
 					{inactive ? (
@@ -1062,7 +1074,7 @@ function ProgramDetail({ go, pg, isLoggedIn, onLoginClick, addToast }) {
 							<span style={{ color:T.textTri, fontSize:15, fontWeight:700 }}>신청이 중단되었습니다</span>
 						</div>
 					) : (
-						<div className="btn-hover" onClick={()=>{ if(c.upcoming){addToast('오픈 알림을 신청했어요. 신청 시작 시 알려드릴게요.');return;} if(c.full){setWaitlist(pg);return;} if(!isLoggedIn){onLoginClick();return;} go('program-apply',{pg}); }} style={{ minWidth:200, height:48, background:(c.full||c.upcoming)?'transparent':T.primary, border:(c.full||c.upcoming)?`1.5px solid ${T.primary}`:'none', borderRadius:12, display:'flex', alignItems:'center', justifyContent:'center', gap:7, cursor:'pointer' }}>
+						<div className="btn-hover" onClick={()=>{ if((c.upcoming||c.full)&&!isLoggedIn){onLoginClick();return;} if(c.upcoming){addToast('오픈 알림을 신청했어요. 신청 시작 시 알려드릴게요.');return;} if(c.full){setWaitlist(pg);return;} if(!isLoggedIn){onLoginClick();return;} go('program-apply',{pg}); }} style={{ minWidth:200, height:48, background:(c.full||c.upcoming)?'transparent':T.primary, border:(c.full||c.upcoming)?`1.5px solid ${T.primary}`:'none', borderRadius:12, display:'flex', alignItems:'center', justifyContent:'center', gap:7, cursor:'pointer' }}>
 							<Icon n={(c.full||c.upcoming)?'bell':'check'} size={19} color={(c.full||c.upcoming)?T.primary:'#fff'}/>
 							<span style={{ color:(c.full||c.upcoming)?T.primary:'#fff', fontSize:16, fontWeight:700 }}>{c.upcoming?'오픈 알림 받기':c.full?'빈자리 알림 받기':'신청하기'}</span>
 						</div>
@@ -1186,7 +1198,7 @@ function ApplyComplete({ go, pg }) {
 						<span style={{ padding:'2px 10px', borderRadius:T.tagR, background:T.warningLight, color:T.warning, fontSize:12, fontWeight:600 }}>승인 대기</span>
 						<div style={{ fontWeight:600, fontSize:16, color:T.text, margin:'6px 0 2px' }}>{pg.title}</div>
 						<div style={{ fontSize:13, color:T.textSec }}>{pg.center} · {pg.date}</div>
-						<div style={{ fontSize:12, color:T.textTri, marginTop:4 }}>신청일시 2024-07-05 17:11</div>
+						<div style={{ fontSize:12, color:T.textTri, marginTop:4 }}>신청일시 2026-07-05 17:11</div>
 					</div>
 				</div>
 				<div style={{ display:'flex', gap:12 }}>
@@ -1195,6 +1207,47 @@ function ApplyComplete({ go, pg }) {
 				</div>
 			</div>
 			<Footer/>
+		</div>
+	);
+}
+
+// ── 알림 전체 페이지 (패널 '알림 전체보기' 진입) ──
+function NotificationsScreen({ go }) {
+	const [items, setItems] = useState(NOTIF_ITEMS);
+	const unread = items.filter(i=>i.unread).length;
+	const markAllRead = () => setItems(p=>p.map(i=>({...i,unread:false})));
+	const remove = (id) => setItems(p=>p.filter(i=>i.id!==id));
+	return (
+		<div className="screen-enter" style={{ background:T.bg, minHeight:'100vh' }}>
+			<div style={{ maxWidth:720, margin:'0 auto', padding:'36px 24px 64px' }}>
+				<div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:16 }}>
+					<div style={{ display:'flex', alignItems:'center', gap:8 }}>
+						<h2 style={{ fontSize:24, fontWeight:700, color:T.text, margin:0 }}>알림</h2>
+						{unread>0 && <span style={{ minWidth:20, height:20, padding:'0 6px', borderRadius:10, background:T.error, color:'#fff', fontSize:12, fontWeight:700, display:'flex', alignItems:'center', justifyContent:'center' }}>{unread}</span>}
+					</div>
+					{items.length>0 && <span onClick={markAllRead} className="btn-hover" style={{ fontSize:13, color:T.textSec, cursor:'pointer' }}>모두 읽음</span>}
+				</div>
+				<div style={{ background:T.surface, borderRadius:T.radius, border:'1px solid '+T.borderLight, overflow:'hidden' }}>
+					{items.length===0 ? (
+						<div style={{ display:'flex', flexDirection:'column', alignItems:'center', padding:'56px 0', gap:12 }}>
+							<Icon n="bell" size={40} color={T.border}/>
+							<span style={{ fontSize:14, color:T.textSec }}>아직 도착한 알림이 없어요</span>
+						</div>
+					) : items.map((item,i)=>(
+						<div key={item.id} style={{ display:'flex', alignItems:'flex-start', gap:12, padding:'16px 18px', borderBottom:i<items.length-1?'1px solid '+T.borderLight:'none', background:item.unread?T.primaryBg:T.surface }}>
+							<div style={{ width:36, height:36, borderRadius:'50%', background:item.unread?(item.tone||T.primary):'#E5E7EB', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+								<Icon n={item.icon||'bell'} size={16} color={item.unread?'#fff':'#9CA3AF'}/>
+							</div>
+							<div style={{ flex:1, minWidth:0 }}>
+								<div style={{ fontSize:14.5, color:item.unread?T.text:T.textSec, fontWeight:item.unread?600:400 }}>{item.title}</div>
+								<div style={{ fontSize:13.5, color:T.textSec, marginTop:2 }}>{item.body}</div>
+								<div style={{ fontSize:12, color:T.textTri, marginTop:4 }}>{item.time}</div>
+							</div>
+							<div onClick={()=>remove(item.id)} className="btn-hover" style={{ cursor:'pointer', flexShrink:0, marginTop:2 }}><Icon n="close" size={16} color={T.textTri}/></div>
+						</div>
+					))}
+				</div>
+			</div>
 		</div>
 	);
 }
@@ -1208,18 +1261,16 @@ function MyPage({ go, addToast, initialTab }) {
 	const [cancelError, setCancelError] = useState(false);
 	const [noti, setNoti] = useState({ kakao:true, sms:false, email:true, remind:true, empty:true, news:false });
 	const [applications, setApplications] = useState([
-		{ ...PROGRAMS[1], appStatus:'승인', appliedAt:'2024.07.05 17:11:31' },
-		{ ...PROGRAMS[0], appStatus:'대기', appliedAt:'2024.07.03 17:11:31' },
-		{ ...PROGRAMS[2], appStatus:'반려', appliedAt:'2024.07.02 17:11:31' },
-		{ ...PROGRAMS[3], appStatus:'취소', appliedAt:'2024.07.01 17:11:31' },
-		{ ...PROGRAMS[4], status:'중단', appStatus:'승인', appliedAt:'2024.06.20 10:02:11' },
+		{ ...PROGRAMS[1], appStatus:'승인', appliedAt:'2026.07.05 17:11:31' },
+		{ ...PROGRAMS[0], appStatus:'대기', appliedAt:'2026.07.03 17:11:31' },
+		{ ...PROGRAMS[2], appStatus:'반려', appliedAt:'2026.07.02 17:11:31' },
+		{ ...PROGRAMS[3], appStatus:'취소', appliedAt:'2026.07.01 17:11:31' },
+		{ ...PROGRAMS[4], status:'중단', appStatus:'승인', appliedAt:'2026.06.20 10:02:11' },
 	]);
 	const [period, setPeriod] = useState('3개월');
 	const [statusFilter, setStatusFilter] = useState('전체');
 	const [myInterests, setMyInterests] = useState({ regions:['수원시','성남시'], cats:['취업·역량','문화·예술','주거','금융'] });
 	const [showInterest, setShowInterest] = useState(false);
-	// 상태 뱃지: 승인=파랑 · 대기=검정 · 반려=빨강 · 취소=회색 (기획서 기준)
-	const appBadge = { '승인':{bg:T.successLight,c:T.success}, '대기':{bg:T.warningLight,c:T.warning}, '반려':{bg:'#FEF2F2',c:T.error}, '취소':{bg:T.borderLight,c:T.textTri} }; // 파스텔 통일안(확정 전) — 기획서 솔리드안: 승인=파랑·대기=검정·반려=빨강·취소=회색
 	const doCancel = () => {
 		if(!cancelReason || (cancelReason==='기타' && !cancelEtc.trim())){setCancelError(true);return;}
 		setApplications(apps=>apps.filter(a=>a.id!==1));
@@ -1313,7 +1364,7 @@ function MyPage({ go, addToast, initialTab }) {
 									</div>
 									: <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
 										{shown.map((app,i)=>{
-											const b = appBadge[app.appStatus]||appBadge['취소'];
+											const b = statusStyle[app.appStatus]||statusStyle['취소'];
 											const canCancel = app.appStatus==='승인' || app.appStatus==='대기';
 											const canReapply = app.appStatus==='반려' || app.appStatus==='취소';
 											return (
@@ -1514,7 +1565,7 @@ function ApplicationDetail({ go, pg, addToast }) {
 								<span style={{ fontSize:17, fontWeight:700, color:T.text }}>{app.title||'프로그램 A'}</span>
 								<span style={{ padding:'2px 10px', borderRadius:T.tagR, background:b.bg, color:b.c, fontSize:12, fontWeight:600 }}>{status}</span>
 							</div>
-							<div style={{ fontSize:14, color:T.textSec }}>{app.date||'2024-07-08 (월) 15:00'}</div>
+							<div style={{ fontSize:14, color:T.textSec }}>{app.date||'2026-07-08 (월) 15:00'}</div>
 						</div>
 					</div>
 					{/* 신청자 정보 */}
@@ -1527,8 +1578,8 @@ function ApplicationDetail({ go, pg, addToast }) {
 					</Section>
 					{/* 신청 이력 */}
 					<Section title="신청 이력" open={openB} onToggle={()=>setOpenB(o=>!o)}>
-						<Row k="신청일시" v={app.appliedAt||'2024-07-05 17:11:31'}/>
-						<Row k="승인일시" v={status==='승인'?'2024-07-06 09:05:31':'-'}/>
+						<Row k="신청일시" v={app.appliedAt||'2026-07-05 17:11:31'}/>
+						<Row k="승인일시" v={status==='승인'?'2026-07-06 09:05:31':'-'}/>
 						<div style={{ display:'flex', padding:'7px 0' }}>
 							<span style={{ width:96, fontSize:14, color:T.textSec, flexShrink:0 }}>담당자 의견</span>
 							<span style={{ fontSize:14, color:T.text, flex:1, lineHeight:1.6 }}>프로그램 취소 신청은 프로그램 시작일의 최소 2일 전까지 부탁드립니다. 프로그램 당일 취소·노쇼 2회 이상 시 프로그램 참여가 제한됩니다.</span>
@@ -2504,12 +2555,13 @@ function App() {
 	const showHeader = !noHeader.includes(screen);
 
 	const pages = {
-		home: <HomeScreen go={go} isLoggedIn={isLoggedIn}/>,
-		programs: <ProgramList go={go}/>,
+		home: <HomeScreen go={go} isLoggedIn={isLoggedIn} onLoginClick={onLoginClick}/>,
+		programs: <ProgramList go={go} isLoggedIn={isLoggedIn} onLoginClick={onLoginClick}/>,
 		'program-detail': <ProgramDetail go={go} pg={ctx.pg||PROGRAMS[0]} isLoggedIn={isLoggedIn} onLoginClick={onLoginClick} addToast={addToast}/>,
 		'program-apply': <ProgramApply go={go} pg={ctx.pg||PROGRAMS[0]} addToast={addToast}/>,
 		'apply-complete': <ApplyComplete go={go} pg={ctx.pg||PROGRAMS[0]}/>,
 		mypage: <MyPage go={go} addToast={addToast} initialTab={ctx.tab}/>,
+		notifications: <NotificationsScreen go={go}/>,
 		'application-detail': <ApplicationDetail go={go} pg={ctx.pg} addToast={addToast}/>,
 		notices: <NoticesScreen go={go}/>,
 		'notice-detail': <NoticeDetail go={go} notice={ctx.notice}/>,
