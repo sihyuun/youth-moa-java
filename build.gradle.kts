@@ -32,6 +32,8 @@ dependencies {
 	implementation("org.webjars:webjars-locator-core")
 	// F0h-real-coords: CSV 시드 로더 (RFC 4180 파싱). 48행 규모, DataInitializer 에서만 사용.
 	implementation("com.opencsv:opencsv:5.9")
+	// F-signup-01: CoolSMS SDK — 실 SMS 발송용. youthmoa.coolsms.enabled=false 이면 MockSmsSender 사용.
+	implementation("net.nurigo:sdk:4.3.0")
 	// P0-1 Flyway (ADMIN-00 §4): ddl-auto: validate 전환 준비. baseline SQL 생성 전까지 spring.flyway.enabled=false 상태 유지.
 	implementation("org.flywaydb:flyway-core")
 	runtimeOnly("org.flywaydb:flyway-database-postgresql")
