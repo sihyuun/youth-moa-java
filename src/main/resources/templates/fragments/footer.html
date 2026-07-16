@@ -2,7 +2,12 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
 
-<footer th:fragment="footer" class="site-footer">
+<!--
+  footer fragment: U-COMMON-01 부터 toast-stack + common-ui.js 를 함께 포함.
+  th:fragment 는 요소 1개만 가능하므로 <th:block> 으로 감싸 3개 노드 방출.
+-->
+<th:block th:fragment="footer">
+<footer class="site-footer">
     <div class="footer-inner">
         <a th:href="@{/}" class="footer-logo">
             <img th:src="@{/images/logo_symbol.png}" alt="" class="footer-logo-img">
@@ -27,6 +32,11 @@
         </div>
     </div>
 </footer>
+
+<!-- U-COMMON-01 공통 UI: Toast 컨테이너 + Modal/Toast JS API -->
+<div class="toast-stack" aria-live="polite" aria-atomic="false"></div>
+<script th:src="@{/js/common-ui.js}" defer></script>
+</th:block>
 
 </body>
 </html>
