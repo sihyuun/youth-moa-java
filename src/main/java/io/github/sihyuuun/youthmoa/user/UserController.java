@@ -2,10 +2,14 @@ package io.github.sihyuuun.youthmoa.user;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -24,6 +28,9 @@ public class UserController {
   private final UserService userService;
   private final UserRepository userRepository;
   private final SecurityContextRepository securityContextRepository;
+
+  @Value("${youthmoa.coolsms.session-valid-minutes:30}")
+  private long sessionValidMinutes;
 
   /** 회원가입 — 아이디 중복확인 API. signup.html 의 [중복확인] 버튼에서 fetch 호출. */
   @GetMapping("/api/users/check-email")
@@ -66,6 +73,7 @@ public class UserController {
       BindingResult bindingResult,
       HttpServletRequest request,
       HttpServletResponse response,
+      HttpSession session,
       Model model) {
     if (bindingResult.hasErrors()) {
       // password 의 @Size + @Pattern 위반을 한 문장으로 통합 → model 의 passwordPolicyMsg.
@@ -76,12 +84,23 @@ public class UserController {
       }
       return "user/signup";
     }
+    // F-signup-01: 세션 재확인. hidden field 는 신뢰하지 않는다.
+    // - phoneVerifiedAt 없음 → 인증 안 함
+    // - 세션 만료 (sessionValidMinutes 초과) → 재인증 필요
+    // - 세션 번호 vs 폼 phone 불일치 → 재인증 필요
+    if (!isPhoneVerifiedInSession(session, signUpRequest.getPhone())) {
+      model.addAttribute("errorMsg", "휴대폰 인증을 완료해주세요.");
+      return "user/signup";
+    }
     try {
-      userService.signUp(signUpRequest);
+      userService.signUp(signUpRequest, true);
     } catch (IllegalArgumentException e) {
       model.addAttribute("errorMsg", e.getMessage());
       return "user/signup";
     }
+    // 회원가입 성공 → 인증 세션 정보 소거 (다음 회원가입에서 재사용 방지)
+    session.removeAttribute(PhoneVerificationController.SESSION_KEY_VERIFIED_AT);
+    session.removeAttribute(PhoneVerificationController.SESSION_KEY_VERIFIED_NUMBER);
     // F-signup-03 (spec §A-Q6=a): 자동 로그인 후 /welcome 온보딩으로 이동.
     WelcomeController.autoLogin(
         signUpRequest.getEmail(), userService, request, response, securityContextRepository);
@@ -109,5 +128,28 @@ public class UserController {
 
     if (parts.size() == 1) return "비밀번호는 " + parts.get(0) + " 합니다.";
     return "비밀번호는 " + parts.get(0) + " 하고, " + parts.get(1) + " 합니다.";
+  }
+
+  /**
+   * F-signup-01: 세션 3중 검증 (Q6=30분).
+   *
+   * <ol>
+   *   <li>세션에 phoneVerifiedAt 존재
+   *   <li>지금부터 sessionValidMinutes 이내
+   *   <li>세션에 저장된 인증 번호 == 폼 phone (정규화 후 비교)
+   * </ol>
+   */
+  private boolean isPhoneVerifiedInSession(HttpSession session, String formPhone) {
+    Object verifiedAtObj = session.getAttribute(PhoneVerificationController.SESSION_KEY_VERIFIED_AT);
+    Object verifiedNumberObj =
+        session.getAttribute(PhoneVerificationController.SESSION_KEY_VERIFIED_NUMBER);
+    if (!(verifiedAtObj instanceof LocalDateTime verifiedAt)) return false;
+    if (!(verifiedNumberObj instanceof String verifiedNumber)) return false;
+
+    if (Duration.between(verifiedAt, LocalDateTime.now()).toMinutes() >= sessionValidMinutes) {
+      return false;
+    }
+    String normalizedForm = PhoneVerificationService.normalize(formPhone);
+    return normalizedForm.equals(verifiedNumber);
   }
 }

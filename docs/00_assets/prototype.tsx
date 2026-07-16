@@ -1,6 +1,7 @@
 // @ts-nocheck
-// Youth-Moa Prototype — 최신 동기화본 (2026-07-03)
-// 상단 뒤로가기 버튼 아이콘 전용화(admin 패턴: 테두리 정사각 + chevron)
+// Youth-Moa Prototype — 최신 동기화본 (2026-07-16)
+// 관심 정보 수정 모달(A안) · 500 일시적 오류 화면 · 회원가입 휴대폰 인증(3분 타이머·재요청·재인증) · input 라이트모드 고정
+// ⚠ 전역 CSS 필수: :root{color-scheme:light}  input,textarea,select{background:#fff}  input:disabled{background:#F3F4F6}
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { createRoot } from 'react-dom/client';
 
@@ -1215,6 +1216,8 @@ function MyPage({ go, addToast, initialTab }) {
 	]);
 	const [period, setPeriod] = useState('3개월');
 	const [statusFilter, setStatusFilter] = useState('전체');
+	const [myInterests, setMyInterests] = useState({ regions:['수원시','성남시'], cats:['취업·역량','문화·예술','주거','금융'] });
+	const [showInterest, setShowInterest] = useState(false);
 	// 상태 뱃지: 승인=파랑 · 대기=검정 · 반려=빨강 · 취소=회색 (기획서 기준)
 	const appBadge = { '승인':{bg:T.successLight,c:T.success}, '대기':{bg:T.warningLight,c:T.warning}, '반려':{bg:'#FEF2F2',c:T.error}, '취소':{bg:T.borderLight,c:T.textTri} }; // 파스텔 통일안(확정 전) — 기획서 솔리드안: 승인=파랑·대기=검정·반려=빨강·취소=회색
 	const doCancel = () => {
@@ -1235,7 +1238,7 @@ function MyPage({ go, addToast, initialTab }) {
 						<div style={{ fontSize:20, fontWeight:700, color:T.text, marginBottom:3 }}>반가워요, 박시현님!</div>
 						<div style={{ fontSize:13, color:T.textSec, marginBottom:11 }}>hyuuun0321@naver.com</div>
 						<div style={{ display:'flex', flexWrap:'wrap', alignItems:'center', gap:'8px 16px' }}>
-							{[{icon:'pin',label:'관심 지역',vals:['수원시','성남시']},{icon:'star',label:'관심 분야',vals:['취업·창업','교육','문화·예술','주거']}].map(g=>{
+							{[{icon:'pin',label:'관심 지역',vals:myInterests.regions},{icon:'star',label:'관심 분야',vals:myInterests.cats}].map(g=>{
 								const MAX=3, shown=g.vals.slice(0,MAX), rest=g.vals.length-MAX;
 								return (
 									<div key={g.label} style={{ display:'flex', alignItems:'center', gap:7, minWidth:0 }}>
@@ -1250,7 +1253,7 @@ function MyPage({ go, addToast, initialTab }) {
 										</div>
 									</div>
 								);})}
-							<span className="btn-hover" onClick={()=>setTab('profile')} style={{ display:'inline-flex', alignItems:'center', gap:4, fontSize:12.5, fontWeight:600, color:T.primary, cursor:'pointer', whiteSpace:'nowrap' }}>관심 정보 수정<Icon n="edit" size={12} color={T.primary}/></span>
+							<span className="btn-hover" onClick={()=>setShowInterest(true)} style={{ display:'inline-flex', alignItems:'center', gap:4, fontSize:12.5, fontWeight:600, color:T.primary, cursor:'pointer', whiteSpace:'nowrap' }}>관심 정보 수정<Icon n="edit" size={12} color={T.primary}/></span>
 						</div>
 					</div>
 					{/* KPI */}
@@ -1408,6 +1411,11 @@ function MyPage({ go, addToast, initialTab }) {
 					)}
 				</div>
 			</div>
+			{/* 관심 정보 수정 모달 */}
+			{showInterest && (
+				<InterestEditModal initRegions={myInterests.regions} initCats={myInterests.cats} onClose={()=>setShowInterest(false)}
+								   onSave={(r,c)=>{ setMyInterests({regions:r,cats:c}); setShowInterest(false); addToast('관심 정보가 변경되었어요.'); }}/>
+			)}
 			{/* Cancel Modal — 공통 ConfirmDialog 사용 */}
 			{showCancel && (
 				<ConfirmDialog
@@ -1578,11 +1586,11 @@ function WelcomeScreen({ go, addToast }) {
 						</div>
 						<div style={{ display:'flex', flexWrap:'wrap', gap:8 }}>
 							{visibleRegions.map(r=>{ const on=regions.has(r); return (
-								<div key={r} className="btn-hover" onClick={()=>toggle(setRegions)(r)} style={{ padding:'9px 16px', borderRadius:T.tagR, border:`1px solid ${on?T.primary:T.border}`, background:on?T.primaryBg:T.surface, cursor:'pointer', fontSize:14, fontWeight:on?600:400, color:on?T.primary:T.textSec }}>{r}</div>
+								<div key={r} className="btn-hover" onClick={()=>toggle(setRegions)(r)} style={{ padding:'9px 16px', borderRadius:T.tagR, border:`1px solid ${on?T.primary:T.border}`, background:on?T.primaryBg:T.surface, cursor:'pointer', fontSize:14, fontWeight:on?600:400, color:on?T.primary:T.textSec, whiteSpace:'nowrap' }}>{r}</div>
 							);})}
-							<div className="btn-hover" onClick={()=>setRegionsOpen(o=>!o)} style={{ padding:'9px 16px', borderRadius:T.tagR, border:`1px dashed ${T.border}`, background:'transparent', cursor:'pointer', fontSize:14, color:T.textSec, display:'flex', alignItems:'center', gap:5 }}>
-								{regionsOpen ? <>접기 <Icon n="chevU" size={13} color={T.textSec}/></> : <>+ 더보기 ({WELCOME_REGIONS_MORE.length - hiddenSel.length})</>}
-							</div>
+						</div>
+						<div className="btn-hover" onClick={()=>setRegionsOpen(o=>!o)} style={{ marginTop:12, cursor:'pointer', fontSize:14, fontWeight:600, color:T.primary, display:'inline-flex', alignItems:'center', gap:4, whiteSpace:'nowrap' }}>
+							{regionsOpen ? '지역 접기' : `지역 더 보기 (${WELCOME_REGIONS_MORE.length - hiddenSel.length})`}<Icon n={regionsOpen?'chevU':'chevD'} size={14} color={T.primary}/>
 						</div>
 					</div>
 
@@ -1612,10 +1620,57 @@ function WelcomeScreen({ go, addToast }) {
 	);
 }
 
+// ── 관심 정보 수정 모달 (웰컴 칩 UI 재사용 · 토스/당근 인라인 편집 패턴) ──
+function InterestEditModal({ initRegions, initCats, onClose, onSave }) {
+	const [regions, setRegions] = useState(new Set(initRegions));
+	const [cats, setCats] = useState(new Set(initCats));
+	const [regionsOpen, setRegionsOpen] = useState(false);
+	const hiddenSel = [...regions].filter(r=>WELCOME_REGIONS_MORE.includes(r));
+	const visibleRegions = regionsOpen ? [...WELCOME_REGIONS_TOP, ...WELCOME_REGIONS_MORE] : [...WELCOME_REGIONS_TOP, ...hiddenSel];
+	const toggle = (setter) => (v) => setter(s=>{ const n=new Set(s); n.has(v)?n.delete(v):n.add(v); return n; });
+	const Chip = ({v,on,onClick}) => (
+		<div className="btn-hover" onClick={onClick} style={{ padding:'8px 14px', borderRadius:T.tagR, border:`1px solid ${on?T.primary:T.border}`, background:on?T.primaryBg:T.surface, cursor:'pointer', fontSize:13.5, fontWeight:on?600:400, color:on?T.primary:T.textSec, whiteSpace:'nowrap' }}>{v}</div>
+	);
+	return (
+		<ModalCard title="관심 정보 수정" width={560} onClose={onClose} footer={
+			<div style={{ display:'flex', gap:10 }}>
+				<Btn variant="ghost" onClick={onClose} style={{ flex:1 }}>취소</Btn>
+				<Btn onClick={()=>onSave([...regions],[...cats])} style={{ flex:1 }}>저장</Btn>
+			</div>
+		}>
+			<div style={{ maxHeight:'56vh', overflowY:'auto' }}>
+				<div style={{ display:'flex', alignItems:'center', gap:7, marginBottom:11 }}>
+					<Icon n="pin" size={16} color={T.primary}/>
+					<span style={{ fontSize:14.5, fontWeight:700, color:T.text }}>관심 지역</span>
+					{regions.size>0 ? <span style={{ fontSize:12.5, fontWeight:700, color:T.primary }}>{regions.size}개 선택</span> : <span style={{ fontSize:12.5, color:T.textTri }}>중복 선택 가능</span>}
+				</div>
+				<div style={{ display:'flex', flexWrap:'wrap', gap:7 }}>
+					{visibleRegions.map(r=><Chip key={r} v={r} on={regions.has(r)} onClick={()=>toggle(setRegions)(r)}/>)}
+				</div>
+				<div className="btn-hover" onClick={()=>setRegionsOpen(o=>!o)} style={{ marginTop:10, cursor:'pointer', fontSize:13, fontWeight:600, color:T.primary, display:'inline-flex', alignItems:'center', gap:4, whiteSpace:'nowrap' }}>
+					{regionsOpen ? '지역 접기' : `지역 더 보기 (${WELCOME_REGIONS_MORE.length - hiddenSel.length})`}<Icon n={regionsOpen?'chevU':'chevD'} size={13} color={T.primary}/>
+				</div>
+				<div style={{ height:1, background:T.borderLight, margin:'18px 0' }}/>
+				<div style={{ display:'flex', alignItems:'center', gap:7, marginBottom:11 }}>
+					<Icon n="star" size={16} color={T.primary}/>
+					<span style={{ fontSize:14.5, fontWeight:700, color:T.text }}>관심 분야</span>
+					{cats.size>0 ? <span style={{ fontSize:12.5, fontWeight:700, color:T.primary }}>{cats.size}개 선택</span> : <span style={{ fontSize:12.5, color:T.textTri }}>중복 선택 가능</span>}
+				</div>
+				<div style={{ display:'flex', flexWrap:'wrap', gap:7 }}>
+					{WELCOME_CATS.map(c=><Chip key={c} v={c} on={cats.has(c)} onClick={()=>toggle(setCats)(c)}/>)}
+				</div>
+			</div>
+		</ModalCard>
+	);
+}
+
 // ── SIGNUP (회원가입 폼 — Figma WF-2-001-01 기준) ──
 function SignupScreen({ go, onLogin }) {
 	const [form, setForm] = useState({ id:'', pw:'', pw2:'', name:'', phone:'', dob:'', zip:'', addr:'', addr2:'' });
 	const [gender, setGender] = useState('');
+	const [verify, setVerify] = useState({ sent:false, code:'', left:180, done:false });
+	useEffect(()=>{ if(!verify.sent||verify.done||verify.left<=0) return; const t=setTimeout(()=>setVerify(v=>({...v,left:v.left-1})),1000); return ()=>clearTimeout(t); },[verify.sent,verify.left,verify.done]);
+	const mmss = s => `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
 	const [agree, setAgree] = useState({ terms:false, privacy:false });
 	const set = (k)=>(e)=>setForm(f=>({...f,[k]:e.target.value}));
 	const allAgreed = agree.terms && agree.privacy;
@@ -1674,9 +1729,22 @@ function SignupScreen({ go, onLogin }) {
 							<div>
 								<span style={label}>핸드폰 번호 <span style={{color:T.error}}>*</span></span>
 								<div style={{ display:'flex', gap:8 }}>
-									<input value={form.phone} onChange={set('phone')} placeholder="숫자만 입력해주세요" style={fieldRow(form.phone)}/>
-									<Btn size="m" variant="outline" onClick={()=>alert('인증번호를 발송했습니다.')} style={{ flexShrink:0, width:96, height:46 }}>인증요청</Btn>
+									<input value={form.phone} onChange={set('phone')} disabled={verify.done} placeholder="숫자만 입력해주세요" style={{...fieldRow(form.phone), ...(verify.done?{background:'#F3F4F6',color:T.textSec}:{})}}/>
+									<Btn size="m" variant="outline" onClick={()=>{ if(verify.done){ setVerify({ sent:false, code:'', left:180, done:false }); } else { setVerify({ sent:true, code:'', left:180, done:false }); } }} style={{ flexShrink:0, width:96, height:46 }}>{verify.done?'재인증':verify.sent?'재요청':'인증요청'}</Btn>
 								</div>
+								{verify.sent && !verify.done && (
+									<div style={{ marginTop:8 }}>
+										<div style={{ display:'flex', gap:8 }}>
+											<div style={{ position:'relative', flex:1 }}>
+												<input value={verify.code} onChange={e=>setVerify(v=>({...v,code:e.target.value.replace(/\D/g,'').slice(0,6)}))} placeholder="인증번호 6자리" style={{...fieldRow(verify.code), width:'100%', boxSizing:'border-box', paddingRight:56 }}/>
+												<span style={{ position:'absolute', right:14, top:'50%', transform:'translateY(-50%)', fontSize:13, fontWeight:600, color:verify.left<=30?T.error:T.primary, fontFamily:'Inter,sans-serif' }}>{mmss(verify.left)}</span>
+											</div>
+											<Btn size="m" variant="outline" disabled={verify.code.length<6||verify.left<=0} onClick={()=>setVerify(v=>({...v,done:true}))} style={{ flexShrink:0, width:96, height:46 }}>확인</Btn>
+										</div>
+										<span style={{ fontSize:12, color:verify.left<=0?T.error:T.textTri, marginTop:5, display:'block' }}>{verify.left<=0?'유효시간이 만료되었어요. 인증번호를 재요청해주세요.':'문자로 받은 인증번호를 3분 안에 입력해주세요.'}</span>
+									</div>
+								)}
+								{verify.done && <span style={{ display:'inline-flex', alignItems:'center', gap:4, fontSize:12.5, fontWeight:600, color:T.success, marginTop:6 }}><Icon n="check" size={13} color={T.success}/>휴대폰 인증이 완료되었어요.</span>}
 							</div>
 							<div>
 								<span style={label}>성별 <span style={{color:T.error}}>*</span></span>
@@ -2360,6 +2428,27 @@ function Error503({ go }) {
 		</SysLayout>
 	);
 }
+function Error500({ go }) {
+	return (
+		<SysLayout>
+			<div style={{ width:88, height:88, borderRadius:'50%', background:'#FEF2F2', display:'flex', alignItems:'center', justifyContent:'center', marginBottom:4 }}>
+				<svg viewBox="0 0 24 24" style={{ width:44, height:44 }}>
+					<path d="M12 3.5l9 16h-18l9-16z" stroke={T.error} strokeWidth="1.5" fill="none" strokeLinejoin="round"/>
+					<path d="M12 9.5v4M12 16.5h.01" stroke={T.error} strokeWidth="1.8" fill="none" strokeLinecap="round"/>
+				</svg>
+			</div>
+			<div style={{ fontSize:24, fontWeight:700, color:T.text }}>일시적인 오류가 발생했어요</div>
+			<div style={{ fontSize:15, color:T.textSec, textAlign:'center', lineHeight:1.7, wordBreak:'keep-all' }}>
+				서비스 이용에 불편을 드려 죄송합니다.<br/>잠시 후 다시 시도해주세요. 문제가 계속되면 아래 연락처로 문의해주세요.
+			</div>
+			<div style={{ display:'flex', gap:12, marginTop:18 }}>
+				<Btn size="l" variant="ghost" onClick={()=>go('home')} style={{ width:150 }}>홈으로</Btn>
+				<Btn size="l" variant="primary" icon="refresh" onClick={()=>go('home')} style={{ width:160 }}>다시 시도</Btn>
+			</div>
+			<span style={{ fontSize:12, color:T.textTri, marginTop:8 }}>Error code: 500 · 문의 helpmoa@naver.com · 031-123-4567</span>
+		</SysLayout>
+	);
+}
 function SessionExpired({ go }) {
 	return (
 		<SysLayout>
@@ -2411,7 +2500,7 @@ function App() {
 		go('login');
 	};
 
-	const noHeader = ['login','signup','find-id','welcome','error-503','session-expired'];
+	const noHeader = ['login','signup','find-id','welcome','error-500','error-503','session-expired'];
 	const showHeader = !noHeader.includes(screen);
 
 	const pages = {
@@ -2432,6 +2521,7 @@ function App() {
 		search: <SearchScreen go={go} initialQ={ctx.q}/>,
 		forbidden: <Forbidden403 go={go}/>,
 		'error-404': <Error404 go={go}/>,
+		'error-500': <Error500 go={go}/>,
 		'error-503': <Error503 go={go}/>,
 		'session-expired': <SessionExpired go={go}/>,
 	};
@@ -2464,6 +2554,4 @@ function App() {
 	);
 }
 
-const rootEl = document.getElementById('root');
-if (rootEl) createRoot(rootEl).render(<App/>);
-export default App;
+createRoot(document.getElementById('root')!).render(<App/>);

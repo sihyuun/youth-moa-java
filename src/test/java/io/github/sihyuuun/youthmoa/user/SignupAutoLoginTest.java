@@ -6,6 +6,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import jakarta.servlet.http.HttpSession;
+import java.time.LocalDateTime;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -37,10 +38,19 @@ class SignupAutoLoginTest {
     // 이미 있으면 삭제 후 진행 (반복 실행 대비)
     userRepository.findByEmail(email).ifPresent(userRepository::delete);
 
+    // F-signup-01: signup 은 세션 phoneVerifiedAt / phoneVerifiedNumber 를 재확인.
+    org.springframework.mock.web.MockHttpSession preSession =
+        new org.springframework.mock.web.MockHttpSession();
+    preSession.setAttribute(
+        PhoneVerificationController.SESSION_KEY_VERIFIED_AT, LocalDateTime.now());
+    preSession.setAttribute(
+        PhoneVerificationController.SESSION_KEY_VERIFIED_NUMBER, "01099998888");
+
     MvcResult result =
         mockMvc
             .perform(
                 post("/signup")
+                    .session(preSession)
                     .with(csrf())
                     .param("email", email)
                     .param("password", "abc12345")

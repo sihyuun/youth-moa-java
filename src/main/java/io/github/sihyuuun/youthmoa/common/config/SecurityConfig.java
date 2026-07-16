@@ -62,6 +62,10 @@ public class SecurityConfig {
                         "/login",
                         "/signup",
                         "/api/users/check-email",
+                        // F-signup-01: 휴대폰 인증 API (비인증 signup 화면에서 호출).
+                        // CSRF 는 유지 — signup.html 이 meta 태그로 토큰 제공.
+                        "/api/phone/send-code",
+                        "/api/phone/verify-code",
                         "/find-id",
                         "/find-password",
                         "/find-password/**",

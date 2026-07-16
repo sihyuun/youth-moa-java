@@ -5009,3 +5009,77 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
 #reasonText { width: 100%; margin-top: 12px; padding: 10px; border: 1px solid var(--color-border); border-radius: var(--radius-md); font-family: inherit; resize: vertical; min-height: 60px; }
 
 .visually-hidden { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
+
+/* ═══ F-signup-01: 휴대폰 인증 UI (2026-07-16 재디자인) ═══ */
+/* 인증완료 배지 — code-row 자리를 대체 노출 */
+.signup-verified-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--color-success);
+}
+.signup-verified-badge[hidden] { display: none; }
+
+/* 코드 입력 행 — [wrap(input + 내부 타이머)] [확인 버튼] */
+.signup-code-row {
+  margin-top: 8px;
+  align-items: center;
+  gap: 8px;
+}
+.signup-code-row[hidden] { display: none; }
+
+/* 코드 input 을 감싸 타이머를 내부에 absolute 배치 */
+.signup-code-input-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  display: block;
+}
+.signup-code-input-wrap .signup-input {
+  width: 100%;
+  padding-right: 56px;   /* 내부 타이머 공간 확보 */
+}
+
+.signup-code-timer {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-primary);
+  pointer-events: none;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.signup-code-timer.is-warn { color: var(--color-error); }
+
+/* VERIFIED 시 phone input 잠금 스타일. readonly 상태에서 focus 가 남아있어도
+   .signup-input:focus primary border 규칙에 override 당하지 않도록 명시. */
+.signup-phone-locked,
+.signup-phone-locked:focus {
+  background: #F3F4F6;
+  color: var(--color-text-sec);
+  border-color: var(--color-border);
+  outline: none;
+  box-shadow: none;
+  cursor: default;
+}
+
+/* 안내 문구 (발송 성공 등) — 기본 회색 톤 */
+.signup-help-msg {
+  margin-top: 6px;
+  font-size: 12.5px;
+  color: var(--color-text-sec);
+}
+.signup-help-msg[hidden] { display: none; }
+
+.signup-error-msg[hidden] { display: none; }
+
+.signup-field-ok {
+  color: var(--color-success);
+}
+

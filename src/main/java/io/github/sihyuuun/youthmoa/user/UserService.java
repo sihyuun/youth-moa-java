@@ -75,6 +75,15 @@ public class UserService implements UserDetailsService {
 
   @Transactional
   public void signUp(SignUpRequest request) {
+    signUp(request, false);
+  }
+
+  /**
+   * F-signup-01: phoneVerified 는 UserController 가 세션을 재확인한 뒤에만 true 로 넘긴다. hidden field 값은 절대
+   * 신뢰하지 않는다.
+   */
+  @Transactional
+  public void signUp(SignUpRequest request, boolean phoneVerified) {
     if (userRepository.existsByEmail(request.getEmail())) {
       throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
     }
@@ -90,6 +99,7 @@ public class UserService implements UserDetailsService {
             .address(request.getAddress())
             .addressDetail(request.getAddressDetail())
             .role(UserRole.USER)
+            .phoneVerified(phoneVerified)
             .build();
     userRepository.save(user);
   }
