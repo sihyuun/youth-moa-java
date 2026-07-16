@@ -12,7 +12,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import io.github.sihyuuun.youthmoa.common.config.SecurityConfig;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
@@ -32,13 +32,16 @@ class PhoneVerificationControllerTest {
 
   @Autowired MockMvc mockMvc;
 
-  @MockBean PhoneVerificationService phoneVerificationService;
-  @MockBean SmsRateLimiter smsRateLimiter;
+  @MockitoBean PhoneVerificationService phoneVerificationService;
+  @MockitoBean SmsRateLimiter smsRateLimiter;
 
   // SecurityConfig 가 요구하는 빈들 mock
-  @MockBean UserDetailsService userDetailsService;
-  @MockBean PasswordEncoder passwordEncoder;
-  @MockBean PersistentTokenRepository persistentTokenRepository;
+  @MockitoBean UserDetailsService userDetailsService;
+  @MockitoBean PasswordEncoder passwordEncoder;
+  @MockitoBean PersistentTokenRepository persistentTokenRepository;
+  // HeaderNotificationAdvice 등 @ControllerAdvice 가 자동 로드되며 의존하는 서비스도 mock 필요
+  @MockitoBean io.github.sihyuuun.youthmoa.notification.NotificationService notificationService;
+  @MockitoBean UserRepository userRepository;
 
   @Test
   void send_code_정상() throws Exception {

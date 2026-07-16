@@ -95,6 +95,12 @@ public class User extends BaseTimeEntity {
   @Column(nullable = false)
   private boolean notifyEmail = true;
 
+  // ─── F-signup-01: 휴대폰 인증 여부 ───
+  // NOT NULL default false. 회원가입 시 세션 검증 통과하면 true.
+  // ddl-auto=update 환경에서 기존 row 는 default 로 채워지도록 columnDefinition 명시.
+  @Column(nullable = false, columnDefinition = "boolean not null default false")
+  private boolean phoneVerified = false;
+
   @Builder
   private User(
       String email,
@@ -113,7 +119,8 @@ public class User extends BaseTimeEntity {
       String centerScope,
       Boolean notifyKakao,
       Boolean notifySms,
-      Boolean notifyEmail) {
+      Boolean notifyEmail,
+      Boolean phoneVerified) {
     this.email = email;
     this.password = password;
     this.name = name;
@@ -131,6 +138,12 @@ public class User extends BaseTimeEntity {
     this.notifyKakao = notifyKakao != null ? notifyKakao : true;
     this.notifySms = notifySms != null ? notifySms : false;
     this.notifyEmail = notifyEmail != null ? notifyEmail : true;
+    this.phoneVerified = phoneVerified != null ? phoneVerified : false;
+  }
+
+  /** F-signup-01: 회원가입 시 세션 인증 확인 통과 후 호출. */
+  public void verifyPhone() {
+    this.phoneVerified = true;
   }
 
   /** D1b: 알림 수신 채널 갱신 (마이페이지 설정용). @Setter 금지 → 도메인 메서드. */

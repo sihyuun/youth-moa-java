@@ -90,6 +90,11 @@ public class SignUpRequest {
   // 중복확인 통과 여부 — hidden input 으로 전송, 이메일 변경 시 false 로 reset
   private boolean emailChecked;
 
+  // F-signup-01: 휴대폰 인증 통과 여부 — hidden input 으로 폼 렌더용.
+  // ⚠️ 서버는 이 값을 절대 신뢰하지 않는다 (변조 방어). 진리 소스는 세션의 phoneVerifiedAt / phoneVerifiedNumber.
+  // 클라이언트 UX 상 hidden field 는 존재해야 폼 재렌더 시 인증 완료 상태를 시각적으로 유지 가능.
+  private boolean phoneVerified;
+
   // ── 객체 레벨 검증 (FormatCheck 그룹 — 개별 필드 입력 통과 후 검증) ──────────
 
   @AssertTrue(message = "비밀번호와 비밀번호 확인이 일치하지 않습니다.", groups = FormatCheck.class)

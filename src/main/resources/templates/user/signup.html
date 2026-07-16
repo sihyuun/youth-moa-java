@@ -142,16 +142,30 @@
                         <p class="signup-field-error" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></p>
                     </div>
 
-                    <!-- 핸드폰 번호 + 인증요청 -->
+                    <!-- 핸드폰 번호 + 인증요청 (F-signup-01) -->
                     <div class="signup-field-block" th:classappend="${#fields.hasErrors('phone')} ? 'has-error'">
                         <label for="phone" class="signup-field-label">핸드폰 번호 <span class="required">*</span></label>
                         <div class="signup-field-row">
                             <input type="tel" id="phone" th:field="*{phone}"
                                    placeholder="숫자만 입력해주세요"
                                    class="signup-input">
-                            <button type="button" class="btn-outline-sm signup-side-btn"
-                                    onclick="if(document.getElementById('phone').value){alert('인증번호를 발송했습니다.')}else{alert('핸드폰 번호를 먼저 입력해주세요.')}">인증요청</button>
+                            <button type="button" id="btn-send-code" class="btn-outline-sm signup-side-btn">인증요청</button>
+                            <span id="phone-verified-badge" class="signup-verified-badge" hidden>
+                                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                                인증완료
+                            </span>
                         </div>
+                        <!-- 인증코드 입력행 — 인증요청 후 노출 -->
+                        <div id="code-row" class="signup-field-row signup-code-row" hidden>
+                            <input type="text" id="verify-code" inputmode="numeric" maxlength="6"
+                                   placeholder="6자리 인증번호" class="signup-input">
+                            <span id="code-timer" class="signup-code-timer">3:00</span>
+                            <button type="button" id="btn-verify-code" class="btn-outline-sm signup-side-btn">확인</button>
+                            <button type="button" id="btn-resend-code" class="btn-outline-sm signup-side-btn" disabled>재전송</button>
+                        </div>
+                        <p id="phone-verify-msg" class="signup-field-error" hidden></p>
+                        <!-- 서버 미신뢰 hidden — 폼 상태 UX 용 -->
+                        <input type="hidden" th:field="*{phoneVerified}" id="phoneVerifiedHidden">
                         <p class="signup-field-error" th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}"></p>
                     </div>
 
@@ -401,6 +415,8 @@
         });
     })();
 
+    // (F-signup-01 phone 인증 로직은 /js/signup-phone.js 로 분리)
+
     // 우편번호 검색 — Daum Postcode API 연동 (무료·API 키 불필요)
     (function () {
         const btn = document.getElementById('postcodeSearchBtn');
@@ -428,6 +444,8 @@
         });
     })();
 </script>
+
+<script th:src="@{/js/signup-phone.js}"></script>
 
 </body>
 </html>
