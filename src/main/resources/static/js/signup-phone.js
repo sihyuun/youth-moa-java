@@ -143,6 +143,12 @@
       hidden.value = 'true';
       phoneInput.readOnly = true;
       phoneInput.classList.add('signup-phone-locked');
+      // code input hide 시 focus 가 phone input 으로 자연 이동해 readonly 스타일이
+      // :focus primary border 로 override 되는 이슈 방지 → 명시적 blur.
+      phoneInput.blur();
+      if (document.activeElement && document.activeElement.blur) {
+        document.activeElement.blur();
+      }
       sendBtn.disabled = false;
       stopTtl();
       clearMessages();  // 배지 자체가 완료 표시

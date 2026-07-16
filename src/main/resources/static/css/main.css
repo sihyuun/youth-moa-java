@@ -5057,10 +5057,16 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
 }
 .signup-code-timer.is-warn { color: var(--color-error); }
 
-/* VERIFIED 시 phone input 잠금 스타일 */
-.signup-phone-locked {
+/* VERIFIED 시 phone input 잠금 스타일. readonly 상태에서 focus 가 남아있어도
+   .signup-input:focus primary border 규칙에 override 당하지 않도록 명시. */
+.signup-phone-locked,
+.signup-phone-locked:focus {
   background: #F3F4F6;
   color: var(--color-text-sec);
+  border-color: var(--color-border);
+  outline: none;
+  box-shadow: none;
+  cursor: default;
 }
 
 /* 안내 문구 (발송 성공 등) — 기본 회색 톤 */

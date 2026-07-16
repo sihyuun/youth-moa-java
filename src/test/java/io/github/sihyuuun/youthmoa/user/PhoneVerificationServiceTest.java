@@ -75,19 +75,22 @@ class PhoneVerificationServiceTest {
   }
 
   @Test
-  @DisplayName("sendCode: cooldown 미충족 → IllegalStateException")
-  void sendCode_cooldown_예외() {
+  @DisplayName("sendCode: 기존 row 있으면 reissue (cooldown 없음 — prototype 재디자인 정합)")
+  void sendCode_기존_row_reissue() {
     PhoneVerification existing =
-        PhoneVerification.builder()
-            .phone("01011112222")
-            .code("111111")
-            .expiresAt(LocalDateTime.now().plusMinutes(3))
-            .build();
-    // lastSentAt 은 생성 시 now 로 set 됨 → 즉시 재발송이면 cooldown 걸림
+        org.mockito.Mockito.spy(
+            PhoneVerification.builder()
+                .phone("01011112222")
+                .code("111111")
+                .expiresAt(LocalDateTime.now().plusMinutes(3))
+                .build());
     when(repository.findByPhone("01011112222")).thenReturn(Optional.of(existing));
 
-    org.junit.jupiter.api.Assertions.assertThrows(
-        IllegalStateException.class, () -> service.sendCode("01011112222"));
+    service.sendCode("01011112222");
+
+    // reissue 호출 확인 (repository.save 는 재발송 시 호출 없음)
+    org.mockito.Mockito.verify(existing).reissue(org.mockito.ArgumentMatchers.anyString(), org.mockito.ArgumentMatchers.any());
+    org.mockito.Mockito.verify(smsSender).send(org.mockito.ArgumentMatchers.eq("01011112222"), org.mockito.ArgumentMatchers.anyString());
   }
 
   @Test

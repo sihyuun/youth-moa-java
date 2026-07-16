@@ -2,7 +2,6 @@ package io.github.sihyuuun.youthmoa.user;
 
 import io.github.sihyuuun.youthmoa.user.sms.SmsSender;
 import java.security.SecureRandom;
-import java.time.Duration;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -51,8 +50,11 @@ public class PhoneVerificationService {
   /**
    * 인증 코드 발송.
    *
+   * <p>per-phone cooldown 제거 (2026-07-16, prototype UI 재디자인 정합). Spam 방어는 IP 기반 rate limiter
+   * ({@link SmsRateLimiter}) 만으로 충분. VERIFIED 이후 재인증 흐름에서 즉시 재발송 가능해야 함.
+   *
    * @throws IllegalArgumentException phone 형식 오류
-   * @throws IllegalStateException 재발송 cooldown 미충족 or SMS 발송 실패
+   * @throws IllegalStateException SMS 발송 실패
    */
   public void sendCode(String phoneRaw) {
     String phone = normalize(phoneRaw);
@@ -61,14 +63,6 @@ public class PhoneVerificationService {
     }
     LocalDateTime now = LocalDateTime.now();
     PhoneVerification pv = repository.findByPhone(phone).orElse(null);
-
-    if (pv != null && pv.getLastSentAt() != null) {
-      long elapsed = Duration.between(pv.getLastSentAt(), now).getSeconds();
-      if (elapsed < resendCooldownSeconds) {
-        throw new IllegalStateException(
-            "재발송은 " + (resendCooldownSeconds - elapsed) + "초 후 가능합니다.");
-      }
-    }
 
     String code = coolsmsEnabled ? generateCode() : mockFixedCode;
     LocalDateTime expiresAt = now.plusSeconds(codeTtlSeconds);

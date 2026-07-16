@@ -34,13 +34,22 @@ public class PhoneVerificationController {
   private final PhoneVerificationService phoneVerificationService;
   private final SmsRateLimiter smsRateLimiter;
 
+  /**
+   * mock 모드 (youthmoa.coolsms.enabled=false) — 실 SMS 발송 없음. 크레딧 리스크 없어 rate limiter 스킵. 개발·e2e
+   * 테스트 반복 편의. 운영 (enabled=true) 에서는 정상 rate limit 적용.
+   */
+  @org.springframework.beans.factory.annotation.Value("${youthmoa.coolsms.enabled:false}")
+  private boolean coolsmsEnabled;
+
   @PostMapping("/send-code")
   public ResponseEntity<?> sendCode(
       @Valid @RequestBody SendCodeRequest request, HttpServletRequest httpRequest) {
-    String ip = clientIp(httpRequest);
-    if (!smsRateLimiter.tryAcquire(ip)) {
-      return ResponseEntity.status(429)
-          .body(Map.of("error", "인증 요청이 너무 많습니다. 잠시 후 다시 시도해주세요."));
+    if (coolsmsEnabled) {
+      String ip = clientIp(httpRequest);
+      if (!smsRateLimiter.tryAcquire(ip)) {
+        return ResponseEntity.status(429)
+            .body(Map.of("error", "인증 요청이 너무 많습니다. 잠시 후 다시 시도해주세요."));
+      }
     }
     try {
       phoneVerificationService.sendCode(request.getPhone());

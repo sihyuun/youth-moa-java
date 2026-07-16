@@ -28,6 +28,9 @@ import org.springframework.test.web.servlet.MockMvc;
  */
 @WebMvcTest(PhoneVerificationController.class)
 @Import(SecurityConfig.class)
+// mock 모드에서는 rate limiter 스킵이 기본. rate limit 검증을 위해 테스트만 enabled=true 로 전환.
+@org.springframework.test.context.TestPropertySource(
+    properties = "youthmoa.coolsms.enabled=true")
 class PhoneVerificationControllerTest {
 
   @Autowired MockMvc mockMvc;
