@@ -52,27 +52,38 @@
     </div>
 </main>
 
-<!-- 취소 모달 -->
-<div id="cancelModal" class="mypage-modal" hidden>
-    <div class="mypage-modal-inner">
-        <h3>신청을 취소하시겠어요?</h3>
-        <p class="mypage-modal-subtitle" id="cancelModalTitle"></p>
-        <form th:action="@{/mypage/applications/__/cancel}" method="post" id="cancelForm">
-            <fieldset class="mypage-reason-list">
-                <legend class="visually-hidden">취소 사유</legend>
-                <label><input type="radio" name="reasonCode" value="CHANGE_MIND" required> 단순 변심</label>
-                <label><input type="radio" name="reasonCode" value="SCHEDULE_CONFLICT"> 일정이 맞지 않음</label>
-                <label><input type="radio" name="reasonCode" value="DUPLICATE_APPLY"> 중복 신청</label>
-                <label><input type="radio" name="reasonCode" value="PERSONAL"> 개인 사유</label>
-                <label><input type="radio" name="reasonCode" value="OTHER" id="reasonOther"> 기타</label>
-            </fieldset>
-            <textarea name="reasonText" id="reasonText" maxlength="100"
-                      placeholder="기타 사유 (최대 100자)" hidden></textarea>
-            <div class="mypage-modal-actions">
-                <button type="button" onclick="closeCancelModal()" class="btn-auth btn-auth--secondary">닫기</button>
-                <button type="submit" class="btn-auth btn-auth--primary">확인</button>
-            </div>
-        </form>
+<!-- 취소 모달 (U-COMMON-01 공통 .modal-card 셸로 마이그레이션) -->
+<div id="cancelModal" class="modal-backdrop" aria-hidden="true" hidden>
+    <div class="modal-card modal-card--sm" role="dialog" aria-modal="true" aria-labelledby="cancelModalHeading">
+        <div class="modal-card__header">
+            <h3 class="modal-card__title" id="cancelModalHeading">신청을 취소하시겠어요?</h3>
+            <button type="button" class="modal-card__close" aria-label="닫기" data-modal-close onclick="closeCancelModal()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="1.8"
+                     stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M18 6L6 18M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+        <div class="modal-card__body">
+            <p class="modal-card__message" id="cancelModalTitle"></p>
+            <form th:action="@{/mypage/applications/__/cancel}" method="post" id="cancelForm">
+                <fieldset class="mypage-reason-list">
+                    <legend class="visually-hidden">취소 사유</legend>
+                    <label><input type="radio" name="reasonCode" value="CHANGE_MIND" required> 단순 변심</label>
+                    <label><input type="radio" name="reasonCode" value="SCHEDULE_CONFLICT"> 일정이 맞지 않음</label>
+                    <label><input type="radio" name="reasonCode" value="DUPLICATE_APPLY"> 중복 신청</label>
+                    <label><input type="radio" name="reasonCode" value="PERSONAL"> 개인 사유</label>
+                    <label><input type="radio" name="reasonCode" value="OTHER" id="reasonOther"> 기타</label>
+                </fieldset>
+                <textarea name="reasonText" id="reasonText" maxlength="100"
+                          placeholder="기타 사유 (최대 100자)" hidden></textarea>
+                <div class="modal-card__footer">
+                    <button type="button" onclick="closeCancelModal()" class="btn-auth btn-auth--secondary">닫기</button>
+                    <button type="submit" class="btn-auth btn-auth--danger">확인</button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 
@@ -85,10 +96,13 @@
         document.getElementById('cancelModalTitle').textContent = btn.dataset.appTitle;
         const form = document.getElementById('cancelForm');
         form.action = '/mypage/applications/' + currentAppId + '/cancel';
-        document.getElementById('cancelModal').hidden = false;
+        // 공통 Modal API 사용 (focus trap · ESC · backdrop 자동 처리)
+        if (window.Modal) { window.Modal.open('cancelModal'); }
+        else { document.getElementById('cancelModal').hidden = false; }
     }
     function closeCancelModal() {
-        document.getElementById('cancelModal').hidden = true;
+        if (window.Modal) { window.Modal.close('cancelModal'); }
+        else { document.getElementById('cancelModal').hidden = true; }
     }
     document.querySelectorAll('input[name="reasonCode"]').forEach(radio => {
         radio.addEventListener('change', e => {

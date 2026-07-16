@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<!--
+  U-COMMON-01 공통 Modal / Toast fragment.
+  - toast-stack: 레이아웃 body 최하단에 1회 include. JS 가 여기에 .toast 를 append.
+  - modal: (id, title, size, body, footer) 파라미터 fragment (인라인 모달용, 선택적)
+  - scripts: /js/common-ui.js 로드 (defer)
+
+  Toast/Modal API 는 window.Toast / window.Modal 로 노출.
+-->
+<body>
+
+<!--
+  toast-stack — 전역 단일 인스턴스. 위치·스타일은 .toast-stack 클래스에서 제어.
+  aria-live 는 JS 가 append 시 상속되도록 컨테이너에 부여.
+-->
+<div th:fragment="toast-stack" class="toast-stack" aria-live="polite" aria-atomic="false"></div>
+
+<!--
+  Parameterized modal fragment.
+  - id: HTMLElement id (backdrop). JS 에서 Modal.open(id) 로 열기
+  - title: 헤더 제목 텍스트
+  - size: 'sm' | 'md' | 'lg' (400/460/560)
+  - body: th:insert 로 넘길 fragment ref 또는 th:remove 처리 후 별도 처리
+  - footer: 동일
+
+  주의: body/footer 를 파라미터로 넘기려면 `th:replace` 대신 fragment ref 를
+  ~{templates/... :: name(args)} 형태로 전달해야 함. 단순 텍스트는 인라인 사용.
+-->
+<div th:fragment="modal(id, title, size)"
+     th:id="${id}"
+     class="modal-backdrop"
+     aria-hidden="true"
+     hidden>
+    <div th:class="|modal-card modal-card--${size ?: 'md'}|" role="dialog" aria-modal="true">
+        <div class="modal-card__header">
+            <h3 class="modal-card__title" th:text="${title}">제목</h3>
+            <button type="button" class="modal-card__close" aria-label="닫기" data-modal-close>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="1.8"
+                     stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M18 6L6 18M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+        <div class="modal-card__body">
+            <!-- body 는 호출측에서 th:insert 로 확장 -->
+        </div>
+        <div class="modal-card__footer">
+            <!-- footer 는 호출측에서 th:insert 로 확장 -->
+        </div>
+    </div>
+</div>
+
+<!--
+  scripts fragment — 레이아웃 body 종료 직전에 1회 include.
+  common-ui.js 는 defer 로 로드되어 DOMContentLoaded 시점에 window.Toast/Modal 등록.
+-->
+<th:block th:fragment="scripts">
+    <script th:src="@{/js/common-ui.js}" defer></script>
+</th:block>
+
+</body>
+</html>

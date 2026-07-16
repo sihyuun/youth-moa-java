@@ -54,16 +54,28 @@ class MyPageRenderTest {
     mockMvc.perform(get("/mypage?tab=favorites").with(authed())).andExpect(status().isOk());
   }
 
-  /** 취소 모달은 hidden 상태로 렌더돼야 함 (CSS `:not([hidden])` 로 방어). */
+  /**
+   * 취소 모달은 hidden 상태로 렌더돼야 함 (CSS `:not([hidden])` 로 방어).
+   * U-COMMON-01: .mypage-modal → .modal-backdrop + .modal-card 공통 셸로 마이그레이션.
+   */
   @Test
   void mypage_history_취소모달_초기_hidden() throws Exception {
-    mockMvc
-        .perform(get("/mypage").with(authed()))
-        .andExpect(status().isOk())
-        // 모달 div 자체는 존재해야 함
-        .andExpect(content().string(containsString("id=\"cancelModal\"")))
-        // hidden 속성 부여됨
-        .andExpect(content().string(containsString("class=\"mypage-modal\" hidden")));
+    String body =
+        mockMvc
+            .perform(get("/mypage").with(authed()))
+            .andExpect(status().isOk())
+            // 모달 backdrop 존재 (id 유지)
+            .andExpect(content().string(containsString("id=\"cancelModal\"")))
+            // 공통 .modal-backdrop 클래스 사용 (마이그레이션 확인)
+            .andExpect(content().string(containsString("class=\"modal-backdrop\"")))
+            // 내부에 공통 .modal-card 셸 존재
+            .andExpect(content().string(containsString("modal-card modal-card--sm")))
+            // hidden 속성 부여됨 (초기 상태)
+            .andExpect(content().string(containsString("aria-hidden=\"true\" hidden")))
+            // dead 클래스 미노출
+            .andExpect(content().string(not(containsString("mypage-modal-inner"))))
+            .andReturn().getResponse().getContentAsString();
+    assertThat(body).contains("aria-modal=\"true\"");
   }
 
   /** F-signup-03 그룹형 뱃지: 값칩 최대 3개 + prototype.tsx L1236~1252 매칭. */
