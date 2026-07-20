@@ -81,15 +81,11 @@
                     </a>
                     <a th:href="@{/programs(status='active',regions=${filterRegions},centers=${filterCenters},sort=${filterSort})}"
                        th:class="${filterStatus == 'active'} ? 'status-tab active' : 'status-tab'">
-                        진행중
+                        모집중
                     </a>
                     <a th:href="@{/programs(status='upcoming',regions=${filterRegions},centers=${filterCenters},sort=${filterSort})}"
                        th:class="${filterStatus == 'upcoming'} ? 'status-tab active' : 'status-tab'">
                         진행예정
-                    </a>
-                    <a th:href="@{/programs(status='closed',regions=${filterRegions},centers=${filterCenters},sort=${filterSort})}"
-                       th:class="${filterStatus == 'closed'} ? 'status-tab active' : 'status-tab'">
-                        마감
                     </a>
                 </div>
 
