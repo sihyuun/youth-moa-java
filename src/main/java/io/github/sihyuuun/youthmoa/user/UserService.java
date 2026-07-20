@@ -1,5 +1,8 @@
 package io.github.sihyuuun.youthmoa.user;
 
+import io.github.sihyuuun.youthmoa.application.ApplicationRepository;
+import io.github.sihyuuun.youthmoa.bookmark.BookmarkRepository;
+import io.github.sihyuuun.youthmoa.notification.NotificationRepository;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -16,6 +19,9 @@ public class UserService implements UserDetailsService {
 
   private final UserRepository userRepository;
   private final PasswordEncoder passwordEncoder;
+  private final ApplicationRepository applicationRepository;
+  private final BookmarkRepository bookmarkRepository;
+  private final NotificationRepository notificationRepository;
 
   @Override
   public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
@@ -63,6 +69,27 @@ public class UserService implements UserDetailsService {
             .findByEmail(email)
             .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다: " + email));
     user.updateNotificationChannels(request.isKakao(), request.isSms(), request.isEmail());
+  }
+
+  /**
+   * F0f-fix-4: 회원 탈퇴. 관련 하위 데이터(Application/Bookmark/Notification) 를 먼저 삭제한 뒤 User 를 삭제한다.
+   *
+   * <p>모든 하위 엔티티는 User 를 {@code @ManyToOne} 으로 참조하므로 FK 제약 회피 목적으로 순서 유지 필수.
+   */
+  @Transactional
+  public void withdraw(String email) {
+    User user =
+        userRepository
+            .findByEmail(email)
+            .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다: " + email));
+    // 하위 엔티티 삭제 (FK cascade 없음 — 명시 삭제)
+    applicationRepository.deleteAll(applicationRepository.findAllByUserOrderByAppliedAtDesc(user));
+    bookmarkRepository.deleteAll(bookmarkRepository.findAllByUserOrderByCreatedAtDesc(user));
+    // Notification 은 페이징만 있어 전량 조회 후 삭제
+    notificationRepository.deleteAll(
+        notificationRepository.findAllByUserOrderByCreatedAtDesc(
+            user, org.springframework.data.domain.Pageable.unpaged()));
+    userRepository.delete(user);
   }
 
   /** D5: Step1 비밀번호 재확인. 일치하면 true. */

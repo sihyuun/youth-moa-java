@@ -157,6 +157,24 @@ public class MyPageController {
     return "redirect:/mypage?tab=profile";
   }
 
+  /**
+   * F0f-fix-4: 회원 탈퇴 실행. 확인 다이얼로그에서 [탈퇴하기] 클릭 시 도달.
+   *
+   * <p>탈퇴 후 SecurityContext / 세션 무효화 → 로그인 페이지로 리다이렉트.
+   */
+  @PostMapping("/withdraw")
+  public String withdraw(
+      @AuthenticationPrincipal UserDetails principal,
+      HttpSession session,
+      jakarta.servlet.http.HttpServletRequest request,
+      jakarta.servlet.http.HttpServletResponse response) {
+    userService.withdraw(principal.getUsername());
+    // 세션 + SecurityContext 정리
+    new org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler()
+        .logout(request, response, org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication());
+    return "redirect:/login?withdraw";
+  }
+
   @PostMapping("/notifications")
   public String updateNotifications(
       @ModelAttribute NotificationChannelRequest request,
