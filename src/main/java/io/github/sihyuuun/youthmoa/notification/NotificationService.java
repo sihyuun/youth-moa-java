@@ -49,7 +49,8 @@ public class NotificationService {
    * @return LinkedHashMap ("today"/"week"/"earlier" 순서 보장). 각 그룹 최근순 정렬. 비어있는 그룹은 미포함.
    */
   public Map<String, List<Notification>> findGrouped(User user, boolean unreadOnly) {
-    List<Notification> source = listAll(user);
+    // F0f-fix-5 verify: listAll(20건 상한) 대신 전체 조회로 그룹핑 (필터 pill 카운트와 정합).
+    List<Notification> source = notificationRepository.findAllByUserOrderByCreatedAtDesc(user);
     LocalDate today = LocalDate.now();
     LocalDateTime todayStart = today.atStartOfDay();
     LocalDateTime weekStart = today.minusDays(6).atStartOfDay();
@@ -71,11 +72,9 @@ public class NotificationService {
     return grouped;
   }
 
-  /** 전체·안읽음 카운트를 함께 반환 (필터 pill 표시용). */
+  /** 필터 pill 전체 카운트 (그룹핑 소스와 동일 스코프). */
   public long totalCount(User user) {
-    return notificationRepository.findAllByUserOrderByCreatedAtDesc(
-            user, org.springframework.data.domain.PageRequest.of(0, 20))
-        .getTotalElements();
+    return notificationRepository.findAllByUserOrderByCreatedAtDesc(user).size();
   }
 
   /**

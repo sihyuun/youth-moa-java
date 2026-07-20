@@ -13,6 +13,9 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
 
   Page<Notification> findAllByUserOrderByCreatedAtDesc(User user, Pageable pageable);
 
+  /** F0f-fix-5: 그룹핑용 — 페이지 상한 없이 사용자 알림 전체 (최근 순). 향후 페이지네이션 도입 시 조정. */
+  List<Notification> findAllByUserOrderByCreatedAtDesc(User user);
+
   /** 헤더 드롭다운용 — 최근 5건. */
   List<Notification> findTop5ByUserOrderByCreatedAtDesc(User user);
 

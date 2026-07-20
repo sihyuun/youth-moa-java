@@ -38,13 +38,14 @@ public class NotificationController {
         userRepository
             .findById(principal.getId())
             .orElseThrow(() -> new IllegalStateException("Authenticated user missing"));
-    List<Notification> all = notificationService.listAll(user);
+    List<Notification> all = notificationService.listAll(user); // 하위 호환용 (최근 20건)
     long unreadCount = notificationService.unreadCount(user);
+    long totalCount = notificationService.totalCount(user);
     Map<String, List<Notification>> grouped = notificationService.findGrouped(user, unreadOnly);
     model.addAttribute("notifications", all); // 하위 호환 (기존 렌더 테스트 대비)
     model.addAttribute("groupedNotifications", grouped);
     model.addAttribute("filterUnread", unreadOnly);
-    model.addAttribute("totalCount", (long) all.size());
+    model.addAttribute("totalCount", totalCount);
     model.addAttribute("unreadCount", unreadCount);
     return "notification/list";
   }
