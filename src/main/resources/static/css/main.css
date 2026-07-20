@@ -2098,8 +2098,8 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
   min-height: calc(100vh - var(--header-h) - 72px);
 }
 
-/* prototype.tsx 폭: 520px */
-.signup-inner { width: 520px; max-width: 100%; }
+/* prototype L1867 폭: 560px */
+.signup-inner { width: 560px; max-width: 100%; }
 
 .signup-header {
   text-align: center;
@@ -2123,69 +2123,83 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
   margin: 0;
 }
 
-.signup-section { margin-bottom: 28px; }
+/* prototype L1854 card 스타일 — background surface, border-radius 16, border-light, box-shadow, padding 24px 28px, mb 16 */
+/* NOTE(F0f-fix-6): 공통 .form-card / .form-input 은 fix-4 와 공유 예정.
+   이 브랜치에서 먼저 정의 → fix-4 는 재사용. main 머지 순서: fix-6 → fix-4 권장. */
+.signup-section {
+  background: var(--color-surface);
+  border-radius: 16px;
+  border: 1px solid var(--color-border-light);
+  box-shadow: var(--shadow-sm);
+  padding: 24px 28px;
+  margin-bottom: 16px;
+}
 
 .signup-section-head {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding-bottom: 12px;
-  border-bottom: 2px solid var(--color-text);
   margin-bottom: 18px;
 }
 
 .signup-section-title {
-  font-size: 16px;
+  font-size: 15.5px;
   font-weight: 700;
   color: var(--color-text);
+  display: block;
 }
 
+/* prototype L1877 gap 16 */
 .signup-fields {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 16px;
 }
 
 .signup-field-block { display: block; }
 
+/* prototype L1853 label: 13px 600 textSec mb 6 */
 .signup-field-label {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
-  color: var(--color-text);
-  margin-bottom: 7px;
+  color: var(--color-text-sec);
+  margin-bottom: 6px;
   display: block;
 }
 
 .required { color: var(--color-error); }
 .required-inline { color: var(--color-error); font-weight: 400; }
 
-/* Input — prototype.tsx field 스타일 (height 46, 1.5px border, padding 0 16) */
+/* Input — prototype L105 inputStyle: height 42, radius 10, 1px border, padding 0 14, fs 14
+   평상시: 연회색 필드 (#F7F8FA) → 값 채워지면 흰색 + primary 테두리 */
 .signup-input {
   width: 100%;
-  height: 46px;
-  border-radius: var(--radius-md);
-  border: 1.5px solid var(--color-border);
-  padding: 0 16px;
+  height: 42px;
+  border-radius: 10px;
+  border: 1px solid var(--color-border);
+  padding: 0 14px;
   font-size: 14px;
   font-family: inherit;
   color: var(--color-text);
-  background: var(--color-surface);
+  background: #F7F8FA;
   outline: none;
-  transition: border-color 0.15s;
+  transition: border-color 0.15s, background 0.15s;
   box-sizing: border-box;
   display: block;
 }
-.signup-input:focus { border-color: var(--color-primary); }
+.signup-input:focus {
+  border-color: var(--color-primary);
+  background: var(--color-surface);
+}
 .signup-input::placeholder { color: var(--color-text-tri); }
 
-/* 값 있을 때 primary border (prototype.tsx 동적 색) */
+/* 값 있을 때 primary border + 흰 배경 (prototype filled 상태) */
 .signup-input:not(:placeholder-shown):not(:focus):not(:read-only) {
   border-color: var(--color-primary);
+  background: var(--color-surface);
 }
 
-/* readOnly (우편번호 / 주소) — bg #F3F4F6 */
+/* readOnly (우편번호 / 주소) — bg #F3F4F6, border-light (prototype L106 inputRO) */
 .signup-input--readonly {
   background: #F3F4F6;
+  border-color: var(--color-border-light);
   cursor: default;
 }
 
@@ -2270,10 +2284,14 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
 }
 .signup-field-row .signup-input { flex: 1; min-width: 0; }
 
+/* prototype L1856 btnSide: minWidth 84, height 42, padding 0 14, fs 13 */
 .signup-side-btn {
   flex-shrink: 0;
-  width: 96px;
-  height: 46px;
+  width: auto;
+  min-width: 84px;
+  height: 42px;
+  padding: 0 14px;
+  font-size: 13px;
 }
 
 /* 주소 영역 세로 스택 */
@@ -2283,48 +2301,50 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
   gap: 8px;
 }
 
-/* 성별 라디오 (prototype.tsx 원형 + 내부 점) */
-.signup-gender-radio-group {
+/* 성별 pill 토글 — prototype L1924~1935.
+   2 버튼 flex 1, height 42, radius 10, 평시 연회색 #F7F8FA + border,
+   선택 시 primaryBg + primary 테두리 + check 아이콘 노출. */
+.signup-gender-pill-group {
   display: flex;
-  gap: 20px;
-  padding-top: 4px;
-}
-.signup-radio {
-  display: flex;
-  align-items: center;
   gap: 8px;
-  cursor: pointer;
-  user-select: none;
 }
-.signup-radio input[type="radio"] {
+.signup-gender-radio-input {
   position: absolute;
   opacity: 0;
   pointer-events: none;
+  width: 0;
+  height: 0;
 }
-.signup-radio-circle {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  border: 2px solid var(--color-border);
+.signup-gender-pill {
+  flex: 1;
+  height: 42px;
+  border-radius: 10px;
+  border: 1px solid var(--color-border);
+  background: #F7F8FA;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
-  transition: border-color 0.15s;
-}
-.signup-radio input[type="radio"]:checked + .signup-radio-circle {
-  border-color: var(--color-primary);
-}
-.signup-radio input[type="radio"]:checked + .signup-radio-circle::after {
-  content: '';
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: var(--color-primary);
-}
-.signup-radio-text {
+  gap: 6px;
+  cursor: pointer;
+  font-family: inherit;
   font-size: 14px;
-  color: var(--color-text);
+  color: var(--color-text-sec);
+  transition: all 150ms;
+  user-select: none;
+}
+.signup-gender-pill:hover { border-color: var(--color-primary); }
+.signup-gender-pill .signup-gender-check {
+  display: none;
+  color: var(--color-primary);
+}
+.signup-gender-pill.is-selected {
+  background: var(--color-primary-bg);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  font-weight: 600;
+}
+.signup-gender-pill.is-selected .signup-gender-check {
+  display: inline-flex;
 }
 
 /* btn-outline-sm (중복확인 / 인증요청 / 검색) */
@@ -2352,16 +2372,21 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
   cursor: not-allowed;
 }
 
-/* ── 약관 동의 ── */
+/* ── 약관 동의 — prototype L1958 전체 동의 강조 박스 (primaryBg 배경, radius 10, padding 12/14) ── */
 .signup-agree-all {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 10px 0;
-  border-bottom: 1px solid var(--color-border-light);
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: #F7F8FA;
   cursor: pointer;
-  margin-bottom: 4px;
+  margin-bottom: 8px;
   user-select: none;
+  transition: background 150ms;
+}
+.signup-agree-all:has(input[type="checkbox"]:checked) {
+  background: var(--color-primary-bg);
 }
 .signup-agree-all input[type="checkbox"] {
   position: absolute;
@@ -2400,7 +2425,7 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 11px 0;
+  padding: 9px 14px;
 }
 .signup-agree-item {
   display: flex;
@@ -2447,15 +2472,28 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
 }
 .signup-agree-view:hover { text-decoration: underline; }
 
-/* 하단 액션 (가운데 정렬, ghost 150 / primary 200) */
+/* 하단 액션 — prototype L1975 fullWidth 회원가입 + L1976 로그인 링크 */
 .signup-actions {
-  display: flex;
-  justify-content: center;
-  gap: 12px;
+  display: block;
   margin-top: 4px;
 }
-.signup-cancel-btn { width: 150px; }
-.signup-submit-btn { width: 200px; }
+.signup-submit-btn {
+  width: 100%;
+  height: 48px;
+}
+.signup-login-link {
+  text-align: center;
+  margin: 16px 0 0;
+  font-size: 13.5px;
+  color: var(--color-text-sec);
+}
+.signup-login-link a {
+  color: var(--color-primary);
+  font-weight: 600;
+  text-decoration: none;
+  margin-left: 4px;
+}
+.signup-login-link a:hover { text-decoration: underline; }
 
 .btn-auth--ghost {
   background: transparent;
