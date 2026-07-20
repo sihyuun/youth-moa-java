@@ -38,7 +38,12 @@ public class ProgramService {
     Specification<Program> spec = Specification.where(ProgramSpec.isActive());
 
     Specification<Program> dateSpec = ProgramSpec.withDateStatus(status);
-    if (dateSpec != null) spec = spec.and(dateSpec);
+    if (dateSpec != null) {
+      spec = spec.and(dateSpec);
+    } else {
+      // 전체 탭 (status 필터 없음) — ENDED 프로그램은 목록 뒤로 정렬 (F0f-fix-3)
+      spec = spec.and(ProgramSpec.endedLast());
+    }
 
     Specification<Program> regionSpec = ProgramSpec.withRegions(regions);
     if (regionSpec != null) spec = spec.and(regionSpec);

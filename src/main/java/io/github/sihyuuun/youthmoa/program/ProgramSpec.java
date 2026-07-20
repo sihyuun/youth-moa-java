@@ -26,12 +26,22 @@ public class ProgramSpec {
     };
   }
 
-  /** status: "active" | "upcoming" | "closed" | "" | null → null 반환 시 조건 없음 */
+  /**
+   * status: "open" | "upcoming" | "ended" | "" | null → null 반환 시 조건 없음.
+   *
+   * <p>하위 호환: 기존 "active" → "open", "closed" → "ended" 로 매핑.
+   *
+   * <p>"ended" 는 endDate < today AND isActive=true (SUSPENDED 는 별도 상태이므로 제외).
+   */
   public static Specification<Program> withDateStatus(String status) {
     if (status == null || status.isBlank()) return null;
     LocalDate today = LocalDate.now();
-    return switch (status) {
-      case "active" ->
+    // 하위 호환
+    String key = status;
+    if ("active".equals(key)) key = "open";
+    if ("closed".equals(key)) key = "ended";
+    return switch (key) {
+      case "open" ->
           (root, query, cb) ->
               cb.and(
                   cb.or(
@@ -41,8 +51,42 @@ public class ProgramSpec {
                       cb.isNull(root.get("endDate")),
                       cb.greaterThanOrEqualTo(root.get("endDate"), today)));
       case "upcoming" -> (root, query, cb) -> cb.greaterThan(root.get("startDate"), today);
-      case "closed" -> (root, query, cb) -> cb.lessThan(root.get("endDate"), today);
+      case "ended" ->
+          (root, query, cb) ->
+              cb.and(
+                  cb.lessThan(root.get("endDate"), today), cb.isTrue(root.get("isActive")));
       default -> null;
+    };
+  }
+
+  /**
+   * 전체 탭 (status 필터 없음) 조회 시 ENDED 를 뒤로 밀어내는 정렬 보정.
+   *
+   * <p>Predicate 는 conjunction 반환하고 query.orderBy() 로 정렬만 주입한다. 카운트 쿼리는 무시. 다른 Sort/Spec 과 결합
+   * 시 이 정렬이 최상단 우선으로 적용된다 (예: newest/deadline 이 뒤로 밀림). 필요 시 호출부에서 순서 조정.
+   *
+   * <p>기준: endDate < today → 1, 그 외 → 0 (ASC → 진행중/예정이 먼저).
+   */
+  public static Specification<Program> endedLast() {
+    return (root, query, cb) -> {
+      if (query != null
+          && Long.class != query.getResultType()
+          && long.class != query.getResultType()) {
+        LocalDate today = LocalDate.now();
+        jakarta.persistence.criteria.Expression<Integer> endedFlag =
+            cb.<Integer>selectCase()
+                .when(cb.lessThan(root.get("endDate"), today), 1)
+                .otherwise(0)
+                .as(Integer.class);
+        // 기존 orderBy 를 유지하면서 앞쪽에 endedFlag ASC 를 삽입
+        java.util.List<jakarta.persistence.criteria.Order> existing =
+            new java.util.ArrayList<>(query.getOrderList());
+        java.util.List<jakarta.persistence.criteria.Order> merged = new java.util.ArrayList<>();
+        merged.add(cb.asc(endedFlag));
+        merged.addAll(existing);
+        query.orderBy(merged);
+      }
+      return cb.conjunction();
     };
   }
 

@@ -133,12 +133,16 @@ public class Program extends BaseTimeEntity {
   }
 
   public ProgramStatus getStatus() {
-    // F0f-fix-1 (C-Q1): isActive=false → INACTIVE (운영 중단). CLOSED 와 별도 상태.
-    if (!isActive) return ProgramStatus.INACTIVE;
+    // F0f-fix-3 (2026-07-20): 4개 명시 상태. "마감(isFull)" 은 파생.
+    //   isActive=false → SUSPENDED (운영중단, 관리자 강제, 복구 가능)
+    //   endDate < today → ENDED (기간 만료, 자연 종료)
+    //   today < startDate → UPCOMING
+    //   그 외 → OPEN
+    if (!isActive) return ProgramStatus.SUSPENDED;
     LocalDate today = LocalDate.now();
     if (startDate != null && today.isBefore(startDate)) return ProgramStatus.UPCOMING;
-    if (endDate != null && today.isAfter(endDate)) return ProgramStatus.CLOSED;
-    return ProgramStatus.ACTIVE;
+    if (endDate != null && today.isAfter(endDate)) return ProgramStatus.ENDED;
+    return ProgramStatus.OPEN;
   }
 
   /** endDate까지 남은 일수. endDate가 없으면 -1, 이미 지났으면 음수. */
