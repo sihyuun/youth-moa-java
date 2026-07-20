@@ -133,4 +133,71 @@ class ProgramCardDtoTest {
     assertThat(dto.getPrimaryLabel()).isEqualTo("정원 0/20명");
     assertThat(dto.getSecondaryLabel()).isEqualTo("0%");
   }
+
+  // ─── F0f-fix-1: CTA 5분기 경계값 ───
+
+  @Test
+  @DisplayName("CTA: ACTIVE + pct<100 → apply/신청하기/primary/check")
+  void cta_apply() {
+    ProgramCardDto dto = new ProgramCardDto(activeProgram(10), 5);
+    assertThat(dto.getCtaType()).isEqualTo("apply");
+    assertThat(dto.getCtaLabel()).isEqualTo("신청하기");
+    assertThat(dto.getCtaColorClass()).isEqualTo("primary");
+    assertThat(dto.getCtaIcon()).isEqualTo("check");
+    assertThat(dto.isCtaDisabled()).isFalse();
+  }
+
+  @Test
+  @DisplayName("CTA: UPCOMING → openAlert/오픈 알림 받기/secondary/bell")
+  void cta_openAlert() {
+    ProgramCardDto dto = new ProgramCardDto(upcomingProgram(), 0);
+    assertThat(dto.getCtaType()).isEqualTo("openAlert");
+    assertThat(dto.getCtaLabel()).isEqualTo("오픈 알림 받기");
+    assertThat(dto.getCtaColorClass()).isEqualTo("secondary");
+    assertThat(dto.getCtaIcon()).isEqualTo("bell");
+    assertThat(dto.isCtaDisabled()).isFalse();
+  }
+
+  @Test
+  @DisplayName("CTA: ACTIVE + 만석(pct=100) → waitlist/빈자리 알림 받기/muted/bell")
+  void cta_waitlist_full() {
+    ProgramCardDto dto = new ProgramCardDto(activeProgram(10), 10);
+    assertThat(dto.getCtaType()).isEqualTo("waitlist");
+    assertThat(dto.getCtaLabel()).isEqualTo("빈자리 알림 받기");
+    assertThat(dto.getCtaColorClass()).isEqualTo("muted");
+    assertThat(dto.getCtaIcon()).isEqualTo("bell");
+    assertThat(dto.isCtaDisabled()).isFalse();
+  }
+
+  @Test
+  @DisplayName("CTA: CLOSED + pct<100 (기간 만료) → expired/종료된 프로그램/muted/disabled")
+  void cta_expired() {
+    ProgramCardDto dto = new ProgramCardDto(closedProgram(), 3);
+    assertThat(dto.getCtaType()).isEqualTo("expired");
+    assertThat(dto.getCtaLabel()).isEqualTo("종료된 프로그램");
+    assertThat(dto.getCtaColorClass()).isEqualTo("muted");
+    assertThat(dto.getCtaIcon()).isNull();
+    assertThat(dto.isCtaDisabled()).isTrue();
+  }
+
+  @Test
+  @DisplayName("CTA: INACTIVE (운영 중단) → inactive/운영이 중단되었어요/muted/disabled")
+  void cta_inactive() {
+    Program p =
+        Program.builder()
+            .title("중단 프로그램")
+            .organization("기관")
+            .content("내용")
+            .startDate(LocalDate.now().plusDays(3))
+            .endDate(LocalDate.now().plusDays(30))
+            .capacity(10)
+            .isActive(false)
+            .build();
+    ProgramCardDto dto = new ProgramCardDto(p, 0);
+    assertThat(dto.getStatus()).isEqualTo(ProgramStatus.INACTIVE);
+    assertThat(dto.getCtaType()).isEqualTo("inactive");
+    assertThat(dto.getCtaLabel()).isEqualTo("운영이 중단되었어요");
+    assertThat(dto.getCtaColorClass()).isEqualTo("muted");
+    assertThat(dto.isCtaDisabled()).isTrue();
+  }
 }
