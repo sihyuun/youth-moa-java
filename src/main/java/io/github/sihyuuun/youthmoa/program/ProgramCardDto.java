@@ -54,6 +54,22 @@ public class ProgramCardDto {
    */
   private final boolean detailEmphasized;
 
+  // ─── 카드 CTA 5분기 (F0f-fix-1, spec §PR1 · C-Q1 도입, C-Q7=a 수동/기간 마감 분리) ───
+  /** CTA 타입: apply / openAlert / waitlist / expired / inactive */
+  private final String ctaType;
+
+  /** CTA 라벨 텍스트 */
+  private final String ctaLabel;
+
+  /** CTA color variant: primary / secondary / muted */
+  private final String ctaColorClass;
+
+  /** CTA 아이콘 fragment 이름: check / bell / null */
+  private final String ctaIcon;
+
+  /** CTA disabled 여부 (expired / inactive) */
+  private final boolean ctaDisabled;
+
   public ProgramCardDto(Program program, long applicantCount) {
     this.program = program;
     this.applicantCount = applicantCount;
@@ -157,6 +173,45 @@ public class ProgramCardDto {
       double competition = Math.round(ratio * 10.0) / 10.0;
       this.detailSubtext = "현재 신청률 " + this.pct + "% · 경쟁률 " + competition + ":1";
       this.detailEmphasized = true;
+    }
+
+    // ── CTA 5분기 (F0f-fix-1) ────────────────────────────────
+    //   INACTIVE       → inactive (disabled, "운영이 중단되었어요")
+    //   UPCOMING       → openAlert (secondary bell, "오픈 알림 받기")
+    //   CLOSED+pct<100 → expired  (disabled 회색, "종료된 프로그램")
+    //   full(pct=100)  → waitlist (muted bell, "빈자리 알림 받기")
+    //   ACTIVE (신청)  → apply    (primary check, "신청하기")
+    boolean ctaFull = capacity != null && capacity > 0 && applicantCount >= capacity;
+    if (status == ProgramStatus.INACTIVE) {
+      this.ctaType = "inactive";
+      this.ctaLabel = "운영이 중단되었어요";
+      this.ctaColorClass = "muted";
+      this.ctaIcon = null;
+      this.ctaDisabled = true;
+    } else if (status == ProgramStatus.UPCOMING) {
+      this.ctaType = "openAlert";
+      this.ctaLabel = "오픈 알림 받기";
+      this.ctaColorClass = "secondary";
+      this.ctaIcon = "bell";
+      this.ctaDisabled = false;
+    } else if (status == ProgramStatus.CLOSED && !ctaFull) {
+      this.ctaType = "expired";
+      this.ctaLabel = "종료된 프로그램";
+      this.ctaColorClass = "muted";
+      this.ctaIcon = null;
+      this.ctaDisabled = true;
+    } else if (ctaFull) {
+      this.ctaType = "waitlist";
+      this.ctaLabel = "빈자리 알림 받기";
+      this.ctaColorClass = "muted";
+      this.ctaIcon = "bell";
+      this.ctaDisabled = false;
+    } else {
+      this.ctaType = "apply";
+      this.ctaLabel = "신청하기";
+      this.ctaColorClass = "primary";
+      this.ctaIcon = "check";
+      this.ctaDisabled = false;
     }
   }
 

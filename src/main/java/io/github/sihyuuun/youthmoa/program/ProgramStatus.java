@@ -8,7 +8,8 @@ import lombok.RequiredArgsConstructor;
 public enum ProgramStatus {
   UPCOMING("진행예정", "status--upcoming"),
   ACTIVE("진행중", "status--active"),
-  CLOSED("마감", "status--closed");
+  CLOSED("마감", "status--closed"),
+  INACTIVE("운영중단", "status--inactive");
 
   private final String label;
   private final String cssClass;
