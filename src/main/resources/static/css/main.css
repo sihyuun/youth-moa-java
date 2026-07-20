@@ -5170,6 +5170,12 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
     color: var(--color-primary);
     font-weight: 600;
 }
+.mypage-edit-hint {
+    margin: 6px 0 0;
+    font-size: 12px;
+    color: var(--color-text-tri);
+    line-height: 1.5;
+}
 
 /* 아웃라인 미니 버튼 (주소 검색 · 비밀번호 변경) */
 .btn-outline {
