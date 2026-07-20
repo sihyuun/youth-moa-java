@@ -21,35 +21,35 @@
             <h3 class="mypage-section-title">알림 채널</h3>
             <p class="mypage-section-hint">알림을 받을 채널을 선택하세요.</p>
 
-            <form th:action="@{/mypage/notifications}" method="post" class="mypage-noti-form">
+            <div class="mypage-noti-form" id="notiInstantForm">
                 <label class="mypage-noti-row">
-                    <input type="checkbox" name="notifyKakao" value="true"
-                           th:checked="${myUser.notifyKakao}">
+                    <input type="checkbox" name="kakao" value="true"
+                           th:checked="${myUser.notifyKakao}" data-noti-toggle>
                     <span class="mypage-noti-label">카카오 알림톡</span>
                 </label>
                 <label class="mypage-noti-row">
-                    <input type="checkbox" name="notifySms" value="true"
-                           th:checked="${myUser.notifySms}">
+                    <input type="checkbox" name="sms" value="true"
+                           th:checked="${myUser.notifySms}" data-noti-toggle>
                     <span class="mypage-noti-label">문자(SMS)</span>
                 </label>
                 <label class="mypage-noti-row">
-                    <input type="checkbox" name="notifyEmail" value="true"
-                           th:checked="${myUser.notifyEmail}">
+                    <input type="checkbox" name="email" value="true"
+                           th:checked="${myUser.notifyEmail}" data-noti-toggle>
                     <span class="mypage-noti-label">이메일</span>
                 </label>
                 <label class="mypage-noti-row is-locked">
                     <input type="checkbox" checked disabled>
                     <span class="mypage-noti-label">신청 승인/반려 결과 (필수)</span>
                 </label>
-                <div class="mypage-noti-actions">
-                    <button type="submit" class="btn-auth btn-auth--primary">저장</button>
-                </div>
-            </form>
+            </div>
+
+            <p class="mypage-noti-autosave-hint">변경 사항은 자동으로 저장돼요.</p>
         </section>
     </div>
 </main>
 
 <div th:replace="~{fragments/footer :: footer}"></div>
+<script th:src="@{/js/mypage-noti-instant.js}" defer></script>
 
 </body>
 </html>
