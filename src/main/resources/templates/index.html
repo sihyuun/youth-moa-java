@@ -116,7 +116,7 @@
                class="home-program-card">
                 <div class="program-card-image">
                     <img th:if="${dto.imageUrl}" th:src="${dto.imageUrl}" alt=""
-                         th:style="${dto.status.name() == 'CLOSED'} ? 'filter:grayscale(0.5)' : ''">
+                         th:style="${dto.status.name() == 'ENDED'} ? 'filter:grayscale(1) brightness(0.82)' : ''">
                     <div th:unless="${dto.imageUrl}" class="program-card-placeholder"
                          th:text="${#strings.substring(dto.title, 0, 1)}">P</div>
                     <span class="dday-chip" th:text="${dto.ddayLabel}">D-3</span>
