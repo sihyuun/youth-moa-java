@@ -4969,6 +4969,9 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
     max-width: fit-content;
 }
 .mypage-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
     padding: 8px 20px;
     border-radius: var(--radius-md);
     font-size: 14px;
@@ -4979,7 +4982,8 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
 .mypage-tab:hover { color: var(--color-primary); }
 .mypage-tab.active { background: var(--color-surface); color: var(--color-primary); font-weight: 600; box-shadow: var(--shadow-sm); }
 
-.mypage-section-title { font-size: 18px; font-weight: 700; margin: 0 0 16px; }
+.mypage-section-title { font-size: 18px; font-weight: 700; margin: 0 0 6px; }
+.mypage-section-subtitle { font-size: 13px; color: var(--color-text-tri); margin: 0 0 16px; }
 .mypage-section-hint { font-size: 13px; color: var(--color-text-sec); margin-bottom: 16px; }
 
 /* Toast (플래시 메시지) */

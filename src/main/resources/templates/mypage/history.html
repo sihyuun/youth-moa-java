@@ -19,7 +19,8 @@
         <div th:replace="~{mypage/layout :: head}"></div>
 
         <section class="mypage-history">
-            <h3 class="mypage-section-title">신청 내역</h3>
+            <h3 class="mypage-section-title">프로그램 신청 내역</h3>
+            <p class="mypage-section-subtitle">최대 지난 3년간의 신청 내역을 확인할 수 있어요.</p>
 
             <div th:if="${#lists.isEmpty(applications)}" class="mypage-empty">
                 <p>아직 신청한 프로그램이 없어요.</p>

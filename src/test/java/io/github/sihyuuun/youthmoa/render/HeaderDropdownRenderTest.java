@@ -70,7 +70,9 @@ class HeaderDropdownRenderTest {
         .andExpect(content().string(containsString("aria-expanded=\"false\"")))
         // 패널 초기 hidden — id 뒤 마크업에 hidden 속성이 붙어 있는지 확인
         .andExpect(content().string(containsString("id=\"header-user-dropdown\"")))
-        .andExpect(content().string(containsString("class=\"header-bell-dropdown-wrap\" hidden")));
+        .andExpect(content().string(containsString("id=\"header-notif-dropdown\"")))
+        .andExpect(content().string(containsString("header-bell-dropdown-wrap")))
+        .andExpect(content().string(containsString(" hidden")));
   }
 
   @Test
