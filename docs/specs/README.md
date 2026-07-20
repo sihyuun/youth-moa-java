@@ -20,6 +20,26 @@ ym-spec 이 산출하고 사용자가 결정까지 마친 명세 모음. **`spec
 | [F2c-header-transparent.md](F2c-header-transparent.md) | `feature/F2c-header-transparent` | spec_confirmed | `main.css` 수정 |
 | [F0c-remainder.md](F0c-remainder.md) | `feature/F0c-apply-wizard` | spec_confirmed | `main.css` 수정 |
 
+## 포트폴리오 강화 트랙 큐 (2026-07-20)
+
+이직 포트폴리오 강화 목적으로 ym-spec 이 일괄 산출한 6건. 전부 `spec_done` — 각 spec 의 Q 결정 반영 후 `spec_confirmed` 전환.
+
+| 명세 | 브랜치 후보 | 상태 | 비고 |
+|---|---|---|---|
+| [chore-flyway-activation.md](chore-flyway-activation.md) | `chore/flyway-activation` | spec_done | **최우선 권장** — PR #82 yml 오중첩 잠복 버그 복원 포함. ADMIN-01 과 DataInitializer 충돌 → 선행 머지 |
+| [chore-observability.md](chore-observability.md) | `chore/observability` | spec_done | 별도 management 포트 9091 권장. 3 PR 분할. 캐싱 티켓 Q5(actuator) 와 조율 필요 |
+| [chore-caching-loadtest.md](chore-caching-loadtest.md) | `chore/caching-loadtest` | spec_done | Caffeine → VT+k6 → Redis 3 PR. HomeService self-invocation 리팩터 포함 |
+| [feature-oauth2-kakao.md](feature-oauth2-kakao.md) | `feature/oauth2-kakao` | spec_done | 항상 신규 생성 정책 (email scope 제약). mypage 비번 재확인 게이트 파급 포함 |
+| [feature-F2c-sse-notifications.md](feature-F2c-sse-notifications.md) | `feature/F2c-sse-notifications` | spec_done | 폴링 대신 SSE. listener REQUIRES_NEW 재구성. 2 PR (백엔드 → 프론트) |
+| [ADMIN-01-approval-cycle-and-upload.md](ADMIN-01-approval-cycle-and-upload.md) | Phase 별 (`feature/A1-admin-shell` 등) | spec_done | ADMIN-00 실행 오버레이. Phase 1 = 승인 사이클 시연 완성 |
+
+### 트랙 내 머지 순서 권장
+
+1. **Flyway** (DataInitializer·yml 선점, 이후 모든 스키마 변경의 기반)
+2. **Observability PR-1** (actuator 도입 — 캐싱 티켓의 cache metrics 선행)
+3. 이후 **캐싱 / OAuth2 / SSE** 는 파일 겹침이 적어 병렬 가능하되, `SecurityConfig`·헤더 fragment 를 건드리는 **OAuth2 ↔ SSE PR-2 는 순차 머지** (뒤 브랜치 rebase 1회)
+4. **ADMIN-01 Phase 1~3** — Flyway 머지 후 착수
+
 ### 병렬 실행 시 주의
 
 - 세 작업은 Java·템플릿 파일이 겹치지 않아 **worktree 격리 병렬 가능**
