@@ -17,59 +17,116 @@
     <div class="container">
         <div th:replace="~{mypage/layout :: head}"></div>
 
-        <section class="mypage-profile-edit">
-            <h3 class="mypage-section-title">개인정보 수정</h3>
+        <section class="mypage-profile-edit form-card">
+            <h3 class="mypage-section-title">개인 정보 수정</h3>
+            <p class="mypage-section-hint">변경할 정보만 수정한 뒤 저장해주세요.</p>
 
             <form th:action="@{/mypage/profile}" th:object="${profileUpdateRequest}"
-                  method="post" class="mypage-edit-form" novalidate>
+                  method="post" class="mypage-edit-form-grid" id="profileEditForm" novalidate>
 
-                <div class="mypage-edit-field">
-                    <label for="editName">이름</label>
-                    <input id="editName" type="text" th:field="*{name}" class="auth-input" required>
-                    <p class="auth-field-error" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></p>
+                <label class="mypage-edit-label" for="editEmail">아이디</label>
+                <div id="editEmail" class="form-input form-input--ro" th:text="${myUser.email}">email@sample.com</div>
+
+                <label class="mypage-edit-label" for="editName">이름</label>
+                <input id="editName" type="text" th:field="*{name}" class="form-input" required>
+
+                <label class="mypage-edit-label mypage-edit-label--top">비밀번호 변경</label>
+                <div class="mypage-edit-pw-note">
+                    <a th:href="@{/find-password}" class="btn-outline btn-outline--sm">비밀번호 변경하기</a>
+                    <span class="mypage-edit-pw-hint">비밀번호는 별도 페이지에서 변경할 수 있어요.</span>
                 </div>
 
-                <div class="mypage-edit-field">
-                    <label for="editPhone">핸드폰</label>
-                    <input id="editPhone" type="tel" th:field="*{phone}" class="auth-input"
-                           placeholder="010-1234-5678">
-                    <p class="auth-field-error" th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}"></p>
+                <label class="mypage-edit-label" for="editPhone">핸드폰 번호</label>
+                <input id="editPhone" type="tel" th:field="*{phone}" class="form-input"
+                       placeholder="01012345678">
+
+                <label class="mypage-edit-label">성별</label>
+                <div class="gender-pill-group">
+                    <span class="gender-pill" th:classappend="${myUser.gender != null and myUser.gender.name() == 'MALE'} ? ' is-on' : ''">남</span>
+                    <span class="gender-pill" th:classappend="${myUser.gender != null and myUser.gender.name() == 'FEMALE'} ? ' is-on' : ''">여</span>
                 </div>
 
-                <div class="mypage-edit-field">
-                    <label for="editZipcode">우편번호</label>
-                    <input id="editZipcode" type="text" th:field="*{zipcode}" class="auth-input">
-                </div>
+                <label class="mypage-edit-label" for="editBirthDate">생년월일</label>
+                <input id="editBirthDate" type="date" th:field="*{birthDate}" class="form-input">
 
-                <div class="mypage-edit-field">
-                    <label for="editAddress">주소</label>
-                    <input id="editAddress" type="text" th:field="*{address}" class="auth-input">
-                </div>
-
-                <div class="mypage-edit-field">
-                    <label for="editAddressDetail">상세주소</label>
-                    <input id="editAddressDetail" type="text" th:field="*{addressDetail}" class="auth-input">
-                </div>
-
-                <div class="mypage-edit-field">
-                    <label for="editBirthDate">생년월일</label>
-                    <input id="editBirthDate" type="date" th:field="*{birthDate}" class="auth-input">
-                </div>
-
-                <div class="mypage-edit-actions">
-                    <a th:href="@{/mypage(tab='profile')}" class="btn-auth btn-auth--secondary">취소</a>
-                    <button type="submit" class="btn-auth btn-auth--primary">저장</button>
+                <label class="mypage-edit-label mypage-edit-label--top">주소</label>
+                <div class="mypage-edit-addr">
+                    <div class="mypage-edit-addr-row">
+                        <input id="editZipcode" type="text" th:field="*{zipcode}" class="form-input form-input--ro" readonly placeholder="우편번호">
+                        <button type="button" class="btn-outline btn-outline--sm" id="btnAddrSearch">검색</button>
+                    </div>
+                    <input id="editAddress" type="text" th:field="*{address}" class="form-input form-input--ro" readonly placeholder="주소">
+                    <input id="editAddressDetail" type="text" th:field="*{addressDetail}" class="form-input" placeholder="상세주소">
                 </div>
             </form>
 
-            <div class="mypage-edit-note">
-                <p>비밀번호를 변경하려면 <a th:href="@{/find-password}">비밀번호 찾기 페이지</a> 를 이용해 주세요.</p>
+            <div th:if="${#fields.hasErrors('${profileUpdateRequest.*}')}" class="mypage-edit-errors">
+                <p class="auth-field-error" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></p>
+                <p class="auth-field-error" th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}"></p>
+            </div>
+
+            <div class="mypage-edit-divider"></div>
+
+            <div class="mypage-edit-actions-center">
+                <button type="button" class="btn-auth btn-auth--ghost" id="btnWithdraw">탈퇴하기</button>
+                <button type="submit" class="btn-auth btn-auth--primary" form="profileEditForm">저장</button>
             </div>
         </section>
+
+        <!-- 회원 탈퇴 확인 모달 -->
+        <div class="modal-backdrop" id="withdrawModal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="withdrawModalTitle">
+            <div class="modal-card modal-card--danger">
+                <h3 class="modal-title" id="withdrawModalTitle">정말 탈퇴하시겠어요?</h3>
+                <p class="modal-message">
+                    탈퇴 시 신청 내역·즐겨찾기·관심 정보가 모두 삭제되며<br>
+                    복구할 수 없어요.
+                </p>
+                <div class="modal-actions">
+                    <button type="button" class="btn-auth btn-auth--secondary" id="btnWithdrawCancel">취소</button>
+                    <form th:action="@{/mypage/withdraw}" method="post" style="display:inline;">
+                        <button type="submit" class="btn-auth btn-auth--danger">탈퇴하기</button>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
 </main>
 
 <div th:replace="~{fragments/footer :: footer}"></div>
+
+<script th:inline="javascript">
+(function () {
+    var btnWithdraw = document.getElementById('btnWithdraw');
+    var modal = document.getElementById('withdrawModal');
+    var btnCancel = document.getElementById('btnWithdrawCancel');
+    if (btnWithdraw && modal) {
+        btnWithdraw.addEventListener('click', function () {
+            if (window.Modal && typeof window.Modal.open === 'function') {
+                window.Modal.open('withdrawModal');
+            } else {
+                modal.setAttribute('aria-hidden', 'false');
+                modal.classList.add('is-open');
+            }
+        });
+    }
+    if (btnCancel && modal) {
+        btnCancel.addEventListener('click', function () {
+            if (window.Modal && typeof window.Modal.close === 'function') {
+                window.Modal.close('withdrawModal');
+            } else {
+                modal.setAttribute('aria-hidden', 'true');
+                modal.classList.remove('is-open');
+            }
+        });
+    }
+    var btnAddr = document.getElementById('btnAddrSearch');
+    if (btnAddr) {
+        btnAddr.addEventListener('click', function () {
+            if (window.Toast && window.Toast.show) window.Toast.show('주소 검색 창이 열립니다.', 'info');
+        });
+    }
+})();
+</script>
 
 </body>
 </html>
