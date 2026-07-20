@@ -614,6 +614,25 @@ public class DataInitializer implements ApplicationRunner {
                 .startDate(today.minusDays(1))
                 .endDate(today.plusDays(2))
                 .capacity(60)
+                .build(),
+            // F0f-fix-1: INACTIVE (운영 중단) 시나리오 시드 — CTA 5분기 시각 검증용
+            Program.builder()
+                .title("청년 목공 클래스")
+                .organization("메이커스페이스")
+                .region("성남시")
+                .imageUrl(
+                    "https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=460&h=340&fit=crop")
+                .content("운영 사정으로 잠시 중단된 프로그램입니다.")
+                .eligibility(
+                    ProgramEligibility.builder()
+                        .age("만 19세 ~ 39세 청년")
+                        .region("성남시 거주 또는 활동")
+                        .etc("추후 재개 시 재공지")
+                        .build())
+                .startDate(today.plusDays(3))
+                .endDate(today.plusDays(30))
+                .capacity(16)
+                .isActive(false)
                 .build());
 
     programRepository.saveAll(seeds);

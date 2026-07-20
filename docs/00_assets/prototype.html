@@ -71,13 +71,14 @@
   };
 
   const PROGRAMS = [
-    { id:1, title:'취업역량 강화 워크숍', center:'내일스퀘어', region:'부천시', status:'진행중', date:'2026-08-01~08-31', cap:30, applied:27, dday:3, cat:'취업' },
-    { id:2, title:'청년 창업 아카데미', center:'상상대로', region:'수원시', status:'진행중', date:'2026-08-01~08-31', cap:25, applied:12, dday:12, cat:'창업' },
-    { id:3, title:'마음건강 힐링 캠프', center:'범계역 청년출구', region:'안양시', status:'진행중', date:'2026-07-01~07-31', cap:20, applied:18, dday:6, cat:'힐링' },
-    { id:4, title:'디지털 마케팅 실전반', center:'원미청정구역', region:'부천시', status:'마감', date:'2026-07-01~07-31', cap:15, applied:15, dday:0, cat:'교육' },
+    { id:1, title:'취업역량 강화 워크숍', center:'내일스퀘어', region:'부천시', status:'모집중', date:'2026-08-01~08-31', cap:30, applied:27, dday:3, cat:'취업' },
+    { id:2, title:'청년 창업 아카데미', center:'상상대로', region:'수원시', status:'모집중', date:'2026-08-01~08-31', cap:25, applied:12, dday:12, cat:'창업' },
+    { id:3, title:'마음건강 힐링 캠프', center:'범계역 청년출구', region:'안양시', status:'모집중', date:'2026-07-01~07-31', cap:20, applied:18, dday:6, cat:'힐링' },
+    { id:4, title:'디지털 마케팅 실전반', center:'원미청정구역', region:'부천시', status:'모집중', date:'2026-07-01~07-31', cap:15, applied:15, dday:0, cat:'교육' },
     { id:5, title:'AI 활용 실무 교육', center:'비행지구', region:'고양시', status:'진행예정', date:'2026-09-01~09-30', apply:'2026-08-20~08-31', cap:30, applied:0, openDday:14, cat:'교육' },
     { id:6, title:'소셜벤처 인큐베이팅', center:'오름', region:'용인시', status:'진행예정', date:'2026-09-05~09-30', apply:'2026-08-25~09-02', cap:20, applied:0, openDday:21, cat:'창업' },
     { id:7, title:'청년 목공 클래스 (비활성 데모)', center:'메이커스페이스', region:'성남시', status:'중단', date:'2026-08-10~08-30', cap:16, applied:9, dday:5, cat:'교육', demo:true },
+    { id:8, title:'자소서 첨삭 카페', center:'내일스퀘어', region:'부천시', status:'종료', date:'2026-05-01~05-31', apply:'2026-04-14~04-28', cap:24, applied:24, cat:'취업' },
   ];
 
   const NOTICES = [
@@ -134,6 +135,10 @@
       </div>
     );
   }
+
+  // ── 공통 입력 필드 스타일 (전 화면 통일: 42px · radius 10 · 평상시 연회색 필드 → 입력 시 흰 배경+primary 테두리) ──
+  const inputStyle = (filled)=>({ height:42, borderRadius:10, border:`1px solid ${filled?T.primary:T.border}`, background:filled?T.surface:'#F7F8FA', padding:'0 14px', fontSize:14, fontFamily:'Pretendard', color:T.text, outline:'none', transition:'border 150ms, background 150ms', boxSizing:'border-box', width:'100%', display:'block' });
+  const inputRO = { height:42, borderRadius:10, border:`1px solid ${T.borderLight}`, background:'#F3F4F6', padding:'0 14px', fontSize:14, color:T.textSec, display:'flex', alignItems:'center', boxSizing:'border-box' };
 
   // ── Badge ──
   function Badge({ text, variant='primary' }) {
@@ -227,20 +232,33 @@
   function capInfo(pg){
     const upcoming = pg.status==='진행예정';
     const inactive = pg.inactive || pg.status==='중단';
+    const ended = pg.status==='종료';
     const applied = pg.applied ?? Math.round(pg.cap*0.6);
     const ratio = Math.min(applied/pg.cap, 1);
     const pct = Math.round(ratio*100);
     const full = pg.status==='마감' || applied>=pg.cap;
     let color=T.primary, label='모집중';
-    if(inactive){ color=T.textTri; label='모집 중단'; }
+    if(ended){ color=T.textTri; label='종료'; }
+    else if(inactive){ color=T.textTri; label='모집 중단'; }
     else if(upcoming){ color=T.secondary; label='진행예정'; }
     else if(full){ color=T.textTri; label='마감'; }
     else if(ratio>=0.9){ color=T.error; label='마감임박'; }
     else if(ratio>=0.7){ color=T.warning; label='서두르세요'; }
-    return { applied, ratio, pct, full, upcoming, inactive, color, label };
+    return { applied, ratio, pct, full, upcoming, inactive, ended, color, label };
   }
   function CapacityBar({ pg, showLabel=true }){
     const c = capInfo(pg);
+    if(c.ended) return (
+      <div style={{ width:'100%' }}>
+        {showLabel && <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:5 }}>
+          <span style={{ fontSize:12, fontWeight:600, color:T.textTri }}>종료된 프로그램</span>
+          <span style={{ fontSize:11, color:T.textTri }}>{pg.date.split('~')[1]?.trim()} 종료</span>
+        </div>}
+        <div style={{ width:'100%', height:6, borderRadius:3, background:T.borderLight, overflow:'hidden' }}>
+          <div style={{ width:'100%', height:'100%', borderRadius:3, background:T.border }}/>
+        </div>
+      </div>
+    );
     if(c.upcoming) return (
       <div style={{ width:'100%' }}>
         {showLabel && <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:5 }}>
@@ -266,6 +284,7 @@
   }
   function DdayChip({ pg }){
     const c = capInfo(pg);
+    if(c.ended) return <span style={{ display:'inline-flex', alignItems:'center', padding:'3px 9px', borderRadius:T.tagR, background:'rgba(120,124,130,0.85)', color:'#fff', fontSize:11, fontWeight:700 }}>종료</span>;
     if(c.inactive) return <span style={{ display:'inline-flex', alignItems:'center', padding:'3px 9px', borderRadius:T.tagR, background:'rgba(0,0,0,0.55)', color:'#fff', fontSize:11, fontWeight:700 }}>운영중단</span>;
     if(c.upcoming) return <span style={{ display:'inline-flex', alignItems:'center', padding:'3px 9px', borderRadius:T.tagR, background:T.secondary, color:'#fff', fontSize:11, fontWeight:700 }}>오픈 D-{pg.openDday??'-'}</span>;
     if(c.full) return <span style={{ display:'inline-flex', alignItems:'center', padding:'3px 9px', borderRadius:T.tagR, background:'rgba(0,0,0,0.55)', color:'#fff', fontSize:11, fontWeight:700 }}>마감</span>;
@@ -277,24 +296,25 @@
       <div style={{ width:20, height:20, borderRadius:'50%', background:'#fff', position:'absolute', top:3, left:on?21:3, transition:'left 200ms', boxShadow:'0 1px 3px rgba(0,0,0,0.2)' }}/>
     </div>;
   }
-  // ── Waitlist (빈자리 알림) Modal ──
-  function WaitlistModal({ pg, onClose, addToast }){
+  // ── 알림 신청 Modal (빈자리 waitlist / 오픈 open 공용) ──
+  function WaitlistModal({ pg, mode='waitlist', onClose, addToast, onDone }){
+    const isOpen = mode==='open';
     const [ch, setCh] = useState({ kakao:true, email:true });
     const [done, setDone] = useState(false);
-    const submit = () => { setDone(true); addToast && addToast('빈자리 알림을 신청했어요.'); setTimeout(onClose, 1100); };
+    const submit = () => { setDone(true); addToast && addToast(isOpen?'오픈 알림을 신청했어요.':'빈자리 알림을 신청했어요.'); onDone && onDone(pg.id); setTimeout(onClose, 1100); };
     return (
       <Modal onClose={onClose}>
         <div style={{ width:440, background:T.surface, borderRadius:16, boxShadow:'0 20px 60px rgba(0,0,0,0.18)', overflow:'hidden' }}>
           <div style={{ padding:'24px 28px 0', display:'flex', justifyContent:'flex-end' }}><div className="btn-hover" onClick={onClose} style={{cursor:'pointer'}}><Icon n="close" size={22} color={T.textTri}/></div></div>
           <div style={{ padding:'0 32px 30px', textAlign:'center' }}>
             <div style={{ width:56, height:56, borderRadius:'50%', background:T.primaryBg, display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 16px' }}><Icon n="bell" size={26} color={T.primary}/></div>
-            <h3 style={{ fontSize:20, fontWeight:700, color:T.text, margin:'0 0 8px' }}>빈자리 알림 받기</h3>
-            <p style={{ fontSize:14, color:T.textSec, lineHeight:1.6, margin:'0 0 20px' }}>빈자리가 생기면<br/>아래의 수단으로 <strong style={{color:T.text}}>알림을 보내드려요.</strong></p>
+            <h3 style={{ fontSize:20, fontWeight:700, color:T.text, margin:'0 0 8px' }}>{isOpen?'오픈 알림 받기':'빈자리 알림 받기'}</h3>
+            <p style={{ fontSize:14, color:T.textSec, lineHeight:1.6, margin:'0 0 20px' }}>{isOpen?'신청이 시작되면':'빈자리가 생기면'}<br/>아래의 수단으로 <strong style={{color:T.text}}>알림을 보내드려요.</strong></p>
             <div style={{ display:'flex', gap:12, padding:14, borderRadius:T.radius, background:T.bg, border:`1px solid ${T.borderLight}`, textAlign:'left', marginBottom:20 }}>
               <div style={{ width:48, height:48, borderRadius:8, overflow:'hidden', background:'#e5e7eb', flexShrink:0 }}><img src={IMGS.pg[0]} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }}/></div>
               <div style={{ flex:1, minWidth:0 }}>
                 <div style={{ fontSize:14, fontWeight:600, color:T.text, marginBottom:3, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{pg.title}</div>
-                <div style={{ fontSize:12, color:T.textSec }}>{pg.center} · 정원 {pg.cap}/{pg.cap}명 (마감)</div>
+                <div style={{ fontSize:12, color:T.textSec }}>{isOpen?`${pg.center} · ${pg.apply? pg.apply.split('~')[0].slice(5).replace('-','/')+' 신청 오픈':''}`:`${pg.center} · 정원 ${pg.cap}/${pg.cap}명 (마감)`}</div>
               </div>
             </div>
             <div style={{ textAlign:'left', marginBottom:20 }}>
@@ -446,7 +466,7 @@
           <Icon n="search" size={20} color={fgSec} style={{cursor:'pointer'}} onClick={()=>go('search')}/>
           {isLoggedIn && (
             <div style={{ position:'relative' }}>
-              <div style={{ position:'relative', cursor:'pointer' }} onClick={()=>{setShowNotif(v=>!v); setShowUser(false);}}>
+              <div style={{ position:'relative', cursor:'pointer', display:'flex', alignItems:'center' }} onClick={()=>{setShowNotif(v=>!v); setShowUser(false);}}>
                 <Icon n="bell" size={20} color={fgSec}/>
                 <span style={{ position:'absolute', top:-2, right:-2, width:7, height:7, borderRadius:'50%', background:T.error, border:`1.5px solid ${transparent?'transparent':T.surface}` }}/>
               </div>
@@ -515,6 +535,7 @@
     const [search, setSearch] = useState('');
     const [fav, setFav] = useState(new Set([1]));
     const [waitlist, setWaitlist] = useState(null);
+    const [notified, setNotified] = useState(new Set());
     // 히어로 배경 로테이션 — 8초마다 다음 이미지로 크로스페이드
     const [heroIdx, setHeroIdx] = useState(0);
     useEffect(() => {
@@ -640,9 +661,9 @@
                     <div style={{ fontSize:12, color:T.textSec, marginBottom:2 }}>{pg.center}</div>
                     <div style={{ fontSize:12, color:T.textTri, marginBottom:10 }}>{pg.date}</div>
                     <div style={{ marginBottom:10 }}><CapacityBar pg={pg}/></div>
-                    <div className="btn-hover" onClick={e=>{e.stopPropagation(); c.upcoming?go('program-detail',{pg}):c.full?(isLoggedIn?setWaitlist(pg):onLoginClick()):go('program-detail',{pg});}} style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:5, height:34, border:`1px solid ${c.upcoming?T.secondary:c.full?T.border:T.primary}`, background:c.full?T.borderLight:'transparent', borderRadius:T.tagR, cursor:'pointer', fontSize:13, color:c.upcoming?T.secondary:c.full?T.textSec:T.primary, fontWeight:600 }}>
+                    <div className="btn-hover" onClick={e=>{e.stopPropagation(); if((c.upcoming||c.full)&&notified.has(pg.id)){ setNotified(s=>{const n=new Set(s); n.delete(pg.id); return n;}); return;} c.upcoming?(isLoggedIn?setWaitlist({...pg,__mode:'open'}):onLoginClick()):c.full?(isLoggedIn?setWaitlist(pg):onLoginClick()):go('program-detail',{pg});}} style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:5, height:34, border:`1px solid ${c.upcoming?T.secondary:c.full?T.border:T.primary}`, background:c.full?T.borderLight:'transparent', borderRadius:T.tagR, cursor:'pointer', fontSize:13, color:c.upcoming?T.secondary:c.full?T.textSec:T.primary, fontWeight:600 }}>
                       <Icon n={(c.upcoming||c.full)?'bell':'check'} size={15} color={c.upcoming?T.secondary:c.full?T.textSec:T.primary}/>
-                      {c.upcoming?'오픈 알림 받기':c.full?'빈자리 알림 받기':'신청하기'}
+                      {(c.upcoming||c.full)&&notified.has(pg.id)?'알림 신청됨 · 해제':c.upcoming?'오픈 알림 받기':c.full?'빈자리 알림 받기':'신청하기'}
                     </div>
                   </div>
                 </div>
@@ -701,7 +722,7 @@
             ))}
           </div>
         </div>
-        {waitlist && <WaitlistModal pg={waitlist} onClose={()=>setWaitlist(null)}/>}
+        {waitlist && <WaitlistModal pg={waitlist} mode={waitlist.__mode||'waitlist'} onClose={()=>setWaitlist(null)} onDone={(id)=>setNotified(s=>{const n=new Set(s); n.add(id); return n;})}/>}
         <Footer/>
       </div>
     );
@@ -788,7 +809,7 @@
             );})}
           </div>
           <div style={{ display:'flex', gap:16, marginTop:16, flexWrap:'wrap' }}>
-            {[['모집중',T.primary],['마감임박',T.error],['마감',T.textTri]].map(([l,col])=>(
+            {[['모집중',T.primary],['마감임박',T.error],['마감',T.textTri],['종료',T.border]].map(([l,col])=>(
               <div key={l} style={{ display:'flex', alignItems:'center', gap:5 }}><span style={{ width:8, height:8, borderRadius:'50%', background:col }}/><span style={{ fontSize:12, color:T.textSec }}>{l}</span></div>
             ))}
           </div>
@@ -832,11 +853,13 @@
     const [sort, setSort] = useState('기본');
     const [fav, setFav] = useState(new Set([1]));
     const [waitlist, setWaitlist] = useState(null);
+    const [notified, setNotified] = useState(new Set());
     const [view, setView] = useState('grid');
     const [loading, setLoading] = useState(true);
     useEffect(()=>{ const t=setTimeout(()=>setLoading(false), 700); return ()=>clearTimeout(t); }, []);
-    let filtered = PROGRAMS.filter(p=>(active==='전체'||p.status===active) && (sel.size===0 || sel.has(p.region) || sel.has(p.center)));
+    let filtered = PROGRAMS.filter(p=>(active==='전체'?p.status!=='종료':p.status===active) && (sel.size===0 || sel.has(p.region) || sel.has(p.center)));
     filtered = [...filtered].sort((a,b)=>{
+      const ae=a.status==='종료', be=b.status==='종료'; if(ae!==be) return ae?1:-1;
       if(sort==='마감임박'){ const af=capInfo(a).full, bf=capInfo(b).full; if(af!==bf)return af?1:-1; return (a.dday??99)-(b.dday??99); }
       if(sort==='인기'){ return capInfo(b).ratio-capInfo(a).ratio; }
       return 0;
@@ -856,7 +879,7 @@
             <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:20, gap:12, flexWrap:'wrap' }}>
               <div style={{ display:'flex', alignItems:'center', gap:8, flexWrap:'wrap' }}>
                 <div style={{ display:'flex', gap:6 }}>
-                  {['전체','진행중','진행예정','마감'].map(t=>(
+                  {['전체','모집중','진행예정','종료'].map(t=>(
                     <div key={t} className="btn-hover" onClick={()=>setActive(t)} style={{ padding:'8px 16px', borderRadius:T.tagR, background:active===t?T.primary:'transparent', border:active===t?'none':`1px solid ${T.border}`, cursor:'pointer', fontSize:13, fontWeight:active===t?600:400, color:active===t?'#fff':T.textSec, whiteSpace:'nowrap' }}>
                       {t}
                     </div>
@@ -904,7 +927,7 @@
                   ) : filtered.map((pg,i)=>{ const c=capInfo(pg); return (
                     <div key={pg.id} className="card-hover" onClick={()=>go('program-detail',{pg})} style={{ borderRadius:T.radius, overflow:'hidden', background:T.surface, boxShadow:T.shadow, border:`1px solid ${T.borderLight}` }}>
                       <div style={{ width:'100%', height:160, position:'relative', overflow:'hidden', background:'#e5e7eb' }}>
-                        <img src={IMGS.pg[i%6]} alt="" style={{ width:'100%', height:'100%', objectFit:'cover', filter:c.full?'grayscale(0.5)':'none' }}/>
+                        <img src={IMGS.pg[i%6]} alt="" style={{ width:'100%', height:'100%', objectFit:'cover', filter:c.ended?'grayscale(1) brightness(0.82)':c.full?'grayscale(0.5)':'none' }}/>
                         <div style={{ position:'absolute', top:10, left:10 }}><DdayChip pg={pg}/></div>
                         <div onClick={e=>{e.stopPropagation();if(!isLoggedIn){onLoginClick();return;}setFav(f=>{const n=new Set(f);n.has(pg.id)?n.delete(pg.id):n.add(pg.id);return n;});}} style={{ position:'absolute', top:10, right:10, cursor:'pointer' }}>
                           <Icon n={fav.has(pg.id)?'starFill':'star'} size={20} color={fav.has(pg.id)?'#F59E0B':'rgba(255,255,255,0.85)'}/>
@@ -915,12 +938,14 @@
                         <div style={{ fontSize:12, color:T.textSec, marginBottom:2 }}>{pg.center}</div>
                         <div style={{ fontSize:12, color:T.textTri, marginBottom:10 }}>{pg.date}</div>
                         <div style={{ marginBottom:10 }}><CapacityBar pg={pg}/></div>
-                        {c.inactive ? (
+                        {c.ended ? (
+                          <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:5, height:34, border:`1px solid ${T.borderLight}`, background:T.borderLight, borderRadius:T.tagR, fontSize:13, color:T.textTri, fontWeight:600 }}>지난 프로그램</div>
+                        ) : c.inactive ? (
                           <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:5, height:34, border:`1px solid ${T.border}`, background:T.borderLight, borderRadius:T.tagR, fontSize:13, color:T.textTri, fontWeight:600 }}>운영이 중단되었어요</div>
                         ) : (
-                          <div className="btn-hover" onClick={e=>{e.stopPropagation(); c.upcoming?go('program-detail',{pg}):c.full?(isLoggedIn?setWaitlist(pg):onLoginClick()):go('program-detail',{pg});}} style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:5, height:34, border:`1px solid ${c.upcoming?T.secondary:c.full?T.border:T.primary}`, background:c.full?T.borderLight:'transparent', borderRadius:T.tagR, cursor:'pointer', fontSize:13, color:c.upcoming?T.secondary:c.full?T.textSec:T.primary, fontWeight:600 }}>
+                          <div className="btn-hover" onClick={e=>{e.stopPropagation(); if((c.upcoming||c.full)&&notified.has(pg.id)){ setNotified(s=>{const n=new Set(s); n.delete(pg.id); return n;}); return;} c.upcoming?(isLoggedIn?setWaitlist({...pg,__mode:'open'}):onLoginClick()):c.full?(isLoggedIn?setWaitlist(pg):onLoginClick()):go('program-detail',{pg});}} style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:5, height:34, border:`1px solid ${c.upcoming?T.secondary:c.full?T.border:T.primary}`, background:c.full?T.borderLight:'transparent', borderRadius:T.tagR, cursor:'pointer', fontSize:13, color:c.upcoming?T.secondary:c.full?T.textSec:T.primary, fontWeight:600 }}>
                             <Icon n={(c.upcoming||c.full)?'bell':'check'} size={15} color={c.upcoming?T.secondary:c.full?T.textSec:T.primary}/>
-                            {c.upcoming?'오픈 알림 받기':c.full?'빈자리 알림 받기':'신청하기'}
+                            {(c.upcoming||c.full)&&notified.has(pg.id)?'알림 신청됨 · 해제':c.upcoming?'오픈 알림 받기':c.full?'빈자리 알림 받기':'신청하기'}
                           </div>
                         )}
                       </div>
@@ -945,7 +970,7 @@
             )}
           </div>
         </div>
-        {waitlist && <WaitlistModal pg={waitlist} onClose={()=>setWaitlist(null)}/>}
+        {waitlist && <WaitlistModal pg={waitlist} mode={waitlist.__mode||'waitlist'} onClose={()=>setWaitlist(null)} onDone={(id)=>setNotified(s=>{const n=new Set(s); n.add(id); return n;})}/>}
         <Footer/>
       </div>
     );
@@ -955,6 +980,7 @@
   function ProgramDetail({ go, pg, isLoggedIn, onLoginClick, addToast }) {
     const [fav, setFav] = useState(false);
     const [waitlist, setWaitlist] = useState(null);
+    const [notified, setNotified] = useState(false);
     const [showMap, setShowMap] = useState(false);
     const c = capInfo(pg);
     const inactive = pg.inactive || pg.status==='중단';
@@ -982,22 +1008,23 @@
           )}
           <div style={{ display:'flex', gap:32 }}>
             <div style={{ width:340, height:340, borderRadius:T.radius, overflow:'hidden', background:'#e5e7eb', flexShrink:0, position:'relative' }}>
-              <img src={IMGS.pg[0]} alt="" style={{ width:'100%', height:'100%', objectFit:'cover', filter:inactive?'grayscale(0.7)':'none' }}/>
+              <img src={IMGS.pg[0]} alt="" style={{ width:'100%', height:'100%', objectFit:'cover', filter:c.ended?'grayscale(1) brightness(0.82)':inactive?'grayscale(0.7)':'none' }}/>
               {inactive && <div style={{ position:'absolute', inset:0, background:'rgba(0,0,0,0.35)', display:'flex', alignItems:'center', justifyContent:'center' }}><span style={{ padding:'6px 16px', borderRadius:T.tagR, background:'rgba(0,0,0,0.65)', color:'#fff', fontSize:14, fontWeight:600 }}>운영 중단</span></div>}
+              {c.ended && <div style={{ position:'absolute', inset:0, background:'rgba(0,0,0,0.3)', display:'flex', alignItems:'center', justifyContent:'center' }}><span style={{ padding:'6px 16px', borderRadius:T.tagR, background:'rgba(120,124,130,0.9)', color:'#fff', fontSize:14, fontWeight:600 }}>종료된 프로그램</span></div>}
             </div>
             <div style={{ flex:1 }}>
               <div style={{ display:'flex', gap:8, marginBottom:8 }}>
-                <Badge text={inactive?'운영중단':pg.status} variant={inactive?'muted':pg.status==='마감'?'muted':pg.status==='진행예정'?'secondary':'primary'}/>
+                <Badge text={inactive?'운영중단':c.ended?'종료':c.full?'마감':pg.status} variant={(inactive||c.full||c.ended)?'muted':pg.status==='진행예정'?'secondary':'primary'}/>
               </div>
               <h1 style={{ fontSize:26, fontWeight:700, color:T.text, margin:'0 0 4px' }}>{pg.title}</h1>
               <p style={{ fontSize:14, color:T.textSec, margin:'0 0 16px' }}>{pg.center} · {pg.region}</p>
-              <div style={{ padding:14, borderRadius:T.radius, background:(inactive||c.full)?T.borderLight:T.primaryBg, border:`1px solid ${(inactive||c.full)?T.border:T.primaryLight}`, marginBottom:20 }}>
+              <div style={{ padding:14, borderRadius:T.radius, background:(inactive||c.full||c.ended)?T.borderLight:T.primaryBg, border:`1px solid ${(inactive||c.full||c.ended)?T.border:T.primaryLight}`, marginBottom:20 }}>
                 <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:8 }}>
-                  <span style={{ fontSize:14, fontWeight:700, color:inactive?T.textTri:c.color }}>{inactive?'모집 중단':c.upcoming?`신청 오픈까지 ${pg.openDday}일`:c.full?'모집 마감':c.label}{!inactive && !c.full && !c.upcoming && ` · 마감까지 ${pg.dday===0?'오늘':pg.dday+'일'}`}</span>
+                  <span style={{ fontSize:14, fontWeight:700, color:(inactive||c.ended)?T.textTri:c.color }}>{c.ended?'종료된 프로그램':inactive?'모집 중단':c.upcoming?`신청 오픈까지 ${pg.openDday}일`:c.full?'모집 마감':c.label}{!inactive && !c.ended && !c.full && !c.upcoming && ` · 마감까지 ${pg.dday===0?'오늘':pg.dday+'일'}`}</span>
                   <span style={{ fontSize:13, fontWeight:700, color:T.text }}>{c.applied}<span style={{ fontSize:12, fontWeight:400, color:T.textSec }}> / {pg.cap}명</span></span>
                 </div>
                 <CapacityBar pg={pg} showLabel={false}/>
-                <div style={{ fontSize:12, color:T.textSec, marginTop:8 }}>{inactive?'운영 사정으로 모집이 중단되었습니다.':c.upcoming?`${pg.apply? pg.apply.replace('~',' ~ ').replace(/2026-/g,'') : ''} 신청 예정입니다. 오픈 알림을 신청하면 시작 시 알려드려요.`:c.full?'정원이 마감되었습니다. 알림을 신청하면 빈자리가 생길 시 알려드려요.':`현재 신청률 ${c.pct}% · 경쟁률 ${(c.applied/pg.cap).toFixed(1)}:1`}</div>
+                <div style={{ fontSize:12, color:T.textSec, marginTop:8 }}>{c.ended?`운영 기간(${pg.date})이 끝난 프로그램이에요.`:inactive?'운영 사정으로 모집이 중단되었습니다.':c.upcoming?`${pg.apply? pg.apply.replace('~',' ~ ').replace(/2026-/g,'') : ''} 신청 예정입니다. 오픈 알림을 신청하면 시작 시 알려드려요.`:c.full?'정원이 마감되었습니다. 알림을 신청하면 빈자리가 생길 시 알려드려요.':`현재 신청률 ${c.pct}% · 경쟁률 ${(c.applied/pg.cap).toFixed(1)}:1`}</div>
               </div>
               <div style={{ display:'grid', gridTemplateColumns:'repeat(2,1fr)', gap:10 }}>
                 {[['calendar','신청 기간',pg.apply? pg.apply.replace('~',' ~ ') : '2026-07-01 ~ 07-31'],['calendar','진행 기간',pg.date],['pin','진행 장소','__MAP__'],['user','모집인원',pg.cap+'명'],['bell','문의처','031-123-4567']].map(([ic,k,v])=>(
@@ -1024,14 +1051,19 @@
                 <div className="btn-hover" onClick={()=>addToast('URL이 클립보드에 복사되었습니다.')} style={{ width:42, height:42, borderRadius:8, border:`1px solid ${T.border}`, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
                   <Icon n="share" size={18} color={T.textSec}/>
                 </div>
-                {inactive ? (
+                {c.ended ? (
+                  <div className="btn-hover" onClick={()=>go('programs')} style={{ flex:1, height:42, background:'transparent', border:`1.5px solid ${T.primary}`, borderRadius:T.tagR, display:'flex', alignItems:'center', justifyContent:'center', gap:6, cursor:'pointer' }}>
+                    <Icon n="search" size={17} color={T.primary}/>
+                    <span style={{ color:T.primary, fontSize:15, fontWeight:700 }}>비슷한 프로그램 보기</span>
+                  </div>
+                ) : inactive ? (
                   <div style={{ flex:1, height:42, background:T.borderLight, borderRadius:T.tagR, display:'flex', alignItems:'center', justifyContent:'center', gap:6, cursor:'not-allowed' }}>
                     <span style={{ color:T.textTri, fontSize:15, fontWeight:600 }}>신청이 중단된 프로그램입니다</span>
                   </div>
                 ) : (
-                  <div className="btn-hover" onClick={()=>{ if((c.upcoming||c.full)&&!isLoggedIn){onLoginClick();return;} if(c.upcoming){addToast('오픈 알림을 신청했어요. 신청 시작 시 알려드릴게요.');return;} if(c.full){setWaitlist(pg);return;} if(!isLoggedIn){onLoginClick();return;} go('program-apply',{pg}); }} style={{ flex:1, height:42, background:(c.full||c.upcoming)?'transparent':T.primary, border:(c.full||c.upcoming)?`1.5px solid ${T.primary}`:'none', borderRadius:T.tagR, display:'flex', alignItems:'center', justifyContent:'center', gap:6, cursor:'pointer' }}>
+                  <div className="btn-hover" onClick={()=>{ if((c.upcoming||c.full)&&notified){ setNotified(false); addToast('알림이 해제되었어요.'); return;} if((c.upcoming||c.full)&&!isLoggedIn){onLoginClick();return;} if(c.upcoming){setWaitlist({...pg, __mode:'open'});return;} if(c.full){setWaitlist(pg);return;} if(!isLoggedIn){onLoginClick();return;} go('program-apply',{pg}); }} style={{ flex:1, height:42, background:(c.full||c.upcoming)?'transparent':T.primary, border:(c.full||c.upcoming)?`1.5px solid ${T.primary}`:'none', borderRadius:T.tagR, display:'flex', alignItems:'center', justifyContent:'center', gap:6, cursor:'pointer' }}>
                     <Icon n={(c.full||c.upcoming)?'bell':'check'} size={18} color={(c.full||c.upcoming)?T.primary:'#fff'}/>
-                    <span style={{ color:(c.full||c.upcoming)?T.primary:'#fff', fontSize:15, fontWeight:(c.full||c.upcoming)?700:600 }}>{c.upcoming?'오픈 알림 받기':c.full?'빈자리 알림 받기':'신청하기'}</span>
+                    <span style={{ color:(c.full||c.upcoming)?T.primary:'#fff', fontSize:15, fontWeight:(c.full||c.upcoming)?700:600 }}>{(c.upcoming||c.full)&&notified?'알림 신청됨':c.upcoming?'오픈 알림 받기':c.full?'빈자리 알림 받기':'신청하기'}</span>
                   </div>
                 )}
               </div>
@@ -1068,7 +1100,7 @@
             <span style={{ position:'absolute', fontSize:14, color:'#888', fontWeight:500 }}>프로그램 상세 설명 콘텐츠 영역</span>
           </div>
         </div>
-        {waitlist && <WaitlistModal pg={waitlist} onClose={()=>setWaitlist(null)} addToast={addToast}/>}
+        {waitlist && <WaitlistModal pg={waitlist} mode={waitlist.__mode||'waitlist'} onClose={()=>setWaitlist(null)} addToast={addToast} onDone={()=>setNotified(true)}/>}
         {showMap && (
           <ModalCard title="진행 장소" width={520} onClose={()=>setShowMap(false)}>
             <div style={{ margin:'-20px -22px 0' }}>
@@ -1099,19 +1131,24 @@
           <div style={{ maxWidth:1080, margin:'0 auto', padding:'14px 24px', display:'flex', alignItems:'center', gap:16 }}>
             <div style={{ flex:1, minWidth:0 }}>
               <div style={{ fontSize:15, fontWeight:700, color:T.text, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{pg.title}</div>
-              <div style={{ fontSize:12.5, color:inactive?T.textTri:c.full?T.textTri:T.primary, fontWeight:600 }}>{inactive?'모집 중단':c.upcoming?`신청 오픈까지 ${pg.openDday}일`:c.full?'모집 마감':`마감까지 ${pg.dday===0?'오늘':pg.dday+'일'} · ${c.applied}/${pg.cap}명`}</div>
+              <div style={{ fontSize:12.5, color:(inactive||c.ended)?T.textTri:c.full?T.textTri:T.primary, fontWeight:600 }}>{c.ended?'종료된 프로그램':inactive?'모집 중단':c.upcoming?`신청 오픈까지 ${pg.openDday}일`:c.full?'모집 마감':`마감까지 ${pg.dday===0?'오늘':pg.dday+'일'} · ${c.applied}/${pg.cap}명`}</div>
             </div>
             <div onClick={()=>{if(!isLoggedIn){onLoginClick();return;}setFav(v=>!v);}} className="btn-hover" style={{ width:48, height:48, flexShrink:0, borderRadius:12, border:`1px solid ${T.border}`, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
               <Icon n={fav?'starFill':'star'} size={22} color={fav?'#F59E0B':T.textSec}/>
             </div>
-            {inactive ? (
+            {c.ended ? (
+              <div className="btn-hover" onClick={()=>go('programs')} style={{ minWidth:200, height:48, background:'transparent', border:`1.5px solid ${T.primary}`, borderRadius:12, display:'flex', alignItems:'center', justifyContent:'center', gap:7, cursor:'pointer' }}>
+                <Icon n="search" size={18} color={T.primary}/>
+                <span style={{ color:T.primary, fontSize:16, fontWeight:700 }}>비슷한 프로그램 보기</span>
+              </div>
+            ) : inactive ? (
               <div style={{ minWidth:200, height:48, background:T.borderLight, borderRadius:12, display:'flex', alignItems:'center', justifyContent:'center', cursor:'not-allowed' }}>
                 <span style={{ color:T.textTri, fontSize:15, fontWeight:700 }}>신청이 중단되었습니다</span>
               </div>
             ) : (
-              <div className="btn-hover" onClick={()=>{ if((c.upcoming||c.full)&&!isLoggedIn){onLoginClick();return;} if(c.upcoming){addToast('오픈 알림을 신청했어요. 신청 시작 시 알려드릴게요.');return;} if(c.full){setWaitlist(pg);return;} if(!isLoggedIn){onLoginClick();return;} go('program-apply',{pg}); }} style={{ minWidth:200, height:48, background:(c.full||c.upcoming)?'transparent':T.primary, border:(c.full||c.upcoming)?`1.5px solid ${T.primary}`:'none', borderRadius:12, display:'flex', alignItems:'center', justifyContent:'center', gap:7, cursor:'pointer' }}>
+              <div className="btn-hover" onClick={()=>{ if((c.upcoming||c.full)&&notified){ setNotified(false); addToast('알림이 해제되었어요.'); return;} if((c.upcoming||c.full)&&!isLoggedIn){onLoginClick();return;} if(c.upcoming){setWaitlist({...pg, __mode:'open'});return;} if(c.full){setWaitlist(pg);return;} if(!isLoggedIn){onLoginClick();return;} go('program-apply',{pg}); }} style={{ minWidth:200, height:48, background:(c.full||c.upcoming)?'transparent':T.primary, border:(c.full||c.upcoming)?`1.5px solid ${T.primary}`:'none', borderRadius:12, display:'flex', alignItems:'center', justifyContent:'center', gap:7, cursor:'pointer' }}>
                 <Icon n={(c.full||c.upcoming)?'bell':'check'} size={19} color={(c.full||c.upcoming)?T.primary:'#fff'}/>
-                <span style={{ color:(c.full||c.upcoming)?T.primary:'#fff', fontSize:16, fontWeight:700 }}>{c.upcoming?'오픈 알림 받기':c.full?'빈자리 알림 받기':'신청하기'}</span>
+                <span style={{ color:(c.full||c.upcoming)?T.primary:'#fff', fontSize:16, fontWeight:700 }}>{(c.upcoming||c.full)&&notified?'알림 신청됨':c.upcoming?'오픈 알림 받기':c.full?'빈자리 알림 받기':'신청하기'}</span>
               </div>
             )}
           </div>
@@ -1168,7 +1205,7 @@
                   {[{label:'이름',val:'박시현'},{label:'핸드폰 번호',val:'010-1234-5678'},{label:'이메일',val:'hyuuun0321@naver.com',note:'이메일을 통해 프로그램 관련 알림을 드립니다.'}].map(f=>(
                     <div key={f.label}>
                       <span style={{ fontSize:13, fontWeight:500, color:T.textSec, marginBottom:6, display:'block' }}>{f.label}</span>
-                      <div style={{ height:46, borderRadius:8, border:`1px solid ${T.border}`, padding:'0 14px', display:'flex', alignItems:'center', background:'#F3F4F6', fontSize:14, color:T.textSec }}>{f.val}</div>
+                      <div style={inputRO}>{f.val}</div>
                       {f.note && <div style={{ fontSize:12, color:T.textTri, marginTop:4 }}>{f.note}</div>}
                     </div>
                   ))}
@@ -1180,7 +1217,7 @@
               <div>
                 <div style={{ fontWeight:700, fontSize:16, color:T.text, marginBottom:16 }}>추가 정보</div>
                 <span style={{ fontSize:13, fontWeight:500, color:T.textSec, marginBottom:6, display:'block' }}>지원 동기</span>
-                <textarea value={reason} onChange={e=>setReason(e.target.value)} placeholder="지원 동기를 입력해주세요. (선택)" style={{ width:'100%', height:120, borderRadius:8, border:`1.5px solid ${reason?T.primary:T.border}`, padding:'12px 14px', fontSize:14, fontFamily:'Pretendard', color:T.text, resize:'none', outline:'none', transition:'border 150ms', boxSizing:'border-box' }}/>
+                <textarea value={reason} onChange={e=>setReason(e.target.value)} placeholder="지원 동기를 입력해주세요. (선택)" style={{ ...inputStyle(reason), height:120, padding:'12px 14px', resize:'none' }}/>
               </div>
             )}
             {step===3 && (
@@ -1246,42 +1283,66 @@
     );
   }
 
-  // ── 알림 전체 페이지 (패널 '알림 전체보기' 진입) ──
+  // ── 알림 전체 페이지 (패널 '알림 전체보기' 진입 · 날짜 그룹핑 + 안읽음 필터) ──
   function NotificationsScreen({ go }) {
     const [items, setItems] = useState(NOTIF_ITEMS);
+    const [filter, setFilter] = useState('전체');
     const unread = items.filter(i=>i.unread).length;
     const markAllRead = () => setItems(p=>p.map(i=>({...i,unread:false})));
     const remove = (id) => setItems(p=>p.filter(i=>i.id!==id));
+    const readOne = (id) => setItems(p=>p.map(i=>i.id===id?{...i,unread:false}:i));
+    const groupOf = (t)=> /방금|분|시간/.test(t) ? '오늘' : /^[1-6]일/.test(t) ? '지난 7일' : '이전';
+    const shown = filter==='안 읽음' ? items.filter(i=>i.unread) : items;
+    const groups = ['오늘','지난 7일','이전'].map(g=>[g, shown.filter(i=>groupOf(i.time)===g)]).filter(([,a])=>a.length);
     return (
       <div className="screen-enter" style={{ background:T.bg, minHeight:'100vh' }}>
-        <div style={{ maxWidth:720, margin:'0 auto', padding:'36px 24px 64px' }}>
-          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:16 }}>
+        <div style={{ maxWidth:680, margin:'0 auto', padding:'36px 24px 64px' }}>
+          <div className="btn-hover" onClick={()=>go('home')} title="뒤로" style={{ display:'inline-flex', alignItems:'center', justifyContent:'center', width:38, height:38, borderRadius:9, border:`1px solid ${T.border}`, background:T.surface, cursor:'pointer', marginBottom:16 }}>
+            <Icon n="arrowL" size={18} color={T.textSec}/>
+          </div>
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:18 }}>
             <div style={{ display:'flex', alignItems:'center', gap:8 }}>
               <h2 style={{ fontSize:24, fontWeight:700, color:T.text, margin:0 }}>알림</h2>
               {unread>0 && <span style={{ minWidth:20, height:20, padding:'0 6px', borderRadius:10, background:T.error, color:'#fff', fontSize:12, fontWeight:700, display:'flex', alignItems:'center', justifyContent:'center' }}>{unread}</span>}
             </div>
-            {items.length>0 && <span onClick={markAllRead} className="btn-hover" style={{ fontSize:13, color:T.textSec, cursor:'pointer' }}>모두 읽음</span>}
+            {unread>0 && <span onClick={markAllRead} className="btn-hover" style={{ display:'inline-flex', alignItems:'center', gap:4, fontSize:13, color:T.textSec, cursor:'pointer' }}><Icon n="check" size={14} color={T.textSec}/>모두 읽음</span>}
           </div>
-          <div style={{ background:T.surface, borderRadius:T.radius, border:'1px solid '+T.borderLight, overflow:'hidden' }}>
-            {items.length===0 ? (
-              <div style={{ display:'flex', flexDirection:'column', alignItems:'center', padding:'56px 0', gap:12 }}>
-                <Icon n="bell" size={40} color={T.border}/>
-                <span style={{ fontSize:14, color:T.textSec }}>아직 도착한 알림이 없어요</span>
-              </div>
-            ) : items.map((item,i)=>(
-              <div key={item.id} style={{ display:'flex', alignItems:'flex-start', gap:12, padding:'16px 18px', borderBottom:i<items.length-1?'1px solid '+T.borderLight:'none', background:item.unread?T.primaryBg:T.surface }}>
-                <div style={{ width:36, height:36, borderRadius:'50%', background:item.unread?(item.tone||T.primary):'#E5E7EB', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-                  <Icon n={item.icon||'bell'} size={16} color={item.unread?'#fff':'#9CA3AF'}/>
-                </div>
-                <div style={{ flex:1, minWidth:0 }}>
-                  <div style={{ fontSize:14.5, color:item.unread?T.text:T.textSec, fontWeight:item.unread?600:400 }}>{item.title}</div>
-                  <div style={{ fontSize:13.5, color:T.textSec, marginTop:2 }}>{item.body}</div>
-                  <div style={{ fontSize:12, color:T.textTri, marginTop:4 }}>{item.time}</div>
-                </div>
-                <div onClick={()=>remove(item.id)} className="btn-hover" style={{ cursor:'pointer', flexShrink:0, marginTop:2 }}><Icon n="close" size={16} color={T.textTri}/></div>
+          {/* 필터 */}
+          <div style={{ display:'flex', gap:6, marginBottom:18 }}>
+            {[['전체', items.length], ['안 읽음', unread]].map(([f,n])=>(
+              <div key={f} onClick={()=>setFilter(f)} className="btn-hover" style={{ display:'inline-flex', alignItems:'center', gap:6, padding:'7px 15px', borderRadius:999, border:`1px solid ${filter===f?T.primary:T.border}`, background:filter===f?T.primaryBg:T.surface, cursor:'pointer', fontSize:13.5, fontWeight:filter===f?600:400, color:filter===f?T.primary:T.textSec }}>
+                {f}<span style={{ fontSize:12, color:filter===f?T.primary:T.textTri }}>{n}</span>
               </div>
             ))}
           </div>
+          {shown.length===0 ? (
+            <div style={{ display:'flex', flexDirection:'column', alignItems:'center', padding:'72px 0', gap:12, background:T.surface, borderRadius:T.radius, border:'1px solid '+T.borderLight }}>
+              <Icon n="bell" size={40} color={T.border}/>
+              <span style={{ fontSize:14, color:T.textSec }}>{filter==='안 읽음' ? '안 읽은 알림이 없어요' : '아직 도착한 알림이 없어요'}</span>
+            </div>
+          ) : groups.map(([g,arr])=>(
+            <div key={g} style={{ marginBottom:22 }}>
+              <div style={{ fontSize:13, fontWeight:700, color:T.textTri, marginBottom:8, paddingLeft:2 }}>{g}</div>
+              <div style={{ background:T.surface, borderRadius:T.radius, border:'1px solid '+T.borderLight, overflow:'hidden' }}>
+                {arr.map((item,i)=>(
+                  <div key={item.id} onClick={()=>item.unread&&readOne(item.id)} className={item.unread?'btn-hover':''} style={{ display:'flex', alignItems:'flex-start', gap:12, padding:'16px 18px', borderBottom:i<arr.length-1?'1px solid '+T.borderLight:'none', borderLeft:item.unread?`3px solid ${T.primary}`:'3px solid transparent', background:item.unread?T.primaryBg:T.surface, cursor:item.unread?'pointer':'default' }}>
+                    <div style={{ width:36, height:36, borderRadius:'50%', background:item.unread?(item.tone||T.primary):'#EEF0F3', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                      <Icon n={item.icon||'bell'} size={16} color={item.unread?'#fff':'#9CA3AF'}/>
+                    </div>
+                    <div style={{ flex:1, minWidth:0 }}>
+                      <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+                        {item.unread && <span style={{ width:6, height:6, borderRadius:'50%', background:T.primary, flexShrink:0 }}/>}
+                        <span style={{ fontSize:14.5, color:item.unread?T.text:T.textSec, fontWeight:item.unread?700:500 }}>{item.title}</span>
+                      </div>
+                      <div style={{ fontSize:13.5, color:T.textSec, marginTop:3 }}>{item.body}</div>
+                      <div style={{ fontSize:12, color:T.textTri, marginTop:5 }}>{item.time}</div>
+                    </div>
+                    <div onClick={(e)=>{e.stopPropagation();remove(item.id);}} className="btn-hover" style={{ cursor:'pointer', flexShrink:0, marginTop:2 }}><Icon n="close" size={16} color={T.textTri}/></div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     );
@@ -1306,6 +1367,12 @@
     const [statusFilter, setStatusFilter] = useState('전체');
     const [myInterests, setMyInterests] = useState({ regions:['수원시','성남시'], cats:['취업·역량','문화·예술','주거','금융'] });
     const [showInterest, setShowInterest] = useState(false);
+    const [pwVerified, setPwVerified] = useState(false);
+    const [showWithdraw, setShowWithdraw] = useState(false);
+    const [pwInput, setPwInput] = useState('');
+    const [editForm, setEditForm] = useState({ newPw:'', newPw2:'', phone:'010-1234-5678', email:'hyuuun0321@naver.com', gender:'여', dob:'1998 / 03 / 21', zip:'14547', addr:'경기도 부천시 원미구 부일로 123', addr2:'302호' });
+    const setEF = (k)=>(e)=>setEditForm(f=>({...f,[k]:e.target.value}));
+    const toggleNoti = (k)=>{ setNoti(s=>({...s,[k]:!s[k]})); addToast('알림 설정이 변경되었어요.'); };
     const doCancel = () => {
       if(!cancelReason || (cancelReason==='기타' && !cancelEtc.trim())){setCancelError(true);return;}
       setApplications(apps=>apps.filter(a=>a.id!==1));
@@ -1358,7 +1425,7 @@
           </div>
           {/* ── 탭 바 (세그먼트형 — 헤더/카드 하단선과 라인 중복 제거) ── */}
           <div style={{ display:'flex', gap:4, padding:5, background:T.surface, border:`1px solid ${T.borderLight}`, borderRadius:12, marginBottom:24, boxShadow:T.shadow }}>
-            {[{key:'history',icon:'calendar',label:'신청 현황'},{key:'favorites',icon:'star',label:'즐겨찾기'},{key:'noti',icon:'bell',label:'알림 설정'},{key:'profile',icon:'user',label:'개인정보 수정'}].map(m=>(
+            {[{key:'history',icon:'calendar',label:'신청 내역'},{key:'favorites',icon:'star',label:'즐겨찾기'},{key:'noti',icon:'bell',label:'알림 설정'},{key:'profile',icon:'user',label:'개인정보 수정'}].map(m=>(
               <div key={m.key} onClick={()=>setTab(m.key)} className="btn-hover" style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', gap:7, padding:'11px 12px', cursor:'pointer', borderRadius:8, background:tab===m.key?T.primaryLight:'transparent' }}>
                 <Icon n={m.icon} size={16} color={tab===m.key?T.primary:T.textSec}/>
                 <span style={{ fontSize:14, fontWeight:tab===m.key?700:500, color:tab===m.key?T.primary:T.textSec }}>{m.label}</span>
@@ -1421,14 +1488,15 @@
                                   {app.status==='중단' && <span style={{ padding:'2px 10px', borderRadius:T.tagR, background:T.borderLight, color:T.textTri, fontSize:12, fontWeight:600 }}>운영중단</span>}
                                 </div>
                                 <div style={{ fontSize:13, color:T.textSec, marginBottom:12 }}>{app.center} · {app.date}</div>
-                                {/* 액션 버튼 */}
+                                {/* 액션 버튼 — 컴팩트 · 우측 정렬 */}
                                 {canCancel && (
-                                  <Btn variant="dangerOutline" size="m" fullWidth onClick={()=>setShowCancel(true)}>신청 취소</Btn>
+                                  <div style={{ display:'flex', justifyContent:'flex-end' }}>
+                                    <Btn variant="dangerOutline" size="s" onClick={()=>setShowCancel(true)}>신청 취소</Btn>
+                                  </div>
                                 )}
                                 {canReapply && (
-                                  <div style={{ display:'flex', gap:8 }}>
-                                    <Btn variant="secondary" size="m" onClick={()=>go('program-detail',{pg:app})} style={{ flex:1 }}>재신청</Btn>
-                                    <Btn variant="ghost" size="m" disabled style={{ flex:1 }}>신청 취소</Btn>
+                                  <div style={{ display:'flex', justifyContent:'flex-end', gap:8 }}>
+                                    <Btn variant="secondary" size="s" onClick={()=>go('program-detail',{pg:app})}>재신청</Btn>
                                   </div>
                                 )}
                               </div>
@@ -1453,23 +1521,74 @@
             {tab==='profile' && (
               <div>
                 <h3 style={{ fontSize:20, fontWeight:700, color:T.text, marginBottom:6 }}>개인 정보 수정</h3>
-                <div style={{ fontSize:14, fontWeight:600, color:T.text, marginBottom:16 }}>비밀번호 재확인</div>
-                <p style={{ fontSize:14, color:T.textSec, marginBottom:20 }}>회원님의 정보를 안전하게 보호하기 위해 비밀번호를 다시 한번 확인해주세요.</p>
-                <div style={{ maxWidth:480 }}>
-                  <div style={{ display:'grid', gridTemplateColumns:'90px 1fr', gap:'14px 16px', alignItems:'center', marginBottom:20 }}>
-                    <span style={{ fontSize:14, fontWeight:500, color:T.text }}>아이디</span>
-                    <div style={{ height:46, borderRadius:8, border:`1px solid ${T.border}`, padding:'0 14px', display:'flex', alignItems:'center', background:'#F3F4F6', fontSize:14, color:T.textSec }}>hyuuun0321</div>
-                    <span style={{ fontSize:14, fontWeight:500, color:T.text }}>비밀번호 *</span>
-                    <input type="password" placeholder="비밀번호를 입력해주세요." style={{ height:46, borderRadius:8, border:`1px solid ${T.border}`, padding:'0 14px', fontSize:14, fontFamily:'Pretendard', color:T.text, outline:'none' }}/>
-                  </div>
-                  <div style={{ display:'flex', justifyContent:'center' }}>
-                    <Btn size="m" onClick={()=>addToast('확인되었습니다.')}>확인</Btn>
-                  </div>
-                </div>
+                {!pwVerified ? (
+                  <>
+                    <div style={{ fontSize:14, fontWeight:600, color:T.text, marginBottom:16 }}>비밀번호 재확인</div>
+                    <p style={{ fontSize:14, color:T.textSec, marginBottom:20 }}>회원님의 정보를 안전하게 보호하기 위해 비밀번호를 다시 한번 확인해주세요.</p>
+                    <div style={{ maxWidth:480, margin:'0 auto' }}>
+                      <div style={{ display:'grid', gridTemplateColumns:'90px 1fr', gap:'14px 16px', alignItems:'center', marginBottom:20 }}>
+                        <span style={{ fontSize:14, fontWeight:500, color:T.text }}>아이디</span>
+                        <div style={inputRO}>hyuuun0321</div>
+                        <span style={{ fontSize:14, fontWeight:500, color:T.text }}>비밀번호 <span style={{color:T.error}}>*</span></span>
+                        <input type="password" value={pwInput} onChange={e=>setPwInput(e.target.value)} onKeyDown={e=>e.key==='Enter'&&pwInput&&setPwVerified(true)} placeholder="비밀번호를 입력해주세요." style={inputStyle(pwInput)}/>
+                      </div>
+                      <div style={{ display:'flex', justifyContent:'center' }}>
+                        <Btn size="m" onClick={()=>{ if(!pwInput){addToast('비밀번호를 입력해주세요.');return;} setPwVerified(true); }}>확인</Btn>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <p style={{ fontSize:14, color:T.textSec, marginBottom:24 }}>변경할 정보만 수정한 뒤 저장해주세요.</p>
+                    <div style={{ maxWidth:560, margin:'0 auto', display:'grid', gridTemplateColumns:'110px 1fr', gap:'20px 20px', alignItems:'center' }}>
+                      {(() => { const lbl = { fontSize:13.5, fontWeight:600, color:T.text }; const lblTop = { ...lbl, alignSelf:'start', paddingTop:12 }; return (<>
+                        <span style={lbl}>아이디</span>
+                        <div style={inputRO}>hyuuun0321</div>
+                        <span style={lbl}>이름</span>
+                        <div style={inputRO}>박시현</div>
+                        <span style={lblTop}>비밀번호 변경</span>
+                        <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+                          <input type="password" value={editForm.newPw} onChange={setEF('newPw')} placeholder="새 비밀번호 (변경 시에만 입력)" style={inputStyle(editForm.newPw)}/>
+                          <input type="password" value={editForm.newPw2} onChange={setEF('newPw2')} placeholder="새 비밀번호 확인" style={inputStyle(editForm.newPw2)}/>
+                          {editForm.newPw2 && editForm.newPw!==editForm.newPw2 && <span style={{ fontSize:12, color:T.error }}>비밀번호가 일치하지 않습니다.</span>}
+                        </div>
+                        <span style={lbl}>핸드폰 번호</span>
+                        <input value={editForm.phone} onChange={setEF('phone')} style={inputStyle(editForm.phone)}/>
+                        <span style={lbl}>이메일</span>
+                        <input value={editForm.email} onChange={setEF('email')} style={inputStyle(editForm.email)}/>
+                        <span style={lbl}>성별</span>
+                        <div style={{ display:'flex', gap:8, maxWidth:220 }}>
+                          {['남','여'].map(g=>{ const on=editForm.gender===g; return (
+                            <div key={g} onClick={()=>setEditForm(f=>({...f,gender:g}))} className="btn-hover" style={{ flex:1, height:42, borderRadius:10, border:`1px solid ${on?T.primary:T.border}`, background:on?T.primaryBg:'#F7F8FA', display:'flex', alignItems:'center', justifyContent:'center', gap:6, cursor:'pointer', transition:'all 150ms' }}>
+                              {on && <Icon n="check" size={15} color={T.primary}/>}
+                              <span style={{ fontSize:14, fontWeight:on?600:400, color:on?T.primary:T.textSec }}>{g}</span>
+                            </div>
+                          );})}
+                        </div>
+                        <span style={lbl}>생년월일</span>
+                        <input value={editForm.dob} onChange={setEF('dob')} placeholder="YYYY / MM / DD" style={inputStyle(editForm.dob)}/>
+                        <span style={lblTop}>주소</span>
+                        <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+                          <div style={{ display:'flex', gap:8 }}>
+                            <input value={editForm.zip} readOnly style={{ ...inputRO, flex:'0 0 120px' }}/>
+                            <Btn size="m" variant="outline" icon="search" onClick={()=>addToast('주소 검색 창이 열립니다.')} style={{ flexShrink:0, width:'auto', minWidth:84, height:42, padding:'0 14px', fontSize:13 }}>검색</Btn>
+                          </div>
+                          <input value={editForm.addr} readOnly style={inputRO}/>
+                          <input value={editForm.addr2} onChange={setEF('addr2')} placeholder="상세주소" style={inputStyle(editForm.addr2)}/>
+                        </div>
+                      </>); })()}
+                    </div>
+                    <div style={{ height:1, background:T.borderLight, maxWidth:560, margin:'28px auto 20px' }}/>
+                    <div style={{ display:'flex', justifyContent:'center', gap:10, maxWidth:560, margin:'0 auto' }}>
+                      <Btn size="m" variant="ghost" onClick={()=>setShowWithdraw(true)} style={{ width:130 }}>탈퇴하기</Btn>
+                      <Btn size="m" onClick={()=>{ if(editForm.newPw&&editForm.newPw!==editForm.newPw2){addToast('비밀번호가 일치하지 않습니다.');return;} addToast('개인 정보가 저장되었어요.'); setPwVerified(false); setPwInput(''); }} style={{ width:130 }}>저장</Btn>
+                    </div>
+                  </>
+                )}
               </div>
             )}
             {tab==='noti' && (
-              <div>
+              <div style={{ maxWidth:560, margin:'0 auto' }}>
                 <h3 style={{ fontSize:20, fontWeight:700, color:T.text, marginBottom:24 }}>알림 설정</h3>
                 <div style={{ fontSize:16, fontWeight:700, color:T.text, marginBottom:4 }}>알림 받을 방법</div>
                 <div style={{ fontSize:13, color:T.textSec, marginBottom:14 }}>여러 방법을 동시에 선택할 수 있어요</div>
@@ -1478,7 +1597,7 @@
                     <div key={cc.k} style={{ display:'flex', alignItems:'center', gap:14, padding:'14px 18px', borderRadius:T.radius, background:T.surface, border:`1px solid ${noti[cc.k]?T.primaryLight:T.border}` }}>
                       <div style={{ width:38, height:38, borderRadius:10, background:noti[cc.k]?T.primaryLight:T.borderLight, display:'flex', alignItems:'center', justifyContent:'center' }}><Icon n="bell" size={18} color={noti[cc.k]?T.primary:T.textSec}/></div>
                       <div style={{ flex:1 }}><div style={{ fontSize:14.5, fontWeight:600, color:T.text }}>{cc.label}</div><div style={{ fontSize:12.5, color:T.textTri }}>{cc.sub}</div></div>
-                      <Toggle on={noti[cc.k]} onClick={()=>setNoti(s=>({...s,[cc.k]:!s[cc.k]}))}/>
+                      <Toggle on={noti[cc.k]} onClick={()=>toggleNoti(cc.k)}/>
                     </div>
                   ))}
                 </div>
@@ -1488,15 +1607,19 @@
                   {[{k:'_lock',label:'신청 승인 / 반려 결과',desc:'관리자가 신청을 처리하면 알려드려요',lock:true},{k:'remind',label:'프로그램 시작 D-1 리마인더',desc:'시작 하루 전 잊지 않도록 알려드려요'},{k:'empty',label:'빈자리 알림',desc:'마감된 프로그램에 빈자리가 생기면 알려드려요'},{k:'news',label:'신규 프로그램 소식',desc:'새로운 프로그램이 열리면 알려드려요'}].map((e,i,arr)=>(
                     <div key={e.k} style={{ display:'flex', alignItems:'center', gap:16, padding:'16px 18px', borderBottom:i<arr.length-1?`1px solid ${T.borderLight}`:'none' }}>
                       <div style={{ flex:1 }}><div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:3 }}><span style={{ fontSize:14.5, fontWeight:600, color:T.text }}>{e.label}</span>{e.lock && <span style={{ padding:'1px 7px', borderRadius:T.tagR, background:T.borderLight, color:T.textTri, fontSize:10.5, fontWeight:600 }}>필수</span>}</div><div style={{ fontSize:12.5, color:T.textSec }}>{e.desc}</div></div>
-                      {e.lock ? <div style={{ opacity:0.5, pointerEvents:'none' }}><Toggle on={true}/></div> : <Toggle on={noti[e.k]} onClick={()=>setNoti(s=>({...s,[e.k]:!s[e.k]}))}/>}
+                      {e.lock ? <div style={{ opacity:0.5, pointerEvents:'none' }}><Toggle on={true}/></div> : <Toggle on={noti[e.k]} onClick={()=>toggleNoti(e.k)}/>}
                     </div>
                   ))}
                 </div>
-                <div style={{ display:'flex', justifyContent:'center', marginTop:24, maxWidth:560 }}><Btn size="m" onClick={()=>addToast('알림 설정이 저장되었습니다.')}>저장</Btn></div>
+                <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:6, marginTop:24, fontSize:12.5, color:T.textTri }}><Icon n="check" size={13} color={T.textTri}/>변경 사항은 자동으로 저장돼요.</div>
               </div>
             )}
           </div>
         </div>
+        {/* 회원 탈퇴 확인 */}
+        {showWithdraw && (
+          <ConfirmDialog icon="close" variant="danger" title="정말 탈퇴하시겠어요?" message={<>탈퇴 시 신청 내역·즐겨찾기·관심 정보가 모두 삭제되며<br/>복구할 수 없어요.</>} confirmText="탈퇴하기" cancelText="취소" onConfirm={()=>{ setShowWithdraw(false); addToast('회원 탈퇴가 완료되었습니다.'); }} onClose={()=>setShowWithdraw(false)}/>
+        )}
         {/* 관심 정보 수정 모달 */}
         {showInterest && (
           <InterestEditModal initRegions={myInterests.regions} initCats={myInterests.cats} onClose={()=>setShowInterest(false)}
@@ -1760,10 +1883,12 @@
     const [agree, setAgree] = useState({ terms:false, privacy:false });
     const set = (k)=>(e)=>setForm(f=>({...f,[k]:e.target.value}));
     const allAgreed = agree.terms && agree.privacy;
-    const field = (on)=>({ height:46, borderRadius:8, border:`1.5px solid ${on?T.primary:T.border}`, padding:'0 16px', fontSize:14, fontFamily:'Pretendard', color:T.text, outline:'none', transition:'border 150ms', boxSizing:'border-box', width:'100%', display:'block' });
+    const field = inputStyle;
     const fieldRow = (on)=>({ ...field(on), flex:1, width:'auto', minWidth:0 });
-    const label = { fontSize:14, fontWeight:600, color:T.text, marginBottom:7, display:'block' };
-    const sectionHead = { display:'flex', alignItems:'center', gap:8, paddingBottom:12, borderBottom:`2px solid ${T.text}`, marginBottom:18 };
+    const label = { fontSize:13, fontWeight:600, color:T.textSec, marginBottom:6, display:'block' };
+    const card = { background:T.surface, borderRadius:16, border:`1px solid ${T.borderLight}`, boxShadow:T.shadow, padding:'24px 28px', marginBottom:16 };
+    const cardTitle = { fontWeight:700, fontSize:15.5, color:T.text, marginBottom:18, display:'block' };
+    const btnSide = { flexShrink:0, width:'auto', minWidth:84, height:42, padding:'0 14px', fontSize:13 };
     const submit = () => {
       if(!form.id||!form.pw||!form.pw2||!form.name||!form.phone||!gender||!form.dob){ alert('필수 항목을 모두 입력해주세요.'); return; }
       if(form.pw!==form.pw2){ alert('비밀번호가 일치하지 않습니다.'); return; }
@@ -1774,22 +1899,22 @@
     return (
       <div className="screen-enter" style={{ background:T.bg, minHeight:'100vh', display:'flex', flexDirection:'column' }}>
         <div style={{ flex:1, display:'flex', justifyContent:'center', padding:'48px 80px' }}>
-          <div style={{ width:520 }}>
-            <div style={{ textAlign:'center', marginBottom:32 }}>
-              <img src="assets/logo.png" alt="청년모아" style={{ height:34, margin:'0 auto 20px' }}/>
-              <h2 style={{ fontSize:26, fontWeight:700, color:T.text, marginBottom:8 }}>회원가입</h2>
-              <p style={{ fontSize:14, color:T.textSec }}>청년모아 서비스 이용을 위해 회원정보를 입력해주세요.</p>
+          <div style={{ width:560 }}>
+            <div style={{ textAlign:'center', marginBottom:28 }}>
+              <img src="assets/logo.png" alt="청년모아" style={{ height:32, margin:'0 auto 16px' }}/>
+              <h2 style={{ fontSize:24, fontWeight:700, color:T.text, marginBottom:6 }}>회원가입</h2>
+              <p style={{ fontSize:14, color:T.textSec }}>몇 가지 정보만 입력하면 바로 시작할 수 있어요.</p>
             </div>
 
             {/* 계정 정보 */}
-            <div style={{ marginBottom:28 }}>
-              <div style={sectionHead}><span style={{ fontWeight:700, fontSize:16, color:T.text }}>계정 정보</span></div>
-              <div style={{ display:'flex', flexDirection:'column', gap:18 }}>
+            <div style={card}>
+              <span style={cardTitle}>계정 정보</span>
+              <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
                 <div>
                   <span style={label}>아이디 <span style={{color:T.error}}>*</span></span>
                   <div style={{ display:'flex', gap:8 }}>
                     <input value={form.id} onChange={set('id')} placeholder="아이디를 입력해주세요" style={fieldRow(form.id)}/>
-                    <Btn size="m" variant="outline" onClick={()=>alert('사용 가능한 아이디입니다.')} style={{ flexShrink:0, width:96, height:46 }}>중복확인</Btn>
+                    <Btn size="m" variant="outline" onClick={()=>alert('사용 가능한 아이디입니다.')} style={btnSide}>중복확인</Btn>
                   </div>
                 </div>
                 <div>
@@ -1805,9 +1930,9 @@
             </div>
 
             {/* 개인 정보 */}
-            <div style={{ marginBottom:28 }}>
-              <div style={sectionHead}><span style={{ fontWeight:700, fontSize:16, color:T.text }}>개인 정보</span></div>
-              <div style={{ display:'flex', flexDirection:'column', gap:18 }}>
+            <div style={card}>
+              <span style={cardTitle}>개인 정보</span>
+              <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
                 <div>
                   <span style={label}>이름 <span style={{color:T.error}}>*</span></span>
                   <input value={form.name} onChange={set('name')} placeholder="이름을 입력해주세요" style={field(form.name)}/>
@@ -1816,45 +1941,44 @@
                   <span style={label}>핸드폰 번호 <span style={{color:T.error}}>*</span></span>
                   <div style={{ display:'flex', gap:8 }}>
                     <input value={form.phone} onChange={set('phone')} disabled={verify.done} placeholder="숫자만 입력해주세요" style={{...fieldRow(form.phone), ...(verify.done?{background:'#F3F4F6',color:T.textSec}:{})}}/>
-                    <Btn size="m" variant="outline" onClick={()=>{ if(verify.done){ setVerify({ sent:false, code:'', left:180, done:false }); } else { setVerify({ sent:true, code:'', left:180, done:false }); } }} style={{ flexShrink:0, width:96, height:46 }}>{verify.done?'재인증':verify.sent?'재요청':'인증요청'}</Btn>
+                    <Btn size="m" variant="outline" onClick={()=>{ if(verify.done){ setVerify({ sent:false, code:'', left:180, done:false }); } else { setVerify({ sent:true, code:'', left:180, done:false }); } }} style={btnSide}>{verify.done?'재인증':verify.sent?'재요청':'인증요청'}</Btn>
                   </div>
                   {verify.sent && !verify.done && (
                     <div style={{ marginTop:8 }}>
                       <div style={{ display:'flex', gap:8 }}>
                         <div style={{ position:'relative', flex:1 }}>
-                          <input value={verify.code} onChange={e=>setVerify(v=>({...v,code:e.target.value.replace(/\D/g,'').slice(0,6)}))} placeholder="인증번호 6자리" style={{...fieldRow(verify.code), width:'100%', boxSizing:'border-box', paddingRight:56 }}/>
-                          <span style={{ position:'absolute', right:14, top:'50%', transform:'translateY(-50%)', fontSize:13, fontWeight:600, color:verify.left<=30?T.error:T.primary, fontFamily:'Inter,sans-serif' }}>{mmss(verify.left)}</span>
+                          <input value={verify.code} onChange={e=>setVerify(v=>({...v,code:e.target.value.replace(/\D/g,'').slice(0,6)}))} placeholder="인증번호 6자리" style={{...fieldRow(verify.code), width:'100%', boxSizing:'border-box', paddingRight:56 }}/>  <span style={{ position:'absolute', right:14, top:'50%', transform:'translateY(-50%)', fontSize:13, fontWeight:600, color:verify.left<=30?T.error:T.primary, fontFamily:'Inter,sans-serif' }}>{mmss(verify.left)}</span>
                         </div>
-                        <Btn size="m" variant="outline" disabled={verify.code.length<6||verify.left<=0} onClick={()=>setVerify(v=>({...v,done:true}))} style={{ flexShrink:0, width:96, height:46 }}>확인</Btn>
+                        <Btn size="m" variant="outline" disabled={verify.code.length<6||verify.left<=0} onClick={()=>setVerify(v=>({...v,done:true}))} style={btnSide}>확인</Btn>
                       </div>
                       <span style={{ fontSize:12, color:verify.left<=0?T.error:T.textTri, marginTop:5, display:'block' }}>{verify.left<=0?'유효시간이 만료되었어요. 인증번호를 재요청해주세요.':'문자로 받은 인증번호를 3분 안에 입력해주세요.'}</span>
                     </div>
                   )}
                   {verify.done && <span style={{ display:'inline-flex', alignItems:'center', gap:4, fontSize:12.5, fontWeight:600, color:T.success, marginTop:6 }}><Icon n="check" size={13} color={T.success}/>휴대폰 인증이 완료되었어요.</span>}
                 </div>
-                <div>
-                  <span style={label}>성별 <span style={{color:T.error}}>*</span></span>
-                  <div style={{ display:'flex', gap:20, paddingTop:4 }}>
-                    {['남','여'].map(g=>(
-                      <label key={g} onClick={()=>setGender(g)} style={{ display:'flex', alignItems:'center', gap:8, cursor:'pointer' }}>
-                        <div style={{ width:20, height:20, borderRadius:'50%', border:`2px solid ${gender===g?T.primary:T.border}`, display:'flex', alignItems:'center', justifyContent:'center' }}>
-                          {gender===g && <div style={{ width:10, height:10, borderRadius:'50%', background:T.primary }}/>}
+                <div style={{ display:'flex', gap:14 }}>
+                  <div style={{ flex:1 }}>
+                    <span style={label}>성별 <span style={{color:T.error}}>*</span></span>
+                    <div style={{ display:'flex', gap:8 }}>
+                      {['남','여'].map(g=>(
+                        <div key={g} onClick={()=>setGender(g)} className="btn-hover" style={{ flex:1, height:42, borderRadius:10, border:`1px solid ${gender===g?T.primary:T.border}`, background:gender===g?T.primaryBg:'#F7F8FA', display:'flex', alignItems:'center', justifyContent:'center', gap:6, cursor:'pointer', transition:'all 150ms' }}>
+                          {gender===g && <Icon n="check" size={15} color={T.primary}/>}
+                          <span style={{ fontSize:14, fontWeight:gender===g?600:400, color:gender===g?T.primary:T.textSec }}>{g}</span>
                         </div>
-                        <span style={{ fontSize:14, color:T.text }}>{g}</span>
-                      </label>
-                    ))}
+                      ))}
+                    </div>
                   </div>
-                </div>
-                <div>
-                  <span style={label}>생년월일 <span style={{color:T.error}}>*</span></span>
-                  <input value={form.dob} onChange={set('dob')} placeholder="YYYY / MM / DD" style={field(form.dob)}/>
+                  <div style={{ flex:1 }}>
+                    <span style={label}>생년월일 <span style={{color:T.error}}>*</span></span>
+                    <input value={form.dob} onChange={set('dob')} placeholder="YYYY / MM / DD" style={field(form.dob)}/>
+                  </div>
                 </div>
                 <div>
                   <span style={label}>주소 <span style={{color:T.error}}>*</span></span>
                   <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
                     <div style={{ display:'flex', gap:8 }}>
                       <input value={form.zip} readOnly placeholder="우편번호" style={{ ...fieldRow(form.zip), background:'#F3F4F6', cursor:'default' }}/>
-                      <Btn size="m" variant="outline" icon="search" onClick={()=>setForm(f=>({...f, zip:'14547', addr:'경기도 부천시 원미구 부일로 123'}))} style={{ flexShrink:0, width:96, height:46 }}>검색</Btn>
+                      <Btn size="m" variant="outline" icon="search" onClick={()=>setForm(f=>({...f, zip:'14547', addr:'경기도 부천시 원미구 부일로 123'}))} style={btnSide}>검색</Btn>
                     </div>
                     <input value={form.addr} readOnly placeholder="주소 (검색으로 입력)" style={{ ...field(form.addr), background:'#F3F4F6', cursor:'default' }}/>
                     <input value={form.addr2} onChange={set('addr2')} placeholder="상세주소를 입력해주세요" style={field(form.addr2)}/>
@@ -1864,28 +1988,28 @@
             </div>
 
             {/* 이용약관 동의 */}
-            <div style={{ marginBottom:28 }}>
-              <div style={sectionHead}><span style={{ fontWeight:700, fontSize:16, color:T.text }}>이용약관 동의</span></div>
-              <label onClick={()=>{ const v=!allAgreed; setAgree({terms:v,privacy:v}); }} style={{ display:'flex', alignItems:'center', gap:10, padding:'10px 0', borderBottom:`1px solid ${T.borderLight}`, cursor:'pointer', marginBottom:4 }}>
+            <div style={card}>
+              <span style={cardTitle}>이용약관 동의</span>
+              <label onClick={()=>{ const v=!allAgreed; setAgree({terms:v,privacy:v}); }} style={{ display:'flex', alignItems:'center', gap:10, padding:'12px 14px', borderRadius:10, background:allAgreed?T.primaryBg:'#F7F8FA', cursor:'pointer', marginBottom:8 }}>
                 <div style={{ width:22, height:22, borderRadius:6, background:allAgreed?T.primary:T.surface, border:`1.5px solid ${allAgreed?T.primary:T.border}`, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
                   {allAgreed && <svg viewBox="0 0 24 24" style={{width:14,height:14}}><path d="M5 12l4 4 10-10" stroke="#fff" strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round"/></svg>}
                 </div>
-                <span style={{ fontSize:15, fontWeight:600, color:T.text }}>전체 동의</span>
+                <span style={{ fontSize:14.5, fontWeight:600, color:T.text }}>약관 전체 동의</span>
               </label>
               {[{k:'terms',label:'회원가입약관'},{k:'privacy',label:'개인정보처리방침 안내'}].map(a=>(
-                <div key={a.k} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'11px 0' }}>
+                <div key={a.k} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'9px 14px' }}>
                   <label onClick={()=>setAgree(s=>({...s,[a.k]:!s[a.k]}))} style={{ display:'flex', alignItems:'center', gap:10, cursor:'pointer' }}>
                     <svg viewBox="0 0 24 24" style={{width:18,height:18,flexShrink:0}}><path d="M5 12l4 4 10-10" stroke={agree[a.k]?T.primary:T.border} strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/></svg>
                     <span style={{ fontSize:14, color:T.textSec }}>{a.label} <span style={{color:T.error}}>(필수)</span></span>
                   </label>
-                  <span className="btn-hover" onClick={()=>go('terms')} style={{ fontSize:12.5, color:T.primary, fontWeight:500, cursor:'pointer' }}>약관보기 ›</span>
+                  <span className="btn-hover" onClick={()=>go('terms')} style={{ fontSize:12.5, color:T.textTri, fontWeight:500, cursor:'pointer' }}>약관보기 ›</span>
                 </div>
               ))}
             </div>
 
-            <div style={{ display:'flex', justifyContent:'center', gap:12 }}>
-              <Btn size="l" variant="ghost" onClick={()=>go('login')} style={{ width:150 }}>취소</Btn>
-              <Btn size="l" variant="primary" onClick={submit} style={{ width:200 }}>회원가입</Btn>
+            <Btn size="l" fullWidth variant="primary" onClick={submit}>회원가입</Btn>
+            <div style={{ textAlign:'center', marginTop:16, fontSize:13.5, color:T.textSec }}>
+              이미 계정이 있으신가요? <span className="btn-hover" onClick={()=>go('login')} style={{ color:T.primary, fontWeight:600, cursor:'pointer' }}>로그인</span>
             </div>
           </div>
         </div>
@@ -1910,8 +2034,8 @@
             <img src="assets/logo.png" alt="청년모아" style={{ height:36, margin:'0 auto 28px' }}/>
             <h2 style={{ fontSize:26, fontWeight:700, color:T.text, marginBottom:24 }}>로그인</h2>
             <div style={{ display:'flex', flexDirection:'column', gap:10, marginBottom:10 }}>
-              <input value={id} onChange={e=>setId(e.target.value)} placeholder="아이디를 입력해주세요." style={{ height:46, borderRadius:8, border:`1.5px solid ${id?T.primary:T.border}`, padding:'0 16px', fontSize:14, fontFamily:'Pretendard', color:T.text, outline:'none', transition:'border 150ms' }}/>
-              <input type="password" value={pw} onChange={e=>setPw(e.target.value)} onKeyDown={e=>e.key==='Enter'&&handle()} placeholder="비밀번호를 입력해주세요." style={{ height:46, borderRadius:8, border:`1.5px solid ${pw?T.primary:T.border}`, padding:'0 16px', fontSize:14, fontFamily:'Pretendard', color:T.text, outline:'none', transition:'border 150ms' }}/>
+              <input value={id} onChange={e=>setId(e.target.value)} placeholder="아이디를 입력해주세요." style={inputStyle(id)}/>
+              <input type="password" value={pw} onChange={e=>setPw(e.target.value)} onKeyDown={e=>e.key==='Enter'&&handle()} placeholder="비밀번호를 입력해주세요." style={inputStyle(pw)}/>
             </div>
             <div style={{ display:'flex', justifyContent:'space-between', marginBottom:20, fontSize:13 }}>
               <label style={{ display:'flex', alignItems:'center', gap:6, cursor:'pointer', color:T.textSec }}>

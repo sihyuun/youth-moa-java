@@ -3190,12 +3190,36 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: opacity 0.2s;
+  gap: 5px;
+  border: 1px solid transparent;
+  background: transparent;
+  transition: background 0.2s, border-color 0.2s, opacity 0.2s;
+  font-family: inherit;
 }
+/* F0f-fix-1: CTA 5분기 색상 (prototype §5.2 매칭) */
+.card-action-btn--primary {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background: transparent;
+}
+.card-action-btn--primary:hover { background: var(--color-primary-bg); }
+.card-action-btn--secondary {
+  border-color: var(--color-secondary);
+  color: var(--color-secondary);
+  background: transparent;
+}
+.card-action-btn--secondary:hover { background: rgba(249, 115, 22, 0.08); }
+.card-action-btn--muted {
+  border-color: var(--color-border);
+  color: var(--color-text-sec);
+  background: var(--color-border-light);
+}
+.card-action-btn--muted:hover:not(:disabled) { background: var(--color-border); }
 .card-action-btn--disabled {
-  opacity: 0.5;
+  opacity: 0.6;
   cursor: not-allowed;
 }
+.card-action-btn:disabled { cursor: not-allowed; opacity: 0.6; }
 .program-card--closed .program-card-image img {
   filter: grayscale(0.5);
 }

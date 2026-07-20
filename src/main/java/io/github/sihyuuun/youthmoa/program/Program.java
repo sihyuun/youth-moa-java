@@ -133,7 +133,8 @@ public class Program extends BaseTimeEntity {
   }
 
   public ProgramStatus getStatus() {
-    if (!isActive) return ProgramStatus.CLOSED;
+    // F0f-fix-1 (C-Q1): isActive=false → INACTIVE (운영 중단). CLOSED 와 별도 상태.
+    if (!isActive) return ProgramStatus.INACTIVE;
     LocalDate today = LocalDate.now();
     if (startDate != null && today.isBefore(startDate)) return ProgramStatus.UPCOMING;
     if (endDate != null && today.isAfter(endDate)) return ProgramStatus.CLOSED;
