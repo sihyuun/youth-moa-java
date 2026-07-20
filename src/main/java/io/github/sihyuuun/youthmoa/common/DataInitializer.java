@@ -615,7 +615,7 @@ public class DataInitializer implements ApplicationRunner {
                 .endDate(today.plusDays(2))
                 .capacity(60)
                 .build(),
-            // F0f-fix-1: INACTIVE (운영 중단) 시나리오 시드 — CTA 5분기 시각 검증용
+            // F0f-fix-1: SUSPENDED (운영 중단, 관리자 조치) 시나리오 시드
             Program.builder()
                 .title("청년 목공 클래스")
                 .organization("메이커스페이스")
@@ -633,6 +633,24 @@ public class DataInitializer implements ApplicationRunner {
                 .endDate(today.plusDays(30))
                 .capacity(16)
                 .isActive(false)
+                .build(),
+            // F0f-fix-3: ENDED (기간 만료, 자연 종료) 시나리오 시드 — 종료 탭·그레이스케일 시각 검증용
+            Program.builder()
+                .title("자소서 첨삭 카페")
+                .organization("취업지원센터")
+                .region("서울시")
+                .imageUrl(
+                    "https://images.unsplash.com/photo-1455390582262-044cdead277a?w=460&h=340&fit=crop")
+                .content("전문 컨설턴트와 함께하는 자기소개서 첨삭 프로그램입니다. (종료된 프로그램)")
+                .eligibility(
+                    ProgramEligibility.builder()
+                        .age("만 19세 ~ 34세 청년")
+                        .region("서울시 거주 또는 활동")
+                        .etc("취업 준비생 우선")
+                        .build())
+                .startDate(today.minusDays(90))
+                .endDate(today.minusDays(30))
+                .capacity(20)
                 .build());
 
     programRepository.saveAll(seeds);
