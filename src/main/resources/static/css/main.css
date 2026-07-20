@@ -3904,6 +3904,74 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
   color: var(--color-text-tri);
 }
 
+/* F0f-fix-5: 알림 전체 페이지 개선 — 뒤로가기·필터·그룹·안읽음 강조 */
+.notif-page-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.notif-back-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+  background: #fff;
+  color: var(--color-text);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.notif-back-btn:hover { background: var(--color-bg); }
+.notif-page-head .notif-page-title { margin: 0; }
+
+.notif-filter-bar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.notif-filter-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: #fff;
+  color: var(--color-text-sec);
+  font-size: 13px;
+  text-decoration: none;
+  transition: all 0.15s;
+}
+.notif-filter-pill:hover { background: var(--color-bg); }
+.notif-filter-pill--active {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #fff;
+}
+.notif-filter-pill--active .notif-filter-count { color: rgba(255,255,255,0.85); }
+.notif-filter-count {
+  font-size: 12px;
+  color: var(--color-text-tri);
+  font-weight: 600;
+}
+
+.notif-group + .notif-group { margin-top: 24px; }
+.notif-group-header {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-sec);
+  margin: 0 0 8px;
+  padding: 0 4px;
+}
+.notif-item--unread {
+  border-left: 3px solid var(--color-primary);
+  padding-left: 12px;
+  background: var(--color-primary-bg);
+}
+
 /* ============================================================
    F0h — 청년센터 목록 / 상세 + 카카오맵
    ============================================================ */
