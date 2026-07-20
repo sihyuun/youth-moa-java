@@ -44,6 +44,7 @@ public class UserController {
   public String loginPage(
       @RequestParam(required = false) String error,
       @RequestParam(required = false) String logout,
+      @RequestParam(required = false) String withdraw,
       jakarta.servlet.http.HttpSession session,
       Model model) {
     if (error != null) {
@@ -57,6 +58,9 @@ public class UserController {
     }
     if (logout != null) {
       model.addAttribute("logoutMsg", "로그아웃되었습니다.");
+    }
+    if (withdraw != null) {
+      model.addAttribute("logoutMsg", "회원 탈퇴가 완료되었습니다.");
     }
     return "user/login";
   }

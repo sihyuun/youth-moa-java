@@ -5122,6 +5122,16 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
 .mypage-noti-row.is-locked { opacity: .6; cursor: not-allowed; }
 .mypage-noti-label { font-size: 14px; }
 .mypage-noti-actions { margin-top: 12px; display: flex; justify-content: flex-end; }
+.mypage-noti-autosave-hint {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 20px;
+    font-size: 12.5px;
+    color: var(--color-text-tri);
+    max-width: 480px;
+}
 
 /* 프로필 편집 */
 .mypage-verify-form { display: grid; gap: 12px; max-width: 400px; }
@@ -5132,6 +5142,143 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
 .mypage-edit-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 8px; }
 .mypage-edit-note { margin-top: 24px; font-size: 13px; color: var(--color-text-sec); }
 .mypage-edit-note a { color: var(--color-primary); }
+
+/* ═══ F0f-fix-4: 개인정보 수정 카드형 폼 (prototype.tsx L1508~1550) ═══ */
+/* 공통 입력 스타일 — 42px · radius 10 · #F7F8FA 배경 → 값 있을 때 흰 배경+primary 테두리는 JS 로 처리 (currently static) */
+.form-input {
+    height: 42px;
+    border-radius: 10px;
+    border: 1px solid var(--color-border);
+    background: #F7F8FA;
+    padding: 0 14px;
+    font-size: 14px;
+    font-family: 'Pretendard', sans-serif;
+    color: var(--color-text);
+    outline: none;
+    box-sizing: border-box;
+    width: 100%;
+    transition: border 150ms, background 150ms;
+    display: block;
+}
+.form-input:focus { border-color: var(--color-primary); background: var(--color-surface); }
+.form-input--ro {
+    background: #F3F4F6;
+    border-color: var(--color-border-light);
+    color: var(--color-text-sec);
+    display: flex;
+    align-items: center;
+}
+
+.form-card {
+    padding: 24px 28px;
+    border-radius: 16px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border-light);
+    box-shadow: var(--shadow-md);
+}
+
+/* 카드형 그리드 폼 — 110px 라벨 + 필드 */
+.mypage-edit-form-grid {
+    max-width: 560px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 110px 1fr;
+    gap: 20px 20px;
+    align-items: center;
+    margin-top: 24px;
+}
+.mypage-edit-label {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--color-text);
+}
+.mypage-edit-label--top { align-self: start; padding-top: 12px; }
+
+.mypage-edit-pw-note { display: flex; align-items: center; gap: 10px; }
+.mypage-edit-pw-hint { font-size: 12.5px; color: var(--color-text-tri); }
+
+.mypage-edit-addr { display: flex; flex-direction: column; gap: 8px; }
+.mypage-edit-addr-row { display: flex; gap: 8px; }
+.mypage-edit-addr-row .form-input { flex: 0 0 140px; }
+
+.mypage-edit-errors { max-width: 560px; margin: 12px auto 0; }
+
+.mypage-edit-divider {
+    height: 1px;
+    background: var(--color-border-light);
+    max-width: 560px;
+    margin: 28px auto 20px;
+}
+.mypage-edit-actions-center {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    max-width: 560px;
+    margin: 0 auto;
+}
+.mypage-edit-actions-center .btn-auth { width: 130px; }
+
+/* 성별 pill (readonly 표시) */
+.gender-pill-group { display: flex; gap: 8px; max-width: 220px; }
+.gender-pill {
+    flex: 1;
+    height: 42px;
+    border-radius: 10px;
+    border: 1px solid var(--color-border);
+    background: #F7F8FA;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    color: var(--color-text-sec);
+}
+.gender-pill.is-on {
+    border-color: var(--color-primary);
+    background: var(--color-primary-bg);
+    color: var(--color-primary);
+    font-weight: 600;
+}
+.mypage-edit-hint {
+    margin: 6px 0 0;
+    font-size: 12px;
+    color: var(--color-text-tri);
+    line-height: 1.5;
+}
+
+/* 아웃라인 미니 버튼 (주소 검색 · 비밀번호 변경) */
+.btn-outline {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 42px;
+    padding: 0 16px;
+    border-radius: 8px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    color: var(--color-text);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    text-decoration: none;
+    box-sizing: border-box;
+}
+.btn-outline--sm { height: 36px; padding: 0 14px; font-size: 13px; }
+.btn-outline:hover { border-color: var(--color-primary); color: var(--color-primary); }
+
+/* 회원 탈퇴 확인 모달 (공통 .modal-* 셸 스타일에 얹힘) */
+.btn-auth--ghost {
+    background: transparent;
+    border: 1px solid var(--color-border);
+    color: var(--color-text-sec);
+}
+.btn-auth--ghost:hover { border-color: var(--color-error); color: var(--color-error); }
+.btn-auth--danger {
+    background: var(--color-error);
+    border: 1px solid var(--color-error);
+    color: #fff;
+}
+.btn-auth--danger:hover { filter: brightness(0.95); }
+.modal-card--danger .modal-title { color: var(--color-error); }
 
 /* 신청 취소 모달 폼 전용 스타일 (공통 .modal-card 셸 위에 얹힘).
    dead: .mypage-modal / .mypage-modal-inner / .mypage-modal-subtitle / .mypage-modal-actions
