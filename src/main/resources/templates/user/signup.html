@@ -28,10 +28,10 @@
 <main class="signup-screen">
     <div class="signup-inner">
 
-        <!-- 타이틀 (로고는 헤더에 있으므로 제거) -->
+        <!-- 타이틀 (prototype L1868~1872: 로고는 헤더에 있으므로 제거, subtitle 문구 정합) -->
         <div class="signup-header">
             <h2 class="signup-title">회원가입</h2>
-            <p class="signup-subtitle">청년모아 서비스 이용을 위해 회원정보를 입력해주세요.</p>
+            <p class="signup-subtitle">몇 가지 정보만 입력하면 바로 시작할 수 있어요.</p>
         </div>
 
         <!-- 서버 측 에러 (중복 이메일 등) -->
@@ -174,20 +174,28 @@
                         <p class="signup-field-error" th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}"></p>
                     </div>
 
-                    <!-- 성별 (라디오) -->
+                    <!-- 성별 (prototype L1924~1935 pill 토글) — hidden radio 로 Spring form 바인딩 유지 -->
                     <div class="signup-field-block" th:classappend="${#fields.hasErrors('gender')} ? 'has-error'">
                         <span class="signup-field-label">성별 <span class="required">*</span></span>
-                        <div class="signup-gender-radio-group">
-                            <label class="signup-radio">
-                                <input type="radio" th:field="*{gender}" value="MALE">
-                                <span class="signup-radio-circle"></span>
-                                <span class="signup-radio-text">남</span>
-                            </label>
-                            <label class="signup-radio">
-                                <input type="radio" th:field="*{gender}" value="FEMALE">
-                                <span class="signup-radio-circle"></span>
-                                <span class="signup-radio-text">여</span>
-                            </label>
+                        <div class="signup-gender-pill-group" role="radiogroup" aria-label="성별">
+                            <input type="radio" th:field="*{gender}" value="MALE" class="signup-gender-radio-input">
+                            <input type="radio" th:field="*{gender}" value="FEMALE" class="signup-gender-radio-input">
+                            <button type="button" class="signup-gender-pill" data-value="MALE"
+                                    th:classappend="${signUpRequest.gender != null and signUpRequest.gender.name() == 'MALE'} ? 'is-selected'">
+                                <svg class="signup-gender-check" viewBox="0 0 24 24" width="15" height="15" fill="none"
+                                     stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="20 6 9 17 4 12"/>
+                                </svg>
+                                <span>남</span>
+                            </button>
+                            <button type="button" class="signup-gender-pill" data-value="FEMALE"
+                                    th:classappend="${signUpRequest.gender != null and signUpRequest.gender.name() == 'FEMALE'} ? 'is-selected'">
+                                <svg class="signup-gender-check" viewBox="0 0 24 24" width="15" height="15" fill="none"
+                                     stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="20 6 9 17 4 12"/>
+                                </svg>
+                                <span>여</span>
+                            </button>
                         </div>
                         <p class="signup-field-error" th:if="${#fields.hasErrors('gender')}" th:errors="*{gender}"></p>
                     </div>
@@ -270,11 +278,14 @@
                 <p class="signup-field-error" th:if="${#fields.hasErrors('allTermsAccepted')}" th:errors="*{allTermsAccepted}"></p>
             </section>
 
-            <!-- ════ 액션 ════ -->
+            <!-- ════ 액션 (prototype L1975~1978: fullWidth 회원가입 + 로그인 링크) ════ -->
             <div class="signup-actions">
-                <a th:href="@{/login}" class="btn-auth btn-auth--ghost signup-cancel-btn">취소</a>
                 <button type="submit" class="btn-auth btn-auth--primary signup-submit-btn">회원가입</button>
             </div>
+            <p class="signup-login-link">
+                이미 계정이 있으신가요?
+                <a th:href="@{/login}">로그인</a>
+            </p>
         </form>
     </div>
 </main>
@@ -417,6 +428,23 @@
                 alert('중복확인 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
                 hidden.value = 'false';
             }
+        });
+    })();
+
+    // 성별 pill 토글 — hidden radio 값 동기화 (prototype L1929)
+    (function () {
+        const pills = document.querySelectorAll('.signup-gender-pill');
+        const radios = document.querySelectorAll('.signup-gender-radio-input');
+        if (!pills.length || !radios.length) return;
+        pills.forEach(pill => {
+            pill.addEventListener('click', () => {
+                const v = pill.getAttribute('data-value');
+                pills.forEach(p => p.classList.toggle('is-selected', p === pill));
+                radios.forEach(r => { r.checked = (r.value === v); });
+                // Spring form binding trigger
+                const matched = Array.from(radios).find(r => r.value === v);
+                if (matched) matched.dispatchEvent(new Event('change', { bubbles: true }));
+            });
         });
     })();
 
