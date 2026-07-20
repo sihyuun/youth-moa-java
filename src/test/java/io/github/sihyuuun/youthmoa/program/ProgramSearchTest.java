@@ -167,7 +167,7 @@ class ProgramSearchTest {
                 .startDate(today)
                 .endDate(today.plusDays(1))
                 .build());
-    assertThat(p1.getStatus()).isEqualTo(ProgramStatus.ACTIVE);
+    assertThat(p1.getStatus()).isEqualTo(ProgramStatus.OPEN);
 
     Program p2 =
         programRepository.save(
@@ -191,6 +191,6 @@ class ProgramSearchTest {
                 .startDate(today.minusDays(10))
                 .endDate(today.minusDays(1))
                 .build());
-    assertThat(p3.getStatus()).isEqualTo(ProgramStatus.CLOSED);
+    assertThat(p3.getStatus()).isEqualTo(ProgramStatus.ENDED);
   }
 }

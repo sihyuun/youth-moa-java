@@ -147,7 +147,7 @@ class ApplicationServiceTest {
   }
 
   @Test
-  @DisplayName("마감(CLOSED) 프로그램은 신청 불가")
+  @DisplayName("종료(ENDED) 프로그램은 신청 불가")
   void apply_closed_blocked() {
     assertThatThrownBy(
             () ->
