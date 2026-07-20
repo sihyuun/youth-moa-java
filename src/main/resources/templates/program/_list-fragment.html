@@ -70,17 +70,31 @@
                         showBar=${dto.capacity != null})}"></div>
                 </div>
             </a>
-            <!-- 카드 액션 버튼 -->
+            <!-- 카드 액션 버튼 (F0f-fix-1: CTA 5분기 dto.ctaType 기반) -->
             <div class="program-card-actions">
-                <a th:if="${dto.status.name() == 'ACTIVE'}"
+                <!-- apply: 신청하기 (primary, check 아이콘, /programs/{id}/apply 라우팅) -->
+                <a th:if="${dto.ctaType == 'apply'}"
                    th:href="@{/programs/{id}/apply(id=${dto.id})}"
-                   class="btn-primary btn-sm card-action-btn">신청하기</a>
-                <button th:if="${dto.status.name() == 'CLOSED'}"
+                   class="card-action-btn card-action-btn--primary">
+                    <svg th:replace="~{fragments/icons :: check(14, 'currentColor')}"></svg>
+                    <span th:text="${dto.ctaLabel}">신청하기</span>
+                </a>
+                <!-- openAlert / waitlist: modal 트리거 (bell 아이콘) -->
+                <button th:if="${dto.ctaType == 'openAlert' or dto.ctaType == 'waitlist'}"
+                        type="button"
+                        th:data-alert-type="${dto.ctaType}"
+                        th:data-program-id="${dto.id}"
+                        th:data-program-title="${dto.title}"
+                        th:classappend="'card-action-btn--' + ${dto.ctaColorClass}"
+                        class="card-action-btn">
+                    <svg th:replace="~{fragments/icons :: bell(14, 'currentColor')}"></svg>
+                    <span th:text="${dto.ctaLabel}">알림 받기</span>
+                </button>
+                <!-- expired / inactive: disabled 회색 (no icon) -->
+                <button th:if="${dto.ctaType == 'expired' or dto.ctaType == 'inactive'}"
                         type="button" disabled
-                        class="btn-secondary btn-sm card-action-btn card-action-btn--disabled">빈자리 알림 받기</button>
-                <button th:if="${dto.status.name() == 'UPCOMING'}"
-                        type="button" disabled
-                        class="btn-secondary btn-sm card-action-btn card-action-btn--disabled">오픈 알림 받기</button>
+                        class="card-action-btn card-action-btn--muted card-action-btn--disabled"
+                        th:text="${dto.ctaLabel}">비활성</button>
             </div>
             <div th:replace="~{fragments/bookmark-button :: button(programId=${dto.id}, bookmarked=${bookmarkedIds.contains(dto.id)}, styleClass='card-bookmark-btn')}"></div>
         </article>

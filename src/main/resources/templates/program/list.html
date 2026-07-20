@@ -13,6 +13,8 @@
     <meta name="_csrf_header" th:content="${_csrf?.headerName}"/>
     <script th:src="@{/webjars/htmx.org/2.0.4/dist/htmx.min.js}" defer></script>
     <script th:src="@{/js/htmx-csrf.js}" defer></script>
+    <!-- F0f-fix-1: 카드 CTA 오픈알림 / 빈자리알림 modal 트리거 (common-ui.js Modal/Toast 재사용) -->
+    <script th:src="@{/js/program-list-alerts.js}" defer></script>
 </head>
 <body>
 
