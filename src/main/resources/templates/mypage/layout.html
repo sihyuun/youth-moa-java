@@ -51,11 +51,11 @@
             <div class="mypage-summary-kpis">
                 <div class="mypage-kpi">
                     <div class="mypage-kpi-value" th:text="${kpiOngoing}">0</div>
-                    <div class="mypage-kpi-label">진행중</div>
+                    <div class="mypage-kpi-label">진행중인 신청</div>
                 </div>
                 <div class="mypage-kpi">
                     <div class="mypage-kpi-value" th:text="${kpiFinished}">0</div>
-                    <div class="mypage-kpi-label">종료</div>
+                    <div class="mypage-kpi-label">종료된 신청</div>
                 </div>
                 <div class="mypage-kpi">
                     <div class="mypage-kpi-value" th:text="${kpiFavorites}">0</div>
@@ -67,13 +67,25 @@
 
     <nav class="mypage-tabs" aria-label="마이페이지 탭">
         <a th:href="@{/mypage(tab='history')}"
-           th:class="${currentTab == 'history'} ? 'mypage-tab active' : 'mypage-tab'">신청내역</a>
+           th:class="${currentTab == 'history'} ? 'mypage-tab active' : 'mypage-tab'">
+            <svg th:replace="~{fragments/icons :: calendar(16, 'currentColor')}"></svg>
+            <span>신청 현황</span>
+        </a>
         <a th:href="@{/mypage(tab='favorites')}"
-           th:class="${currentTab == 'favorites'} ? 'mypage-tab active' : 'mypage-tab'">즐겨찾기</a>
+           th:class="${currentTab == 'favorites'} ? 'mypage-tab active' : 'mypage-tab'">
+            <svg th:replace="~{fragments/icons :: star(16, 'currentColor')}"></svg>
+            <span>즐겨찾기</span>
+        </a>
         <a th:href="@{/mypage(tab='noti')}"
-           th:class="${currentTab == 'noti'} ? 'mypage-tab active' : 'mypage-tab'">알림설정</a>
+           th:class="${currentTab == 'noti'} ? 'mypage-tab active' : 'mypage-tab'">
+            <svg th:replace="~{fragments/icons :: bell(16, 'currentColor')}"></svg>
+            <span>알림 설정</span>
+        </a>
         <a th:href="@{/mypage(tab='profile')}"
-           th:class="${currentTab == 'profile'} ? 'mypage-tab active' : 'mypage-tab'">개인정보</a>
+           th:class="${currentTab == 'profile'} ? 'mypage-tab active' : 'mypage-tab'">
+            <svg th:replace="~{fragments/icons :: user(16, 'currentColor')}"></svg>
+            <span>개인정보 수정</span>
+        </a>
     </nav>
 
     <div th:if="${mypageToast}" class="mypage-toast" th:text="${mypageToast}"></div>
