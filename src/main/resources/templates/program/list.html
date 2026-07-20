@@ -87,6 +87,10 @@
                        th:class="${filterStatus == 'upcoming'} ? 'status-tab active' : 'status-tab'">
                         진행예정
                     </a>
+                    <a th:href="@{/programs(status='ended',regions=${filterRegions},centers=${filterCenters},sort=${filterSort})}"
+                       th:class="${filterStatus == 'ended'} ? 'status-tab active' : 'status-tab'">
+                        종료
+                    </a>
                 </div>
 
                 <div class="filter-right">

@@ -111,7 +111,7 @@
                             <path d="M8.59 13.51l6.83 3.98M15.41 6.51l-6.82 3.98"/>
                         </svg>
                     </button>
-                    <a th:if="${program.status.name() == 'ACTIVE'}"
+                    <a th:if="${program.status.name() == 'OPEN'}"
                        th:href="@{/programs/{id}/apply(id=${program.id})}"
                        class="btn-primary btn-lg detail-cta">
                         신청하기
@@ -120,9 +120,14 @@
                             type="button" class="btn-outline-primary detail-cta" disabled>
                         오픈 알림 받기
                     </button>
-                    <button th:if="${program.status.name() == 'CLOSED'}"
+                    <a th:if="${program.status.name() == 'ENDED'}"
+                       th:href="@{/programs}"
+                       class="btn-outline-primary detail-cta">
+                        비슷한 프로그램 보기
+                    </a>
+                    <button th:if="${program.status.name() == 'SUSPENDED'}"
                             type="button" class="btn-outline-primary detail-cta" disabled>
-                        빈자리 알림 받기
+                        운영이 중단되었어요
                     </button>
                 </div>
                 <!-- D2 머지로 즐겨찾기 활성화됨. 알림 기능은 F2 작업 큐. 안내 카피 제거. -->

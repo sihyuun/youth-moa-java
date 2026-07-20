@@ -41,12 +41,12 @@
     <!-- 프로그램 카드 그리드 -->
     <div th:if="${programs.totalElements > 0}" class="program-grid">
         <article th:each="dto : ${cardDtos}"
-                 th:classappend="${dto.status.name() == 'CLOSED'} ? ' program-card--closed'"
+                 th:classappend="${dto.status.name() == 'ENDED'} ? ' program-card--ended'"
                  class="program-card">
             <a th:href="@{/programs/{id}(id=${dto.id})}" class="program-card-link">
                 <div class="program-card-image">
                     <img th:if="${dto.imageUrl != null}" th:src="${dto.imageUrl}" alt=""
-                         th:style="${dto.status.name() == 'CLOSED'} ? 'filter:grayscale(0.5)' : ''">
+                         th:style="${dto.status.name() == 'ENDED'} ? 'filter:grayscale(1) brightness(0.82)' : ''">
                     <div th:if="${dto.imageUrl == null}" class="program-card-placeholder">
                         <span th:text="${dto.organization}">기관</span>
                     </div>
