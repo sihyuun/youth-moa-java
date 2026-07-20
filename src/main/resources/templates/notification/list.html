@@ -19,28 +19,65 @@
 
 <main class="main-content">
     <div class="notif-page">
-        <h1 class="notif-page-title">알림</h1>
 
-        <div th:if="${#lists.isEmpty(notifications)}" class="notif-page-empty">
-            아직 도착한 알림이 없어요
+        <!-- 뒤로가기 + 타이틀 -->
+        <div class="notif-page-head">
+            <button type="button" class="notif-back-btn"
+                    onclick="history.length > 1 ? history.back() : (window.location.href='/')"
+                    aria-label="뒤로가기">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor"
+                     stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+            </button>
+            <h1 class="notif-page-title">알림</h1>
         </div>
 
-        <ul th:unless="${#lists.isEmpty(notifications)}" class="notif-page-list">
-            <li th:each="n : ${notifications}"
-                th:classappend="${!n.read} ? ' is-unread' : ''"
-                class="notif-page-item">
-                <div th:class="'notif-icon notif-icon--' + ${n.type.toneColor}"
-                     th:classappend="${!n.read} ? ' is-unread' : ''"
-                     aria-hidden="true"></div>
-                <a th:href="${n.link != null} ? ${n.link} : '#'"
-                   class="notif-page-item-body">
-                    <div class="notif-item-title" th:text="${n.title}">제목</div>
-                    <div class="notif-item-message" th:text="${n.message}">본문</div>
-                    <div class="notif-item-time"
-                         th:text="${#temporals.format(n.createdAt, 'yyyy.MM.dd HH:mm')}">2026.07.06 12:00</div>
-                </a>
-            </li>
-        </ul>
+        <!-- 필터 pill -->
+        <div class="notif-filter-bar">
+            <a th:href="@{/notifications}"
+               th:class="${!filterUnread} ? 'notif-filter-pill notif-filter-pill--active' : 'notif-filter-pill'">
+                전체
+                <span class="notif-filter-count" th:text="${totalCount}">0</span>
+            </a>
+            <a th:href="@{/notifications(unread='true')}"
+               th:class="${filterUnread} ? 'notif-filter-pill notif-filter-pill--active' : 'notif-filter-pill'">
+                안 읽음
+                <span class="notif-filter-count" th:text="${unreadCount}">0</span>
+            </a>
+        </div>
+
+        <!-- 빈 상태 -->
+        <div th:if="${#maps.isEmpty(groupedNotifications)}" class="notif-page-empty">
+            <span th:if="${filterUnread}">읽지 않은 알림이 없어요</span>
+            <span th:unless="${filterUnread}">아직 도착한 알림이 없어요</span>
+        </div>
+
+        <!-- 그룹별 목록 -->
+        <div th:unless="${#maps.isEmpty(groupedNotifications)}" class="notif-page-groups">
+            <div th:each="entry : ${groupedNotifications}" class="notif-group">
+                <h2 class="notif-group-header"
+                    th:text="${entry.key == 'today' ? '오늘' : (entry.key == 'week' ? '지난 7일' : '이전')}">그룹</h2>
+                <ul class="notif-page-list">
+                    <li th:each="n : ${entry.value}"
+                        th:classappend="${!n.read} ? ' notif-item--unread' : ''"
+                        class="notif-page-item">
+                        <div th:class="'notif-icon notif-icon--' + ${n.type.toneColor}"
+                             th:classappend="${!n.read} ? ' is-unread' : ''"
+                             aria-hidden="true"></div>
+                        <a th:href="${n.link != null} ? ${n.link} : '#'"
+                           th:hx-post="@{/notifications/{id}/read(id=${n.id})}"
+                           hx-swap="none"
+                           class="notif-page-item-body">
+                            <div class="notif-item-title" th:text="${n.title}">제목</div>
+                            <div class="notif-item-message" th:text="${n.message}">본문</div>
+                            <div class="notif-item-time"
+                                 th:text="${#temporals.format(n.createdAt, 'yyyy.MM.dd HH:mm')}">2026.07.06 12:00</div>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
 
         <p class="notif-page-note">
             페이지네이션은 F2d 티켓에서 별도 구현 예정 (현재 최근 20건 표시).
