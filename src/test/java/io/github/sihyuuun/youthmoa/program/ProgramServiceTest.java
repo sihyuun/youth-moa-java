@@ -62,7 +62,7 @@ class ProgramServiceTest {
 
     Program found = programService.findById(saved.getId());
 
-    assertThat(found.getStatus()).isEqualTo(ProgramStatus.ACTIVE);
+    assertThat(found.getStatus()).isEqualTo(ProgramStatus.OPEN);
     assertThat(found.getDaysUntilDeadline()).isEqualTo(20L);
     assertThat(found.getDdayLabel()).isEqualTo("D-20");
   }

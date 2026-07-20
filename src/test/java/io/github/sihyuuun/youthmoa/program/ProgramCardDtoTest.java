@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
 /**
  * ProgramCardDto 비율 계산 · primaryLabel · secondaryLabel 단위 테스트 (prototype.tsx L188~228 2-line 매칭).
  *
- * <p>Program.getStatus() 가 날짜 기반으로 결정되므로 startDate/endDate 를 조작해 UPCOMING/CLOSED/ACTIVE 상태를 유도.
+ * <p>Program.getStatus() 가 날짜 기반으로 결정되므로 startDate/endDate 를 조작해 UPCOMING/ENDED/OPEN 상태를 유도.
  */
 class ProgramCardDtoTest {
 
@@ -114,10 +114,10 @@ class ProgramCardDtoTest {
   }
 
   @Test
-  @DisplayName("CLOSED → colorClass=muted, primaryLabel=모집 마감, secondaryLabel=100%")
+  @DisplayName("ENDED → colorClass=muted, primaryLabel=모집 마감, secondaryLabel=100%")
   void closed_isMuted() {
     ProgramCardDto dto = new ProgramCardDto(closedProgram(), 5);
-    assertThat(dto.getStatus()).isEqualTo(ProgramStatus.CLOSED);
+    assertThat(dto.getStatus()).isEqualTo(ProgramStatus.ENDED);
     assertThat(dto.getPct()).isEqualTo(100);
     assertThat(dto.getColorClass()).isEqualTo("muted");
     assertThat(dto.getPrimaryLabel()).isEqualTo("모집 마감");
@@ -137,7 +137,7 @@ class ProgramCardDtoTest {
   // ─── F0f-fix-1: CTA 5분기 경계값 ───
 
   @Test
-  @DisplayName("CTA: ACTIVE + pct<100 → apply/신청하기/primary/check")
+  @DisplayName("CTA: OPEN + pct<100 → apply/신청하기/primary/check")
   void cta_apply() {
     ProgramCardDto dto = new ProgramCardDto(activeProgram(10), 5);
     assertThat(dto.getCtaType()).isEqualTo("apply");
@@ -159,7 +159,7 @@ class ProgramCardDtoTest {
   }
 
   @Test
-  @DisplayName("CTA: ACTIVE + 만석(pct=100) → waitlist/빈자리 알림 받기/muted/bell")
+  @DisplayName("CTA: OPEN + 만석(pct=100) → waitlist/빈자리 알림 받기/muted/bell")
   void cta_waitlist_full() {
     ProgramCardDto dto = new ProgramCardDto(activeProgram(10), 10);
     assertThat(dto.getCtaType()).isEqualTo("waitlist");
@@ -170,18 +170,18 @@ class ProgramCardDtoTest {
   }
 
   @Test
-  @DisplayName("CTA: CLOSED + pct<100 (기간 만료) → expired/종료된 프로그램/muted/disabled")
+  @DisplayName("CTA: ENDED + pct<100 (기간 만료) → expired/비슷한 프로그램 보기/muted/disabled")
   void cta_expired() {
     ProgramCardDto dto = new ProgramCardDto(closedProgram(), 3);
     assertThat(dto.getCtaType()).isEqualTo("expired");
-    assertThat(dto.getCtaLabel()).isEqualTo("종료된 프로그램");
+    assertThat(dto.getCtaLabel()).isEqualTo("비슷한 프로그램 보기");
     assertThat(dto.getCtaColorClass()).isEqualTo("muted");
     assertThat(dto.getCtaIcon()).isNull();
     assertThat(dto.isCtaDisabled()).isTrue();
   }
 
   @Test
-  @DisplayName("CTA: INACTIVE (운영 중단) → inactive/운영이 중단되었어요/muted/disabled")
+  @DisplayName("CTA: SUSPENDED (운영 중단) → inactive/운영이 중단되었어요/muted/disabled")
   void cta_inactive() {
     Program p =
         Program.builder()
@@ -194,7 +194,7 @@ class ProgramCardDtoTest {
             .isActive(false)
             .build();
     ProgramCardDto dto = new ProgramCardDto(p, 0);
-    assertThat(dto.getStatus()).isEqualTo(ProgramStatus.INACTIVE);
+    assertThat(dto.getStatus()).isEqualTo(ProgramStatus.SUSPENDED);
     assertThat(dto.getCtaType()).isEqualTo("inactive");
     assertThat(dto.getCtaLabel()).isEqualTo("운영이 중단되었어요");
     assertThat(dto.getCtaColorClass()).isEqualTo("muted");

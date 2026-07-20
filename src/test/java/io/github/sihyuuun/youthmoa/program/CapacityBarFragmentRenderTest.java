@@ -158,7 +158,7 @@ class CapacityBarFragmentRenderTest {
   }
 
   @Test
-  @DisplayName("ACTIVE 상태는 오픈일 라벨 없음")
+  @DisplayName("OPEN 상태는 오픈일 라벨 없음")
   void render_active_hidesOpenDate() {
     String html = renderFragment(new ProgramCardDto(activeProgram(10), 3));
     assertThat(html).doesNotContain("오픈</span>");
@@ -167,7 +167,7 @@ class CapacityBarFragmentRenderTest {
   }
 
   @Test
-  @DisplayName("CLOSED → muted/모집 마감, secondaryLabel=100%")
+  @DisplayName("ENDED → muted/모집 마감, secondaryLabel=100%")
   void render_closed() {
     String html = renderFragment(new ProgramCardDto(closedProgram(), 5));
     assertThat(html).contains("capacity-bar-fill--muted");
