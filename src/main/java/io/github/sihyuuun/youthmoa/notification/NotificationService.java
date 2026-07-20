@@ -2,7 +2,11 @@ package io.github.sihyuuun.youthmoa.notification;
 
 import io.github.sihyuuun.youthmoa.user.User;
 import io.github.sihyuuun.youthmoa.user.UserRepository;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,6 +40,42 @@ public class NotificationService {
         .findAllByUserOrderByCreatedAtDesc(
             user, org.springframework.data.domain.PageRequest.of(0, 20))
         .getContent();
+  }
+
+  /**
+   * F0f-fix-5: 알림 목록을 오늘/지난 7일/이전 3개 그룹으로 반환.
+   *
+   * @param unreadOnly true 면 읽지 않은 알림만
+   * @return LinkedHashMap ("today"/"week"/"earlier" 순서 보장). 각 그룹 최근순 정렬. 비어있는 그룹은 미포함.
+   */
+  public Map<String, List<Notification>> findGrouped(User user, boolean unreadOnly) {
+    List<Notification> source = listAll(user);
+    LocalDate today = LocalDate.now();
+    LocalDateTime todayStart = today.atStartOfDay();
+    LocalDateTime weekStart = today.minusDays(6).atStartOfDay();
+
+    Map<String, List<Notification>> grouped = new LinkedHashMap<>();
+    grouped.put("today", new java.util.ArrayList<>());
+    grouped.put("week", new java.util.ArrayList<>());
+    grouped.put("earlier", new java.util.ArrayList<>());
+
+    for (Notification n : source) {
+      if (unreadOnly && n.isRead()) continue;
+      LocalDateTime c = n.getCreatedAt();
+      if (!c.isBefore(todayStart)) grouped.get("today").add(n);
+      else if (!c.isBefore(weekStart)) grouped.get("week").add(n);
+      else grouped.get("earlier").add(n);
+    }
+    // 빈 그룹 제거
+    grouped.entrySet().removeIf(e -> e.getValue().isEmpty());
+    return grouped;
+  }
+
+  /** 전체·안읽음 카운트를 함께 반환 (필터 pill 표시용). */
+  public long totalCount(User user) {
+    return notificationRepository.findAllByUserOrderByCreatedAtDesc(
+            user, org.springframework.data.domain.PageRequest.of(0, 20))
+        .getTotalElements();
   }
 
   /**

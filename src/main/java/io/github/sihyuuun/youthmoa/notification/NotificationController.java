@@ -3,6 +3,7 @@ package io.github.sihyuuun.youthmoa.notification;
 import io.github.sihyuuun.youthmoa.user.UserPrincipal;
 import io.github.sihyuuun.youthmoa.user.UserRepository;
 import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
@@ -10,6 +11,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 /**
  * 알림 페이지·읽음 처리 컨트롤러.
@@ -28,13 +30,22 @@ public class NotificationController {
   private final UserRepository userRepository;
 
   @GetMapping("/notifications")
-  public String list(@AuthenticationPrincipal UserPrincipal principal, Model model) {
+  public String list(
+      @AuthenticationPrincipal UserPrincipal principal,
+      @RequestParam(name = "unread", required = false, defaultValue = "false") boolean unreadOnly,
+      Model model) {
     var user =
         userRepository
             .findById(principal.getId())
             .orElseThrow(() -> new IllegalStateException("Authenticated user missing"));
-    List<Notification> notifications = notificationService.listAll(user);
-    model.addAttribute("notifications", notifications);
+    List<Notification> all = notificationService.listAll(user);
+    long unreadCount = notificationService.unreadCount(user);
+    Map<String, List<Notification>> grouped = notificationService.findGrouped(user, unreadOnly);
+    model.addAttribute("notifications", all); // 하위 호환 (기존 렌더 테스트 대비)
+    model.addAttribute("groupedNotifications", grouped);
+    model.addAttribute("filterUnread", unreadOnly);
+    model.addAttribute("totalCount", (long) all.size());
+    model.addAttribute("unreadCount", unreadCount);
     return "notification/list";
   }
 
