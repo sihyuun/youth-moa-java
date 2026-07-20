@@ -19,9 +19,9 @@ import lombok.Getter;
  *
  * <ul>
  *   <li>UPCOMING → primary="신청 오픈 예정", secondary="MM/dd 오픈" (startDate 기준, Q1=b)
- *   <li>CLOSED / full(pct≥100) → primary="모집 마감", secondary="100%"
- *   <li>ACTIVE (capacity 있음) → primary="정원 N/M명", secondary="N%", color 임계(70/90) 반영
- *   <li>ACTIVE (capacity=null) → primary="모집중", secondary=null, bar 미표시
+ *   <li>ENDED / full(pct≥100) → primary="모집 마감", secondary="100%"
+ *   <li>OPEN (capacity 있음) → primary="정원 N/M명", secondary="N%", color 임계(70/90) 반영
+ *   <li>OPEN (capacity=null) → primary="모집중", secondary=null, bar 미표시
  * </ul>
  */
 @Getter
@@ -100,13 +100,13 @@ public class ProgramCardDto {
           program.getStartDate() != null
               ? program.getStartDate().format(OPEN_DATE_FORMAT) + " 오픈"
               : null;
-    } else if (status == ProgramStatus.CLOSED) {
+    } else if (status == ProgramStatus.ENDED) {
       this.pct = 100;
       this.colorClass = "muted";
       this.primaryLabel = "모집 마감";
       this.secondaryLabel = "100%";
     } else if (capacity == null || capacity == 0) {
-      // ACTIVE + 정원 제한 없음 → bar 미표시 (showBar=false)
+      // OPEN + 정원 제한 없음 → bar 미표시 (showBar=false)
       this.pct = 0;
       this.colorClass = "primary";
       this.primaryLabel = "모집중";
@@ -115,7 +115,7 @@ public class ProgramCardDto {
       double ratio = (double) applicantCount / capacity;
       this.pct = Math.min(100, (int) Math.round(ratio * 100));
       if (applicantCount >= capacity) {
-        // ACTIVE 상태이지만 정원 100% 달성 → 마감 취급
+        // OPEN 상태이지만 정원 100% 달성 → 마감 취급 (파생 isFull)
         this.colorClass = "muted";
         this.primaryLabel = "모집 마감";
         this.secondaryLabel = "100%";
@@ -141,7 +141,7 @@ public class ProgramCardDto {
             && capacity != null
             && capacity > 0
             && applicantCount >= capacity;
-    boolean closedByDate = (status == ProgramStatus.CLOSED);
+    boolean closedByDate = (status == ProgramStatus.ENDED);
 
     if (status == ProgramStatus.UPCOMING && program.getStartDate() != null) {
       long daysUntilOpen = ChronoUnit.DAYS.between(today, program.getStartDate());
@@ -157,7 +157,7 @@ public class ProgramCardDto {
       this.detailSubtext = "정원 제한 없이 신청 가능합니다.";
       this.detailEmphasized = true;
     } else {
-      // ACTIVE with capacity — 마감까지 N일 + 신청률 · 경쟁률
+      // OPEN with capacity — 마감까지 N일 + 신청률 · 경쟁률
       long daysUntilDeadline =
           program.getEndDate() != null ? ChronoUnit.DAYS.between(today, program.getEndDate()) : -1;
       String stateWord;
@@ -175,14 +175,14 @@ public class ProgramCardDto {
       this.detailEmphasized = true;
     }
 
-    // ── CTA 5분기 (F0f-fix-1) ────────────────────────────────
-    //   INACTIVE       → inactive (disabled, "운영이 중단되었어요")
-    //   UPCOMING       → openAlert (secondary bell, "오픈 알림 받기")
-    //   CLOSED+pct<100 → expired  (disabled 회색, "종료된 프로그램")
-    //   full(pct=100)  → waitlist (muted bell, "빈자리 알림 받기")
-    //   ACTIVE (신청)  → apply    (primary check, "신청하기")
+    // ── CTA 5분기 (F0f-fix-3, 2026-07-20 정책 확정) ────────────
+    //   SUSPENDED       → inactive (disabled, "운영이 중단되었어요")
+    //   UPCOMING        → openAlert (secondary bell, "오픈 알림 받기")
+    //   ENDED (기간 만료) → expired  (disabled 회색, "비슷한 프로그램 보기")
+    //   OPEN + full     → waitlist (muted bell, "빈자리 알림 받기")
+    //   OPEN            → apply    (primary check, "신청하기")
     boolean ctaFull = capacity != null && capacity > 0 && applicantCount >= capacity;
-    if (status == ProgramStatus.INACTIVE) {
+    if (status == ProgramStatus.SUSPENDED) {
       this.ctaType = "inactive";
       this.ctaLabel = "운영이 중단되었어요";
       this.ctaColorClass = "muted";
@@ -194,9 +194,9 @@ public class ProgramCardDto {
       this.ctaColorClass = "secondary";
       this.ctaIcon = "bell";
       this.ctaDisabled = false;
-    } else if (status == ProgramStatus.CLOSED && !ctaFull) {
+    } else if (status == ProgramStatus.ENDED && !ctaFull) {
       this.ctaType = "expired";
-      this.ctaLabel = "종료된 프로그램";
+      this.ctaLabel = "비슷한 프로그램 보기";
       this.ctaColorClass = "muted";
       this.ctaIcon = null;
       this.ctaDisabled = true;

@@ -56,7 +56,7 @@ public class ApplicationService {
     if (!program.isActive()) {
       throw new IllegalStateException("비활성 상태의 프로그램은 신청할 수 없습니다.");
     }
-    if (program.getStatus() != ProgramStatus.ACTIVE) {
+    if (program.getStatus() != ProgramStatus.OPEN) {
       throw new IllegalStateException("현재 모집 중인 프로그램이 아닙니다.");
     }
 
