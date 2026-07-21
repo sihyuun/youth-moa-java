@@ -57,6 +57,8 @@ public class MyPageController {
   @Transactional(readOnly = true)
   public String mypage(
       @RequestParam(name = "tab", required = false, defaultValue = "history") String tab,
+      @RequestParam(name = "period", required = false, defaultValue = "3M") String period,
+      @RequestParam(name = "status", required = false, defaultValue = "ALL") String statusFilter,
       @AuthenticationPrincipal UserDetails principal,
       Model model) {
 
@@ -80,11 +82,58 @@ public class MyPageController {
         return "mypage/profile-verify";
       }
       default -> {
-        List<Application> applications =
+        List<Application> allApps =
             applicationRepository.findAllByUserOrderByAppliedAtDesc(currentUser);
-        model.addAttribute("applications", applications);
+        // 기간 필터 (prototype L1407~1411: 3개월/6개월/1년/3년)
+        java.time.LocalDateTime cutoff = periodCutoff(period);
+        List<Application> byPeriod =
+            cutoff == null
+                ? allApps
+                : allApps.stream().filter(a -> a.getAppliedAt().isAfter(cutoff)).toList();
+        // 상태 필터 (prototype L1413~1424: 전체/승인/대기/반려/취소)
+        ApplicationStatus filter = mapStatusFilter(statusFilter);
+        List<Application> shown =
+            filter == null ? byPeriod : byPeriod.stream().filter(a -> a.getStatus() == filter).toList();
+        model.addAttribute("applications", shown);
+        model.addAttribute("currentPeriod", period);
+        model.addAttribute("currentStatusFilter", statusFilter);
+        // 카운트 (필터 UI 표시용) — 기간 반영 후 상태별
+        model.addAttribute("countAll", byPeriod.size());
+        model.addAttribute(
+            "countApproved",
+            byPeriod.stream().filter(a -> a.getStatus() == ApplicationStatus.APPROVED).count());
+        model.addAttribute(
+            "countPending",
+            byPeriod.stream().filter(a -> a.getStatus() == ApplicationStatus.PENDING).count());
+        model.addAttribute(
+            "countRejected",
+            byPeriod.stream().filter(a -> a.getStatus() == ApplicationStatus.REJECTED).count());
+        model.addAttribute(
+            "countCancelled",
+            byPeriod.stream().filter(a -> a.getStatus() == ApplicationStatus.CANCELLED).count());
         return "mypage/history";
       }
+    }
+  }
+
+  /** 기간 코드 (3M/6M/1Y/3Y) → cutoff LocalDateTime. 지원 안 되는 값은 3M 기본. */
+  private static java.time.LocalDateTime periodCutoff(String code) {
+    java.time.LocalDateTime now = java.time.LocalDateTime.now();
+    return switch (code == null ? "3M" : code) {
+      case "6M" -> now.minusDays(180);
+      case "1Y" -> now.minusDays(365);
+      case "3Y" -> now.minusDays(365L * 3);
+      default -> now.minusDays(90);
+    };
+  }
+
+  /** 상태 필터 코드 (ALL/APPROVED/PENDING/REJECTED/CANCELLED) → enum. ALL 은 null. */
+  private static ApplicationStatus mapStatusFilter(String code) {
+    if (code == null || "ALL".equalsIgnoreCase(code)) return null;
+    try {
+      return ApplicationStatus.valueOf(code);
+    } catch (IllegalArgumentException e) {
+      return null;
     }
   }
 

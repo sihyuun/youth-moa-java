@@ -17,12 +17,13 @@
     <div class="container">
         <div th:replace="~{mypage/layout :: head}"></div>
 
-        <section class="mypage-favorites">
+        <section class="mypage-favorites mypage-card">
             <h3 class="mypage-section-title">즐겨찾기한 프로그램</h3>
 
-            <div th:if="${#lists.isEmpty(bookmarks)}" class="mypage-empty">
-                <p>즐겨찾기한 프로그램이 없어요.</p>
-                <a th:href="@{/programs}" class="btn-auth btn-auth--primary">프로그램 둘러보기</a>
+            <div th:if="${#lists.isEmpty(bookmarks)}" class="mypage-empty mypage-empty--icon">
+                <svg th:replace="~{fragments/icons :: star(64, 'var(--color-border)')}"></svg>
+                <p>즐겨찾기한 프로그램이 없습니다.</p>
+                <a th:href="@{/programs}" class="btn-auth btn-auth--primary">프로그램 보기</a>
             </div>
 
             <ul class="mypage-favorites-list" th:unless="${#lists.isEmpty(bookmarks)}">

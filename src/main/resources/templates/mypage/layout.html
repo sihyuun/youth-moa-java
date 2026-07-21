@@ -69,7 +69,7 @@
         <a th:href="@{/mypage(tab='history')}"
            th:class="${currentTab == 'history'} ? 'mypage-tab active' : 'mypage-tab'">
             <svg th:replace="~{fragments/icons :: calendar(16, 'currentColor')}"></svg>
-            <span>신청 현황</span>
+            <span>신청 내역</span>
         </a>
         <a th:href="@{/mypage(tab='favorites')}"
            th:class="${currentTab == 'favorites'} ? 'mypage-tab active' : 'mypage-tab'">

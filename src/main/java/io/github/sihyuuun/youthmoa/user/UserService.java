@@ -69,6 +69,15 @@ public class UserService implements UserDetailsService {
             .findByEmail(email)
             .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다: " + email));
     user.updateNotificationChannels(request.isKakao(), request.isSms(), request.isEmail());
+    // 항목 3필드는 Boolean(nullable). null 이면 기존값 유지 (부분 저장 클라이언트 방어).
+    boolean remindD1 = request.getRemindD1() != null ? request.getRemindD1() : user.isNotifyRemindD1();
+    boolean waitlistEmpty =
+        request.getWaitlistEmpty() != null ? request.getWaitlistEmpty() : user.isNotifyWaitlistEmpty();
+    boolean newProgramNews =
+        request.getNewProgramNews() != null
+            ? request.getNewProgramNews()
+            : user.isNotifyNewProgramNews();
+    user.updateNotificationItems(remindD1, waitlistEmpty, newProgramNews);
   }
 
   /**

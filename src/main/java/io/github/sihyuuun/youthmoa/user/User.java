@@ -95,6 +95,17 @@ public class User extends BaseTimeEntity {
   @Column(nullable = false)
   private boolean notifyEmail = true;
 
+  // ─── D5 알림 항목 (prototype L1572~1577) — 신청 승인/반려는 필수(항상 true, UI lock) ───
+  // ddl-auto=update 환경에서 기존 row 는 default 로 채워지도록 columnDefinition 명시.
+  @Column(nullable = false, columnDefinition = "boolean not null default true")
+  private boolean notifyRemindD1 = true;
+
+  @Column(nullable = false, columnDefinition = "boolean not null default true")
+  private boolean notifyWaitlistEmpty = true;
+
+  @Column(nullable = false, columnDefinition = "boolean not null default false")
+  private boolean notifyNewProgramNews = false;
+
   // ─── F-signup-01: 휴대폰 인증 여부 ───
   // NOT NULL default false. 회원가입 시 세션 검증 통과하면 true.
   // ddl-auto=update 환경에서 기존 row 는 default 로 채워지도록 columnDefinition 명시.
@@ -151,6 +162,13 @@ public class User extends BaseTimeEntity {
     this.notifyKakao = kakao;
     this.notifySms = sms;
     this.notifyEmail = email;
+  }
+
+  /** D5 알림 항목 갱신 (신청 승인/반려는 필수라 항상 true 유지). */
+  public void updateNotificationItems(boolean remindD1, boolean waitlistEmpty, boolean newProgramNews) {
+    this.notifyRemindD1 = remindD1;
+    this.notifyWaitlistEmpty = waitlistEmpty;
+    this.notifyNewProgramNews = newProgramNews;
   }
 
   public void changePassword(String newPassword) {

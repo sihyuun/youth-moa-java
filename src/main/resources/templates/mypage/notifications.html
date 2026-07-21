@@ -17,33 +17,109 @@
     <div class="container">
         <div th:replace="~{mypage/layout :: head}"></div>
 
-        <section class="mypage-noti">
-            <h3 class="mypage-section-title">알림 채널</h3>
-            <p class="mypage-section-hint">알림을 받을 채널을 선택하세요.</p>
+        <section class="mypage-noti mypage-card">
+            <h3 class="mypage-section-title">알림 설정</h3>
 
-            <div class="mypage-noti-form" id="notiInstantForm">
-                <label class="mypage-noti-row">
-                    <input type="checkbox" name="kakao" value="true"
-                           th:checked="${myUser.notifyKakao}" data-noti-toggle>
-                    <span class="mypage-noti-label">카카오 알림톡</span>
-                </label>
-                <label class="mypage-noti-row">
-                    <input type="checkbox" name="sms" value="true"
-                           th:checked="${myUser.notifySms}" data-noti-toggle>
-                    <span class="mypage-noti-label">문자(SMS)</span>
-                </label>
-                <label class="mypage-noti-row">
-                    <input type="checkbox" name="email" value="true"
-                           th:checked="${myUser.notifyEmail}" data-noti-toggle>
-                    <span class="mypage-noti-label">이메일</span>
-                </label>
-                <label class="mypage-noti-row is-locked">
-                    <input type="checkbox" checked disabled>
-                    <span class="mypage-noti-label">신청 승인/반려 결과 (필수)</span>
-                </label>
-            </div>
+            <form id="notiInstantForm" onsubmit="return false;">
+                <!-- 섹션1: 알림 받을 방법 (prototype L1558~1568) -->
+                <div class="noti-section-heading">알림 받을 방법</div>
+                <p class="noti-section-sub">여러 방법을 동시에 선택할 수 있어요</p>
+                <div class="noti-channel-list">
+                    <label class="noti-channel-row" th:classappend="${myUser.notifyKakao} ? ' is-on'">
+                        <div class="noti-channel-icon">
+                            <svg th:replace="~{fragments/icons :: bell(18, 'currentColor')}"></svg>
+                        </div>
+                        <div class="noti-channel-info">
+                            <div class="noti-channel-label">카카오 알림톡</div>
+                            <div class="noti-channel-sub" th:text="${myUser.phone != null ? myUser.phone : '휴대폰 번호 미등록'}">010-1234-5678</div>
+                        </div>
+                        <input type="checkbox" name="kakao" value="true" class="noti-toggle-switch"
+                               th:checked="${myUser.notifyKakao}" data-noti-toggle>
+                        <span class="noti-switch-visual" aria-hidden="true"></span>
+                    </label>
+                    <label class="noti-channel-row" th:classappend="${myUser.notifySms} ? ' is-on'">
+                        <div class="noti-channel-icon">
+                            <svg th:replace="~{fragments/icons :: bell(18, 'currentColor')}"></svg>
+                        </div>
+                        <div class="noti-channel-info">
+                            <div class="noti-channel-label">문자(SMS)</div>
+                            <div class="noti-channel-sub" th:text="${myUser.phone != null ? myUser.phone : '휴대폰 번호 미등록'}">010-1234-5678</div>
+                        </div>
+                        <input type="checkbox" name="sms" value="true" class="noti-toggle-switch"
+                               th:checked="${myUser.notifySms}" data-noti-toggle>
+                        <span class="noti-switch-visual" aria-hidden="true"></span>
+                    </label>
+                    <label class="noti-channel-row" th:classappend="${myUser.notifyEmail} ? ' is-on'">
+                        <div class="noti-channel-icon">
+                            <svg th:replace="~{fragments/icons :: bell(18, 'currentColor')}"></svg>
+                        </div>
+                        <div class="noti-channel-info">
+                            <div class="noti-channel-label">이메일</div>
+                            <div class="noti-channel-sub" th:text="${myUser.email}">email@example.com</div>
+                        </div>
+                        <input type="checkbox" name="email" value="true" class="noti-toggle-switch"
+                               th:checked="${myUser.notifyEmail}" data-noti-toggle>
+                        <span class="noti-switch-visual" aria-hidden="true"></span>
+                    </label>
+                </div>
 
-            <p class="mypage-noti-autosave-hint">변경 사항은 자동으로 저장돼요.</p>
+                <!-- 섹션2: 알림 항목 (prototype L1569~1578) -->
+                <div class="noti-section-heading">알림 항목</div>
+                <p class="noti-section-sub">받고 싶은 알림만 켜두세요</p>
+                <div class="noti-item-list">
+                    <div class="noti-item-row is-locked">
+                        <div class="noti-item-info">
+                            <div class="noti-item-label-row">
+                                <span class="noti-item-label">신청 승인 / 반려 결과</span>
+                                <span class="noti-lock-badge">필수</span>
+                            </div>
+                            <div class="noti-item-desc">관리자가 신청을 처리하면 알려드려요</div>
+                        </div>
+                        <span class="noti-switch-visual noti-switch-visual--locked is-on" aria-hidden="true"></span>
+                    </div>
+                    <label class="noti-item-row" th:classappend="${myUser.notifyRemindD1} ? ' is-on'">
+                        <div class="noti-item-info">
+                            <div class="noti-item-label-row">
+                                <span class="noti-item-label">프로그램 시작 D-1 리마인더</span>
+                            </div>
+                            <div class="noti-item-desc">시작 하루 전 잊지 않도록 알려드려요</div>
+                        </div>
+                        <input type="checkbox" name="remindD1" value="true" class="noti-toggle-switch"
+                               th:checked="${myUser.notifyRemindD1}" data-noti-toggle>
+                        <span class="noti-switch-visual" aria-hidden="true"></span>
+                    </label>
+                    <label class="noti-item-row" th:classappend="${myUser.notifyWaitlistEmpty} ? ' is-on'">
+                        <div class="noti-item-info">
+                            <div class="noti-item-label-row">
+                                <span class="noti-item-label">빈자리 알림</span>
+                            </div>
+                            <div class="noti-item-desc">마감된 프로그램에 빈자리가 생기면 알려드려요</div>
+                        </div>
+                        <input type="checkbox" name="waitlistEmpty" value="true" class="noti-toggle-switch"
+                               th:checked="${myUser.notifyWaitlistEmpty}" data-noti-toggle>
+                        <span class="noti-switch-visual" aria-hidden="true"></span>
+                    </label>
+                    <label class="noti-item-row" th:classappend="${myUser.notifyNewProgramNews} ? ' is-on'">
+                        <div class="noti-item-info">
+                            <div class="noti-item-label-row">
+                                <span class="noti-item-label">신규 프로그램 소식</span>
+                            </div>
+                            <div class="noti-item-desc">새로운 프로그램이 열리면 알려드려요</div>
+                        </div>
+                        <input type="checkbox" name="newProgramNews" value="true" class="noti-toggle-switch"
+                               th:checked="${myUser.notifyNewProgramNews}" data-noti-toggle>
+                        <span class="noti-switch-visual" aria-hidden="true"></span>
+                    </label>
+                </div>
+
+                <div class="noti-autosave-hint">
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor"
+                         stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                    변경 사항은 자동으로 저장돼요.
+                </div>
+            </form>
         </section>
     </div>
 </main>

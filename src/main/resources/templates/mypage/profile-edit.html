@@ -40,12 +40,14 @@
                 <input id="editPhone" type="tel" th:field="*{phone}" class="form-input"
                        placeholder="01012345678">
 
-                <label class="mypage-edit-label">성별</label>
-                <div class="gender-pill-group" aria-readonly="true">
-                    <span class="gender-pill" th:classappend="${myUser.gender != null and myUser.gender.name() == 'MALE'} ? ' is-on' : ''">남</span>
-                    <span class="gender-pill" th:classappend="${myUser.gender != null and myUser.gender.name() == 'FEMALE'} ? ' is-on' : ''">여</span>
+                <label class="mypage-edit-label mypage-edit-label--top">성별</label>
+                <div class="mypage-edit-gender-cell">
+                    <div class="gender-pill-group" aria-readonly="true">
+                        <span class="gender-pill" th:classappend="${myUser.gender != null and myUser.gender.name() == 'MALE'} ? ' is-on' : ''">남</span>
+                        <span class="gender-pill" th:classappend="${myUser.gender != null and myUser.gender.name() == 'FEMALE'} ? ' is-on' : ''">여</span>
+                    </div>
+                    <p class="mypage-edit-hint">성별은 변경할 수 없어요. 수정이 필요하면 고객센터로 문의해주세요.</p>
                 </div>
-                <p class="mypage-edit-hint">성별은 변경할 수 없어요. 수정이 필요하면 고객센터로 문의해주세요.</p>
 
                 <label class="mypage-edit-label" for="editBirthDate">생년월일</label>
                 <input id="editBirthDate" type="date" th:field="*{birthDate}" class="form-input">

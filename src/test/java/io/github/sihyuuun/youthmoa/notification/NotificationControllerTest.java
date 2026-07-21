@@ -58,17 +58,32 @@ class NotificationControllerTest {
   }
 
   @Test
-  void POST_read_all_모두_읽음_처리_후_panel_fragment_반환() throws Exception {
+  void POST_read_all_HX요청은_panel_fragment_반환() throws Exception {
     given(notificationService.unreadCount(seed)).willReturn(0L);
     given(notificationService.recentForHeader(seed)).willReturn(List.of());
 
     mockMvc
-        .perform(post("/notifications/read-all").with(user(principal)).with(csrf()))
+        .perform(
+            post("/notifications/read-all")
+                .header("HX-Request", "true")
+                .with(user(principal))
+                .with(csrf()))
         .andExpect(status().isOk())
         .andExpect(view().name("fragments/notification-panel :: panel"))
         .andExpect(model().attribute("headerUnreadCount", 0L));
 
     // Service 호출 여부
+    org.mockito.Mockito.verify(notificationService).markAllAsRead(7L);
+  }
+
+  @Test
+  void POST_read_all_일반POST는_notifications로_리다이렉트() throws Exception {
+    // 전체 페이지 폼 제출 시나리오 — HX-Request 헤더 없음
+    mockMvc
+        .perform(post("/notifications/read-all").with(user(principal)).with(csrf()))
+        .andExpect(status().is3xxRedirection())
+        .andExpect(view().name("redirect:/notifications"));
+
     org.mockito.Mockito.verify(notificationService).markAllAsRead(7L);
   }
 

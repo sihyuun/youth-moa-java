@@ -204,7 +204,7 @@
                     <div class="signup-field-block" th:classappend="${#fields.hasErrors('birthDateText')} ? 'has-error'">
                         <label for="birthDateText" class="signup-field-label">생년월일 <span class="required">*</span></label>
                         <input type="date" id="birthDateText" th:field="*{birthDateText}"
-                               max="2099-12-31"
+                               max="2099-12-31" required
                                class="signup-input signup-input--date">
                         <p class="signup-field-error" th:if="${#fields.hasErrors('birthDateText')}" th:errors="*{birthDateText}"></p>
                     </div>
