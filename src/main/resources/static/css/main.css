@@ -2127,7 +2127,7 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
 /* prototype L1854 card 스타일 — background surface, border-radius 16, border-light, box-shadow, padding 24px 28px, mb 16 */
 /* NOTE(F0f-fix-6): 공통 .form-card / .form-input 은 fix-4 와 공유 예정.
    이 브랜치에서 먼저 정의 → fix-4 는 재사용. main 머지 순서: fix-6 → fix-4 권장. */
-.signup-section {
+.form-card {
   background: var(--color-surface);
   border-radius: 16px;
   border: 1px solid var(--color-border-light);
@@ -2136,11 +2136,11 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
   margin-bottom: 16px;
 }
 
-.signup-section-head {
+.form-card-head {
   margin-bottom: 18px;
 }
 
-.signup-section-title {
+.form-card-title {
   font-size: 15.5px;
   font-weight: 700;
   color: var(--color-text);
@@ -2170,7 +2170,7 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
 
 /* Input — prototype L105 inputStyle: height 42, radius 10, 1px border, padding 0 14, fs 14
    평상시: 연회색 필드 (#F7F8FA) → 값 채워지면 흰색 + primary 테두리 */
-.signup-input {
+.form-input {
   width: 100%;
   height: 42px;
   border-radius: 10px;
@@ -2185,26 +2185,26 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
   box-sizing: border-box;
   display: block;
 }
-.signup-input:focus {
+.form-input:focus {
   border-color: var(--color-primary);
   background: var(--color-surface);
 }
-.signup-input::placeholder { color: var(--color-text-tri); }
+.form-input::placeholder { color: var(--color-text-tri); }
 
 /* 값 있을 때 primary border + 흰 배경 (prototype filled 상태) */
-.signup-input:not(:placeholder-shown):not(:focus):not(:read-only) {
+.form-input:not(:placeholder-shown):not(:focus):not(:read-only) {
   border-color: var(--color-primary);
   background: var(--color-surface);
 }
 
 /* type=date 는 :placeholder-shown 미지원 → :invalid(required 미입력) 으로 unfilled 판정.
-   특이성 상향(.signup-input.signup-input--date) 으로 위의 filled 규칙보다 우선 적용. */
-.signup-input.signup-input--date:invalid:not(:focus):not(:read-only) {
+   특이성 상향(.form-input.form-input--date) 으로 위의 filled 규칙보다 우선 적용. */
+.form-input.form-input--date:invalid:not(:focus):not(:read-only) {
   border-color: var(--color-border);
   background: #F7F8FA;
   color: var(--color-text-tri);
 }
-.signup-input.signup-input--date:valid:not(:focus):not(:read-only) {
+.form-input.form-input--date:valid:not(:focus):not(:read-only) {
   border-color: var(--color-primary);
   background: var(--color-surface);
   color: var(--color-text);
@@ -2213,8 +2213,8 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
 /* readOnly (우편번호 / 주소) — bg #F3F4F6, border-light (prototype L106 inputRO).
    focus 시에도 스타일 유지해 "입력 가능해 보이는" 오해 방지. 클릭 focus 는 브라우저 기본이라
    완전 차단은 어렵지만 :focus 시각 변화를 제거 + caret 숨김 처리. */
-.signup-input--readonly,
-.signup-input--readonly:focus {
+.form-input--readonly,
+.form-input--readonly:focus {
   background: #F3F4F6;
   border-color: var(--color-border-light);
   color: var(--color-text-sec);
@@ -2223,15 +2223,15 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
   outline: none;
 }
 
-.signup-input--mismatch {
+.form-input--mismatch {
   border-color: var(--color-error) !important;
 }
 
 /* 비밀번호 input 우측 눈 아이콘 (사용자 요청, prototype 최신본 외 추가) */
-.signup-input-with-eye {
+.form-input-with-eye {
   position: relative;
 }
-.signup-input--with-eye {
+.form-input--with-eye {
   padding-right: 44px;
 }
 .signup-eye-btn {
@@ -2281,12 +2281,12 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
   gap: 4px;
 }
 
-.signup-field-block.has-error .signup-input {
+.signup-field-block.has-error .form-input {
   border-color: var(--color-error);
 }
 /* has-error 시 date 의 :invalid/:valid override 방어 (특이성 상향) */
-.signup-field-block.has-error .signup-input.signup-input--date:invalid,
-.signup-field-block.has-error .signup-input.signup-input--date:valid {
+.signup-field-block.has-error .form-input.form-input--date:invalid,
+.signup-field-block.has-error .form-input.form-input--date:valid {
   border-color: var(--color-error);
 }
 
@@ -2307,7 +2307,7 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
   display: flex;
   gap: 8px;
 }
-.signup-field-row .signup-input { flex: 1; min-width: 0; }
+.signup-field-row .form-input { flex: 1; min-width: 0; }
 
 /* prototype L1856 btnSide: minWidth 84, height 42, padding 0 14, fs 13 */
 .signup-side-btn {
@@ -5464,38 +5464,8 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
 .mypage-edit-note a { color: var(--color-primary); }
 
 /* ═══ F0f-fix-4: 개인정보 수정 카드형 폼 (prototype.tsx L1508~1550) ═══ */
-/* 공통 입력 스타일 — 42px · radius 10 · #F7F8FA 배경 → 값 있을 때 흰 배경+primary 테두리는 JS 로 처리 (currently static) */
-.form-input {
-    height: 42px;
-    border-radius: 10px;
-    border: 1px solid var(--color-border);
-    background: #F7F8FA;
-    padding: 0 14px;
-    font-size: 14px;
-    font-family: 'Pretendard', sans-serif;
-    color: var(--color-text);
-    outline: none;
-    box-sizing: border-box;
-    width: 100%;
-    transition: border 150ms, background 150ms;
-    display: block;
-}
-.form-input:focus { border-color: var(--color-primary); background: var(--color-surface); }
-.form-input--ro {
-    background: #F3F4F6;
-    border-color: var(--color-border-light);
-    color: var(--color-text-sec);
-    display: flex;
-    align-items: center;
-}
-
-.form-card {
-    padding: 24px 28px;
-    border-radius: 16px;
-    background: var(--color-surface);
-    border: 1px solid var(--color-border-light);
-    box-shadow: var(--shadow-md);
-}
+/* NOTE(F0f-fix-6 후속): .form-input / .form-card 기본 정의는 상단 signup 섹션(2128~2311) 통합됨.
+   여기서는 mypage-edit-* 그리드·라벨 등 위치 특화 규칙만 유지. */
 
 /* 카드형 그리드 폼 — 110px 라벨 + 필드 */
 .mypage-edit-form-grid {
@@ -5638,7 +5608,7 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
   min-width: 0;
   display: block;
 }
-.signup-code-input-wrap .signup-input {
+.signup-code-input-wrap .form-input {
   width: 100%;
   padding-right: 56px;   /* 내부 타이머 공간 확보 */
 }
@@ -5658,7 +5628,7 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
 .signup-code-timer.is-warn { color: var(--color-error); }
 
 /* VERIFIED 시 phone input 잠금 스타일. readonly 상태에서 focus 가 남아있어도
-   .signup-input:focus primary border 규칙에 override 당하지 않도록 명시. */
+   .form-input:focus primary border 규칙에 override 당하지 않도록 명시. */
 .signup-phone-locked,
 .signup-phone-locked:focus {
   background: #F3F4F6;

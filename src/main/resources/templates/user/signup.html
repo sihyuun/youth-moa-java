@@ -45,9 +45,9 @@
             </div>
 
             <!-- ════ 계정 정보 ════ -->
-            <section class="signup-section">
-                <div class="signup-section-head">
-                    <span class="signup-section-title">계정 정보</span>
+            <section class="form-card">
+                <div class="form-card-head">
+                    <span class="form-card-title">계정 정보</span>
                 </div>
 
                 <div class="signup-fields">
@@ -58,7 +58,7 @@
                             <input type="email" id="email" th:field="*{email}"
                                    placeholder="이메일을 입력해주세요"
                                    autocomplete="email"
-                                   class="signup-input">
+                                   class="form-input">
                             <button type="button" id="emailCheckBtn"
                                     class="btn-outline-sm signup-side-btn">중복확인</button>
                         </div>
@@ -71,14 +71,14 @@
                     <!-- 비밀번호 (눈 아이콘 토글) -->
                     <div class="signup-field-block" th:classappend="${#fields.hasErrors('password')} ? 'has-error'">
                         <label for="password" class="signup-field-label">비밀번호 <span class="required">*</span></label>
-                        <div class="signup-input-with-eye">
+                        <div class="form-input-with-eye">
                             <!-- th:field 는 type=password 일 때 value 를 강제로 비움 (보안 기본).
                                  검증 실패 후 폼 재표시 시 입력값 보존을 위해 name/th:value 수동 명시. -->
                             <input type="password" id="password" name="password"
                                    th:value="*{password}"
                                    placeholder="영문, 숫자 포함 8자 이상"
                                    autocomplete="new-password"
-                                   class="signup-input signup-input--with-eye">
+                                   class="form-input form-input--with-eye">
                             <button type="button" class="signup-eye-btn" data-target="password"
                                     aria-label="비밀번호 표시 전환">
                                 <svg class="signup-eye-icon" viewBox="0 0 24 24" width="18" height="18"
@@ -101,12 +101,12 @@
                     <!-- 비밀번호 확인 (눈 아이콘 토글 + 실시간 검증) -->
                     <div class="signup-field-block" th:classappend="${#fields.hasErrors('passwordConfirm')} ? 'has-error'">
                         <label for="passwordConfirm" class="signup-field-label">비밀번호 확인 <span class="required">*</span></label>
-                        <div class="signup-input-with-eye">
+                        <div class="form-input-with-eye">
                             <input type="password" id="passwordConfirm" name="passwordConfirm"
                                    th:value="*{passwordConfirm}"
                                    placeholder="비밀번호를 다시 입력해주세요"
                                    autocomplete="new-password"
-                                   class="signup-input signup-input--with-eye">
+                                   class="form-input form-input--with-eye">
                             <button type="button" class="signup-eye-btn" data-target="passwordConfirm"
                                     aria-label="비밀번호 표시 전환">
                                 <svg class="signup-eye-icon" viewBox="0 0 24 24" width="18" height="18"
@@ -126,9 +126,9 @@
             </section>
 
             <!-- ════ 개인 정보 ════ -->
-            <section class="signup-section">
-                <div class="signup-section-head">
-                    <span class="signup-section-title">개인 정보</span>
+            <section class="form-card">
+                <div class="form-card-head">
+                    <span class="form-card-title">개인 정보</span>
                 </div>
 
                 <div class="signup-fields">
@@ -138,7 +138,7 @@
                         <input type="text" id="name" th:field="*{name}"
                                placeholder="이름을 입력해주세요"
                                autocomplete="name"
-                               class="signup-input">
+                               class="form-input">
                         <p class="signup-field-error" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></p>
                     </div>
 
@@ -148,7 +148,7 @@
                         <div class="signup-field-row">
                             <input type="tel" id="phone" th:field="*{phone}"
                                    placeholder="숫자만 입력해주세요"
-                                   class="signup-input">
+                                   class="form-input">
                             <!-- 사이드 버튼 1개 — 상태별 라벨 전환 (JS): 인증요청 / 재요청 / 재인증 -->
                             <button type="button" id="btn-send-code" class="btn-outline-sm signup-side-btn">인증요청</button>
                         </div>
@@ -156,7 +156,7 @@
                         <div id="code-row" class="signup-field-row signup-code-row" hidden>
                             <span class="signup-code-input-wrap">
                                 <input type="text" id="verify-code" inputmode="numeric" maxlength="6"
-                                       placeholder="인증번호 6자리" class="signup-input">
+                                       placeholder="인증번호 6자리" class="form-input">
                                 <span id="code-timer" class="signup-code-timer">3:00</span>
                             </span>
                             <button type="button" id="btn-verify-code" class="btn-outline-sm signup-side-btn" disabled>확인</button>
@@ -205,7 +205,7 @@
                         <label for="birthDateText" class="signup-field-label">생년월일 <span class="required">*</span></label>
                         <input type="date" id="birthDateText" th:field="*{birthDateText}"
                                max="2099-12-31" required
-                               class="signup-input signup-input--date">
+                               class="form-input form-input--date">
                         <p class="signup-field-error" th:if="${#fields.hasErrors('birthDateText')}" th:errors="*{birthDateText}"></p>
                     </div>
 
@@ -216,7 +216,7 @@
                             <div class="signup-field-row">
                                 <input type="text" id="zipcode" th:field="*{zipcode}"
                                        placeholder="우편번호" readonly
-                                       class="signup-input signup-input--readonly">
+                                       class="form-input form-input--readonly">
                                 <button type="button" id="postcodeSearchBtn"
                                         class="btn-outline-sm signup-side-btn signup-search-btn">
                                     <svg viewBox="0 0 24 24" width="14" height="14"
@@ -229,10 +229,10 @@
                             </div>
                             <input type="text" id="address" th:field="*{address}"
                                    placeholder="주소 (검색으로 입력)" readonly
-                                   class="signup-input signup-input--readonly">
+                                   class="form-input form-input--readonly">
                             <input type="text" id="addressDetail" th:field="*{addressDetail}"
                                    placeholder="상세주소를 입력해주세요"
-                                   class="signup-input">
+                                   class="form-input">
                         </div>
                         <p class="signup-field-error" th:if="${#fields.hasErrors('zipcode')}" th:errors="*{zipcode}"></p>
                         <p class="signup-field-error" th:if="${#fields.hasErrors('address')}" th:errors="*{address}"></p>
@@ -241,9 +241,9 @@
             </section>
 
             <!-- ════ 이용약관 동의 ════ -->
-            <section class="signup-section">
-                <div class="signup-section-head">
-                    <span class="signup-section-title">이용약관 동의</span>
+            <section class="form-card">
+                <div class="form-card-head">
+                    <span class="form-card-title">이용약관 동의</span>
                 </div>
 
                 <!-- 전체 동의 -->
@@ -334,7 +334,7 @@
             if (!v) {
                 msg.style.display = 'none';
                 msg.classList.remove('signup-field-ok');
-                pw.classList.remove('signup-input--mismatch');
+                pw.classList.remove('form-input--mismatch');
                 return true;
             }
             const text = buildMessage(v);
@@ -342,14 +342,14 @@
                 msg.textContent = text;
                 msg.style.display = 'block';
                 msg.classList.remove('signup-field-ok');
-                pw.classList.add('signup-input--mismatch');
+                pw.classList.add('form-input--mismatch');
                 return false;
             }
             // 정책 충족 — ✓ 초록 표시 (컬리 패턴: 충족 피드백)
             msg.textContent = '✓ 비밀번호 조건을 모두 충족했습니다.';
             msg.style.display = 'block';
             msg.classList.add('signup-field-ok');
-            pw.classList.remove('signup-input--mismatch');
+            pw.classList.remove('form-input--mismatch');
             return true;
         }
         pw.addEventListener('input', checkPolicy);
@@ -364,10 +364,10 @@
         function check() {
             if (pw2.value && pw.value !== pw2.value) {
                 msg.style.display = 'block';
-                pw2.classList.add('signup-input--mismatch');
+                pw2.classList.add('form-input--mismatch');
             } else {
                 msg.style.display = 'none';
-                pw2.classList.remove('signup-input--mismatch');
+                pw2.classList.remove('form-input--mismatch');
             }
         }
         pw.addEventListener('input', check);
