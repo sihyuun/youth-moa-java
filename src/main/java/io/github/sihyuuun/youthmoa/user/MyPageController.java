@@ -116,8 +116,8 @@ public class MyPageController {
     }
   }
 
-  /** 기간 코드 (3M/6M/1Y/3Y) → cutoff LocalDateTime. 지원 안 되는 값은 3M 기본. */
-  private static java.time.LocalDateTime periodCutoff(String code) {
+  /** 기간 코드 (3M/6M/1Y/3Y) → cutoff LocalDateTime. 지원 안 되는 값은 3M 기본. package-private: 단위 테스트 접근 허용. */
+  static java.time.LocalDateTime periodCutoff(String code) {
     java.time.LocalDateTime now = java.time.LocalDateTime.now();
     return switch (code == null ? "3M" : code) {
       case "6M" -> now.minusDays(180);
@@ -127,8 +127,8 @@ public class MyPageController {
     };
   }
 
-  /** 상태 필터 코드 (ALL/APPROVED/PENDING/REJECTED/CANCELLED) → enum. ALL 은 null. */
-  private static ApplicationStatus mapStatusFilter(String code) {
+  /** 상태 필터 코드 (ALL/APPROVED/PENDING/REJECTED/CANCELLED) → enum. ALL 은 null. package-private: 단위 테스트 접근 허용. */
+  static ApplicationStatus mapStatusFilter(String code) {
     if (code == null || "ALL".equalsIgnoreCase(code)) return null;
     try {
       return ApplicationStatus.valueOf(code);
