@@ -56,10 +56,16 @@ public class NotificationController {
    * <p>fragments/notification-panel.html :: panel fragment 를 반환 → hx-swap="outerHTML" 로 교체.
    */
   @PostMapping("/notifications/read-all")
-  public String readAll(@AuthenticationPrincipal UserPrincipal principal, Model model) {
+  public String readAll(
+      @AuthenticationPrincipal UserPrincipal principal,
+      @org.springframework.web.bind.annotation.RequestHeader(value = "HX-Request", required = false)
+          String hxRequest,
+      Model model) {
     notificationService.markAllAsRead(principal.getId());
-    // Advice 로 headerUnreadCount / headerRecentNotifications 재주입되지만, 같은 요청 스코프에서는
-    // ModelAttribute 가 이미 계산됐을 수 있으므로 최신값을 수동 주입.
+    // 전체 페이지 폼 제출은 리다이렉트 (HX 요청은 fragment 로 응답 유지)
+    if (hxRequest == null) {
+      return "redirect:/notifications";
+    }
     var user = userRepository.findById(principal.getId()).orElseThrow();
     model.addAttribute("headerRecentNotifications", notificationService.recentForHeader(user));
     model.addAttribute("headerUnreadCount", notificationService.unreadCount(user));

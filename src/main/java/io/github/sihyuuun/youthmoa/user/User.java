@@ -95,6 +95,17 @@ public class User extends BaseTimeEntity {
   @Column(nullable = false)
   private boolean notifyEmail = true;
 
+  // ─── D5 알림 항목 (prototype L1572~1577) — 신청 승인/반려는 필수(항상 true, UI lock) ───
+  // ddl-auto=update 환경에서 기존 row 는 default 로 채워지도록 columnDefinition 명시.
+  @Column(nullable = false, columnDefinition = "boolean not null default true")
+  private boolean notifyRemindD1 = true;
+
+  @Column(nullable = false, columnDefinition = "boolean not null default true")
+  private boolean notifyWaitlistEmpty = true;
+
+  @Column(nullable = false, columnDefinition = "boolean not null default false")
+  private boolean notifyNewProgramNews = false;
+
   // ─── F-signup-01: 휴대폰 인증 여부 ───
   // NOT NULL default false. 회원가입 시 세션 검증 통과하면 true.
   // ddl-auto=update 환경에서 기존 row 는 default 로 채워지도록 columnDefinition 명시.
@@ -153,6 +164,14 @@ public class User extends BaseTimeEntity {
     this.notifyEmail = email;
   }
 
+  /** D5 알림 항목 갱신 (신청 승인/반려는 필수라 항상 true 유지). */
+  public void updateNotificationItems(
+      boolean remindD1, boolean waitlistEmpty, boolean newProgramNews) {
+    this.notifyRemindD1 = remindD1;
+    this.notifyWaitlistEmpty = waitlistEmpty;
+    this.notifyNewProgramNews = newProgramNews;
+  }
+
   public void changePassword(String newPassword) {
     this.password = newPassword;
   }
@@ -179,8 +198,8 @@ public class User extends BaseTimeEntity {
   /**
    * F-signup-03: WelcomeScreen 에서 관심 정보만 저장 (프로필 다른 필드는 미변경).
    *
-   * <p>Hibernate {@code @ElementCollection} 은 필드 참조 재할당 시 트래킹이 끊겨 UPDATE 가 flush 되지 않을 수 있음. 반드시
-   * 동일 PersistentSet 인스턴스를 mutate (clear + addAll) 해야 DELETE + INSERT 이 정상 실행됨.
+   * <p>Hibernate {@code @ElementCollection} 은 필드 참조 재할당 시 트래킹이 끊겨 UPDATE 가 flush 되지 않을 수 있음. 반드시 동일
+   * PersistentSet 인스턴스를 mutate (clear + addAll) 해야 DELETE + INSERT 이 정상 실행됨.
    */
   public void updateInterests(Set<String> regions, Set<String> categories) {
     this.interestRegions.clear();

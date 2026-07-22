@@ -170,11 +170,11 @@ class ProgramCardDtoTest {
   }
 
   @Test
-  @DisplayName("CTA: ENDED + pct<100 (기간 만료) → expired/비슷한 프로그램 보기/muted/disabled")
+  @DisplayName("CTA: ENDED + pct<100 (기간 만료) → expired/지난 프로그램/muted/disabled")
   void cta_expired() {
     ProgramCardDto dto = new ProgramCardDto(closedProgram(), 3);
     assertThat(dto.getCtaType()).isEqualTo("expired");
-    assertThat(dto.getCtaLabel()).isEqualTo("비슷한 프로그램 보기");
+    assertThat(dto.getCtaLabel()).isEqualTo("지난 프로그램");
     assertThat(dto.getCtaColorClass()).isEqualTo("muted");
     assertThat(dto.getCtaIcon()).isNull();
     assertThat(dto.isCtaDisabled()).isTrue();

@@ -35,8 +35,8 @@ public class PhoneVerificationController {
   private final SmsRateLimiter smsRateLimiter;
 
   /**
-   * mock 모드 (youthmoa.coolsms.enabled=false) — 실 SMS 발송 없음. 크레딧 리스크 없어 rate limiter 스킵. 개발·e2e
-   * 테스트 반복 편의. 운영 (enabled=true) 에서는 정상 rate limit 적용.
+   * mock 모드 (youthmoa.coolsms.enabled=false) — 실 SMS 발송 없음. 크레딧 리스크 없어 rate limiter 스킵. 개발·e2e 테스트
+   * 반복 편의. 운영 (enabled=true) 에서는 정상 rate limit 적용.
    */
   @org.springframework.beans.factory.annotation.Value("${youthmoa.coolsms.enabled:false}")
   private boolean coolsmsEnabled;
@@ -47,8 +47,7 @@ public class PhoneVerificationController {
     if (coolsmsEnabled) {
       String ip = clientIp(httpRequest);
       if (!smsRateLimiter.tryAcquire(ip)) {
-        return ResponseEntity.status(429)
-            .body(Map.of("error", "인증 요청이 너무 많습니다. 잠시 후 다시 시도해주세요."));
+        return ResponseEntity.status(429).body(Map.of("error", "인증 요청이 너무 많습니다. 잠시 후 다시 시도해주세요."));
       }
     }
     try {
@@ -66,7 +65,8 @@ public class PhoneVerificationController {
       @Valid @RequestBody VerifyCodeRequest request, HttpSession session) {
     boolean success = phoneVerificationService.verifyCode(request.getPhone(), request.getCode());
     if (!success) {
-      return ResponseEntity.badRequest().body(Map.of("ok", false, "error", "인증번호가 올바르지 않거나 만료되었습니다."));
+      return ResponseEntity.badRequest()
+          .body(Map.of("ok", false, "error", "인증번호가 올바르지 않거나 만료되었습니다."));
     }
     String normalized = PhoneVerificationService.normalize(request.getPhone());
     session.setAttribute(SESSION_KEY_VERIFIED_AT, LocalDateTime.now());

@@ -78,8 +78,7 @@ class SignupPhoneVerifiedTest {
     MockHttpSession session = new MockHttpSession();
     session.setAttribute(
         PhoneVerificationController.SESSION_KEY_VERIFIED_AT, LocalDateTime.now().minusMinutes(31));
-    session.setAttribute(
-        PhoneVerificationController.SESSION_KEY_VERIFIED_NUMBER, "01011112222");
+    session.setAttribute(PhoneVerificationController.SESSION_KEY_VERIFIED_NUMBER, "01011112222");
 
     mockMvc.perform(buildPost(email, "01011112222").session(session)).andExpect(status().isOk());
     org.junit.jupiter.api.Assertions.assertTrue(userRepository.findByEmail(email).isEmpty());
@@ -92,12 +91,9 @@ class SignupPhoneVerifiedTest {
     cleanup(email);
     MockHttpSession session = new MockHttpSession();
     session.setAttribute(PhoneVerificationController.SESSION_KEY_VERIFIED_AT, LocalDateTime.now());
-    session.setAttribute(
-        PhoneVerificationController.SESSION_KEY_VERIFIED_NUMBER, "01099998888");
+    session.setAttribute(PhoneVerificationController.SESSION_KEY_VERIFIED_NUMBER, "01099998888");
 
-    mockMvc
-        .perform(buildPost(email, "01011112222").session(session))
-        .andExpect(status().isOk());
+    mockMvc.perform(buildPost(email, "01011112222").session(session)).andExpect(status().isOk());
     org.junit.jupiter.api.Assertions.assertTrue(userRepository.findByEmail(email).isEmpty());
   }
 
@@ -108,8 +104,7 @@ class SignupPhoneVerifiedTest {
     cleanup(email);
     MockHttpSession session = new MockHttpSession();
     session.setAttribute(PhoneVerificationController.SESSION_KEY_VERIFIED_AT, LocalDateTime.now());
-    session.setAttribute(
-        PhoneVerificationController.SESSION_KEY_VERIFIED_NUMBER, "01011112222");
+    session.setAttribute(PhoneVerificationController.SESSION_KEY_VERIFIED_NUMBER, "01011112222");
 
     mockMvc
         .perform(buildPost(email, "01011112222").session(session))
@@ -117,10 +112,9 @@ class SignupPhoneVerifiedTest {
         .andExpect(redirectedUrl("/welcome"));
 
     User saved =
-        userRepository
-            .findByEmail(email)
-            .orElseThrow(() -> new AssertionError("가입된 사용자 없음"));
-    org.junit.jupiter.api.Assertions.assertTrue(saved.isPhoneVerified(), "phoneVerified=true 이어야 함");
+        userRepository.findByEmail(email).orElseThrow(() -> new AssertionError("가입된 사용자 없음"));
+    org.junit.jupiter.api.Assertions.assertTrue(
+        saved.isPhoneVerified(), "phoneVerified=true 이어야 함");
     cleanup(email);
   }
 }

@@ -60,6 +60,11 @@
     }
 
     form.querySelectorAll('input[data-noti-toggle]').forEach(function (input) {
-        input.addEventListener('change', save);
+        input.addEventListener('change', function () {
+            // 부모 row 의 .is-on 클래스 즉시 토글 (토글 스위치 시각 반영)
+            var row = input.closest('.noti-channel-row, .noti-item-row, .mypage-noti-row');
+            if (row) row.classList.toggle('is-on', input.checked);
+            save();
+        });
     });
 })();

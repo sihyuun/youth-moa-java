@@ -136,7 +136,8 @@ public class SecurityConfig {
                     // DB 의 persistent_logins row 는 Spring 의 RememberMeServices.logout() 이 자동 제거
                     .deleteCookies("JSESSIONID", "remember-me")
                     .permitAll());
-    // P0-2: CSRF 활성. Spring Security 7 기본 = 세션 저장 CsrfTokenRepository (HttpSessionCsrfTokenRepository).
+    // P0-2: CSRF 활성. Spring Security 7 기본 = 세션 저장 CsrfTokenRepository
+    // (HttpSessionCsrfTokenRepository).
     //   - Thymeleaf 는 ${_csrf.token} / ${_csrf.headerName} 로 접근
     //   - HTMX 는 static/js/htmx-csrf.js 가 meta 태그 값을 configRequest 에서 헤더로 부착
     //   - 기존 .csrf(csrf -> csrf.disable()) 삭제 (직접 disable 하지 않음, 기본 활성 유지)

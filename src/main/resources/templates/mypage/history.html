@@ -18,34 +18,101 @@
     <div class="container">
         <div th:replace="~{mypage/layout :: head}"></div>
 
-        <section class="mypage-history">
+        <section class="mypage-history mypage-card">
             <h3 class="mypage-section-title">프로그램 신청 내역</h3>
-            <p class="mypage-section-subtitle">최대 지난 3년간의 신청 내역을 확인할 수 있어요.</p>
+            <p class="mypage-section-subtitle">최대 지난 3년간의 프로그램 신청 내역까지 확인할 수 있어요</p>
 
-            <div th:if="${#lists.isEmpty(applications)}" class="mypage-empty">
-                <p>아직 신청한 프로그램이 없어요.</p>
-                <a th:href="@{/programs}" class="btn-auth btn-auth--primary">프로그램 둘러보기</a>
+            <!-- 기간 필터 (prototype L1407~1411) -->
+            <div class="history-period-tabs">
+                <a th:href="@{/mypage(tab='history', period='3M', status=${currentStatusFilter})}"
+                   th:class="${currentPeriod == '3M'} ? 'history-period-tab is-on' : 'history-period-tab'">3개월</a>
+                <a th:href="@{/mypage(tab='history', period='6M', status=${currentStatusFilter})}"
+                   th:class="${currentPeriod == '6M'} ? 'history-period-tab is-on' : 'history-period-tab'">6개월</a>
+                <a th:href="@{/mypage(tab='history', period='1Y', status=${currentStatusFilter})}"
+                   th:class="${currentPeriod == '1Y'} ? 'history-period-tab is-on' : 'history-period-tab'">1년</a>
+                <a th:href="@{/mypage(tab='history', period='3Y', status=${currentStatusFilter})}"
+                   th:class="${currentPeriod == '3Y'} ? 'history-period-tab is-on' : 'history-period-tab'">3년</a>
             </div>
 
+            <!-- 상태 필터 칩 (prototype L1413~1424) -->
+            <div class="history-status-chips">
+                <a th:href="@{/mypage(tab='history', period=${currentPeriod}, status='ALL')}"
+                   th:class="${currentStatusFilter == 'ALL'} ? 'history-status-chip is-on' : 'history-status-chip'">
+                    <span>전체</span><span class="history-status-count" th:text="${countAll}">0</span>
+                </a>
+                <a th:href="@{/mypage(tab='history', period=${currentPeriod}, status='APPROVED')}"
+                   th:class="${currentStatusFilter == 'APPROVED'} ? 'history-status-chip is-on' : 'history-status-chip'">
+                    <span>승인</span><span class="history-status-count" th:text="${countApproved}">0</span>
+                </a>
+                <a th:href="@{/mypage(tab='history', period=${currentPeriod}, status='PENDING')}"
+                   th:class="${currentStatusFilter == 'PENDING'} ? 'history-status-chip is-on' : 'history-status-chip'">
+                    <span>대기</span><span class="history-status-count" th:text="${countPending}">0</span>
+                </a>
+                <a th:href="@{/mypage(tab='history', period=${currentPeriod}, status='REJECTED')}"
+                   th:class="${currentStatusFilter == 'REJECTED'} ? 'history-status-chip is-on' : 'history-status-chip'">
+                    <span>반려</span><span class="history-status-count" th:text="${countRejected}">0</span>
+                </a>
+                <a th:href="@{/mypage(tab='history', period=${currentPeriod}, status='CANCELLED')}"
+                   th:class="${currentStatusFilter == 'CANCELLED'} ? 'history-status-chip is-on' : 'history-status-chip'">
+                    <span>취소</span><span class="history-status-count" th:text="${countCancelled}">0</span>
+                </a>
+            </div>
+
+            <!-- 빈 상태 -->
+            <div th:if="${#lists.isEmpty(applications)}" class="mypage-empty mypage-empty--icon">
+                <svg th:replace="~{fragments/icons :: calendar(64, 'var(--color-border)')}"></svg>
+                <p th:if="${currentStatusFilter == 'ALL'}">신청한 프로그램이 없습니다.</p>
+                <p th:unless="${currentStatusFilter == 'ALL'}">해당 상태의 신청 내역이 없습니다.</p>
+                <a th:if="${currentStatusFilter == 'ALL'}"
+                   th:href="@{/programs}" class="btn-auth btn-auth--primary">프로그램 보기</a>
+            </div>
+
+            <!-- 카드 리스트 -->
             <ul class="mypage-history-list" th:unless="${#lists.isEmpty(applications)}">
                 <li th:each="app : ${applications}" class="mypage-history-card">
-                    <div class="mypage-history-meta">
-                        <span class="mypage-history-date"
-                              th:text="${#temporals.format(app.appliedAt, 'yyyy.MM.dd')}">2024.01.01</span>
-                        <span th:class="'category-badge status-' + ${app.status.name().toLowerCase()}"
-                              th:text="${app.status.name()}">PENDING</span>
+                    <!-- 상단: 신청일시 + 신청 상세 -->
+                    <div class="history-card-head">
+                        <span class="history-card-time"
+                              th:text="${#temporals.format(app.appliedAt, 'yyyy.MM.dd HH:mm:ss')}">2026.07.05 17:11:31</span>
+                        <a th:href="@{/apply/complete(applicationId=${app.id})}" class="history-card-detail-link">
+                            <span>신청 상세</span>
+                            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor"
+                                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <polyline points="9 18 15 12 9 6"/>
+                            </svg>
+                        </a>
                     </div>
-                    <a th:href="@{/programs/{id}(id=${app.program.id})}" class="mypage-history-title"
-                       th:text="${app.program.title}">프로그램 제목</a>
-                    <div class="mypage-history-actions">
-                        <button th:if="${app.status.name() == 'PENDING' or app.status.name() == 'APPROVED'}"
-                                type="button"
-                                class="mypage-cancel-btn"
-                                th:attr="data-app-id=${app.id},data-app-title=${app.program.title}"
-                                onclick="openCancelModal(this)">취소</button>
-                        <a th:if="${app.status.name() == 'REJECTED' or app.status.name() == 'CANCELLED'}"
-                           th:href="@{/programs/{id}/apply(id=${app.program.id})}"
-                           class="mypage-reapply-link">재신청</a>
+                    <!-- 본문: 이미지 + 정보 -->
+                    <div class="history-card-body">
+                        <div class="history-card-thumb">
+                            <img th:if="${app.program.imageUrl != null}"
+                                 th:src="${app.program.imageUrl}" alt=""/>
+                            <div th:if="${app.program.imageUrl == null}" class="history-card-thumb-placeholder"></div>
+                        </div>
+                        <div class="history-card-info">
+                            <a th:href="@{/programs/{id}(id=${app.program.id})}" class="history-card-title-row">
+                                <span class="history-card-title" th:text="${app.program.title}">프로그램 제목</span>
+                                <span th:class="'history-status-badge history-status-badge--' + ${app.status.name().toLowerCase()}"
+                                      th:text="${app.status.name() == 'APPROVED' ? '승인'
+                                              : (app.status.name() == 'PENDING' ? '대기'
+                                              : (app.status.name() == 'REJECTED' ? '반려' : '취소'))}">승인</span>
+                            </a>
+                            <div class="history-card-sub">
+                                <span th:text="${app.program.organization}">기관</span>
+                                <span th:if="${app.program.startDate != null and app.program.endDate != null}"
+                                      th:text="' · ' + ${#temporals.format(app.program.startDate, 'yyyy-MM-dd')} + '~' + ${#temporals.format(app.program.endDate, 'yyyy-MM-dd')}"> · 2026-08-01~08-31</span>
+                            </div>
+                            <div class="history-card-actions">
+                                <button th:if="${app.status.name() == 'PENDING' or app.status.name() == 'APPROVED'}"
+                                        type="button"
+                                        class="btn-outline btn-outline--sm btn-outline--danger"
+                                        th:attr="data-app-id=${app.id},data-app-title=${app.program.title}"
+                                        onclick="openCancelModal(this)">신청 취소</button>
+                                <a th:if="${app.status.name() == 'REJECTED' or app.status.name() == 'CANCELLED'}"
+                                   th:href="@{/programs/{id}/apply(id=${app.program.id})}"
+                                   class="btn-outline btn-outline--sm btn-outline--secondary">재신청</a>
+                            </div>
+                        </div>
                     </div>
                 </li>
             </ul>

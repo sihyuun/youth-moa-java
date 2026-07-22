@@ -8,7 +8,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrlPattern;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import org.junit.jupiter.api.Test;
@@ -38,7 +37,9 @@ class WelcomeRenderTest {
 
   @Test
   void GET_welcome_미로그인_login_리다이렉트() throws Exception {
-    mockMvc.perform(get("/welcome")).andExpect(status().is3xxRedirection())
+    mockMvc
+        .perform(get("/welcome"))
+        .andExpect(status().is3xxRedirection())
         .andExpect(redirectedUrl("/login"));
   }
 
@@ -53,9 +54,7 @@ class WelcomeRenderTest {
             .getContentAsString();
 
     // 관심 지역 TOP 10 (isFeatured=true) — 상시 노출, prototype WELCOME_REGIONS_TOP
-    String[] topRegions = {
-      "수원시", "성남시", "고양시", "용인시", "부천시", "안양시", "안산시", "화성시", "남양주시", "평택시"
-    };
+    String[] topRegions = {"수원시", "성남시", "고양시", "용인시", "부천시", "안양시", "안산시", "화성시", "남양주시", "평택시"};
     for (String r : topRegions) {
       org.junit.jupiter.api.Assertions.assertTrue(body.contains(r), "TOP 지역 누락: " + r);
     }
@@ -68,10 +67,8 @@ class WelcomeRenderTest {
       org.junit.jupiter.api.Assertions.assertTrue(body.contains(r), "MORE 지역 누락: " + r);
     }
     // 더보기 버튼 (primary 텍스트 링크)
-    org.junit.jupiter.api.Assertions.assertTrue(
-        body.contains("data-toggle-more"), "더보기 링크 누락");
-    org.junit.jupiter.api.Assertions.assertTrue(
-        body.contains("지역 더 보기"), "더보기 라벨 누락");
+    org.junit.jupiter.api.Assertions.assertTrue(body.contains("data-toggle-more"), "더보기 링크 누락");
+    org.junit.jupiter.api.Assertions.assertTrue(body.contains("지역 더 보기"), "더보기 라벨 누락");
     // MORE 20 은 hidden 속성 부여됨
     org.junit.jupiter.api.Assertions.assertTrue(
         body.contains("welcome-toggle--more"), "MORE 클래스 누락");
@@ -80,8 +77,7 @@ class WelcomeRenderTest {
       org.junit.jupiter.api.Assertions.assertTrue(body.contains(c), "분야 누락: " + c);
     }
     // 체크 아이콘 SVG path
-    org.junit.jupiter.api.Assertions.assertTrue(
-        body.contains("M5 12l4 4 10-10"), "체크 SVG path 누락");
+    org.junit.jupiter.api.Assertions.assertTrue(body.contains("M5 12l4 4 10-10"), "체크 SVG path 누락");
   }
 
   @Test

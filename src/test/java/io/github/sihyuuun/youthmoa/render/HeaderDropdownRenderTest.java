@@ -1,7 +1,6 @@
 package io.github.sihyuuun.youthmoa.render;
 
 import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.not;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -24,8 +23,8 @@ import org.springframework.test.web.servlet.MockMvc;
  *   <li>D2 A안: 프로필 카드 (아바타 + 이름 + 이메일, 클릭 시 /mypage) + 구분선 + 로그아웃
  *   <li>D1: 드롭다운 초기 hidden, aria-expanded="false", data-dropdown-trigger 부착
  *   <li>알림 벨도 동일 정합 (hover 폐지, click 토글)
- *   <li>정적 리소스 검증: {@code /js/common-ui.js} 에 {@code window.Dropdown} 노출, {@code /css/main.css}
- *       에 keyframes dropdown-enter + hover 규칙 부재
+ *   <li>정적 리소스 검증: {@code /js/common-ui.js} 에 {@code window.Dropdown} 노출, {@code /css/main.css} 에
+ *       keyframes dropdown-enter + hover 규칙 부재
  * </ul>
  */
 @SpringBootTest
@@ -65,8 +64,10 @@ class HeaderDropdownRenderTest {
         .perform(get("/").with(authed()))
         .andExpect(status().isOk())
         // trigger data-* 및 aria-expanded 초기 false
-        .andExpect(content().string(containsString("data-dropdown-trigger=\"header-user-dropdown\"")))
-        .andExpect(content().string(containsString("data-dropdown-trigger=\"header-notif-dropdown\"")))
+        .andExpect(
+            content().string(containsString("data-dropdown-trigger=\"header-user-dropdown\"")))
+        .andExpect(
+            content().string(containsString("data-dropdown-trigger=\"header-notif-dropdown\"")))
         .andExpect(content().string(containsString("aria-expanded=\"false\"")))
         // 패널 초기 hidden — id 뒤 마크업에 hidden 속성이 붙어 있는지 확인
         .andExpect(content().string(containsString("id=\"header-user-dropdown\"")))
@@ -119,7 +120,6 @@ class HeaderDropdownRenderTest {
             .getContentAsString();
     // "마이페이지" 라는 텍스트 라벨 (기존 링크 텍스트) 은 프로필 카드에서는 이름/이메일이 대체
     // 따라서 header-dropdown-profile 내부에 마이페이지 텍스트가 없어야 함
-    org.assertj.core.api.Assertions.assertThat(body)
-        .doesNotContain(">마이페이지</a>");
+    org.assertj.core.api.Assertions.assertThat(body).doesNotContain(">마이페이지</a>");
   }
 }

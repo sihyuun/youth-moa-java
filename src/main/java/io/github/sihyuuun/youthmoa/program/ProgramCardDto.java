@@ -195,8 +195,10 @@ public class ProgramCardDto {
       this.ctaIcon = "bell";
       this.ctaDisabled = false;
     } else if (status == ProgramStatus.ENDED && !ctaFull) {
+      // 목록 카드: prototype.tsx L907 은 "지난 프로그램" (뮤티드 disabled).
+      // "비슷한 프로그램 보기" 는 상세 페이지 전용 (prototype.tsx L1022).
       this.ctaType = "expired";
-      this.ctaLabel = "비슷한 프로그램 보기";
+      this.ctaLabel = "지난 프로그램";
       this.ctaColorClass = "muted";
       this.ctaIcon = null;
       this.ctaDisabled = true;

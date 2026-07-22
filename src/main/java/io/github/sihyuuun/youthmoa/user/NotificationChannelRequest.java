@@ -14,7 +14,15 @@ import lombok.Setter;
 @NoArgsConstructor
 public class NotificationChannelRequest {
 
+  // 채널 3필드는 폼이 항상 6개 checkbox 전송하는 계약 기반 primitive 유지 (미체크=false 의도)
   private boolean kakao;
   private boolean sms;
   private boolean email;
+
+  // D5 알림 항목 (prototype L1572~1577).
+  // Boolean 래퍼로 nullable 처리: 부분 저장 클라이언트(외부 API·캐시된 이전 폼) 가
+  // 항목 필드를 제외하고 전송하면 null → UserService 에서 기존값 유지. 데이터 파괴 방어.
+  private Boolean remindD1;
+  private Boolean waitlistEmpty;
+  private Boolean newProgramNews;
 }

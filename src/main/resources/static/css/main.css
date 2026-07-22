@@ -1182,6 +1182,7 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 6px;
   cursor: pointer;
   font-weight: 700;
   transition: background 0.15s;
@@ -2126,7 +2127,7 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
 /* prototype L1854 card 스타일 — background surface, border-radius 16, border-light, box-shadow, padding 24px 28px, mb 16 */
 /* NOTE(F0f-fix-6): 공통 .form-card / .form-input 은 fix-4 와 공유 예정.
    이 브랜치에서 먼저 정의 → fix-4 는 재사용. main 머지 순서: fix-6 → fix-4 권장. */
-.signup-section {
+.form-card {
   background: var(--color-surface);
   border-radius: 16px;
   border: 1px solid var(--color-border-light);
@@ -2135,11 +2136,11 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
   margin-bottom: 16px;
 }
 
-.signup-section-head {
+.form-card-head {
   margin-bottom: 18px;
 }
 
-.signup-section-title {
+.form-card-title {
   font-size: 15.5px;
   font-weight: 700;
   color: var(--color-text);
@@ -2169,7 +2170,7 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
 
 /* Input — prototype L105 inputStyle: height 42, radius 10, 1px border, padding 0 14, fs 14
    평상시: 연회색 필드 (#F7F8FA) → 값 채워지면 흰색 + primary 테두리 */
-.signup-input {
+.form-input {
   width: 100%;
   height: 42px;
   border-radius: 10px;
@@ -2184,34 +2185,53 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
   box-sizing: border-box;
   display: block;
 }
-.signup-input:focus {
+.form-input:focus {
   border-color: var(--color-primary);
   background: var(--color-surface);
 }
-.signup-input::placeholder { color: var(--color-text-tri); }
+.form-input::placeholder { color: var(--color-text-tri); }
 
 /* 값 있을 때 primary border + 흰 배경 (prototype filled 상태) */
-.signup-input:not(:placeholder-shown):not(:focus):not(:read-only) {
+.form-input:not(:placeholder-shown):not(:focus):not(:read-only) {
   border-color: var(--color-primary);
   background: var(--color-surface);
 }
 
-/* readOnly (우편번호 / 주소) — bg #F3F4F6, border-light (prototype L106 inputRO) */
-.signup-input--readonly {
-  background: #F3F4F6;
-  border-color: var(--color-border-light);
-  cursor: default;
+/* type=date 는 :placeholder-shown 미지원 → :invalid(required 미입력) 으로 unfilled 판정.
+   특이성 상향(.form-input.form-input--date) 으로 위의 filled 규칙보다 우선 적용. */
+.form-input.form-input--date:invalid:not(:focus):not(:read-only) {
+  border-color: var(--color-border);
+  background: #F7F8FA;
+  color: var(--color-text-tri);
+}
+.form-input.form-input--date:valid:not(:focus):not(:read-only) {
+  border-color: var(--color-primary);
+  background: var(--color-surface);
+  color: var(--color-text);
 }
 
-.signup-input--mismatch {
+/* readOnly (우편번호 / 주소) — bg #F3F4F6, border-light (prototype L106 inputRO).
+   focus 시에도 스타일 유지해 "입력 가능해 보이는" 오해 방지. 클릭 focus 는 브라우저 기본이라
+   완전 차단은 어렵지만 :focus 시각 변화를 제거 + caret 숨김 처리. */
+.form-input--readonly,
+.form-input--readonly:focus {
+  background: #F3F4F6;
+  border-color: var(--color-border-light);
+  color: var(--color-text-sec);
+  cursor: default;
+  caret-color: transparent;
+  outline: none;
+}
+
+.form-input--mismatch {
   border-color: var(--color-error) !important;
 }
 
 /* 비밀번호 input 우측 눈 아이콘 (사용자 요청, prototype 최신본 외 추가) */
-.signup-input-with-eye {
+.form-input-with-eye {
   position: relative;
 }
-.signup-input--with-eye {
+.form-input--with-eye {
   padding-right: 44px;
 }
 .signup-eye-btn {
@@ -2261,7 +2281,12 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
   gap: 4px;
 }
 
-.signup-field-block.has-error .signup-input {
+.signup-field-block.has-error .form-input {
+  border-color: var(--color-error);
+}
+/* has-error 시 date 의 :invalid/:valid override 방어 (특이성 상향) */
+.signup-field-block.has-error .form-input.form-input--date:invalid,
+.signup-field-block.has-error .form-input.form-input--date:valid {
   border-color: var(--color-error);
 }
 
@@ -2282,7 +2307,7 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
   display: flex;
   gap: 8px;
 }
-.signup-field-row .signup-input { flex: 1; min-width: 0; }
+.signup-field-row .form-input { flex: 1; min-width: 0; }
 
 /* prototype L1856 btnSide: minWidth 84, height 42, padding 0 14, fs 13 */
 .signup-side-btn {
@@ -3878,15 +3903,20 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
   list-style: none;
   margin: 0;
   padding: 0;
-  border-top: 1px solid var(--color-border-light);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
 }
 .notif-page-item {
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  padding: 16px 4px;
+  padding: 16px 18px;
   border-bottom: 1px solid var(--color-border-light);
+  border-left: 3px solid transparent;
 }
+.notif-page-item:last-child { border-bottom: none; }
 .notif-page-item.is-unread { background: var(--color-primary-bg); }
 .notif-page-item-body {
   flex: 1;
@@ -3905,27 +3935,60 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
 }
 
 /* F0f-fix-5: 알림 전체 페이지 개선 — 뒤로가기·필터·그룹·안읽음 강조 */
-.notif-page-head {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 20px;
-}
 .notif-back-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 38px;
+  height: 38px;
   border: 1px solid var(--color-border);
-  border-radius: 50%;
-  background: #fff;
-  color: var(--color-text);
+  border-radius: 9px;
+  background: var(--color-surface);
+  color: var(--color-text-sec);
   cursor: pointer;
   transition: background 0.15s;
+  margin-bottom: 16px;
 }
 .notif-back-btn:hover { background: var(--color-bg); }
+.notif-page-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
 .notif-page-head .notif-page-title { margin: 0; }
+.notif-page-title-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.notif-unread-badge {
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 10px;
+  background: var(--color-error);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.notif-mark-all-form { margin: 0; }
+.notif-mark-all-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  color: var(--color-text-sec);
+  background: none;
+  border: none;
+  padding: 4px 6px;
+  cursor: pointer;
+}
+.notif-mark-all-btn:hover { color: var(--color-text); }
 
 .notif-filter-bar {
   display: flex;
@@ -3966,9 +4029,8 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
   margin: 0 0 8px;
   padding: 0 4px;
 }
-.notif-item--unread {
-  border-left: 3px solid var(--color-primary);
-  padding-left: 12px;
+.notif-page-item.notif-item--unread {
+  border-left-color: var(--color-primary);
   background: var(--color-primary-bg);
 }
 
@@ -5095,28 +5157,39 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
 .mypage-kpi-label { font-size: 12px; color: var(--color-text-sec); margin-top: 2px; }
 
 /* 상단 탭 세그먼트 */
+/* 세그먼트 카드형 탭 (prototype.tsx L1391~1399 매칭) */
 .mypage-tabs {
     display: flex;
     gap: 4px;
-    background: var(--color-bg);
-    padding: 4px;
-    border-radius: var(--radius-lg);
-    margin-bottom: 28px;
-    max-width: fit-content;
+    background: var(--color-surface);
+    padding: 5px;
+    border: 1px solid var(--color-border-light);
+    border-radius: 12px;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 24px;
+    width: 100%;
 }
 .mypage-tab {
+    flex: 1;
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 8px 20px;
-    border-radius: var(--radius-md);
+    justify-content: center;
+    gap: 7px;
+    padding: 11px 12px;
+    border-radius: 8px;
     font-size: 14px;
+    font-weight: 500;
     color: var(--color-text-sec);
     text-decoration: none;
     transition: background .15s, color .15s;
+    background: transparent;
 }
 .mypage-tab:hover { color: var(--color-primary); }
-.mypage-tab.active { background: var(--color-surface); color: var(--color-primary); font-weight: 600; box-shadow: var(--shadow-sm); }
+.mypage-tab.active {
+    background: var(--color-primary-light);
+    color: var(--color-primary);
+    font-weight: 700;
+}
 
 .mypage-section-title { font-size: 18px; font-weight: 700; margin: 0 0 6px; }
 .mypage-section-subtitle { font-size: 13px; color: var(--color-text-tri); margin: 0 0 16px; }
@@ -5135,30 +5208,113 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
 /* 빈 상태 */
 .mypage-empty { text-align: center; padding: 48px 20px; color: var(--color-text-tri); }
 .mypage-empty p { margin-bottom: 16px; }
+.mypage-empty--icon {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    padding: 80px 0;
+}
+.mypage-empty--icon p { margin: 0; font-size: 15px; color: var(--color-text-sec); }
 
 /* 신청 내역 */
-.mypage-history-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+/* 마이페이지 탭 컨텐츠 카드 (prototype L1400~1401) */
+.mypage-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    padding: 28px 30px;
+}
+
+/* 기간 필터 (prototype L1407~1411) */
+.history-period-tabs { display: flex; gap: 8px; margin-bottom: 14px; margin-top: 18px; }
+.history-period-tab {
+    flex: 1; height: 44px;
+    border-radius: 8px;
+    border: 1px solid var(--color-border);
+    background: transparent;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 400;
+    color: var(--color-text-sec);
+    text-decoration: none;
+    transition: border-color .15s, background .15s;
+}
+.history-period-tab.is-on {
+    border-color: var(--color-primary);
+    background: var(--color-primary-bg);
+    color: var(--color-primary);
+    font-weight: 700;
+}
+
+/* 상태 필터 칩 (prototype L1413~1424) */
+.history-status-chips { display: flex; gap: 7px; margin-bottom: 20px; flex-wrap: wrap; }
+.history-status-chip {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 6px 13px;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--color-border);
+    background: transparent;
+    color: var(--color-text-sec);
+    text-decoration: none;
+    font-size: 13px; font-weight: 500;
+}
+.history-status-chip.is-on {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: #fff;
+    font-weight: 600;
+}
+.history-status-count { font-size: 12px; font-weight: 600; color: var(--color-text-tri); }
+.history-status-chip.is-on .history-status-count { color: rgba(255,255,255,0.85); }
+
+/* 신청 내역 카드 (prototype L1438~1470) */
+.mypage-history-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 16px; }
 .mypage-history-card {
     background: var(--color-surface);
     border: 1px solid var(--color-border-light);
-    border-radius: var(--radius-md);
-    padding: 16px 20px;
-    display: flex; flex-direction: column; gap: 8px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    padding: 18px 20px;
 }
-.mypage-history-meta { display: flex; align-items: center; gap: 10px; }
-.mypage-history-date { font-size: 12px; color: var(--color-text-tri); }
-.mypage-history-title { font-size: 15px; font-weight: 600; color: var(--color-text); text-decoration: none; }
-.mypage-history-actions { display: flex; gap: 8px; }
-.mypage-cancel-btn, .mypage-reapply-link {
-    font-size: 13px; padding: 6px 14px;
-    border-radius: var(--radius-md);
-    border: 1px solid var(--color-border);
-    background: var(--color-surface);
-    color: var(--color-text-sec);
-    cursor: pointer;
-    text-decoration: none;
+.history-card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.history-card-time { font-size: 13px; color: var(--color-text-sec); }
+.history-card-detail-link {
+    display: inline-flex; align-items: center; gap: 2px;
+    font-size: 13px; color: var(--color-text-sec);
+    text-decoration: none; cursor: pointer;
 }
-.mypage-cancel-btn:hover { border-color: var(--color-error); color: var(--color-error); }
+.history-card-body { display: flex; gap: 16px; }
+.history-card-thumb {
+    width: 88px; height: 88px; border-radius: 8px;
+    overflow: hidden; background: #e5e7eb; flex-shrink: 0;
+}
+.history-card-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.history-card-thumb-placeholder { width: 100%; height: 100%; background: #e5e7eb; }
+.history-card-info { flex: 1; min-width: 0; }
+.history-card-title-row {
+    display: flex; align-items: center; gap: 8px; margin-bottom: 6px;
+    text-decoration: none; color: inherit;
+}
+.history-card-title { font-weight: 600; font-size: 16px; color: var(--color-text); }
+.history-status-badge {
+    padding: 2px 10px;
+    border-radius: var(--radius-pill);
+    font-size: 12px; font-weight: 600;
+}
+.history-status-badge--approved { background: var(--color-success-light); color: var(--color-success); }
+.history-status-badge--pending { background: var(--color-warning-light); color: var(--color-warning); }
+.history-status-badge--rejected { background: #FEF2F2; color: var(--color-error); }
+.history-status-badge--cancelled { background: var(--color-border-light); color: var(--color-text-tri); }
+.history-card-sub { font-size: 13px; color: var(--color-text-sec); margin-bottom: 12px; }
+.history-card-actions { display: flex; justify-content: flex-end; gap: 8px; }
+
+/* outline 버튼 사이즈·바리안트 */
+.btn-outline--sm { height: auto; padding: 6px 14px; font-size: 13px; }
+.btn-outline--danger { border-color: var(--color-error); color: var(--color-error); }
+.btn-outline--danger:hover { background: #FEF2F2; }
+.btn-outline--secondary { border-color: var(--color-secondary); color: var(--color-secondary); }
+.btn-outline--secondary:hover { background: var(--color-secondary-light); }
 
 /* Application 상태 뱃지 (D5 신규) */
 .status-pending { background: var(--color-warning-light); color: var(--color-warning); }
@@ -5176,6 +5332,102 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
 }
 .mypage-favorites-title { font-size: 15px; font-weight: 600; color: var(--color-text); text-decoration: none; display: block; margin-bottom: 4px; }
 .mypage-favorites-sub { font-size: 13px; color: var(--color-text-sec); }
+
+/* ── D5 알림 설정 탭 (prototype L1555~1580) ─────────────────────────── */
+.mypage-noti { max-width: 620px; margin: 0 auto; }
+.noti-section-heading { font-size: 16px; font-weight: 700; color: var(--color-text); margin: 20px 0 4px; }
+.noti-section-heading:first-of-type { margin-top: 8px; }
+.noti-section-sub { font-size: 13px; color: var(--color-text-sec); margin: 0 0 14px; }
+
+.noti-channel-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 32px; }
+.noti-channel-row {
+    display: flex; align-items: center; gap: 14px;
+    padding: 14px 18px;
+    border-radius: var(--radius-lg);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    cursor: pointer;
+    transition: border-color .15s, background .15s;
+}
+.noti-channel-row.is-on { border-color: var(--color-primary-light); background: var(--color-surface); }
+.noti-channel-icon {
+    width: 38px; height: 38px; border-radius: 10px;
+    background: var(--color-border-light);
+    color: var(--color-text-sec);
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.noti-channel-row.is-on .noti-channel-icon {
+    background: var(--color-primary-light);
+    color: var(--color-primary);
+}
+.noti-channel-info { flex: 1; min-width: 0; }
+.noti-channel-label { font-size: 14.5px; font-weight: 600; color: var(--color-text); }
+.noti-channel-sub { font-size: 12.5px; color: var(--color-text-tri); margin-top: 2px; }
+
+/* 알림 항목 그룹 카드 (통합) */
+.noti-item-list {
+    border-radius: var(--radius-lg);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    overflow: hidden;
+}
+.noti-item-row {
+    display: flex; align-items: center; gap: 16px;
+    padding: 16px 18px;
+    border-bottom: 1px solid var(--color-border-light);
+    cursor: pointer;
+}
+.noti-item-row:last-child { border-bottom: none; }
+.noti-item-row.is-locked { cursor: default; }
+.noti-item-info { flex: 1; min-width: 0; }
+.noti-item-label-row { display: flex; align-items: center; gap: 6px; margin-bottom: 3px; }
+.noti-item-label { font-size: 14.5px; font-weight: 600; color: var(--color-text); }
+.noti-item-desc { font-size: 12.5px; color: var(--color-text-sec); }
+.noti-lock-badge {
+    padding: 1px 7px;
+    border-radius: var(--radius-pill);
+    background: var(--color-border-light);
+    color: var(--color-text-tri);
+    font-size: 10.5px; font-weight: 600;
+}
+
+/* Toggle switch (44 × 26, prototype 함수 Toggle 매칭) */
+.noti-toggle-switch { position: absolute; opacity: 0; pointer-events: none; }
+.noti-switch-visual {
+    position: relative;
+    width: 44px; height: 26px;
+    border-radius: 13px;
+    background: var(--color-border);
+    flex-shrink: 0;
+    transition: background 200ms;
+}
+.noti-switch-visual::after {
+    content: '';
+    position: absolute;
+    top: 3px; left: 3px;
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.12);
+    transition: transform 200ms;
+}
+.noti-channel-row.is-on .noti-switch-visual,
+.noti-item-row.is-on .noti-switch-visual,
+.noti-switch-visual.is-on {
+    background: var(--color-primary);
+}
+.noti-channel-row.is-on .noti-switch-visual::after,
+.noti-item-row.is-on .noti-switch-visual::after,
+.noti-switch-visual.is-on::after {
+    transform: translateX(18px);
+}
+.noti-switch-visual--locked { opacity: 0.5; }
+
+.noti-autosave-hint {
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    margin-top: 24px;
+    font-size: 12.5px; color: var(--color-text-tri);
+}
 
 /* 알림 설정 */
 .mypage-noti-form { display: grid; gap: 12px; max-width: 480px; }
@@ -5212,38 +5464,8 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
 .mypage-edit-note a { color: var(--color-primary); }
 
 /* ═══ F0f-fix-4: 개인정보 수정 카드형 폼 (prototype.tsx L1508~1550) ═══ */
-/* 공통 입력 스타일 — 42px · radius 10 · #F7F8FA 배경 → 값 있을 때 흰 배경+primary 테두리는 JS 로 처리 (currently static) */
-.form-input {
-    height: 42px;
-    border-radius: 10px;
-    border: 1px solid var(--color-border);
-    background: #F7F8FA;
-    padding: 0 14px;
-    font-size: 14px;
-    font-family: 'Pretendard', sans-serif;
-    color: var(--color-text);
-    outline: none;
-    box-sizing: border-box;
-    width: 100%;
-    transition: border 150ms, background 150ms;
-    display: block;
-}
-.form-input:focus { border-color: var(--color-primary); background: var(--color-surface); }
-.form-input--ro {
-    background: #F3F4F6;
-    border-color: var(--color-border-light);
-    color: var(--color-text-sec);
-    display: flex;
-    align-items: center;
-}
-
-.form-card {
-    padding: 24px 28px;
-    border-radius: 16px;
-    background: var(--color-surface);
-    border: 1px solid var(--color-border-light);
-    box-shadow: var(--shadow-md);
-}
+/* NOTE(F0f-fix-6 후속): .form-input / .form-card 기본 정의는 상단 signup 섹션(2128~2311) 통합됨.
+   여기서는 mypage-edit-* 그리드·라벨 등 위치 특화 규칙만 유지. */
 
 /* 카드형 그리드 폼 — 110px 라벨 + 필드 */
 .mypage-edit-form-grid {
@@ -5312,6 +5534,7 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
     color: var(--color-text-tri);
     line-height: 1.5;
 }
+.mypage-edit-gender-cell { display: flex; flex-direction: column; }
 
 /* 아웃라인 미니 버튼 (주소 검색 · 비밀번호 변경) */
 .btn-outline {
@@ -5385,7 +5608,7 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
   min-width: 0;
   display: block;
 }
-.signup-code-input-wrap .signup-input {
+.signup-code-input-wrap .form-input {
   width: 100%;
   padding-right: 56px;   /* 내부 타이머 공간 확보 */
 }
@@ -5405,7 +5628,7 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
 .signup-code-timer.is-warn { color: var(--color-error); }
 
 /* VERIFIED 시 phone input 잠금 스타일. readonly 상태에서 focus 가 남아있어도
-   .signup-input:focus primary border 규칙에 override 당하지 않도록 명시. */
+   .form-input:focus primary border 규칙에 override 당하지 않도록 명시. */
 .signup-phone-locked,
 .signup-phone-locked:focus {
   background: #F3F4F6;

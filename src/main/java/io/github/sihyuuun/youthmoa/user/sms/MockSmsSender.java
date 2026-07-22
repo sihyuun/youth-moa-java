@@ -7,8 +7,8 @@ import org.springframework.stereotype.Component;
 /**
  * F-signup-01: 개발/e2e 용 Mock SMS 발송기. 실 발송 없이 INFO 로그로만 남김.
  *
- * <p>PhoneVerificationService 는 mock 모드에서 항상 {@code mock-fixed-code} (=123456) 를 저장하므로 사용자가
- * 브라우저에서 어떤 번호로 인증 요청해도 코드 "123456" 을 입력하면 인증 통과한다.
+ * <p>PhoneVerificationService 는 mock 모드에서 항상 {@code mock-fixed-code} (=123456) 를 저장하므로 사용자가 브라우저에서
+ * 어떤 번호로 인증 요청해도 코드 "123456" 을 입력하면 인증 통과한다.
  */
 @Slf4j
 @Component
