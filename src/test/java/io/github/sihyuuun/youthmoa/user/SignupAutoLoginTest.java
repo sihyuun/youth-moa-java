@@ -43,8 +43,7 @@ class SignupAutoLoginTest {
         new org.springframework.mock.web.MockHttpSession();
     preSession.setAttribute(
         PhoneVerificationController.SESSION_KEY_VERIFIED_AT, LocalDateTime.now());
-    preSession.setAttribute(
-        PhoneVerificationController.SESSION_KEY_VERIFIED_NUMBER, "01099998888");
+    preSession.setAttribute(PhoneVerificationController.SESSION_KEY_VERIFIED_NUMBER, "01099998888");
 
     MvcResult result =
         mockMvc
@@ -72,8 +71,7 @@ class SignupAutoLoginTest {
     HttpSession session = result.getRequest().getSession(false);
     org.junit.jupiter.api.Assertions.assertNotNull(session, "세션 없음");
     Object ctx =
-        session.getAttribute(
-            HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY);
+        session.getAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY);
     org.junit.jupiter.api.Assertions.assertTrue(
         ctx instanceof SecurityContext, "SecurityContext 미저장: " + ctx);
     SecurityContext sc = (SecurityContext) ctx;

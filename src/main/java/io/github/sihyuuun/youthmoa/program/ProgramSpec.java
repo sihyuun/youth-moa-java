@@ -53,8 +53,7 @@ public class ProgramSpec {
       case "upcoming" -> (root, query, cb) -> cb.greaterThan(root.get("startDate"), today);
       case "ended" ->
           (root, query, cb) ->
-              cb.and(
-                  cb.lessThan(root.get("endDate"), today), cb.isTrue(root.get("isActive")));
+              cb.and(cb.lessThan(root.get("endDate"), today), cb.isTrue(root.get("isActive")));
       default -> null;
     };
   }
@@ -62,8 +61,8 @@ public class ProgramSpec {
   /**
    * 전체 탭 (status 필터 없음) 조회 시 ENDED 를 뒤로 밀어내는 정렬 보정.
    *
-   * <p>Predicate 는 conjunction 반환하고 query.orderBy() 로 정렬만 주입한다. 카운트 쿼리는 무시. 다른 Sort/Spec 과 결합
-   * 시 이 정렬이 최상단 우선으로 적용된다 (예: newest/deadline 이 뒤로 밀림). 필요 시 호출부에서 순서 조정.
+   * <p>Predicate 는 conjunction 반환하고 query.orderBy() 로 정렬만 주입한다. 카운트 쿼리는 무시. 다른 Sort/Spec 과 결합 시 이
+   * 정렬이 최상단 우선으로 적용된다 (예: newest/deadline 이 뒤로 밀림). 필요 시 호출부에서 순서 조정.
    *
    * <p>기준: endDate < today → 1, 그 외 → 0 (ASC → 진행중/예정이 먼저).
    */

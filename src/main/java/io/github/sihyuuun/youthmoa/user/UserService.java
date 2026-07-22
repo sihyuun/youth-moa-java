@@ -70,9 +70,12 @@ public class UserService implements UserDetailsService {
             .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다: " + email));
     user.updateNotificationChannels(request.isKakao(), request.isSms(), request.isEmail());
     // 항목 3필드는 Boolean(nullable). null 이면 기존값 유지 (부분 저장 클라이언트 방어).
-    boolean remindD1 = request.getRemindD1() != null ? request.getRemindD1() : user.isNotifyRemindD1();
+    boolean remindD1 =
+        request.getRemindD1() != null ? request.getRemindD1() : user.isNotifyRemindD1();
     boolean waitlistEmpty =
-        request.getWaitlistEmpty() != null ? request.getWaitlistEmpty() : user.isNotifyWaitlistEmpty();
+        request.getWaitlistEmpty() != null
+            ? request.getWaitlistEmpty()
+            : user.isNotifyWaitlistEmpty();
     boolean newProgramNews =
         request.getNewProgramNews() != null
             ? request.getNewProgramNews()
@@ -115,8 +118,8 @@ public class UserService implements UserDetailsService {
   }
 
   /**
-   * F-signup-01: phoneVerified 는 UserController 가 세션을 재확인한 뒤에만 true 로 넘긴다. hidden field 값은 절대
-   * 신뢰하지 않는다.
+   * F-signup-01: phoneVerified 는 UserController 가 세션을 재확인한 뒤에만 true 로 넘긴다. hidden field 값은 절대 신뢰하지
+   * 않는다.
    */
   @Transactional
   public void signUp(SignUpRequest request, boolean phoneVerified) {

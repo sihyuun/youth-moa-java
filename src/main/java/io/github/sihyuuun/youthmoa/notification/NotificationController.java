@@ -58,7 +58,8 @@ public class NotificationController {
   @PostMapping("/notifications/read-all")
   public String readAll(
       @AuthenticationPrincipal UserPrincipal principal,
-      @org.springframework.web.bind.annotation.RequestHeader(value = "HX-Request", required = false) String hxRequest,
+      @org.springframework.web.bind.annotation.RequestHeader(value = "HX-Request", required = false)
+          String hxRequest,
       Model model) {
     notificationService.markAllAsRead(principal.getId());
     // 전체 페이지 폼 제출은 리다이렉트 (HX 요청은 fragment 로 응답 유지)

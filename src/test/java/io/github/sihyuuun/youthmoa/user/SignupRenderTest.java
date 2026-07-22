@@ -16,8 +16,8 @@ import org.springframework.test.web.servlet.MockMvc;
 /**
  * F-signup-01: signup.html 렌더 회귀 방어.
  *
- * <p>2026-07-16 재디자인: 사이드 버튼 1개 (btn-send-code) + 재전송 버튼 제거, 타이머 input 내부 배치,
- * 완료 배지가 code-row 자리를 대체.
+ * <p>2026-07-16 재디자인: 사이드 버튼 1개 (btn-send-code) + 재전송 버튼 제거, 타이머 input 내부 배치, 완료 배지가 code-row 자리를
+ * 대체.
  */
 @SpringBootTest
 @AutoConfigureMockMvc

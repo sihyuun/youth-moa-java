@@ -144,7 +144,8 @@ public class UserController {
    * </ol>
    */
   private boolean isPhoneVerifiedInSession(HttpSession session, String formPhone) {
-    Object verifiedAtObj = session.getAttribute(PhoneVerificationController.SESSION_KEY_VERIFIED_AT);
+    Object verifiedAtObj =
+        session.getAttribute(PhoneVerificationController.SESSION_KEY_VERIFIED_AT);
     Object verifiedNumberObj =
         session.getAttribute(PhoneVerificationController.SESSION_KEY_VERIFIED_NUMBER);
     if (!(verifiedAtObj instanceof LocalDateTime verifiedAt)) return false;

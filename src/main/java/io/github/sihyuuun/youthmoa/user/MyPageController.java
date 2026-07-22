@@ -93,7 +93,9 @@ public class MyPageController {
         // 상태 필터 (prototype L1413~1424: 전체/승인/대기/반려/취소)
         ApplicationStatus filter = mapStatusFilter(statusFilter);
         List<Application> shown =
-            filter == null ? byPeriod : byPeriod.stream().filter(a -> a.getStatus() == filter).toList();
+            filter == null
+                ? byPeriod
+                : byPeriod.stream().filter(a -> a.getStatus() == filter).toList();
         model.addAttribute("applications", shown);
         model.addAttribute("currentPeriod", period);
         model.addAttribute("currentStatusFilter", statusFilter);
@@ -116,7 +118,9 @@ public class MyPageController {
     }
   }
 
-  /** 기간 코드 (3M/6M/1Y/3Y) → cutoff LocalDateTime. 지원 안 되는 값은 3M 기본. package-private: 단위 테스트 접근 허용. */
+  /**
+   * 기간 코드 (3M/6M/1Y/3Y) → cutoff LocalDateTime. 지원 안 되는 값은 3M 기본. package-private: 단위 테스트 접근 허용.
+   */
   static java.time.LocalDateTime periodCutoff(String code) {
     java.time.LocalDateTime now = java.time.LocalDateTime.now();
     return switch (code == null ? "3M" : code) {
@@ -127,7 +131,10 @@ public class MyPageController {
     };
   }
 
-  /** 상태 필터 코드 (ALL/APPROVED/PENDING/REJECTED/CANCELLED) → enum. ALL 은 null. package-private: 단위 테스트 접근 허용. */
+  /**
+   * 상태 필터 코드 (ALL/APPROVED/PENDING/REJECTED/CANCELLED) → enum. ALL 은 null. package-private: 단위 테스트
+   * 접근 허용.
+   */
   static ApplicationStatus mapStatusFilter(String code) {
     if (code == null || "ALL".equalsIgnoreCase(code)) return null;
     try {
@@ -220,7 +227,11 @@ public class MyPageController {
     userService.withdraw(principal.getUsername());
     // 세션 + SecurityContext 정리
     new org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler()
-        .logout(request, response, org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication());
+        .logout(
+            request,
+            response,
+            org.springframework.security.core.context.SecurityContextHolder.getContext()
+                .getAuthentication());
     return "redirect:/login?withdraw";
   }
 

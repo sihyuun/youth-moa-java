@@ -13,8 +13,8 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * <p>정규화: 입력 phone 에서 숫자만 남김. 저장·조회·비교 모두 정규화된 값 기준.
  *
- * <p>Mock 모드({@code youthmoa.coolsms.enabled=false}) 에서는 발송 코드가 항상 {@code mock-fixed-code} (=123456)
- * 로 대체됨. verify 시 사용자가 어떤 임의 코드를 입력해도 mock 고정 코드가 저장돼 있으므로 "123456" 입력만 성공.
+ * <p>Mock 모드({@code youthmoa.coolsms.enabled=false}) 에서는 발송 코드가 항상 {@code mock-fixed-code}
+ * (=123456) 로 대체됨. verify 시 사용자가 어떤 임의 코드를 입력해도 mock 고정 코드가 저장돼 있으므로 "123456" 입력만 성공.
  */
 @Service
 @RequiredArgsConstructor

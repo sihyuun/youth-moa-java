@@ -84,8 +84,8 @@ public class DataInitializer implements ApplicationRunner {
   }
 
   /**
-   * P0-2: 관리자 계정 시드. 재기동 시 멱등 (existsByEmail 체크). 시스템관리자 1명 + 센터관리자 2명 (centers[0], centers[1]
-   * 매칭). center 시드 이후 실행되므로 centerRepository 조회 안전.
+   * P0-2: 관리자 계정 시드. 재기동 시 멱등 (existsByEmail 체크). 시스템관리자 1명 + 센터관리자 2명 (centers[0], centers[1] 매칭).
+   * center 시드 이후 실행되므로 centerRepository 조회 안전.
    */
   private void seedAdmins() {
     // 시스템 관리자
@@ -379,8 +379,7 @@ public class DataInitializer implements ApplicationRunner {
               "수원시", "시흥시", "안산시", "안성시", "안양시", "양주시", "양평군", "여주시", "오산시", "용인시", "의왕시", "의정부시",
               "이천시", "파주시", "평택시", "포천시", "하남시", "화성시");
       java.util.Set<String> featuredNames =
-          java.util.Set.of(
-              "수원시", "성남시", "고양시", "용인시", "부천시", "안양시", "안산시", "화성시", "남양주시", "평택시");
+          java.util.Set.of("수원시", "성남시", "고양시", "용인시", "부천시", "안양시", "안산시", "화성시", "남양주시", "평택시");
       List<Region> regions = new ArrayList<>();
       for (String name : regionNames) {
         regions.add(Region.builder().name(name).isFeatured(featuredNames.contains(name)).build());

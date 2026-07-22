@@ -55,8 +55,8 @@ class MyPageRenderTest {
   }
 
   /**
-   * 취소 모달은 hidden 상태로 렌더돼야 함 (CSS `:not([hidden])` 로 방어).
-   * U-COMMON-01: .mypage-modal → .modal-backdrop + .modal-card 공통 셸로 마이그레이션.
+   * 취소 모달은 hidden 상태로 렌더돼야 함 (CSS `:not([hidden])` 로 방어). U-COMMON-01: .mypage-modal →
+   * .modal-backdrop + .modal-card 공통 셸로 마이그레이션.
    */
   @Test
   void mypage_history_취소모달_초기_hidden() throws Exception {
@@ -74,7 +74,9 @@ class MyPageRenderTest {
             .andExpect(content().string(containsString("aria-hidden=\"true\" hidden")))
             // dead 클래스 미노출
             .andExpect(content().string(not(containsString("mypage-modal-inner"))))
-            .andReturn().getResponse().getContentAsString();
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
     assertThat(body).contains("aria-modal=\"true\"");
   }
 
@@ -118,9 +120,7 @@ class MyPageRenderTest {
   @Transactional
   void mypage_프로필_요약_뱃지_4개_이상_축약() throws Exception {
     User u = userRepository.findByEmail("seed2@youth-moa.test").orElseThrow();
-    u.updateInterests(
-        Set.of("수원시"),
-        Set.of("취업·역량", "창업", "심리·건강", "문화·예술", "주거")); // 5개
+    u.updateInterests(Set.of("수원시"), Set.of("취업·역량", "창업", "심리·건강", "문화·예술", "주거")); // 5개
     userRepository.saveAndFlush(u);
 
     String body =

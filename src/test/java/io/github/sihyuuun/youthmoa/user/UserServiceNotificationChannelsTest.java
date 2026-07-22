@@ -15,8 +15,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 /**
  * D5 알림 채널·항목 저장 UserService 단위 테스트.
  *
- * <p>회귀 방어 핵심: {@code NotificationChannelRequest} 의 항목 3필드(remindD1/waitlistEmpty/newProgramNews)
- * 를 부분 전송(누락)해도 기존 값이 파괴되지 않아야 한다 (Boolean nullable 계약).
+ * <p>회귀 방어 핵심: {@code NotificationChannelRequest} 의 항목 3필드(remindD1/waitlistEmpty/newProgramNews) 를
+ * 부분 전송(누락)해도 기존 값이 파괴되지 않아야 한다 (Boolean nullable 계약).
  */
 @ExtendWith(MockitoExtension.class)
 class UserServiceNotificationChannelsTest {
@@ -70,7 +70,8 @@ class UserServiceNotificationChannelsTest {
   @DisplayName("항목 필드 3개를 request 에서 누락하면 기존값 유지 (Boolean nullable 계약)")
   void 항목_필드_누락시_기존값_유지() {
     User u = seedUser();
-    // 시나리오: 사용자가 이전에 remindD1=true(default) / waitlistEmpty=true(default) / newProgramNews=false 로 저장됨.
+    // 시나리오: 사용자가 이전에 remindD1=true(default) / waitlistEmpty=true(default) / newProgramNews=false 로
+    // 저장됨.
     given(userRepository.findByEmail(any())).willReturn(Optional.of(u));
 
     NotificationChannelRequest req = new NotificationChannelRequest();

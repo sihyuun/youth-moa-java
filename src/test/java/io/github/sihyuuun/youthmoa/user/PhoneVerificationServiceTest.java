@@ -91,10 +91,13 @@ class PhoneVerificationServiceTest {
     service.sendCode("01011112222");
 
     // reissue 이후 attempts 0 · verified false 리셋 확인 (회귀 방어)
-    org.junit.jupiter.api.Assertions.assertEquals(0, existing.getAttempts(), "reissue 시 attempts 리셋");
+    org.junit.jupiter.api.Assertions.assertEquals(
+        0, existing.getAttempts(), "reissue 시 attempts 리셋");
     org.junit.jupiter.api.Assertions.assertFalse(existing.isVerified(), "reissue 시 verified 리셋");
     org.mockito.Mockito.verify(smsSender)
-        .send(org.mockito.ArgumentMatchers.eq("01011112222"), org.mockito.ArgumentMatchers.anyString());
+        .send(
+            org.mockito.ArgumentMatchers.eq("01011112222"),
+            org.mockito.ArgumentMatchers.anyString());
   }
 
   @Test

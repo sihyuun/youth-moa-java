@@ -39,9 +39,13 @@ public class WelcomeController {
     // HANDOFF §5.21 + prototype.html WELCOME_REGIONS_TOP/MORE:
     //   TOP 10 (isFeatured=true) 기본 노출 + MORE 20 (isFeatured=false) 더보기 토글로 노출.
     List<String> topRegions =
-        regionRepository.findAllByIsFeaturedTrueOrderByNameAsc().stream().map(Region::getName).toList();
+        regionRepository.findAllByIsFeaturedTrueOrderByNameAsc().stream()
+            .map(Region::getName)
+            .toList();
     List<String> moreRegions =
-        regionRepository.findAllByIsFeaturedFalseOrderByNameAsc().stream().map(Region::getName).toList();
+        regionRepository.findAllByIsFeaturedFalseOrderByNameAsc().stream()
+            .map(Region::getName)
+            .toList();
     model.addAttribute("welcomeRegionsTop", topRegions);
     model.addAttribute("welcomeRegionsMore", moreRegions);
     model.addAttribute("welcomeCategories", UserInterestCategory.ALL);
@@ -70,9 +74,8 @@ public class WelcomeController {
   /**
    * F-signup-03: signup 성공 후 자동 로그인. Spring Security 7 방식.
    *
-   * <p>절차: (1) 세션 고정 방어를 위해 changeSessionId, (2)
-   * UsernamePasswordAuthenticationToken.authenticated 로 토큰 생성, (3) SecurityContext 에 세팅, (4)
-   * SecurityContextRepository 로 세션 반영 (7.x 필수).
+   * <p>절차: (1) 세션 고정 방어를 위해 changeSessionId, (2) UsernamePasswordAuthenticationToken.authenticated
+   * 로 토큰 생성, (3) SecurityContext 에 세팅, (4) SecurityContextRepository 로 세션 반영 (7.x 필수).
    */
   public static void autoLogin(
       String email,

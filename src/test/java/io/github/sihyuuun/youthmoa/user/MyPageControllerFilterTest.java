@@ -72,8 +72,7 @@ class MyPageControllerFilterTest {
     LocalDateTime before = MyPageController.periodCutoff("3M");
     LocalDateTime now = LocalDateTime.now();
     // 90일 근사 (테스트 실행 지연 < 1초 가정)
-    assertThat(before)
-        .isCloseTo(now.minusDays(90), within(1, ChronoUnit.SECONDS));
+    assertThat(before).isCloseTo(now.minusDays(90), within(1, ChronoUnit.SECONDS));
   }
 
   // ─── mapStatusFilter ─────────────────────────────────────────────
@@ -100,22 +99,19 @@ class MyPageControllerFilterTest {
   @Test
   @DisplayName("mapStatusFilter: APPROVED → ApplicationStatus.APPROVED")
   void mapStatusFilter_APPROVED() {
-    assertThat(MyPageController.mapStatusFilter("APPROVED"))
-        .isEqualTo(ApplicationStatus.APPROVED);
+    assertThat(MyPageController.mapStatusFilter("APPROVED")).isEqualTo(ApplicationStatus.APPROVED);
   }
 
   @Test
   @DisplayName("mapStatusFilter: PENDING → ApplicationStatus.PENDING")
   void mapStatusFilter_PENDING() {
-    assertThat(MyPageController.mapStatusFilter("PENDING"))
-        .isEqualTo(ApplicationStatus.PENDING);
+    assertThat(MyPageController.mapStatusFilter("PENDING")).isEqualTo(ApplicationStatus.PENDING);
   }
 
   @Test
   @DisplayName("mapStatusFilter: REJECTED → ApplicationStatus.REJECTED")
   void mapStatusFilter_REJECTED() {
-    assertThat(MyPageController.mapStatusFilter("REJECTED"))
-        .isEqualTo(ApplicationStatus.REJECTED);
+    assertThat(MyPageController.mapStatusFilter("REJECTED")).isEqualTo(ApplicationStatus.REJECTED);
   }
 
   @Test
