@@ -34,7 +34,9 @@ dependencies {
 	implementation("com.opencsv:opencsv:5.9")
 	// F-signup-01: CoolSMS SDK — 실 SMS 발송용. youthmoa.coolsms.enabled=false 이면 MockSmsSender 사용.
 	implementation("net.nurigo:sdk:4.3.0")
-	// P0-1 Flyway (ADMIN-00 §4): ddl-auto: validate 전환 준비. baseline SQL 생성 전까지 spring.flyway.enabled=false 상태 유지.
+	// P0-1 Flyway (2026-07-22 활성화). Boot 4 는 flyway auto-config 를 별도 모듈로 분리 →
+	// spring-boot-flyway 필수. 없으면 flyway 의존성이 있어도 auto-config 미동작 (validate 시 missing table).
+	implementation("org.springframework.boot:spring-boot-flyway")
 	implementation("org.flywaydb:flyway-core")
 	runtimeOnly("org.flywaydb:flyway-database-postgresql")
 	// F0h-operating-hours-badge (spec §9-2): 한국 공휴일 판정.
