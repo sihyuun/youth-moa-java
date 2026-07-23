@@ -12,10 +12,7 @@ import org.springframework.context.annotation.Import;
  */
 @Import(TestcontainersConfiguration.class)
 @SpringBootTest(
-    properties = {
-      "spring.flyway.enabled=true",
-      "spring.jpa.hibernate.ddl-auto=validate"
-    })
+    properties = {"spring.flyway.enabled=true", "spring.jpa.hibernate.ddl-auto=validate"})
 class YouthMoaApplicationTests {
 
   @Test
