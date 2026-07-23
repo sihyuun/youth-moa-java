@@ -1,4 +1,5 @@
 import { test, expect, Page } from '@playwright/test';
+import { fillSignupAddress } from '../helpers';
 
 /**
  * 회원가입 (/signup) 시각·동작 자동화 검증.
@@ -77,8 +78,8 @@ test('서버 측 비밀번호 정책 위반 — 한 문장 통합', async ({ pag
     await page.locator('#phone').fill('01012345678');
     await page.locator('input[name="gender"][value="MALE"]').check({ force: true });
     await page.locator('#birthDateText').fill('1990-01-01');
-    // 우편번호 / 주소는 readonly 라 dummy 검색
-    await page.locator('button.signup-search-btn').click();
+    // 우편번호 / 주소는 readonly + Daum Postcode 모달 (PR #91) → JS 직접 주입
+    await fillSignupAddress(page);
     await page.locator('input[name="termsAgreed"]').check({ force: true });
     await page.locator('input[name="privacyAgreed"]').check({ force: true });
     // emailChecked 는 hidden 으로 default false → 위반 케이스 만들기 위해 그대로 두면
@@ -110,7 +111,7 @@ test('FormatCheck 그룹 내 다중 @AssertTrue 위반 모두 노출 (회귀)', 
     await page.locator('#phone').fill('01012345678');
     await page.locator('input[name="gender"][value="MALE"]').check({ force: true });
     await page.locator('#birthDateText').fill('1990-01-01');
-    await page.locator('button.signup-search-btn').click();
+    await fillSignupAddress(page);
     // 약관 미체크 / 중복확인 미실행
 
     await page.locator('button.signup-submit-btn').click();
@@ -131,7 +132,7 @@ test('중복확인 안 누르고 제출 — 안내 메시지 노출', async ({ p
     await page.locator('#phone').fill('01012345678');
     await page.locator('input[name="gender"][value="MALE"]').check({ force: true });
     await page.locator('#birthDateText').fill('1990-01-01');
-    await page.locator('button.signup-search-btn').click();
+    await fillSignupAddress(page);
     await page.locator('input[name="termsAgreed"]').check({ force: true });
     await page.locator('input[name="privacyAgreed"]').check({ force: true });
 

@@ -60,6 +60,30 @@ export async function applyNextStep(page: Page, expectStep: 2 | 3): Promise<void
 }
 
 /**
+ * 회원가입 주소 입력 헬퍼 (PR #91 Daum Postcode 연동 대응).
+ *
+ * signup 의 우편번호 검색 버튼은 Daum Postcode 외부 모달을 열도록 바뀌어
+ * E2E 에서 클릭으로는 주소를 채울 수 없다 (외부 도메인 + iframe 모달).
+ * 모달의 oncomplete 콜백이 하는 일과 동일하게 readonly zipcode/address 에
+ * 값을 직접 주입하고 input 이벤트를 발생시킨다.
+ * (readonly input 은 Playwright fill() 이 "not editable" 로 실패하므로 evaluate 사용)
+ */
+export async function fillSignupAddress(
+    page: Page,
+    zipcode: string = '12345',
+    address: string = '경기도 수원시 팔달구 정조로 123',
+): Promise<void> {
+    await page.evaluate(({ zipcode, address }) => {
+        const zip = document.getElementById('zipcode') as HTMLInputElement;
+        const addr = document.getElementById('address') as HTMLInputElement;
+        zip.value = zipcode;
+        addr.value = address;
+        zip.dispatchEvent(new Event('input', { bubbles: true }));
+        addr.dispatchEvent(new Event('input', { bubbles: true }));
+    }, { zipcode, address });
+}
+
+/**
  * HTMX 스크립트 로드 완료를 대기한다 (window.htmx 존재 확인).
  * HTMX 를 쓰는 페이지 (프로그램 목록 필터 등) 진입 직후 호출.
  */
