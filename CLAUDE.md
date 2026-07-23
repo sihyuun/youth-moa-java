@@ -418,13 +418,34 @@ io.github.sihyuuun.youthmoa/
 
 ---
 
-## DB / 마이그레이션 (현재 학습 단계)
+## DB / 마이그레이션 (Flyway — 2026-07-22 활성화)
 
-- `ddl-auto: update` (default, 2026-07-13 create-drop 에서 전환) — 재기동 시 스키마 유지 + 데이터 누적. signup 등 사용자 상호작용 검증 시 데이터 초기화 방지 목적.
-- `DataInitializer` 는 `existsByEmail` 등 idempotent 체크로 중복 시드 방지 → update 모드와 호환.
-- 파괴적 스키마 변경 (컬럼 삭제·타입 변경) 시 일시적으로 `JPA_DDL_AUTO=create-drop` 환경변수 override 후 재기동, 이후 다시 update 로 복귀.
-- e2e 프로파일 (`application-e2e.properties`) 은 자체 `ddl-auto: create-drop` 명시 → CI 회귀 없음.
-- **Flyway 는 P0-1 로 준비 완료** (`spring.flyway.enabled=false` 대기). `V1__baseline.sql` 생성 후 활성화 시 ddl-auto=validate 로 최종 전환.
+스키마의 진리 소스는 `src/main/resources/db/migration/V*.sql`. 엔티티는 스키마를 만들지 않으며 `ddl-auto: validate` 가 매핑·스키마 일치만 검사한다 (불일치 시 부팅 실패 = 조기 감지).
+
+### 스키마 변경 절차 (엔티티 수정 시 반드시 세트로)
+
+1. 엔티티 변경 + `V<N>__<snake_case_설명>.sql` 을 **같은 PR** 에 작성
+   - N = main 의 db/migration 최신 버전 + 1. 병렬 브랜치가 같은 N 을 선점했으면 rebase 후 번호 재부여
+   - 예: `V2__add_program_apply_period.sql`, `V3__create_daily_visit.sql`
+2. DDL 작성이 막히면 로컬 Docker PG 에 `JPA_DDL_AUTO=update FLYWAY_ENABLED=false` 로 1회 띄워 Hibernate 가 찍는 DDL 로그 참고
+3. 검증: `YouthMoaApplicationTests` (Testcontainers) 가 빈 PG 에 V1..VN 적용 + validate 를 매 PR 자동 수행
+4. **한 번 main 에 머지된 V 파일은 절대 수정 금지** — 적용된 환경에서 checksum mismatch 로 부팅 실패. 잘못됐으면 다음 번호의 새 V 파일로 정정
+5. 뷰·함수 등 재적용 가능 객체는 `R__<이름>.sql` (repeatable)
+
+### 프로파일별 스키마 소스
+
+| 경로 | DB | 스키마 소스 |
+|---|---|---|
+| bootRun (local/prod) | Supabase PG | Flyway (`validate`) |
+| Testcontainers 테스트 | PG 컨테이너 | Flyway (`validate`) — V 파일 실전 게이트 |
+| e2e 프로파일 / @DataJpaTest | H2 | Hibernate `create-drop` (Flyway off — V 파일은 PG 전용) |
+
+### 금지·주의
+
+- ❌ `JPA_DDL_AUTO=update` 로 Supabase 스키마 변경 (Flyway 이력 밖의 drift 발생)
+- ❌ Supabase SQL Editor 로 직접 DDL (동일 — 필요 시 V 파일로 작성 후 부팅으로 적용)
+- 시드 데이터는 계속 `DataInitializer` (멱등 체크) 담당. 마이그레이션은 스키마 전용
+- 활성화 이전 이력: `V1__baseline.sql` = 2026-07-22 시점 스냅샷, 기존 Supabase 는 baseline-version 1 로 스킵
 
 ---
 
