@@ -5,6 +5,19 @@ import { test, expect, Page } from '@playwright/test';
  * Java 단위 테스트로 잡기 어려운 form validation 메시지·실시간 JS·렌더링을 커버.
  */
 
+/**
+ * 성별 라디오 선택 헬퍼.
+ *
+ * 성별은 hidden radio + 시각 pill button 조합. 카드형 재디자인 (2026-07-20) 이후 폼이 길어져
+ * radio 요소가 초기 뷰포트 밖 → `.check({force:true})` 만 하면 "Element is outside of the viewport" 실패.
+ * 방어적으로 scrollIntoViewIfNeeded() 선행 후 check.
+ */
+async function selectGender(page: Page, value: 'MALE' | 'FEMALE'): Promise<void> {
+    const radio = page.locator(`input[name="gender"][value="${value}"]`);
+    await radio.scrollIntoViewIfNeeded();
+    await radio.check({ force: true });
+}
+
 /** form 의 모든 visible signup-field-error / alert-error 텍스트를 수집 */
 async function collectErrors(page: Page): Promise<string[]> {
     // submit 후 페이지 응답 완전 로딩 대기 (race condition 회피)
@@ -75,7 +88,7 @@ test('서버 측 비밀번호 정책 위반 — 한 문장 통합', async ({ pag
     await page.locator('#passwordConfirm').fill('abc');
     await page.locator('#name').fill('홍길동');
     await page.locator('#phone').fill('01012345678');
-    await page.locator('input[name="gender"][value="MALE"]').check({ force: true });
+    await selectGender(page, 'MALE');
     await page.locator('#birthDateText').fill('1990-01-01');
     // 우편번호 / 주소는 readonly 라 dummy 검색
     await page.locator('button.signup-search-btn').click();
@@ -108,7 +121,7 @@ test('FormatCheck 그룹 내 다중 @AssertTrue 위반 모두 노출 (회귀)', 
     await page.locator('#passwordConfirm').fill('Other999');   // 불일치
     await page.locator('#name').fill('홍길동');
     await page.locator('#phone').fill('01012345678');
-    await page.locator('input[name="gender"][value="MALE"]').check({ force: true });
+    await selectGender(page, 'MALE');
     await page.locator('#birthDateText').fill('1990-01-01');
     await page.locator('button.signup-search-btn').click();
     // 약관 미체크 / 중복확인 미실행
@@ -129,7 +142,7 @@ test('중복확인 안 누르고 제출 — 안내 메시지 노출', async ({ p
     await page.locator('#passwordConfirm').fill('Test1234');
     await page.locator('#name').fill('홍길동');
     await page.locator('#phone').fill('01012345678');
-    await page.locator('input[name="gender"][value="MALE"]').check({ force: true });
+    await selectGender(page, 'MALE');
     await page.locator('#birthDateText').fill('1990-01-01');
     await page.locator('button.signup-search-btn').click();
     await page.locator('input[name="termsAgreed"]').check({ force: true });

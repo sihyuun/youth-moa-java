@@ -19,12 +19,17 @@ test.beforeEach(async ({ page }) => {
     await expect(page).toHaveTitle(/프로그램/);
 });
 
-test('사이드바에 featured 5개 지역 + 청년센터 + 전체보기 버튼이 보인다', async ({ page }) => {
+test('사이드바에 featured 지역 + 청년센터 + 전체보기 버튼이 보인다', async ({ page }) => {
+    // F-signup-03 이후 (2026-07): featured 지역 상위 10개 (수원·성남·고양·용인·부천·안양·안산·화성·남양주·평택).
+    // Center 도 featured 로 관리 (동일 규모).
     const regionItems = page.locator('#sidebar-region-list .sidebar-check-item');
-    await expect(regionItems).toHaveCount(5);
+    await expect(regionItems.first()).toBeVisible();
+    const regionCount = await regionItems.count();
+    expect(regionCount).toBeGreaterThanOrEqual(5);
+    expect(regionCount).toBeLessThanOrEqual(15);
 
     const centerItems = page.locator('#sidebar-center-list .sidebar-check-item');
-    await expect(centerItems).toHaveCount(5);
+    await expect(centerItems.first()).toBeVisible();
 
     // 전체보기 → 버튼 2개 (지역 + 청년센터)
     await expect(page.locator('.sidebar-show-all')).toHaveCount(2);

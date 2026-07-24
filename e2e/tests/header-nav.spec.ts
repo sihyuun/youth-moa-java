@@ -39,7 +39,8 @@ test('로그인 후 헤더: 사용자 이름 + 드롭다운(마이페이지·로
     await expect(page.locator('.header-user-name')).toContainText('시드유저30');
     // 아바타는 첫 글자 ("시")
     await expect(page.locator('.header-avatar')).toContainText('시');
-    // 드롭다운 내용 (CSS 로 :hover/:focus-within 열림 — DOM 은 항상 존재)
+    // U-COMMON-02 (2026-07-16): 드롭다운은 click 토글 (hover 폐지). 초기 hidden 상태.
+    await page.locator('.header-user-trigger').click();
     await expect(page.locator('.header-user-dropdown a[href="/mypage"]')).toContainText('마이페이지');
     await expect(page.locator('form.header-dropdown-logout button')).toContainText('로그아웃');
     // 비인증 로그인 아이콘은 없어야 함
