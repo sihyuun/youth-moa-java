@@ -5,7 +5,76 @@ type: project
 originSessionId: 51da8e75-f7a2-4b05-b2b6-963ce41efb6a
 ---
 
-> **마지막 갱신**: 2026-07-20 (**F0f fix-1/3/4/5/6 5개 PR 전부 머지 완료** — 프로그램 상태 체계 개편 + 프로필/알림/회원가입 카드형 재디자인. 시각 검증만 남음).
+> **마지막 갱신**: 2026-07-24 (**5개 PR 연속 머지 완료** — 시각 갭 fix + Flyway 활성화 + Observability PR-1/2 + E2E 12건 청산. 남은: Observability PR-3 dashboard + 포트폴리오 큐).
+
+## 🟢 2026-07-22 ~ 2026-07-24 세션 — 5개 PR 연속 머지 (인프라 대전환)
+
+### 머지 완료 (main 순서)
+
+| PR | 커밋 | 스코프 |
+|---|---|---|
+| **#108** | `3d61a65` | F0f post-merge visual (프로토타입 갭 4건) + mypage 4탭 전면 재작업 |
+| **#109** | `1509d04` | **P0-1 Flyway 활성화** — baseline v1 + V2 알림 컬럼 + Boot 4 auto-config 대응 |
+| **#110** | `d165dbe` | **Observability PR-1** — Actuator 9091 분리 + Prometheus + Fly checks/metrics + buildInfo |
+| **#111** | `e3768ce` | **Observability PR-2** — 커스텀 메트릭 (신청 수·로그인 실패) + Counter 단위 테스트 |
+| **#112** | `5f6b1f5` | **E2E 12건 청산** — STATE.md 2026-07-13 명시 "E2E red 방치 마스킹" 청산. 65 tests / 0 failures 달성 |
+
+### 이번 세션 주요 학습·정착
+
+1. **Flyway 활성화 (2026-07-22)**
+   - Boot 4 는 `spring-boot-flyway` auto-config 모듈이 분리됨 (없으면 flyway 의존성 있어도 auto-config 미동작)
+   - pg_dump 17.10 이 `\restrict`/`\unrestrict` psql meta-command 자동 삽입 → V1 에서 수동 제거 필요
+   - baseline-version=1 로 기존 Supabase 는 V1 스킵, 빈 DB 는 V1 실행
+   - Supabase 실 baseline 검증 통과: 데이터 무손실 + 재기동 시 "Schema is up to date" 멱등
+   - PR #108 이후 추가된 컬럼(notify_remind_d1 등) 은 V2 로 정식 마이그레이션 (`ALTER TABLE ... IF NOT EXISTS`)
+
+2. **Observability 활성화 (2026-07-23~24)**
+   - management.server.port 별도 지정 시 Boot 이 servlet child ApplicationContext 를 생성 → **render 통합 테스트에서 Thymeleaf 리졸버 미상속** → template not found
+   - 해결: `src/test/resources/application.properties` 에 `management.server.port=-1` (management 서버 비활성화)
+   - Actuator 자체 테스트는 opt-in: `@SpringBootTest(properties="management.server.port=0")`
+   - `Counter.builder("youthmoa.application.submitted").register(registry)` 로 도메인 메트릭 등록
+   - `AbstractAuthenticationFailureEvent` @EventListener 로 SecurityConfig 무수정 로그인 실패 카운터
+
+3. **E2E 12건 청산 원인 (앱 코드 문제 아님, 테스트 스크립트가 옛 markup 참조)**
+   - hover→click (U-COMMON-02 2026-07-16): notification-bell 4 + header-nav + login 로그아웃
+   - CapacityBar 재작성 (PR #90): `.detail-capacity-bar-fill` → `.capacity-bar-fill`, 카운트 컨테이너 클래스명 변경
+   - CLOSED → ENDED enum 리네임 (PR #107): "빈자리 알림 받기 disabled" → "비슷한 프로그램 보기 outline anchor"
+   - featured 시드 확장 (F-signup-03): 5개 → 10개
+   - signup 카드형 재디자인 (PR #105): gender radio 가 display:none → `.signup-gender-pill[data-value]` 시각 button click 으로 대체
+   - Daum Postcode 실 모달 (PR #91): E2E 는 readonly 우회하여 zipcode/address 값 직접 세팅
+
+### 다른 PC 재개 절차 (2026-07-24 기준)
+
+```bash
+cd ~/IdeaProjects/youth-moa-java
+git fetch origin
+git checkout main && git pull
+git worktree list  # 회사 PC 잔여 worktree 잠금 여부 확인
+git log --oneline -6  # 5f6b1f5 이후 커밋 확인
+```
+
+**환경변수 (Mac 개인 PC)**:
+```bash
+export DATABASE_URL="jdbc:postgresql://aws-1-ap-northeast-2.pooler.supabase.com:5432/postgres"
+export DATABASE_USERNAME="postgres.jlurjcmwlmcwaucxohkk"
+export DATABASE_PASSWORD="<노트북 비밀번호 관리자>"
+# Actuator (선택): MANAGEMENT_PORT=9091 default
+```
+
+**첫 기동 시 Supabase**: 이번 세션에서 이미 Flyway V1 baseline + V2 완료됨 → 아무 조치 없이 `./gradlew bootRun` 실행 시 "Schema is up to date. No migration necessary." 로그 확인.
+
+**남은 우선 작업 큐**:
+1. **Observability PR-3** `docs/observability-dashboard` — 로컬 docker-compose (prometheus+grafana) + provisioning + 대시보드 JSON (JVM community 4701 + youthmoa 커스텀: 신청·로그인실패 패널). spec `docs/specs/chore-observability.md` §6 상세.
+2. **fix-6 후속 개선 잔여** — `.form-*` vs `.signup-*` 완전 통일 (이번 세션 커밋 `e04e3c5` 로 이미 대부분 완료. 확인만)
+3. **포트폴리오 큐 남은 spec** (`docs/spec-queue-portfolio` 브랜치 5개): chore-caching-loadtest · feature-oauth2-kakao · feature-F2c-sse-notifications · ADMIN-01-approval-cycle-and-upload · (그 외)
+4. **Q8 Supabase drift diff** — 정보성. Supabase pg_dump vs V1 비교로 update 시대 잔여 죽은 컬럼 문서화 (선택)
+5. **admin 트랙 착수** — Flyway·Security(P0-2 CSRF 확인) 선행 완료 상태. A1 shell 부터 가능
+
+**참고 파일**:
+- `docs/STATE.md` — 이 메모리와 동기화된 repo 미러 (원격 루틴용)
+- `docs/specs/chore-observability.md` — PR-1·PR-2 impl_done, PR-3 미착수
+- `docs/specs/chore-flyway-activation.md` — impl_done
+- `CLAUDE.md` — "작업 착수 전 프로토타입 시각 대조" 규칙 신설 (2026-07-22)
 
 ## 🟢 2026-07-20 세션 — F0f fix 5개 PR 병렬 개발·검증·머지 완료
 
