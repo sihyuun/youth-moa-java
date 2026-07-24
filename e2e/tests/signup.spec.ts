@@ -18,6 +18,26 @@ async function selectGender(page: Page, value: 'MALE' | 'FEMALE'): Promise<void>
     await pill.click();
 }
 
+/**
+ * 주소 필드 강제 채우기 (Daum Postcode 실 모달 우회).
+ *
+ * zipcode·address 는 readonly 라 fill() 불가. 실 사용자는 검색 팝업으로 채우지만 E2E 는 Daum 실서비스에 의존 불가.
+ * value 직접 세팅 + input 이벤트로 Thymeleaf 폼 바인딩 트리거.
+ */
+async function fillDummyAddress(page: Page): Promise<void> {
+    await page.evaluate(() => {
+        const set = (id: string, v: string) => {
+            const el = document.getElementById(id) as HTMLInputElement;
+            if (!el) return;
+            el.removeAttribute('readonly');
+            el.value = v;
+            el.dispatchEvent(new Event('input', { bubbles: true }));
+        };
+        set('zipcode', '00000');
+        set('address', '테스트 주소');
+    });
+}
+
 /** form 의 모든 visible signup-field-error / alert-error 텍스트를 수집 */
 async function collectErrors(page: Page): Promise<string[]> {
     // submit 후 페이지 응답 완전 로딩 대기 (race condition 회피)
@@ -91,7 +111,7 @@ test('서버 측 비밀번호 정책 위반 — 한 문장 통합', async ({ pag
     await selectGender(page, 'MALE');
     await page.locator('#birthDateText').fill('1990-01-01');
     // 우편번호 / 주소는 readonly 라 dummy 검색
-    await page.locator('button.signup-search-btn').click();
+    await fillDummyAddress(page);
     await page.locator('input[name="termsAgreed"]').check({ force: true });
     await page.locator('input[name="privacyAgreed"]').check({ force: true });
     // emailChecked 는 hidden 으로 default false → 위반 케이스 만들기 위해 그대로 두면
@@ -123,7 +143,7 @@ test('FormatCheck 그룹 내 다중 @AssertTrue 위반 모두 노출 (회귀)', 
     await page.locator('#phone').fill('01012345678');
     await selectGender(page, 'MALE');
     await page.locator('#birthDateText').fill('1990-01-01');
-    await page.locator('button.signup-search-btn').click();
+    await fillDummyAddress(page);
     // 약관 미체크 / 중복확인 미실행
 
     await page.locator('button.signup-submit-btn').click();
@@ -144,7 +164,7 @@ test('중복확인 안 누르고 제출 — 안내 메시지 노출', async ({ p
     await page.locator('#phone').fill('01012345678');
     await selectGender(page, 'MALE');
     await page.locator('#birthDateText').fill('1990-01-01');
-    await page.locator('button.signup-search-btn').click();
+    await fillDummyAddress(page);
     await page.locator('input[name="termsAgreed"]').check({ force: true });
     await page.locator('input[name="privacyAgreed"]').check({ force: true });
 
