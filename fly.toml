@@ -36,3 +36,23 @@ primary_region = "nrt"  # Tokyo — 서울(icn) 리전이 열리면 변경
   memory = "512mb"
   cpu_kind = "shared"
   cpus = 1
+
+# chore-observability (2026-07-23): Actuator 9091 포트 Fly 연동.
+# - [metrics]: Fly 관리형 Prometheus 가 호스트 내부에서 /actuator/prometheus scrape.
+#              8080 public 라우팅과 별개 → 무방비 노출 없음.
+# - [checks]: Actuator health 를 Fly health check 로 연결. DB 커넥션 포함 판정.
+# - grace_period 60s: JVM 기동 + Hibernate 초기화 (shared-cpu 512mb 감안).
+# - Fly 의 check·scrape 는 로컬 agent 발신이라 auto_stop_machines 절전 트리거 안 함.
+[metrics]
+  port = 9091
+  path = "/actuator/prometheus"
+
+[checks]
+  [checks.actuator_health]
+    type = "http"
+    port = 9091
+    path = "/actuator/health"
+    method = "GET"
+    interval = "30s"
+    timeout = "5s"
+    grace_period = "60s"

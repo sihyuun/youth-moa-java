@@ -49,6 +49,27 @@ server:
   error:
     include-message: always
 
+# chore-observability (2026-07-23): Actuator 별도 포트.
+# - 공개 포트 8080 에는 /actuator/** 라우팅 자체가 없음 (별도 포트라 무방비 노출 구조적 차단).
+# - Fly 내장 스크레이퍼 및 로컬 Prometheus 는 호스트 내부에서 9091 접근.
+# - 노출 엔드포인트: health / prometheus / metrics / info (env·beans·heapdump 등은 미노출 = Actuator 기본).
+# - health.show-details=when_authorized: 공개 포트 노출 안 하지만 안전한 기본값 유지.
+# - percentiles-histogram: HTTP 요청 시간 히스토그램 노출 (Grafana p95 계산용).
+management:
+  server:
+    port: ${MANAGEMENT_PORT:9091}
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus,metrics,info
+  endpoint:
+    health:
+      show-details: when_authorized
+  metrics:
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+
 # Spring Security remember-me (PersistentToken) 설정
 # - key: hash 에 사용되는 서버 secret. 운영 시 반드시 환경변수로 분리.
 # - 학습 단계 default 는 dev-only.
