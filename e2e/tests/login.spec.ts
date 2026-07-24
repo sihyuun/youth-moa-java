@@ -40,9 +40,8 @@ test('잘못된 비밀번호 로그인 시 /login?error 로 이동하고 usernam
 test('로그아웃 시 /login?logout 로 이동하고 성공 alert 문구가 뜬다', async ({ page }) => {
     await fillLogin(page, SEED_USER, SEED_PASS);
     await page.waitForURL('/');
-    // 헤더 드롭다운은 CSS :hover/:focus-within 으로 열림 (visibility:hidden 기본).
-    // force:true click 은 form submission 을 안정적으로 트리거 못 함 → hover 로 실제 노출 후 click.
-    await page.locator('.header-user-menu').hover();
+    // U-COMMON-02 (2026-07-16): hover → click 토글로 변경. 트리거 클릭 후 form 버튼 click.
+    await page.locator('.header-user-trigger').click();
     await page.locator('form.header-dropdown-logout button[type="submit"]').click();
     await page.waitForURL(/\/login\?logout/);
     await expect(page.locator('.alert.alert-success')).toContainText('로그아웃되었습니다');

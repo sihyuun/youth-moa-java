@@ -33,24 +33,27 @@ test('프로그램 상세 기본 렌더 — 타이틀·상태 뱃지·기관·�
 
 test('CapacityBar 가 신청 비율에 맞는 width 로 채워진다 (id=1, 28/30 ≈ 93%)', async ({ page }) => {
     await gotoDetail(page, 1);
-    const fill = page.locator('.detail-capacity-bar-fill');
+    // #90 CapacityBar 개편 (2026-07-13): 클래스명 detail-capacity-bar-fill → capacity-bar-fill,
+    // 카운트 표시 컨테이너는 .detail-capacity-count (28/30).
+    const fill = page.locator('.capacity-bar-fill');
     await expect(fill).toBeVisible();
     const style = await fill.getAttribute('style');
     // width 는 정수 % 로 렌더 (문자열 매칭)
     expect(style).toMatch(/width:\s*9[0-9]%/);
-    // 화면 우측 상단의 신청/정원 표기도 확인
-    await expect(page.locator('.detail-capacity')).toContainText('28');
-    await expect(page.locator('.detail-capacity')).toContainText('30');
+    // 신청/정원 표기 (.detail-capacity-count 안에 <strong>28</strong> · <span>30</span>)
+    const count = page.locator('.detail-capacity-count');
+    await expect(count).toContainText('28');
+    await expect(count).toContainText('30');
 });
 
-test('CLOSED 프로그램(id=4) 은 신청 CTA 가 사라지고 "빈자리 알림 받기" 가 disabled 로 노출된다', async ({ page }) => {
+test('ENDED 프로그램(id=4) 은 "비슷한 프로그램 보기" outline anchor 로 대체된다', async ({ page }) => {
     await gotoDetail(page, 4);
-    // ACTIVE 신청 CTA (a.btn-primary.detail-cta) 는 없어야 함
-    await expect(page.locator('a.detail-cta')).toHaveCount(0);
-    const closedBtn = page.locator('button.detail-cta');
-    await expect(closedBtn).toBeVisible();
-    await expect(closedBtn).toContainText('빈자리 알림 받기');
-    await expect(closedBtn).toBeDisabled();
-    // 상태 카드 클래스 확인
-    await expect(page.locator('.detail-status-card--closed')).toBeVisible();
+    // F0f-fix-3 (2026-07-20 PR #107): CLOSED → ENDED enum 리네임 + 종료 CTA 개편.
+    // 신청 button 대신 outline anchor 로 프로그램 목록 유도.
+    const cta = page.locator('a.btn-outline-primary.detail-cta');
+    await expect(cta).toBeVisible();
+    await expect(cta).toContainText('비슷한 프로그램 보기');
+    await expect(cta).toHaveAttribute('href', /\/programs/);
+    // 신청 button 은 없어야 함
+    await expect(page.locator('button.detail-cta')).toHaveCount(0);
 });

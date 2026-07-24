@@ -34,9 +34,10 @@ test('로그인 시 헤더에 종 + unread dot 이 노출된다', async ({ page 
     await expect(page.locator(HEADER_DOT_SELECTOR)).toBeVisible();
 });
 
-test('종 hover 시 드롭다운 열리고 4건 알림 + unread 뱃지 렌더', async ({ page }) => {
+test('종 클릭 시 드롭다운 열리고 4건 알림 + unread 뱃지 렌더', async ({ page }) => {
     await login(page, USER_EMAIL);
-    await page.locator('.header-bell-menu').hover();
+    // U-COMMON-02 (2026-07-16): hover → click 토글로 변경됨.
+    await page.locator('.header-bell-trigger').click();
 
     await expect(page.locator('.notif-panel')).toBeVisible();
     await expect(page.locator('.notif-panel-badge').first()).toContainText('4');
@@ -45,7 +46,8 @@ test('종 hover 시 드롭다운 열리고 4건 알림 + unread 뱃지 렌더', 
 
 test('알림 항목 각각에 title · message · link 가 렌더된다', async ({ page }) => {
     await login(page, USER_EMAIL);
-    await page.locator('.header-bell-menu').hover();
+    // U-COMMON-02 (2026-07-16): hover → click 토글로 변경됨.
+    await page.locator('.header-bell-trigger').click();
     await expect(page.locator('.notif-panel')).toBeVisible();
 
     // toContainText 는 auto-wait 지원 (innerText 는 visibility:hidden 상태 시 빈 문자열 반환)
@@ -58,7 +60,8 @@ test('알림 항목 각각에 title · message · link 가 렌더된다', async 
 
 test('"모두 읽음" 클릭 시 HTMX OOB swap 으로 헤더 dot 이 사라진다', async ({ page }) => {
     await login(page, USER_EMAIL);
-    await page.locator('.header-bell-menu').hover();
+    // U-COMMON-02 (2026-07-16): hover → click 토글로 변경됨.
+    await page.locator('.header-bell-trigger').click();
     await expect(page.locator('.notif-panel')).toBeVisible();
 
     // 초기 헤더 dot 존재 확인
@@ -75,7 +78,8 @@ test('"모두 읽음" 클릭 시 HTMX OOB swap 으로 헤더 dot 이 사라진�
 
 test('알림 전체보기 링크 → /notifications 페이지 (인증 필요)', async ({ page }) => {
     await login(page, USER_EMAIL);
-    await page.locator('.header-bell-menu').hover();
+    // U-COMMON-02 (2026-07-16): hover → click 토글로 변경됨.
+    await page.locator('.header-bell-trigger').click();
     await expect(page.locator('.notif-panel')).toBeVisible();
     await page.locator('.notif-panel-footer').click();
     await page.waitForURL('/notifications');
