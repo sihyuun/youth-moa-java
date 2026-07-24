@@ -8,14 +8,14 @@ import { test, expect, Page } from '@playwright/test';
 /**
  * 성별 라디오 선택 헬퍼.
  *
- * 성별은 hidden radio + 시각 pill button 조합. 카드형 재디자인 (2026-07-20) 이후 폼이 길어져
- * radio 요소가 초기 뷰포트 밖 → `.check({force:true})` 만 하면 "Element is outside of the viewport" 실패.
- * 방어적으로 scrollIntoViewIfNeeded() 선행 후 check.
+ * 성별은 hidden radio (display:none) + 시각 pill button 조합. 카드형 재디자인 (2026-07-20) 이후
+ * radio 는 완전히 숨겨져 `check({force:true})` 도 "Element is outside of the viewport" 실패.
+ * 시각 pill button 을 클릭하면 JS handler 가 hidden radio 값을 세팅 → 서버 폼 바인딩 정상 동작.
  */
 async function selectGender(page: Page, value: 'MALE' | 'FEMALE'): Promise<void> {
-    const radio = page.locator(`input[name="gender"][value="${value}"]`);
-    await radio.scrollIntoViewIfNeeded();
-    await radio.check({ force: true });
+    const pill = page.locator(`.signup-gender-pill[data-value="${value}"]`);
+    await pill.scrollIntoViewIfNeeded();
+    await pill.click();
 }
 
 /** form 의 모든 visible signup-field-error / alert-error 텍스트를 수집 */

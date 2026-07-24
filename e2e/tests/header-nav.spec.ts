@@ -40,8 +40,11 @@ test('로그인 후 헤더: 사용자 이름 + 드롭다운(마이페이지·로
     // 아바타는 첫 글자 ("시")
     await expect(page.locator('.header-avatar')).toContainText('시');
     // U-COMMON-02 (2026-07-16): 드롭다운은 click 토글 (hover 폐지). 초기 hidden 상태.
+    // D2 A안 재디자인: "마이페이지" 텍스트 링크가 아닌 [프로필 카드(아바타+이름+이메일)+chevron] 통째로 /mypage 클릭 대상.
     await page.locator('.header-user-trigger').click();
-    await expect(page.locator('.header-user-dropdown a[href="/mypage"]')).toContainText('마이페이지');
+    // 프로필 카드가 /mypage 앵커로 노출됨
+    await expect(page.locator('.header-user-dropdown a.header-dropdown-profile[href="/mypage"]')).toBeVisible();
+    // 로그아웃 버튼
     await expect(page.locator('form.header-dropdown-logout button')).toContainText('로그아웃');
     // 비인증 로그인 아이콘은 없어야 함
     await expect(page.locator('a.header-icon-btn--primary[href="/login"]')).toHaveCount(0);
