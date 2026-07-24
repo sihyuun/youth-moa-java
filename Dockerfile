@@ -27,7 +27,10 @@ USER appuser
 COPY --from=builder /workspace/build/libs/*.jar app.jar
 
 # 포트 노출 (Fly.io 의 내부 포트 — fly.toml 의 internal_port 와 일치)
-EXPOSE 8080
+# - 8080: 공개 HTTP (사용자 트래픽, http_service 라우팅 대상)
+# - 9091: management/Actuator (Fly 내장 metrics·checks 만 접근, 공개 라우팅 없음)
+# EXPOSE 는 Fly 가 참조하지 않지만 문서화 목적으로 명시.
+EXPOSE 8080 9091
 
 # Spring 프로파일·포트 환경변수로 주입 가능
 ENTRYPOINT ["java", \

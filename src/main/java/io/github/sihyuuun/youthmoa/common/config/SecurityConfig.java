@@ -101,6 +101,11 @@ public class SecurityConfig {
                         // Spring 이 ResponseStatusException 등을 내부 forward → /error 로 dispatch.
                         // 비인증 URL 에서 404 등을 던질 때 /error 가 다시 로그인 리다이렉트 되지 않도록 허용.
                         "/error",
+                        // chore-observability (2026-07-23): Actuator 는 별도 포트 9091 로 노출됨.
+                        // 8080 공개 포트엔 /actuator/** 라우팅 자체가 없어 permit 여부 무관하나,
+                        // Boot 4 auto-config 가 management 컨텍스트에도 동일 SecurityFilterChain 을 참조하므로
+                        // 매처를 추가해두면 9091 접근 시 인증 없이 통과. 무방비 노출 위험은 포트 분리로 차단.
+                        "/actuator/**",
                         "/css/**",
                         "/js/**",
                         "/images/**",

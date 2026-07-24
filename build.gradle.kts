@@ -39,6 +39,12 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-flyway")
 	implementation("org.flywaydb:flyway-core")
 	runtimeOnly("org.flywaydb:flyway-database-postgresql")
+	// chore-observability (2026-07-23): Actuator + Micrometer + Prometheus.
+	// - actuator: 내부 상태를 HTTP 엔드포인트로 노출 (health/prometheus/metrics/info).
+	// - micrometer-registry-prometheus: Prometheus scrape 포맷 어댑터.
+	// 접근 제어는 별도 management 포트 9091 (application.yml). 8080 공개 포트엔 /actuator/** 미노출.
+	implementation("org.springframework.boot:spring-boot-starter-actuator")
+	runtimeOnly("io.micrometer:micrometer-registry-prometheus")
 	// F0h-operating-hours-badge (spec §9-2): 한국 공휴일 판정.
 	// 초기 impl 은 하드코딩 KoreanHolidayRegistry (2026·2027 공휴일 리스트) 로 진행.
 	// jollyday 라이브러리 정확한 Maven 좌표 확인 후 별도 티켓에서 전환 예정.
@@ -142,4 +148,11 @@ spotless {
 		// 생성 파일 제외
 		targetExclude("build/**")
 	}
+}
+
+// chore-observability Q7: /actuator/info 에 빌드 정보 (버전 · 빌드시각 · Git 커밋) 노출.
+// META-INF/build-info.properties 파일이 자동 생성되며, InfoContributor 가 이를 읽어 응답에 포함.
+// 비공개 management 포트(9091) 노출이라 커밋 SHA 유출 위험 낮음.
+springBoot {
+	buildInfo()
 }
