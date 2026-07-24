@@ -8,6 +8,9 @@ import io.github.sihyuuun.youthmoa.program.ProgramRepository;
 import io.github.sihyuuun.youthmoa.program.ProgramStatus;
 import io.github.sihyuuun.youthmoa.user.User;
 import io.github.sihyuuun.youthmoa.user.UserRepository;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+import jakarta.annotation.PostConstruct;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
@@ -22,6 +25,26 @@ public class ApplicationService {
   private final ApplicationRepository applicationRepository;
   private final ProgramRepository programRepository;
   private final UserRepository userRepository;
+
+  /**
+   * chore-observability PR-2: 신청 성공 지표.
+   *
+   * <p>Micrometer 이름 {@code youthmoa.application.submitted} → Prometheus 노출 이름 {@code
+   * youthmoa_application_submitted_total} (Counter 는 자동 {@code _total} 접미사).
+   *
+   * <p>태그 없음 — programId 나 category 태그는 카디널리티 폭발 위험. 필요 시 후속 티켓에서 상한 있는 태그만 추가.
+   */
+  private final MeterRegistry meterRegistry;
+
+  private Counter applicationSubmittedCounter;
+
+  @PostConstruct
+  void initMetrics() {
+    this.applicationSubmittedCounter =
+        Counter.builder("youthmoa.application.submitted")
+            .description("프로그램 신청 성공 누적 건수 (재신청·PENDING 복귀 포함)")
+            .register(meterRegistry);
+  }
 
   /**
    * Spring 표준 도메인 이벤트 퍼블리셔.
@@ -68,6 +91,7 @@ public class ApplicationService {
         case REJECTED -> throw new IllegalStateException("이미 반려된 신청이 있어 다시 신청할 수 없습니다.");
         case CANCELLED -> {
           app.reapply(request.getApplyReason());
+          applicationSubmittedCounter.increment();
           return app;
         }
       }
@@ -79,7 +103,9 @@ public class ApplicationService {
             .program(program)
             .applyReason(request.getApplyReason())
             .build();
-    return applicationRepository.save(application);
+    Application saved = applicationRepository.save(application);
+    applicationSubmittedCounter.increment();
+    return saved;
   }
 
   /**

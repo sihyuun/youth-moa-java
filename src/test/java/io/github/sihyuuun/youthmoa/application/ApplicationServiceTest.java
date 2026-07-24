@@ -9,6 +9,8 @@ import io.github.sihyuuun.youthmoa.program.ProgramRepository;
 import io.github.sihyuuun.youthmoa.user.User;
 import io.github.sihyuuun.youthmoa.user.UserRepository;
 import io.github.sihyuuun.youthmoa.user.UserRole;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.time.LocalDate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -16,12 +18,27 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 
 @DataJpaTest
 @AutoConfigureTestDatabase
-@Import({JpaConfig.class, ApplicationService.class})
+@Import({JpaConfig.class, ApplicationService.class, ApplicationServiceTest.MeterConfig.class})
 class ApplicationServiceTest {
+
+  /**
+   * @DataJpaTest slice 는 Actuator 를 포함하지 않으므로 MeterRegistry 를 직접 주입.
+   */
+  @TestConfiguration
+  static class MeterConfig {
+    @Bean
+    MeterRegistry meterRegistry() {
+      return new SimpleMeterRegistry();
+    }
+  }
+
+  @Autowired MeterRegistry meterRegistry;
 
   @Autowired ApplicationService applicationService;
   @Autowired ApplicationRepository applicationRepository;
@@ -108,8 +125,10 @@ class ApplicationServiceTest {
   }
 
   @Test
-  @DisplayName("정상 신청 시 PENDING 상태의 Application 이 저장된다")
+  @DisplayName("정상 신청 시 PENDING 상태의 Application 이 저장된다 + 메트릭 카운터 1 증가")
   void apply_success() {
+    double before = meterRegistry.counter("youthmoa.application.submitted").count();
+
     Application saved =
         applicationService.apply(
             user.getEmail(), activeProgram.getId(), request("취업역량 강화를 위해 꼭 참여하고 싶습니다."));
@@ -119,6 +138,23 @@ class ApplicationServiceTest {
     assertThat(saved.getApplyReason()).startsWith("취업역량");
     assertThat(saved.getAppliedAt()).isNotNull();
     assertThat(applicationRepository.count()).isEqualTo(1);
+    // chore-observability PR-2: 성공 시 metric 증가 검증
+    assertThat(meterRegistry.counter("youthmoa.application.submitted").count())
+        .isEqualTo(before + 1);
+  }
+
+  @Test
+  @DisplayName("apply 실패 (upcoming/closed/inactive) 시 metric 미증가")
+  void apply_failure_does_not_increment_metric() {
+    double before = meterRegistry.counter("youthmoa.application.submitted").count();
+
+    assertThatThrownBy(
+            () ->
+                applicationService.apply(
+                    user.getEmail(), upcomingProgram.getId(), request("upcoming 신청 시도입니다.")))
+        .isInstanceOf(IllegalStateException.class);
+
+    assertThat(meterRegistry.counter("youthmoa.application.submitted").count()).isEqualTo(before);
   }
 
   @Test
