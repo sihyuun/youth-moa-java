@@ -1,0 +1,166 @@
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e3]:
+      - link "청년모아" [ref=e5] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e6]: 청년모아
+      - navigation [ref=e7]:
+        - link "프로그램" [ref=e8] [cursor=pointer]:
+          - /url: /programs
+        - link "청년센터" [ref=e9] [cursor=pointer]:
+          - /url: /centers
+        - link "공지사항" [ref=e10] [cursor=pointer]:
+          - /url: /notices
+      - generic [ref=e11]:
+        - link "검색" [ref=e12] [cursor=pointer]:
+          - /url: /search
+          - img [ref=e13]
+        - link "로그인" [ref=e16] [cursor=pointer]:
+          - /url: /login
+          - img [ref=e17]
+  - main [ref=e19]:
+    - generic [ref=e27]:
+      - generic [ref=e28]: 경기도 청년 통합 플랫폼
+      - heading "청년의 모든 기회를 한곳에서" [level=1] [ref=e29]:
+        - text: 청년의 모든 기회를
+        - text: 한곳에서
+      - paragraph [ref=e30]: 프로그램·공간·정책을 청년모아에서 만나보세요
+      - generic [ref=e31]:
+        - textbox "관심 있는 프로그램을 검색해보세요" [ref=e32]
+        - button "검색" [ref=e33] [cursor=pointer]
+      - generic [ref=e34]:
+        - generic [ref=e35]: "#취업역량"
+        - generic [ref=e36]: "#창업지원"
+        - generic [ref=e37]: "#마음건강"
+    - generic [ref=e38]:
+      - generic [ref=e39]:
+        - generic [ref=e40]: ✓
+        - generic [ref=e41]:
+          - generic [ref=e42]: "9"
+          - generic [ref=e43]: 모집중 프로그램
+      - generic [ref=e44]:
+        - generic [ref=e45]: ✓
+        - generic [ref=e46]:
+          - generic [ref=e47]: "48"
+          - generic [ref=e48]: 참여 청년센터
+      - generic [ref=e49]:
+        - generic [ref=e50]: ✓
+        - generic [ref=e51]:
+          - generic [ref=e52]: "28"
+          - generic [ref=e53]: 누적 참여자
+    - generic [ref=e54]:
+      - generic [ref=e55]:
+        - generic [ref=e56]:
+          - generic [ref=e57]: 프로그램
+          - generic [ref=e58]: 진행중인 프로그램을 소개해드려요
+        - link "전체보기" [ref=e59] [cursor=pointer]:
+          - /url: /programs
+      - generic [ref=e60]:
+        - link "마감 자소서 첨삭 카페 취업지원센터 2026-04-28~06-27 모집 마감 100%" [ref=e61] [cursor=pointer]:
+          - /url: /programs/10
+          - generic [ref=e63]: 마감
+          - generic [ref=e64]:
+            - generic [ref=e65]: 자소서 첨삭 카페
+            - generic [ref=e66]: 취업지원센터
+            - generic [ref=e67]: 2026-04-28~06-27
+            - generic [ref=e69]:
+              - generic [ref=e70]: 모집 마감
+              - generic [ref=e71]: 100%
+        - link "마감 디지털 마케팅 실전반 원미청(년)정(점)구역 2026-06-27~07-22 모집 마감 100%" [ref=e74] [cursor=pointer]:
+          - /url: /programs/4
+          - generic [ref=e76]: 마감
+          - generic [ref=e77]:
+            - generic [ref=e78]: 디지털 마케팅 실전반
+            - generic [ref=e79]: 원미청(년)정(점)구역
+            - generic [ref=e80]: 2026-06-27~07-22
+            - generic [ref=e82]:
+              - generic [ref=e83]: 모집 마감
+              - generic [ref=e84]: 100%
+        - link "D-2 청년 네트워킹 데이 오산청년일자리지원센터 이루잡 2026-07-26~07-29 정원 0/60명 0%" [ref=e87] [cursor=pointer]:
+          - /url: /programs/8
+          - generic [ref=e89]: D-2
+          - generic [ref=e90]:
+            - generic [ref=e91]: 청년 네트워킹 데이
+            - generic [ref=e92]: 오산청년일자리지원센터 이루잡
+            - generic [ref=e93]: 2026-07-26~07-29
+            - generic [ref=e95]:
+              - generic [ref=e96]: 정원 0/60명
+              - generic [ref=e97]: 0%
+        - link "D-3 취업역량 강화 워크숍 내일스퀘어 양평 2026-07-17~07-30 정원 28/30명 93%" [ref=e99] [cursor=pointer]:
+          - /url: /programs/1
+          - generic [ref=e101]: D-3
+          - generic [ref=e102]:
+            - generic [ref=e103]: 취업역량 강화 워크숍
+            - generic [ref=e104]: 내일스퀘어 양평
+            - generic [ref=e105]: 2026-07-17~07-30
+            - generic [ref=e107]:
+              - generic [ref=e108]: 정원 28/30명
+              - generic [ref=e109]: 93%
+    - generic [ref=e113]:
+      - generic [ref=e114]:
+        - generic [ref=e115]:
+          - generic [ref=e116]: 공지사항
+          - generic [ref=e117]: 청년센터 소식을 전해드려요
+        - link "전체보기" [ref=e118] [cursor=pointer]:
+          - /url: /notices
+      - generic [ref=e119]:
+        - link "📌 주요 2026년 상반기 청년센터 운영 방침 2026.07.27 · 조회 0" [ref=e120] [cursor=pointer]:
+          - /url: /notices
+          - generic [ref=e123]:
+            - generic [ref=e124]: 📌 주요
+            - generic [ref=e125]: 2026년 상반기 청년센터 운영 방침
+            - generic [ref=e126]: 2026.07.27 · 조회 0
+        - generic [ref=e127]:
+          - link "기타 개인정보 처리방침 개정 안내 2026.07.27" [ref=e128] [cursor=pointer]:
+            - /url: /notices
+            - generic [ref=e129]: 기타
+            - generic [ref=e130]: 개인정보 처리방침 개정 안내
+            - generic [ref=e131]: 2026.07.27
+          - link "행사 AI 활용 특강 참가자 모집 2026.07.27" [ref=e132] [cursor=pointer]:
+            - /url: /notices
+            - generic [ref=e133]: 행사
+            - generic [ref=e134]: AI 활용 특강 참가자 모집
+            - generic [ref=e135]: 2026.07.27
+          - link "운영 청년센터 이용 규정 개정 안내 2026.07.27" [ref=e136] [cursor=pointer]:
+            - /url: /notices
+            - generic [ref=e137]: 운영
+            - generic [ref=e138]: 청년센터 이용 규정 개정 안내
+            - generic [ref=e139]: 2026.07.27
+    - generic [ref=e140]:
+      - generic [ref=e141]:
+        - generic [ref=e142]:
+          - generic [ref=e143]: 공간안내
+          - generic [ref=e144]: 청년센터 공간을 소개해드려요
+        - link "전체 센터 보기" [ref=e145] [cursor=pointer]:
+          - /url: /centers
+      - generic [ref=e146]:
+        - generic [ref=e148]: 상상대로
+        - generic [ref=e150]: 내일스퀘어
+        - generic [ref=e152]: 비행지구
+  - contentinfo [ref=e153]:
+    - generic [ref=e154]:
+      - link "청년모아" [ref=e155] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e156]: 청년모아
+      - generic [ref=e157]:
+        - generic [ref=e158]:
+          - link "개인정보처리방침" [ref=e159] [cursor=pointer]:
+            - /url: "#"
+          - link "이용약관" [ref=e160] [cursor=pointer]:
+            - /url: "#"
+          - link "이메일주소무단수집거부" [ref=e161] [cursor=pointer]:
+            - /url: "#"
+        - paragraph [ref=e162]: Copyright © 2026 청년모아 All Rights Reserved
+      - generic [ref=e163]:
+        - link "Instagram" [ref=e164] [cursor=pointer]:
+          - /url: "#"
+          - img "Instagram" [ref=e165]
+        - link "YouTube" [ref=e166] [cursor=pointer]:
+          - /url: "#"
+          - img "YouTube" [ref=e167]
+        - link "KakaoTalk" [ref=e168] [cursor=pointer]:
+          - /url: "#"
+          - img "KakaoTalk" [ref=e169]
+        - link "Facebook" [ref=e170] [cursor=pointer]:
+          - /url: "#"
+          - img "Facebook" [ref=e171]

@@ -536,19 +536,31 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
 
 .hero-chips {
   display: flex;
+  align-items: center;
   gap: 8px;
   margin-top: 16px;
   flex-wrap: wrap;
+  justify-content: center;
+}
+.hero-chips-label {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.8);
 }
 .hero-chip {
-  font-size: 12px;
+  font-size: 12.5px;
   font-weight: 500;
   color: #fff;
   background: rgba(255, 255, 255, 0.18);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.25);
   border-radius: 999px;
-  padding: 5px 12px;
+  padding: 5px 13px;
   backdrop-filter: blur(4px);
+  text-decoration: none;
+  transition: background 0.15s;
+}
+.hero-chip:hover {
+  background: rgba(255, 255, 255, 0.28);
 }
 
 /* ── Buttons ──────────────────────────────────────────────── */
@@ -2090,13 +2102,13 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
 }
 
 /* ── Signup screen — prototype.tsx SignupScreen (line 1414~1539) ───────── */
-/* 사용자 결정: 헤더 추가, body 일반 flow (auth-page-body flex column 사용 안 함) */
+/* prototype: 헤더 없이 로고+폼 only. footer 만 하단 배치 */
 .signup-screen {
   display: flex;
   justify-content: center;
   padding: 48px var(--content-px);
   background: var(--color-bg);
-  min-height: calc(100vh - var(--header-h) - 72px);
+  min-height: calc(100vh - 72px);
 }
 
 /* prototype L1867 폭: 560px */
