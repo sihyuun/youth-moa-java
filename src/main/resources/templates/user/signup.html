@@ -16,20 +16,20 @@
 <body>
 
 <!--
-  prototype.tsx SignupScreen (line 1414~1539) 기준 + 사용자 결정으로 일부 수정:
-  - 사용자 요청으로 헤더 fragment 추가 (prototype 은 noHeader 였음)
-  - 사용자 요청으로 상단 로고 이미지 제거 (헤더가 로고 포함)
-  - 사용자 요청으로 비밀번호 눈 아이콘 추가 (UX 향상, prototype 최신본엔 없음)
+  prototype.tsx SignupScreen (line 1414~1539) 기준. 2026-07-27 gap-batch1: prototype 정합을 위해 전역 헤더 제거 (prototype 은 noHeader — 로고+폼 only).
+  - 상단 로고 이미지는 signup 페이지 자체 로고 (홈 링크)
+  - 비밀번호 눈 아이콘 유지 (UX 향상)
   - 중복확인/인증요청/우편번호 검색 — JS alert (prototype 패턴)
 -->
-
-<div th:replace="~{fragments/header :: header('')}"></div>
 
 <main class="signup-screen">
     <div class="signup-inner">
 
-        <!-- 타이틀 (prototype L1868~1872: 로고는 헤더에 있으므로 제거, subtitle 문구 정합) -->
+        <!-- 타이틀 (prototype L1868~1872): 로고 + 회원가입 헤딩 + subtitle -->
         <div class="signup-header">
+            <a th:href="@{/}" class="signup-logo">
+                <img th:src="@{/images/logo_primary.png}" alt="청년모아" class="signup-logo-img"/>
+            </a>
             <h2 class="signup-title">회원가입</h2>
             <p class="signup-subtitle">몇 가지 정보만 입력하면 바로 시작할 수 있어요.</p>
         </div>

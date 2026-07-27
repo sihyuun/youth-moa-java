@@ -28,20 +28,24 @@
              th:attr="data-src=${url}"
              th:style="'background-image: url(' + ${url} + ');'"></div>
         <div class="hero-inner">
-            <div class="hero-eyebrow">경기도 청년 통합 플랫폼</div>
+            <div class="hero-eyebrow">경기도 청년센터 프로그램 통합 플랫폼</div>
             <h1 class="hero-title">청년의 모든 기회를<br>한곳에서</h1>
             <p class="hero-desc">프로그램·공간·정책을 청년모아에서 만나보세요</p>
             <!-- 검색바 — GET /search 로 통합 검색 페이지 이동 -->
             <form class="hero-search-bar" th:action="@{/search}" method="get">
                 <input type="text" name="q" class="hero-search-input"
                        maxlength="100"
-                       placeholder="관심 있는 프로그램을 검색해보세요">
+                       placeholder="프로그램, 센터명으로 검색">
                 <button type="submit" class="hero-search-btn">검색</button>
             </form>
+            <!-- 인기 검색어 (prototype L537~543): 라벨 + 5개 키워드, 각각 /search?q=<keyword> 로 링크 -->
             <div class="hero-chips">
-                <span class="hero-chip">#취업역량</span>
-                <span class="hero-chip">#창업지원</span>
-                <span class="hero-chip">#마음건강</span>
+                <span class="hero-chips-label">인기 검색어</span>
+                <a th:href="@{/search(q='취업 워크숍')}" class="hero-chip">취업 워크숍</a>
+                <a th:href="@{/search(q='창업 지원')}" class="hero-chip">창업 지원</a>
+                <a th:href="@{/search(q='심리 상담')}" class="hero-chip">심리 상담</a>
+                <a th:href="@{/search(q='주거 지원')}" class="hero-chip">주거 지원</a>
+                <a th:href="@{/search(q='자격증')}" class="hero-chip">자격증</a>
             </div>
         </div>
     </section>
