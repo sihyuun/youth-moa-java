@@ -114,14 +114,15 @@ class ProgramCardDtoTest {
   }
 
   @Test
-  @DisplayName("ENDED → colorClass=muted, primaryLabel=모집 마감, secondaryLabel=100%")
+  @DisplayName(
+      "ENDED → colorClass=muted, primaryLabel='종료된 프로그램' (prototype capInfo.label 정합), secondaryLabel=null")
   void closed_isMuted() {
     ProgramCardDto dto = new ProgramCardDto(closedProgram(), 5);
     assertThat(dto.getStatus()).isEqualTo(ProgramStatus.ENDED);
     assertThat(dto.getPct()).isEqualTo(100);
     assertThat(dto.getColorClass()).isEqualTo("muted");
-    assertThat(dto.getPrimaryLabel()).isEqualTo("모집 마감");
-    assertThat(dto.getSecondaryLabel()).isEqualTo("100%");
+    assertThat(dto.getPrimaryLabel()).isEqualTo("종료된 프로그램");
+    assertThat(dto.getSecondaryLabel()).isNull();
   }
 
   @Test

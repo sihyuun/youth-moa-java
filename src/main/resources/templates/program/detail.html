@@ -21,9 +21,9 @@
 <main class="main-content">
     <div class="detail-container">
 
-        <!-- 목록으로 -->
-        <a th:href="@{/programs}" class="detail-back-link">
-            <span class="arrow-left">←</span> 목록으로
+        <!-- 목록으로 (prototype L956~958: 38×38 icon-only box) -->
+        <a th:href="@{/programs}" class="detail-back-btn" title="목록으로" aria-label="목록으로">
+            <svg th:replace="~{fragments/icons :: arrowL(18, 'var(--color-text-sec)')}"></svg>
         </a>
 
         <!-- Flash messages (신청 완료 등) -->
@@ -31,10 +31,18 @@
 
         <!-- Hero (image + info) -->
         <section class="detail-hero">
-            <div class="detail-image">
+            <div class="detail-image"
+                 th:classappend="${program.status.name() == 'ENDED'} ? ' is-ended' : (${program.status.name() == 'SUSPENDED'} ? ' is-suspended' : '')">
                 <img th:if="${program.imageUrl != null}" th:src="${program.imageUrl}" alt="">
                 <div th:if="${program.imageUrl == null}" class="detail-image-placeholder">
                     <span th:text="${program.category}">카테고리</span>
+                </div>
+                <!-- ENDED/SUSPENDED overlay chip (prototype L979~981) -->
+                <div th:if="${program.status.name() == 'ENDED'}" class="detail-image-overlay">
+                    <span class="detail-image-overlay-chip">종료된 프로그램</span>
+                </div>
+                <div th:if="${program.status.name() == 'SUSPENDED'}" class="detail-image-overlay detail-image-overlay--suspended">
+                    <span class="detail-image-overlay-chip detail-image-overlay-chip--suspended">운영 중단</span>
                 </div>
             </div>
 
@@ -60,43 +68,65 @@
                     capacity=${program.capacity},
                     emphasized=${detailEmphasized})}"></div>
 
-                <!-- Meta table — prototype.tsx (신청기간 / 진행기간 / 진행장소+지도 / 모집인원 / 문의처) -->
-                <dl class="detail-meta">
-                    <div class="detail-meta-row">
-                        <dt>신청 기간</dt>
-                        <dd th:if="${program.startDate != null}"
-                            th:text="${'~ ' + #temporals.format(program.startDate, 'yyyy.MM.dd') + ' 까지'}">기간</dd>
-                        <dd th:if="${program.startDate == null}">상시 모집</dd>
+                <!-- Meta grid — prototype.tsx L996~1022: 2열 그리드, 각 항목에 primaryBg 원형 아이콘 -->
+                <div class="detail-meta-grid">
+                    <div class="detail-meta-item">
+                        <div class="detail-meta-icon">
+                            <svg th:replace="~{fragments/icons :: calendar(16, 'var(--color-primary)')}"></svg>
+                        </div>
+                        <div class="detail-meta-body">
+                            <div class="detail-meta-key">신청 기간</div>
+                            <div class="detail-meta-value"
+                                 th:if="${program.startDate != null}"
+                                 th:text="${'~ ' + #temporals.format(program.startDate, 'yyyy.MM.dd') + ' 까지'}">기간</div>
+                            <div class="detail-meta-value"
+                                 th:if="${program.startDate == null}">상시 모집</div>
+                        </div>
                     </div>
-                    <div class="detail-meta-row" th:if="${program.startDate != null and program.endDate != null}">
-                        <dt>진행 기간</dt>
-                        <dd th:text="${#temporals.format(program.startDate, 'yyyy.MM.dd') + ' ~ ' + #temporals.format(program.endDate, 'yyyy.MM.dd')}">
-                            기간
-                        </dd>
+                    <div class="detail-meta-item" th:if="${program.startDate != null and program.endDate != null}">
+                        <div class="detail-meta-icon">
+                            <svg th:replace="~{fragments/icons :: calendar(16, 'var(--color-primary)')}"></svg>
+                        </div>
+                        <div class="detail-meta-body">
+                            <div class="detail-meta-key">진행 기간</div>
+                            <div class="detail-meta-value"
+                                 th:text="${#temporals.format(program.startDate, 'yyyy.MM.dd') + ' ~ ' + #temporals.format(program.endDate, 'yyyy.MM.dd')}">기간</div>
+                        </div>
                     </div>
-                    <div class="detail-meta-row">
-                        <dt>진행 장소</dt>
-                        <dd class="detail-meta-place">
-                            <span th:text="${program.organization + ' (' + program.region + ')'}">기관 (지역)</span>
-                            <button type="button" class="detail-map-btn" data-map-toggle>
-                                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor"
-                                     stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/>
-                                    <circle cx="12" cy="10" r="3"/>
-                                </svg>
-                                <span>지도</span>
-                            </button>
-                        </dd>
+                    <div class="detail-meta-item">
+                        <div class="detail-meta-icon">
+                            <svg th:replace="~{fragments/icons :: pin(16, 'var(--color-primary)')}"></svg>
+                        </div>
+                        <div class="detail-meta-body">
+                            <div class="detail-meta-key">진행 장소</div>
+                            <div class="detail-meta-value detail-meta-place">
+                                <span th:text="${program.organization + ' (' + program.region + ')'}">기관 (지역)</span>
+                                <button type="button" class="detail-map-btn" data-map-toggle>
+                                    <svg th:replace="~{fragments/icons :: pin(12, 'var(--color-primary)')}"></svg>
+                                    <span>지도</span>
+                                </button>
+                            </div>
+                        </div>
                     </div>
-                    <div class="detail-meta-row" th:if="${program.capacity != null}">
-                        <dt>모집인원</dt>
-                        <dd th:text="${program.capacity} + '명'">정원</dd>
+                    <div class="detail-meta-item" th:if="${program.capacity != null}">
+                        <div class="detail-meta-icon">
+                            <svg th:replace="~{fragments/icons :: user(16, 'var(--color-primary)')}"></svg>
+                        </div>
+                        <div class="detail-meta-body">
+                            <div class="detail-meta-key">모집인원</div>
+                            <div class="detail-meta-value" th:text="${program.capacity} + '명'">정원</div>
+                        </div>
                     </div>
-                    <div class="detail-meta-row">
-                        <dt>문의처</dt>
-                        <dd>031-XXX-XXXX <span class="detail-meta-note">(추후 안내)</span></dd>
+                    <div class="detail-meta-item">
+                        <div class="detail-meta-icon">
+                            <svg th:replace="~{fragments/icons :: bell(16, 'var(--color-primary)')}"></svg>
+                        </div>
+                        <div class="detail-meta-body">
+                            <div class="detail-meta-key">문의처</div>
+                            <div class="detail-meta-value">031-XXX-XXXX <span class="detail-meta-note">(추후 안내)</span></div>
+                        </div>
                     </div>
-                </dl>
+                </div>
 
                 <!-- Actions -->
                 <div class="detail-actions">
@@ -207,9 +237,14 @@
 
         <hr class="detail-divider">
 
-        <!-- Content -->
+        <!-- Content (prototype L1064~1069: 360px 이미지 placeholder + 텍스트 콘텐츠) -->
         <section class="detail-section">
             <h2 class="detail-section-title">프로그램 설명</h2>
+            <div class="detail-content-placeholder">
+                <img th:if="${program.imageUrl != null}" th:src="${program.imageUrl}" alt=""
+                     class="detail-content-placeholder-img">
+                <span class="detail-content-placeholder-text">프로그램 상세 설명 콘텐츠 영역</span>
+            </div>
             <div class="detail-content-box" th:text="${program.content}">
                 프로그램 설명 텍스트
             </div>
@@ -222,13 +257,8 @@
             <div class="detail-sticky-meta">
                 <div class="detail-sticky-title" th:text="${program.title}">프로그램 제목</div>
                 <div class="detail-sticky-status"
-                     th:classappend="${program.status.name() == 'ENDED' or program.status.name() == 'SUSPENDED'} ? ' is-muted' : ''">
-                    <span th:if="${program.status.name() == 'OPEN'}"
-                          th:text="${program.status.label}">모집중</span>
-                    <span th:if="${program.status.name() == 'UPCOMING'}">모집 예정</span>
-                    <span th:if="${program.status.name() == 'ENDED'}">종료된 프로그램</span>
-                    <span th:if="${program.status.name() == 'SUSPENDED'}">모집 중단</span>
-                </div>
+                     th:classappend="${program.status.name() == 'ENDED' or program.status.name() == 'SUSPENDED'} ? ' is-muted' : ''"
+                     th:text="${program.status.label}">모집중</div>
             </div>
             <div th:replace="~{fragments/bookmark-button :: button(programId=${program.id}, bookmarked=${bookmarked}, styleClass='detail-sticky-bookmark')}"></div>
             <a th:if="${program.status.name() == 'OPEN'}"

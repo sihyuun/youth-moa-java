@@ -101,10 +101,13 @@ public class ProgramCardDto {
               ? program.getStartDate().format(OPEN_DATE_FORMAT) + " 오픈"
               : null;
     } else if (status == ProgramStatus.ENDED) {
+      // ENDED: 카드 목록·상세 capacity-bar 라벨 "종료된 프로그램" (prototype 정합 — capInfo.label)
+      // dday chip 은 별도로 Program.getDdayLabel() 에서 "종료" 로 표기 (짧은 뱃지 문구).
+      // isFull "모집 마감" 과 의미 구분.
       this.pct = 100;
       this.colorClass = "muted";
-      this.primaryLabel = "모집 마감";
-      this.secondaryLabel = "100%";
+      this.primaryLabel = "종료된 프로그램";
+      this.secondaryLabel = null;
     } else if (capacity == null || capacity == 0) {
       // OPEN + 정원 제한 없음 → bar 미표시 (showBar=false)
       this.pct = 0;
@@ -148,7 +151,13 @@ public class ProgramCardDto {
       this.detailHeadline = "신청 오픈까지 " + daysUntilOpen + "일";
       this.detailSubtext = "오픈 알림을 신청하면 시작 시 알려드려요.";
       this.detailEmphasized = true;
-    } else if (full || closedByDate) {
+    } else if (closedByDate) {
+      // ENDED — prototype.tsx L1010: 자연 종료 (기간 만료)
+      this.detailHeadline = "종료된 프로그램";
+      this.detailSubtext = "진행 기간이 끝난 프로그램이에요.";
+      this.detailEmphasized = false;
+    } else if (full) {
+      // OPEN + 정원 마감 (isFull) — prototype.tsx L1010
       this.detailHeadline = "모집 마감";
       this.detailSubtext = "정원이 마감되었습니다. 알림을 신청하면 빈자리가 생길 시 알려드려요.";
       this.detailEmphasized = false;

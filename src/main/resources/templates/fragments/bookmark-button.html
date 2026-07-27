@@ -28,7 +28,8 @@
             th:attr="hx-vals=|{&quot;styleClass&quot;:&quot;${styleClass}&quot;}|"
             th:class="${styleClass + ' bookmark-btn' + (bookmarked ? ' is-bookmarked' : '')}"
             th:title="${bookmarked} ? '즐겨찾기 해제' : '즐겨찾기 추가'">
-        <span th:text="${bookmarked} ? '★' : '☆'">☆</span>
+        <svg th:if="${bookmarked}" th:replace="~{fragments/icons :: starFill(20, '#F59E0B')}"></svg>
+        <svg th:unless="${bookmarked}" th:replace="~{fragments/icons :: star(20, 'currentColor')}"></svg>
     </button>
 
     <!-- 비인증 상태 → 로그인 페이지로 -->
@@ -36,7 +37,7 @@
        th:href="@{/login}"
        th:class="${styleClass + ' bookmark-btn'}"
        title="로그인 후 즐겨찾기 사용 가능">
-        <span>☆</span>
+        <svg th:replace="~{fragments/icons :: star(20, 'currentColor')}"></svg>
     </a>
 
 </th:block>

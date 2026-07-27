@@ -612,6 +612,8 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
   display: flex;
   align-items: center;
   justify-content: center;
+  text-decoration: none;
+  color: var(--color-text-sec);
 }
 .detail-sticky-cta-btn {
   min-width: 200px;
@@ -1014,24 +1016,32 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
 }
 
 /* ── Program detail page ─────────────────────────────────── */
+/* prototype L956: maxWidth:1000, padding:'36px 0 48px' (좌우 패딩 0, content 폭 = 1000) */
 .detail-container {
   max-width: 1000px;
   margin: 0 auto;
-  padding: 36px var(--content-px) 64px;
+  padding: 36px 0 48px;
 }
 
-.detail-back-link {
+/* prototype L956~958: 38×38 icon-only 뒤로가기 버튼 */
+.detail-back-btn {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  margin-bottom: 24px;
-  font-size: 14px;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 9px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
   color: var(--color-text-sec);
   text-decoration: none;
-  transition: color 0.15s;
+  margin-bottom: 24px;
+  transition: border-color 0.15s, color 0.15s;
 }
-.detail-back-link:hover { color: var(--color-primary); }
-.detail-back-link .arrow-left { font-size: 18px; line-height: 1; }
+.detail-back-btn:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
 
 .detail-hero {
   display: flex;
@@ -1046,12 +1056,45 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
   overflow: hidden;
   background: #e5e7eb;
   flex-shrink: 0;
+  position: relative;
 }
 
 .detail-image img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+/* ENDED — prototype L977: filter: grayscale(1) brightness(0.82) */
+.detail-image.is-ended img {
+  filter: grayscale(1) brightness(0.82);
+}
+.detail-image.is-suspended img {
+  filter: grayscale(0.7);
+}
+
+/* ENDED/SUSPENDED overlay + 중앙 chip (prototype L979~981) */
+.detail-image-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.detail-image-overlay--suspended {
+  background: rgba(0, 0, 0, 0.35);
+}
+.detail-image-overlay-chip {
+  padding: 6px 16px;
+  border-radius: var(--radius-pill);
+  background: rgba(120, 124, 130, 0.9);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+}
+.detail-image-overlay-chip--suspended {
+  background: rgba(0, 0, 0, 0.65);
 }
 
 .detail-image-placeholder {
@@ -1186,29 +1229,48 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
   margin: 0;
 }
 
-.detail-meta {
+/* prototype L996~1022: 2열 그리드 카드 (각 항목에 primaryBg 원형 아이콘) */
+.detail-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
   margin: 0 0 20px;
-  border-top: 1px solid var(--color-border);
 }
 
-.detail-meta-row {
+.detail-meta-item {
   display: flex;
-  padding: 11px 0;
-  border-bottom: 1px solid var(--color-border-light);
+  align-items: flex-start;
+  gap: 11px;
+  padding: 14px 16px;
+  border-radius: var(--radius-lg);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border-light);
 }
 
-.detail-meta-row dt {
-  width: 90px;
+.detail-meta-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  background: var(--color-primary-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--color-text-sec);
-  margin: 0;
 }
 
-.detail-meta-row dd {
-  margin: 0;
-  font-size: 13px;
+.detail-meta-body {
+  min-width: 0;
+}
+
+.detail-meta-key {
+  font-size: 12px;
+  color: var(--color-text-tri);
+  margin-bottom: 3px;
+}
+
+.detail-meta-value {
+  font-size: 13.5px;
+  font-weight: 600;
   color: var(--color-text);
 }
 
@@ -1295,6 +1357,11 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
   border-radius: var(--radius-pill);
   font-size: 15px;
   font-weight: 600;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
 }
 
 .btn-outline-primary {
@@ -1307,6 +1374,7 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
   gap: 6px;
   cursor: pointer;
   font-weight: 700;
+  text-decoration: none;
   transition: background 0.15s;
 }
 .btn-outline-primary:not(:disabled):hover { background: var(--color-primary-bg); }
@@ -1365,6 +1433,35 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
   font-size: 13px;
   color: var(--color-text);
   line-height: 1.55;
+}
+
+/* prototype L1064~1069: 프로그램 설명 큰 이미지 placeholder (360px 회색 배경 + 중앙 텍스트) */
+.detail-content-placeholder {
+  position: relative;
+  width: 100%;
+  height: 360px;
+  border-radius: var(--radius-lg);
+  background: #E5E7EB;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+.detail-content-placeholder-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.3;
+}
+.detail-content-placeholder-text {
+  position: relative;
+  z-index: 1;
+  font-size: 14px;
+  color: #888;
+  font-weight: 500;
 }
 
 /* ── Apply form — prototype.tsx ProgramApply (line 962~1017) ──────── */
