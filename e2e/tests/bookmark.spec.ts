@@ -19,7 +19,9 @@ test.beforeEach(async ({ page }) => {
 });
 
 test('비로그인 상태에서 카드 ★ 클릭 시 /login 으로 이동한다', async ({ page }) => {
-    await page.goto('/programs', { waitUntil: 'commit' });
+    // program id=3 은 가장 오래된 시드 그룹에 속함 (2026-07-27 pagination 데모용 15건 추가 후
+// 3페이지 중 마지막 페이지). 카드 렌더 확인을 위해 명시적으로 page=2 로 이동.
+await page.goto('/programs?page=2', { waitUntil: 'commit' });
     // 비인증 상태에서는 button 이 아닌 <a> 로 렌더되어 href 로 이동
     const firstBookmark = page.locator('a.card-bookmark-btn').first();
     await expect(firstBookmark).toHaveAttribute('href', /\/login/);
@@ -29,7 +31,9 @@ test('비로그인 상태에서 카드 ★ 클릭 시 /login 으로 이동한다
 
 test('로그인 후 카드 ★ 클릭 시 HTMX 로 is-bookmarked 클래스가 토글된다', async ({ page }) => {
     await login(page, SEED_USER);
-    await page.goto('/programs', { waitUntil: 'commit' });
+    // program id=3 은 가장 오래된 시드 그룹에 속함 (2026-07-27 pagination 데모용 15건 추가 후
+// 3페이지 중 마지막 페이지). 카드 렌더 확인을 위해 명시적으로 page=2 로 이동.
+await page.goto('/programs?page=2', { waitUntil: 'commit' });
     await waitForHtmx(page);
 
     // program id=3 카드의 ★ 버튼 (아직 즐겨찾기 안 함 → is-bookmarked 없음)
@@ -65,7 +69,9 @@ test('상세 페이지 ★ 클릭 시 detail-action-icon 이 토글된다', asyn
 
 test('목록에서 토글한 상태가 상세 페이지 진입 시에도 유지된다', async ({ page }) => {
     await login(page, SEED_USER);
-    await page.goto('/programs', { waitUntil: 'commit' });
+    // program id=3 은 가장 오래된 시드 그룹에 속함 (2026-07-27 pagination 데모용 15건 추가 후
+// 3페이지 중 마지막 페이지). 카드 렌더 확인을 위해 명시적으로 page=2 로 이동.
+await page.goto('/programs?page=2', { waitUntil: 'commit' });
     await waitForHtmx(page);
 
     // 목록에서 program 3 을 즐겨찾기 (이미 이전 테스트로 켜졌을 수 있으니 상태 확인 후 반전)
