@@ -1,0 +1,16 @@
+global:
+  scrape_interval: 5s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: youthmoa
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets:
+          # 호스트 머신에서 bootrun-e2e.cmd 로 기동한 앱의 management 포트 (9091).
+          # Docker Desktop (Windows/Mac) 은 host.docker.internal 자동 제공, Linux 는 docker-compose.yml 의
+          # extra_hosts: "host.docker.internal:host-gateway" 로 등가 동작.
+          - host.docker.internal:9091
+        labels:
+          app: youth-moa-java
+          env: local

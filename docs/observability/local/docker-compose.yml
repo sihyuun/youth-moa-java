@@ -1,0 +1,31 @@
+services:
+  prometheus:
+    image: prom/prometheus:v2.54.1
+    container_name: youthmoa-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    extra_hosts:
+      # Linux 호스트에서 host.docker.internal 을 사용 가능하게 함 (Docker Desktop 은 자동 제공)
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:11.2.2
+    container_name: youthmoa-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+    volumes:
+      - ../grafana-provisioning/datasources:/etc/grafana/provisioning/datasources:ro
+      - ../grafana-provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ../grafana:/var/lib/grafana/dashboards:ro
+    depends_on:
+      - prometheus
+    restart: unless-stopped

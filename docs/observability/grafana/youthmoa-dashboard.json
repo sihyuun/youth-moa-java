@@ -1,0 +1,252 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {"type": "grafana", "uid": "-- Grafana --"},
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "graphTooltip": 1,
+  "schemaVersion": 39,
+  "tags": ["youth-moa-java", "spring-boot", "actuator"],
+  "time": {"from": "now-30m", "to": "now"},
+  "timezone": "browser",
+  "title": "youth-moa-java — 앱 지표",
+  "uid": "youthmoa-app",
+  "version": 1,
+  "refresh": "10s",
+  "templating": {
+    "list": [
+      {
+        "name": "job",
+        "type": "query",
+        "datasource": {"type": "prometheus", "uid": "youthmoa-prometheus"},
+        "query": "label_values(up, job)",
+        "current": {"text": "youthmoa", "value": "youthmoa"},
+        "refresh": 1
+      }
+    ]
+  },
+  "panels": [
+    {
+      "title": "JVM",
+      "type": "row",
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 0},
+      "collapsed": false,
+      "id": 100
+    },
+    {
+      "id": 1,
+      "title": "JVM Heap 사용량",
+      "type": "timeseries",
+      "gridPos": {"h": 8, "w": 8, "x": 0, "y": 1},
+      "datasource": {"type": "prometheus", "uid": "youthmoa-prometheus"},
+      "targets": [
+        {
+          "expr": "sum(jvm_memory_used_bytes{job=\"$job\", area=\"heap\"}) by (id)",
+          "legendFormat": "{{id}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {"defaults": {"unit": "bytes"}, "overrides": []},
+      "options": {"legend": {"displayMode": "list", "placement": "bottom"}}
+    },
+    {
+      "id": 2,
+      "title": "GC pause (avg)",
+      "type": "timeseries",
+      "gridPos": {"h": 8, "w": 8, "x": 8, "y": 1},
+      "datasource": {"type": "prometheus", "uid": "youthmoa-prometheus"},
+      "targets": [
+        {
+          "expr": "rate(jvm_gc_pause_seconds_sum{job=\"$job\"}[1m]) / rate(jvm_gc_pause_seconds_count{job=\"$job\"}[1m])",
+          "legendFormat": "{{action}} / {{cause}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {"defaults": {"unit": "s"}, "overrides": []}
+    },
+    {
+      "id": 3,
+      "title": "Live threads",
+      "type": "timeseries",
+      "gridPos": {"h": 8, "w": 8, "x": 16, "y": 1},
+      "datasource": {"type": "prometheus", "uid": "youthmoa-prometheus"},
+      "targets": [
+        {
+          "expr": "jvm_threads_live_threads{job=\"$job\"}",
+          "legendFormat": "live",
+          "refId": "A"
+        },
+        {
+          "expr": "jvm_threads_daemon_threads{job=\"$job\"}",
+          "legendFormat": "daemon",
+          "refId": "B"
+        }
+      ]
+    },
+    {
+      "title": "HTTP",
+      "type": "row",
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 9},
+      "collapsed": false,
+      "id": 101
+    },
+    {
+      "id": 4,
+      "title": "요청 처리율 (RPS)",
+      "type": "timeseries",
+      "gridPos": {"h": 8, "w": 8, "x": 0, "y": 10},
+      "datasource": {"type": "prometheus", "uid": "youthmoa-prometheus"},
+      "targets": [
+        {
+          "expr": "sum(rate(http_server_requests_seconds_count{job=\"$job\"}[1m])) by (uri)",
+          "legendFormat": "{{uri}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {"defaults": {"unit": "reqps"}, "overrides": []}
+    },
+    {
+      "id": 5,
+      "title": "p95 지연 (초)",
+      "type": "timeseries",
+      "gridPos": {"h": 8, "w": 8, "x": 8, "y": 10},
+      "datasource": {"type": "prometheus", "uid": "youthmoa-prometheus"},
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(http_server_requests_seconds_bucket{job=\"$job\"}[5m])) by (le, uri))",
+          "legendFormat": "{{uri}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {"defaults": {"unit": "s"}, "overrides": []}
+    },
+    {
+      "id": 6,
+      "title": "5xx 비율",
+      "type": "stat",
+      "gridPos": {"h": 8, "w": 8, "x": 16, "y": 10},
+      "datasource": {"type": "prometheus", "uid": "youthmoa-prometheus"},
+      "targets": [
+        {
+          "expr": "sum(rate(http_server_requests_seconds_count{job=\"$job\", status=~\"5..\"}[5m])) / clamp_min(sum(rate(http_server_requests_seconds_count{job=\"$job\"}[5m])), 0.0001)",
+          "legendFormat": "5xx ratio",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "yellow", "value": 0.01},
+              {"color": "red", "value": 0.05}
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"]}, "colorMode": "background"}
+    },
+    {
+      "title": "DB (HikariCP)",
+      "type": "row",
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 18},
+      "collapsed": false,
+      "id": 102
+    },
+    {
+      "id": 7,
+      "title": "커넥션 상태",
+      "type": "timeseries",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 19},
+      "datasource": {"type": "prometheus", "uid": "youthmoa-prometheus"},
+      "targets": [
+        {"expr": "hikaricp_connections_active{job=\"$job\"}", "legendFormat": "active", "refId": "A"},
+        {"expr": "hikaricp_connections_idle{job=\"$job\"}", "legendFormat": "idle", "refId": "B"},
+        {"expr": "hikaricp_connections_pending{job=\"$job\"}", "legendFormat": "pending", "refId": "C"}
+      ]
+    },
+    {
+      "id": 8,
+      "title": "커넥션 풀 (전체·최대)",
+      "type": "timeseries",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 19},
+      "datasource": {"type": "prometheus", "uid": "youthmoa-prometheus"},
+      "targets": [
+        {"expr": "hikaricp_connections{job=\"$job\"}", "legendFormat": "total", "refId": "A"},
+        {"expr": "hikaricp_connections_max{job=\"$job\"}", "legendFormat": "max", "refId": "B"}
+      ]
+    },
+    {
+      "title": "도메인",
+      "type": "row",
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 27},
+      "collapsed": false,
+      "id": 103
+    },
+    {
+      "id": 9,
+      "title": "누적 신청 수",
+      "type": "stat",
+      "gridPos": {"h": 8, "w": 8, "x": 0, "y": 28},
+      "datasource": {"type": "prometheus", "uid": "youthmoa-prometheus"},
+      "targets": [
+        {"expr": "youthmoa_application_submitted_total{job=\"$job\"}", "legendFormat": "submitted", "refId": "A"}
+      ],
+      "fieldConfig": {"defaults": {"unit": "short"}, "overrides": []},
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"]}, "colorMode": "value"}
+    },
+    {
+      "id": 10,
+      "title": "신청 발생 추이 (rate 5m)",
+      "type": "timeseries",
+      "gridPos": {"h": 8, "w": 8, "x": 8, "y": 28},
+      "datasource": {"type": "prometheus", "uid": "youthmoa-prometheus"},
+      "targets": [
+        {
+          "expr": "rate(youthmoa_application_submitted_total{job=\"$job\"}[5m])",
+          "legendFormat": "applications/s",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "title": "로그인 실패 (increase 5m)",
+      "type": "timeseries",
+      "gridPos": {"h": 8, "w": 8, "x": 16, "y": 28},
+      "datasource": {"type": "prometheus", "uid": "youthmoa-prometheus"},
+      "targets": [
+        {
+          "expr": "increase(youthmoa_login_failure_total{job=\"$job\"}[5m])",
+          "legendFormat": "failures / 5m",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "yellow", "value": 5},
+              {"color": "red", "value": 20}
+            ]
+          }
+        },
+        "overrides": []
+      }
+    }
+  ]
+}
