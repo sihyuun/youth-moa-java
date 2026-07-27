@@ -151,11 +151,15 @@ public class Program extends BaseTimeEntity {
     return ChronoUnit.DAYS.between(LocalDate.now(), endDate);
   }
 
-  /** D-day 표시 레이블 (예: "D-3", "D-DAY", "마감") */
+  /**
+   * D-day 표시 레이블 (예: "D-3", "D-DAY", "종료")
+   *
+   * <p>기간 만료(days &lt; 0)는 "종료" 로 표기. isFull(정원 100%) 은 별개 파생값이며 여기서 다루지 않음.
+   */
   public String getDdayLabel() {
     long days = getDaysUntilDeadline();
     if (days == -1) return "";
-    if (days < 0) return "마감";
+    if (days < 0) return "종료";
     if (days == 0) return "D-DAY";
     return "D-" + days;
   }

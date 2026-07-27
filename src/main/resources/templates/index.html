@@ -75,6 +75,34 @@
         </div>
     </section>
 
+    <!-- 퀵메뉴 4그리드 (prototype L561~575) — 프로그램/센터/신청현황/공지 진입 -->
+    <section class="home-quickmenu container">
+        <a th:href="@{/programs}" class="home-quickmenu-card">
+            <div class="home-quickmenu-icon">
+                <svg th:replace="~{fragments/icons :: search(22, 'var(--color-primary)')}"></svg>
+            </div>
+            <span class="home-quickmenu-label">프로그램 찾기</span>
+        </a>
+        <a th:href="@{/centers}" class="home-quickmenu-card">
+            <div class="home-quickmenu-icon">
+                <svg th:replace="~{fragments/icons :: pin(22, 'var(--color-primary)')}"></svg>
+            </div>
+            <span class="home-quickmenu-label">청년센터 찾기</span>
+        </a>
+        <a th:href="@{/mypage}" class="home-quickmenu-card">
+            <div class="home-quickmenu-icon">
+                <svg th:replace="~{fragments/icons :: calendar(22, 'var(--color-primary)')}"></svg>
+            </div>
+            <span class="home-quickmenu-label">내 신청 현황</span>
+        </a>
+        <a th:href="@{/notices}" class="home-quickmenu-card">
+            <div class="home-quickmenu-icon">
+                <svg th:replace="~{fragments/icons :: bell(22, 'var(--color-primary)')}"></svg>
+            </div>
+            <span class="home-quickmenu-label">공지사항</span>
+        </a>
+    </section>
+
     <!-- 프로그램 섹션 — 로그인 시 맞춤추천, 비로그인 시 Top4 -->
     <section class="home-section container" sec:authorize="isAuthenticated()">
         <div class="home-section-head">

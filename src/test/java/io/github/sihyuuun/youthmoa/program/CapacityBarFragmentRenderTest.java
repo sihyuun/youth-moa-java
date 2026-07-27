@@ -167,13 +167,13 @@ class CapacityBarFragmentRenderTest {
   }
 
   @Test
-  @DisplayName("ENDED → muted/모집 마감, secondaryLabel=100%")
+  @DisplayName("ENDED → muted/종료된 프로그램, secondaryLabel null (prototype capInfo.label 정합)")
   void render_closed() {
     String html = renderFragment(new ProgramCardDto(closedProgram(), 5));
     assertThat(html).contains("capacity-bar-fill--muted");
     assertThat(html).contains("capacity-bar-primary--muted");
-    assertThat(html).contains("모집 마감");
-    assertThat(html).contains("100%");
+    assertThat(html).contains("종료된 프로그램");
+    assertThat(html).doesNotContain("모집 마감");
     assertThat(html).doesNotContain("오픈</span>");
   }
 

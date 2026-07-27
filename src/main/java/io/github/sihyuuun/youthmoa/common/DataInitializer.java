@@ -267,6 +267,8 @@ public class DataInitializer implements ApplicationRunner {
                 .content(bodyGeneric)
                 .category(NoticeCategory.NOTICE)
                 .isPinned(true)
+                .imageUrl(
+                    "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=360&h=220&fit=crop")
                 .build(),
             Notice.builder()
                 .title("7월 청년센터 프로그램 일정 안내")
@@ -617,7 +619,7 @@ public class DataInitializer implements ApplicationRunner {
             // F0f-fix-1: SUSPENDED (운영 중단, 관리자 조치) 시나리오 시드
             Program.builder()
                 .title("청년 목공 클래스")
-                .organization("메이커스페이스")
+                .organization("청년이봄")
                 .region("성남시")
                 .imageUrl(
                     "https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=460&h=340&fit=crop")
@@ -636,20 +638,259 @@ public class DataInitializer implements ApplicationRunner {
             // F0f-fix-3: ENDED (기간 만료, 자연 종료) 시나리오 시드 — 종료 탭·그레이스케일 시각 검증용
             Program.builder()
                 .title("자소서 첨삭 카페")
-                .organization("취업지원센터")
-                .region("서울시")
+                .organization("광명시 청년동")
+                .region("광명시")
                 .imageUrl(
                     "https://images.unsplash.com/photo-1455390582262-044cdead277a?w=460&h=340&fit=crop")
                 .content("전문 컨설턴트와 함께하는 자기소개서 첨삭 프로그램입니다. (종료된 프로그램)")
                 .eligibility(
                     ProgramEligibility.builder()
                         .age("만 19세 ~ 34세 청년")
-                        .region("서울시 거주 또는 활동")
+                        .region("광명시 거주 또는 활동")
                         .etc("취업 준비생 우선")
                         .build())
                 .startDate(today.minusDays(90))
                 .endDate(today.minusDays(30))
                 .capacity(20)
+                .build(),
+            // ── gap-batch2 (2026-07-27): pagination 데모용 추가 시드 15건 ──
+            Program.builder()
+                .title("포트폴리오 웹사이트 만들기")
+                .organization("청누리")
+                .region("수원시")
+                .imageUrl(
+                    "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=400&h=280&fit=crop")
+                .content("HTML/CSS/JS 기초부터 배포까지 4주 실습.")
+                .eligibility(
+                    ProgramEligibility.builder()
+                        .age("만 19세 ~ 34세 청년")
+                        .region("수원시")
+                        .etc("입문자")
+                        .build())
+                .startDate(today.minusDays(3))
+                .endDate(today.plusDays(28))
+                .capacity(25)
+                .build(),
+            Program.builder()
+                .title("영상 편집 실전반")
+                .organization("내일꿈제작소")
+                .region("고양시")
+                .imageUrl(
+                    "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=400&h=280&fit=crop")
+                .content("Premiere Pro 로 YouTube·Shorts 편집 실습.")
+                .eligibility(
+                    ProgramEligibility.builder()
+                        .age("만 19세 ~ 39세 청년")
+                        .region("고양시")
+                        .etc("영상 취미자")
+                        .build())
+                .startDate(today.minusDays(1))
+                .endDate(today.plusDays(35))
+                .capacity(20)
+                .build(),
+            Program.builder()
+                .title("바리스타 자격증 취득 과정")
+                .organization("용인청년LAB 기흥")
+                .region("용인시")
+                .imageUrl(
+                    "https://images.unsplash.com/photo-1442512595331-e89e73853f31?w=400&h=280&fit=crop")
+                .content("2급 바리스타 자격증 필기·실기 8주.")
+                .eligibility(
+                    ProgramEligibility.builder()
+                        .age("만 19세 ~ 34세 청년")
+                        .region("용인시")
+                        .etc("전 회차 참여")
+                        .build())
+                .startDate(today.minusDays(2))
+                .endDate(today.plusDays(56))
+                .capacity(16)
+                .build(),
+            Program.builder()
+                .title("청년 부트캠프 백엔드 트랙")
+                .organization("청년이봄 정자")
+                .region("성남시")
+                .imageUrl(
+                    "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=280&fit=crop")
+                .content("Spring Boot + JPA 실무 프로젝트 12주 부트캠프.")
+                .eligibility(
+                    ProgramEligibility.builder()
+                        .age("만 19세 ~ 34세 청년")
+                        .region("성남시")
+                        .etc("Java 경험자")
+                        .build())
+                .startDate(today.plusDays(7))
+                .endDate(today.plusDays(90))
+                .capacity(24)
+                .build(),
+            Program.builder()
+                .title("도예 원데이 클래스")
+                .organization("청년일자리카페 '청년e-room'")
+                .region("이천시")
+                .imageUrl(
+                    "https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=400&h=280&fit=crop")
+                .content("도자기 물레 체험 원데이 클래스.")
+                .eligibility(
+                    ProgramEligibility.builder()
+                        .age("만 19세 ~ 39세 청년")
+                        .region("이천시")
+                        .etc("초보 환영")
+                        .build())
+                .startDate(today.plusDays(3))
+                .endDate(today.plusDays(3))
+                .capacity(12)
+                .build(),
+            Program.builder()
+                .title("청년 재테크 세미나")
+                .organization("김포시청년지원센터")
+                .region("김포시")
+                .imageUrl(
+                    "https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=400&h=280&fit=crop")
+                .content("월급 관리·투자 기초 4강 세미나.")
+                .eligibility(
+                    ProgramEligibility.builder()
+                        .age("만 19세 ~ 39세 청년")
+                        .region("김포시")
+                        .etc("사회초년생 대상")
+                        .build())
+                .startDate(today.minusDays(4))
+                .endDate(today.plusDays(24))
+                .capacity(40)
+                .build(),
+            Program.builder()
+                .title("스피치·발표 트레이닝")
+                .organization("청춘곳간")
+                .region("광명시")
+                .imageUrl(
+                    "https://images.unsplash.com/photo-1475721027785-f74eccf877e2?w=400&h=280&fit=crop")
+                .content("취업·비즈니스 발표 스피치 6주.")
+                .eligibility(
+                    ProgramEligibility.builder()
+                        .age("만 19세 ~ 39세 청년")
+                        .region("광명시")
+                        .etc("취업 준비생")
+                        .build())
+                .startDate(today.minusDays(6))
+                .endDate(today.plusDays(15))
+                .capacity(18)
+                .build(),
+            Program.builder()
+                .title("데이터 분석 입문 캠프")
+                .organization("화성시청년지원센터 H.E.Y")
+                .region("화성시")
+                .imageUrl(
+                    "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=280&fit=crop")
+                .content("Python·SQL·시각화 기초 5주.")
+                .eligibility(
+                    ProgramEligibility.builder()
+                        .age("만 19세 ~ 34세 청년")
+                        .region("화성시")
+                        .etc("데이터 관심자")
+                        .build())
+                .startDate(today.plusDays(14))
+                .endDate(today.plusDays(50))
+                .capacity(20)
+                .build(),
+            Program.builder()
+                .title("UX·UI 디자인 워크숍")
+                .organization("파주시청년공간 GP1939")
+                .region("파주시")
+                .imageUrl(
+                    "https://images.unsplash.com/photo-1541462608143-67571c6738dd?w=400&h=280&fit=crop")
+                .content("Figma 로 배우는 실무 UX 리서치·UI 프로토타이핑.")
+                .eligibility(
+                    ProgramEligibility.builder()
+                        .age("만 19세 ~ 34세 청년")
+                        .region("파주시")
+                        .etc("디자인 관심자")
+                        .build())
+                .startDate(today.minusDays(2))
+                .endDate(today.plusDays(19))
+                .capacity(22)
+                .build(),
+            Program.builder()
+                .title("청년 요가·명상 클래스")
+                .organization("의정부시 청년공감터")
+                .region("의정부시")
+                .imageUrl(
+                    "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400&h=280&fit=crop")
+                .content("주 2회 요가·명상 8주 프로그램.")
+                .eligibility(
+                    ProgramEligibility.builder()
+                        .age("만 19세 ~ 39세 청년")
+                        .region("의정부시")
+                        .etc("전 레벨 환영")
+                        .build())
+                .startDate(today.minusDays(3))
+                .endDate(today.plusDays(53))
+                .capacity(30)
+                .build(),
+            Program.builder()
+                .title("청년 사진 워크숍")
+                .organization("남양주시 청년창업센터 / 청년꽃간")
+                .region("남양주시")
+                .imageUrl(
+                    "https://images.unsplash.com/photo-1502920917128-1aa500764cbd?w=400&h=280&fit=crop")
+                .content("스마트폰 사진에서 DSLR 까지 6주.")
+                .eligibility(
+                    ProgramEligibility.builder()
+                        .age("만 19세 ~ 39세 청년")
+                        .region("남양주시")
+                        .etc("사진 취미자")
+                        .build())
+                .startDate(today.plusDays(10))
+                .endDate(today.plusDays(52))
+                .capacity(15)
+                .build(),
+            Program.builder()
+                .title("독서 모임 · 인문학 살롱")
+                .organization("청년협업마을")
+                .region("시흥시")
+                .imageUrl(
+                    "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=400&h=280&fit=crop")
+                .content("월간 도서 함께 읽고 토론.")
+                .eligibility(
+                    ProgramEligibility.builder()
+                        .age("만 19세 ~ 39세 청년")
+                        .region("시흥시")
+                        .etc("책 좋아하는 청년")
+                        .build())
+                .startDate(today.minusDays(30))
+                .endDate(today.minusDays(2))
+                .capacity(20)
+                .build(),
+            Program.builder()
+                .title("보컬 트레이닝 심화반")
+                .organization("청년쉼표")
+                .region("평택시")
+                .imageUrl(
+                    "https://images.unsplash.com/photo-1516280440614-37939bbacd81?w=400&h=280&fit=crop")
+                .content("실전 무대 준비를 위한 보컬 트레이닝 10주.")
+                .eligibility(
+                    ProgramEligibility.builder()
+                        .age("만 19세 ~ 34세 청년")
+                        .region("평택시")
+                        .etc("음악 활동자")
+                        .build())
+                .startDate(today.minusDays(60))
+                .endDate(today.minusDays(10))
+                .capacity(12)
+                .build(),
+            Program.builder()
+                .title("친환경 도시농부 프로젝트")
+                .organization("하남시청년지원센터")
+                .region("하남시")
+                .imageUrl(
+                    "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=400&h=280&fit=crop")
+                .content("옥상 텃밭 재배·유기농 요리 12주.")
+                .eligibility(
+                    ProgramEligibility.builder()
+                        .age("만 19세 ~ 39세 청년")
+                        .region("하남시")
+                        .etc("환경 관심자")
+                        .build())
+                .startDate(today.plusDays(21))
+                .endDate(today.plusDays(105))
+                .capacity(18)
                 .build());
 
     programRepository.saveAll(seeds);
