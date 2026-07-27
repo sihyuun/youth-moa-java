@@ -267,6 +267,8 @@ public class DataInitializer implements ApplicationRunner {
                 .content(bodyGeneric)
                 .category(NoticeCategory.NOTICE)
                 .isPinned(true)
+                .imageUrl(
+                    "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=360&h=220&fit=crop")
                 .build(),
             Notice.builder()
                 .title("7월 청년센터 프로그램 일정 안내")

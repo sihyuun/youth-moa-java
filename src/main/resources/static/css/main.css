@@ -563,6 +563,116 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
   background: rgba(255, 255, 255, 0.28);
 }
 
+/* ── Program detail sticky bottom CTA (prototype L1095~1120) ─────────── */
+.detail-sticky-cta {
+  position: sticky;
+  bottom: 0;
+  z-index: 20;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(8px);
+  border-top: 1px solid var(--color-border-light);
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.06);
+  margin-top: 40px;
+}
+.detail-sticky-inner {
+  max-width: var(--content-max);
+  margin: 0 auto;
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.detail-sticky-meta {
+  flex: 1;
+  min-width: 0;
+}
+.detail-sticky-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.detail-sticky-status {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--color-primary);
+  margin-top: 2px;
+}
+.detail-sticky-status.is-muted {
+  color: var(--color-text-tri);
+}
+.detail-sticky-bookmark {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  border: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.detail-sticky-cta-btn {
+  min-width: 200px;
+  height: 48px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 700;
+  text-decoration: none;
+}
+.detail-sticky-cta-btn.is-disabled {
+  background: var(--color-border-light);
+  color: var(--color-text-tri);
+  border: none;
+  cursor: not-allowed;
+}
+
+/* ── Home quickmenu (prototype L561~575) — 홈 Stats 아래 4그리드 진입 카드 ─── */
+.home-quickmenu {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  padding: 28px var(--content-px) 4px;
+  max-width: var(--content-max);
+  margin: 0 auto;
+}
+.home-quickmenu-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 22px 12px;
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-light);
+  box-shadow: var(--shadow-sm);
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.home-quickmenu-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+.home-quickmenu-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: var(--color-primary-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.home-quickmenu-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
 /* ── Buttons ──────────────────────────────────────────────── */
 .btn-sm {
   padding: 6px 14px;

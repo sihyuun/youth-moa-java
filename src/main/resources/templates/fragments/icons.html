@@ -69,6 +69,15 @@
           th:attr="stroke=${color}"/>
 </svg>
 
+<svg th:fragment="search(size, color)"
+     th:attr="width=${size},height=${size}"
+     viewBox="0 0 24 24" fill="none"
+     stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+     th:attrappend="style='flex-shrink:0;'">
+    <circle cx="11" cy="11" r="8" th:attr="stroke=${color}"/>
+    <path d="M21 21l-4.35-4.35" th:attr="stroke=${color}"/>
+</svg>
+
 <svg th:fragment="check(size, color)"
      th:attr="width=${size},height=${size}"
      viewBox="0 0 24 24" fill="none"
