@@ -721,55 +721,79 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
   color: var(--color-text);
 }
 
+/* prototype L820~893: 좌측 사이드바 제거, 단일 컬럼 레이아웃 (maxWidth 1160) */
 .programs-layout {
+  max-width: 1160px;
+  margin: 0 auto;
+  padding: 28px var(--content-px) 48px;
+}
+
+.programs-main {
+  min-width: 0;
+}
+
+/* 좌측 group: 상태 탭 + 팝오버 chip + 초기화 */
+.filter-left {
   display: flex;
-  gap: 28px;
-  align-items: flex-start;
-  padding: 28px var(--content-px) 64px;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
-.programs-sidebar {
-  width: 210px;
-  flex-shrink: 0;
+.filter-divider {
+  width: 1px;
+  height: 20px;
+  background: var(--color-border);
+  margin: 0 4px;
 }
 
-.sidebar-title {
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--color-text);
-  margin: 0 0 12px;
+/* prototype L866~892: chip + dropdown 컨테이너 (popover 를 chip 하단에 attach) */
+.filter-pop-container {
+  position: relative;
 }
 
-.sidebar-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.sidebar-list li { margin-bottom: 6px; }
-
-.sidebar-link {
-  display: block;
-  padding: 7px 10px;
+/* prototype L866~872: FilterPopChip — 지역·청년센터 팝오버 트리거 chip */
+.filter-pop-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
   font-size: 13px;
+  font-weight: 500;
   color: var(--color-text-sec);
-  text-decoration: none;
-  border-radius: 6px;
-  transition: background 0.15s, color 0.15s;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
 }
-
-.sidebar-link:hover { background: var(--color-border-light); }
-
-.sidebar-link.active {
+.filter-pop-chip:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+.filter-pop-chip.is-active {
+  border-color: var(--color-primary);
   background: var(--color-primary-bg);
   color: var(--color-primary);
   font-weight: 600;
 }
-
-.programs-main {
-  flex: 1;
-  min-width: 0;
+.filter-pop-chip-count {
+  font-weight: 600;
+  color: var(--color-primary);
 }
+
+.filter-reset-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 10px;
+  border: none;
+  background: transparent;
+  color: var(--color-text-tri);
+  font-size: 12.5px;
+  cursor: pointer;
+}
+.filter-reset-link:hover { color: var(--color-primary); }
 
 .filter-bar {
   display: flex;
@@ -3104,72 +3128,82 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
 .btn-secondary:hover { border-color: var(--color-primary); color: var(--color-primary); }
 
 /* 팝오버 */
+/* prototype L866~892: chip 하단 dropdown 스타일. modal-center 대신 chip 옆 부착. */
 .filter-popover-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.35);
-  z-index: 90;
+  background: transparent; /* dropdown 은 dim 없음, 클릭 감지용 투명 layer */
+  z-index: 40;
 }
 .filter-popover {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 420px;
-  max-width: calc(100vw - 32px);
-  max-height: 70vh;
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  width: 260px;
+  max-width: 90vw;
   background: var(--color-surface);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
-  z-index: 100;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
+  border-radius: 12px;
+  border: 1px solid var(--color-border);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.14);
+  z-index: 50;
+  padding: 14px;
+  animation: dropdown-enter 0.15s ease-out;
+}
+@keyframes dropdown-enter {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 .filter-popover-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 20px;
-  border-bottom: 1px solid var(--color-border-light);
+  padding: 0 4px 10px;
 }
 .filter-popover-header h4 {
   margin: 0;
-  font-size: 15px;
-  font-weight: 700;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--color-text-sec);
 }
 .filter-popover-close {
   background: none;
   border: none;
-  font-size: 22px;
+  font-size: 18px;
   line-height: 1;
   cursor: pointer;
-  color: var(--color-text-sec);
+  color: var(--color-text-tri);
+  padding: 0 4px;
 }
 .filter-popover-search {
-  margin: 12px 20px 0;
-  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 10px;
+  border-radius: 8px;
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  font-size: 13px;
+  margin-bottom: 10px;
+  font-size: 12.5px;
+  color: var(--color-text);
+  width: 100%;
+  box-sizing: border-box;
 }
 .filter-popover-options {
-  padding: 12px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 220px;
   overflow-y: auto;
-  flex: 1;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 4px 8px;
+  padding: 0;
 }
 .filter-popover-options label {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 4px;
+  padding: 7px 8px;
+  border-radius: 6px;
   font-size: 13px;
   color: var(--color-text);
   cursor: pointer;
-  border-radius: 4px;
 }
 .filter-popover-options label:hover { background: var(--color-border-light); }
 .filter-popover-options input[type="checkbox"] { accent-color: var(--color-primary); }
@@ -3177,9 +3211,16 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
 .filter-popover-footer {
   display: flex;
   justify-content: flex-end;
-  gap: 8px;
-  padding: 12px 20px;
+  gap: 6px;
+  padding-top: 10px;
+  margin-top: 10px;
   border-top: 1px solid var(--color-border-light);
+}
+.filter-popover-footer .btn-secondary,
+.filter-popover-footer .btn-primary {
+  padding: 6px 14px;
+  font-size: 13px;
+  border-radius: 6px;
 }
 
 /* ============================================================
