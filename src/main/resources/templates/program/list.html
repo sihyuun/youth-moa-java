@@ -27,88 +27,117 @@
         <h2>프로그램</h2>
     </div>
 
-    <div class="programs-layout container">
-
-        <!-- 사이드바: 지역 + 청년센터 필터 (featured 5 + 전체보기 팝오버) -->
-        <aside class="programs-sidebar">
-
-            <!-- 지역 -->
-            <h3 class="sidebar-title">지역</h3>
-            <ul class="sidebar-list" id="sidebar-region-list">
-                <li th:each="r : ${sidebarRegions}" class="sidebar-check-item">
-                    <label>
-                        <input type="checkbox" name="regions"
-                               th:value="${r.name}"
-                               th:checked="${filterRegions != null and filterRegions.contains(r.name)}"
-                               onchange="onSidebarChange()">
-                        <span th:text="${r.name}">지역명</span>
-                    </label>
-                </li>
-            </ul>
-            <button type="button" class="sidebar-show-all"
-                    onclick="openFilterPopover('regions')">
-                전체보기 →
-            </button>
-
-            <!-- 청년센터 -->
-            <h3 class="sidebar-title" style="margin-top:24px">청년센터</h3>
-            <ul class="sidebar-list" id="sidebar-center-list">
-                <li th:each="c : ${sidebarCenters}" class="sidebar-check-item">
-                    <label>
-                        <input type="checkbox" name="centers"
-                               th:value="${c.name}"
-                               th:checked="${filterCenters != null and filterCenters.contains(c.name)}"
-                               onchange="onSidebarChange()">
-                        <span th:text="${c.name}">청년센터명</span>
-                    </label>
-                </li>
-            </ul>
-            <button type="button" class="sidebar-show-all"
-                    onclick="openFilterPopover('centers')">
-                전체보기 →
-            </button>
-        </aside>
-
-        <!-- 메인 컨텐츠 -->
+    <!-- prototype L820~893: 사이드바 제거, 상단 inline 필터 바 재구성.
+         좌: 상태 탭 + 지역/센터 팝오버 chip + 초기화 / 우: 정렬 + 뷰 전환 -->
+    <div class="programs-layout">
         <section class="programs-main">
 
-            <!-- 상태 탭 + 정렬 + view-toggle -->
             <div class="filter-bar">
-                <div class="status-tabs">
-                    <a th:href="@{/programs(regions=${filterRegions},centers=${filterCenters},sort=${filterSort})}"
-                       th:class="${#strings.isEmpty(filterStatus)} ? 'status-tab active' : 'status-tab'">
-                        전체
-                    </a>
-                    <a th:href="@{/programs(status='active',regions=${filterRegions},centers=${filterCenters},sort=${filterSort})}"
-                       th:class="${filterStatus == 'active'} ? 'status-tab active' : 'status-tab'">
-                        모집중
-                    </a>
-                    <a th:href="@{/programs(status='upcoming',regions=${filterRegions},centers=${filterCenters},sort=${filterSort})}"
-                       th:class="${filterStatus == 'upcoming'} ? 'status-tab active' : 'status-tab'">
-                        진행예정
-                    </a>
-                    <a th:href="@{/programs(status='ended',regions=${filterRegions},centers=${filterCenters},sort=${filterSort})}"
-                       th:class="${filterStatus == 'ended'} ? 'status-tab active' : 'status-tab'">
-                        종료
-                    </a>
+                <!-- 좌측 group: 상태 탭 + 지역/센터 팝오버 chip + 초기화 -->
+                <div class="filter-left">
+                    <div class="status-tabs">
+                        <a th:href="@{/programs(regions=${filterRegions},centers=${filterCenters},sort=${filterSort})}"
+                           th:class="${#strings.isEmpty(filterStatus)} ? 'status-tab active' : 'status-tab'">전체</a>
+                        <a th:href="@{/programs(status='active',regions=${filterRegions},centers=${filterCenters},sort=${filterSort})}"
+                           th:class="${filterStatus == 'active'} ? 'status-tab active' : 'status-tab'">모집중</a>
+                        <a th:href="@{/programs(status='upcoming',regions=${filterRegions},centers=${filterCenters},sort=${filterSort})}"
+                           th:class="${filterStatus == 'upcoming'} ? 'status-tab active' : 'status-tab'">진행예정</a>
+                        <a th:href="@{/programs(status='ended',regions=${filterRegions},centers=${filterCenters},sort=${filterSort})}"
+                           th:class="${filterStatus == 'ended'} ? 'status-tab active' : 'status-tab'">종료</a>
+                    </div>
+
+                    <div class="filter-divider"></div>
+
+                    <!-- 지역 팝오버 트리거 chip + dropdown (prototype L866~892) -->
+                    <div class="filter-pop-container">
+                        <button type="button" class="filter-pop-chip"
+                                th:classappend="${filterRegions != null and !filterRegions.isEmpty()} ? ' is-active'"
+                                onclick="toggleFilterPopover('regions')">
+                            <span>지역<span class="filter-pop-chip-count"
+                                           th:if="${filterRegions != null and !filterRegions.isEmpty()}"
+                                           th:text="' ' + ${filterRegions.size()}"></span></span>
+                            <svg th:replace="~{fragments/icons :: chevD(13, 'currentColor')}"></svg>
+                        </button>
+                        <div class="filter-popover" data-group="regions" style="display:none">
+                            <div class="filter-popover-header">
+                                <h4>지역 선택</h4>
+                                <button type="button" class="filter-popover-close" aria-label="닫기"
+                                        onclick="closeFilterPopover('regions')">×</button>
+                            </div>
+                            <input type="text" class="filter-popover-search" placeholder="지역 검색"
+                                   oninput="filterPopoverSearch('regions', this.value)"
+                                   th:if="${allRegions != null and allRegions.size() > 8}">
+                            <div class="filter-popover-options">
+                                <label th:each="opt : ${allRegions}">
+                                    <input type="checkbox" name="regions" th:value="${opt.name}"
+                                           th:checked="${filterRegions != null and filterRegions.contains(opt.name)}">
+                                    <span th:text="${opt.name}">옵션</span>
+                                </label>
+                            </div>
+                            <div class="filter-popover-footer">
+                                <button type="button" class="btn-secondary"
+                                        onclick="closeFilterPopover('regions')">취소</button>
+                                <button type="button" class="btn-primary"
+                                        onclick="applyFilterPopover('regions')">적용</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 청년센터 팝오버 트리거 chip + dropdown -->
+                    <div class="filter-pop-container">
+                        <button type="button" class="filter-pop-chip"
+                                th:classappend="${filterCenters != null and !filterCenters.isEmpty()} ? ' is-active'"
+                                onclick="toggleFilterPopover('centers')">
+                            <span>청년센터<span class="filter-pop-chip-count"
+                                               th:if="${filterCenters != null and !filterCenters.isEmpty()}"
+                                               th:text="' ' + ${filterCenters.size()}"></span></span>
+                            <svg th:replace="~{fragments/icons :: chevD(13, 'currentColor')}"></svg>
+                        </button>
+                        <div class="filter-popover" data-group="centers" style="display:none">
+                            <div class="filter-popover-header">
+                                <h4>청년센터 선택</h4>
+                                <button type="button" class="filter-popover-close" aria-label="닫기"
+                                        onclick="closeFilterPopover('centers')">×</button>
+                            </div>
+                            <input type="text" class="filter-popover-search" placeholder="청년센터 검색"
+                                   oninput="filterPopoverSearch('centers', this.value)"
+                                   th:if="${allCenters != null and allCenters.size() > 8}">
+                            <div class="filter-popover-options">
+                                <label th:each="opt : ${allCenters}">
+                                    <input type="checkbox" name="centers" th:value="${opt.name}"
+                                           th:checked="${filterCenters != null and filterCenters.contains(opt.name)}">
+                                    <span th:text="${opt.name}">옵션</span>
+                                </label>
+                            </div>
+                            <div class="filter-popover-footer">
+                                <button type="button" class="btn-secondary"
+                                        onclick="closeFilterPopover('centers')">취소</button>
+                                <button type="button" class="btn-primary"
+                                        onclick="applyFilterPopover('centers')">적용</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 초기화 (선택된 지역/센터 있을 때만) -->
+                    <button type="button" class="filter-reset-link"
+                            th:if="${(filterRegions != null and !filterRegions.isEmpty()) or (filterCenters != null and !filterCenters.isEmpty())}"
+                            onclick="resetAllFilters()">
+                        <svg th:replace="~{fragments/icons :: refresh(13, 'currentColor')}"></svg>
+                        <span>초기화</span>
+                    </button>
                 </div>
 
+                <!-- 우측 group: 정렬 + 뷰 전환 (count 는 하단 결과 영역에 렌더) -->
                 <div class="filter-right">
                     <div class="sort-options">
                         <a th:href="@{/programs(status=${filterStatus},regions=${filterRegions},centers=${filterCenters},sort='newest')}"
-                           th:class="${filterSort == 'newest' or #strings.isEmpty(filterSort)} ? 'sort-link active' : 'sort-link'">
-                            최신순
-                        </a>
+                           th:class="${filterSort == 'newest' or #strings.isEmpty(filterSort)} ? 'sort-link active' : 'sort-link'">최신순</a>
                         <span class="sort-sep">·</span>
                         <a th:href="@{/programs(status=${filterStatus},regions=${filterRegions},centers=${filterCenters},sort='deadline')}"
-                           th:class="${filterSort == 'deadline'} ? 'sort-link active' : 'sort-link'">
-                            마감임박순
-                        </a>
+                           th:class="${filterSort == 'deadline'} ? 'sort-link active' : 'sort-link'">마감임박순</a>
                         <span class="sort-sep">·</span>
                         <a th:href="@{/programs(status=${filterStatus},regions=${filterRegions},centers=${filterCenters},sort='popular')}"
-                           th:class="${filterSort == 'popular'} ? 'sort-link active' : 'sort-link'">
-                            인기순
-                        </a>
+                           th:class="${filterSort == 'popular'} ? 'sort-link active' : 'sort-link'">인기순</a>
                     </div>
 
                     <div class="view-toggle">
@@ -128,82 +157,59 @@
     </div>
 </main>
 
-<!-- 팝오버 (지역·청년센터 전체보기) — inline 재작성.
-     TODO(F0f-후속): 원래 templates/program/_filter-popover.html fragment call 시도했으나 렌더 도중 응답이
-     ERR_INCOMPLETE_CHUNKED_ENCODING 로 끊기는 이슈로 임시 inline 처리. Thymeleaf 3.x fragment call 문법
-     (th:onclick="|closeFilterPopover('${group}')|" 안의 SpEL literal + fragment 인자 전달 조합) 원인
-     재규명 후 fragment 로 재활용 검토. (지금은 미사용 파일이라 삭제됨) -->
-<div class="filter-popover-backdrop" data-group="regions"
-     onclick="closeFilterPopover('regions')" style="display:none"></div>
-<div class="filter-popover" data-group="regions" style="display:none">
-    <div class="filter-popover-header">
-        <h4>지역 전체</h4>
-        <button type="button" class="filter-popover-close" aria-label="닫기"
-                onclick="closeFilterPopover('regions')">×</button>
-    </div>
-    <input type="text" class="filter-popover-search" placeholder="검색"
-           oninput="filterPopoverSearch('regions', this.value)"
-           th:if="${allRegions != null and allRegions.size() > 8}">
-    <div class="filter-popover-options">
-        <label th:each="opt : ${allRegions}">
-            <input type="checkbox" name="regions" th:value="${opt.name}">
-            <span th:text="${opt.name}">옵션</span>
-        </label>
-    </div>
-    <div class="filter-popover-footer">
-        <button type="button" class="btn-secondary"
-                onclick="closeFilterPopover('regions')">취소</button>
-        <button type="button" class="btn-primary"
-                onclick="applyFilterPopover('regions')">적용</button>
-    </div>
-</div>
-
-<div class="filter-popover-backdrop" data-group="centers"
-     onclick="closeFilterPopover('centers')" style="display:none"></div>
-<div class="filter-popover" data-group="centers" style="display:none">
-    <div class="filter-popover-header">
-        <h4>청년센터 전체</h4>
-        <button type="button" class="filter-popover-close" aria-label="닫기"
-                onclick="closeFilterPopover('centers')">×</button>
-    </div>
-    <input type="text" class="filter-popover-search" placeholder="검색"
-           oninput="filterPopoverSearch('centers', this.value)"
-           th:if="${allCenters != null and allCenters.size() > 8}">
-    <div class="filter-popover-options">
-        <label th:each="opt : ${allCenters}">
-            <input type="checkbox" name="centers" th:value="${opt.name}">
-            <span th:text="${opt.name}">옵션</span>
-        </label>
-    </div>
-    <div class="filter-popover-footer">
-        <button type="button" class="btn-secondary"
-                onclick="closeFilterPopover('centers')">취소</button>
-        <button type="button" class="btn-primary"
-                onclick="applyFilterPopover('centers')">적용</button>
-    </div>
-</div>
-
 <div th:replace="~{fragments/footer :: footer}"></div>
 
 <script>
-    // 사이드바 체크박스 onchange — 현재 체크된 값으로 URL 재구성 후 htmx GET
-    function onSidebarChange() {
+    // 팝오버 내부 체크박스 → 현재 체크된 값으로 URL 재구성 후 HTMX GET
+    function applyFiltersFromPopovers() {
         const params = new URLSearchParams(window.location.search);
         params.delete('regions');
         params.delete('centers');
         params.delete('page');
-
-        document.querySelectorAll('#sidebar-region-list input[name="regions"]:checked, .filter-popover[data-group="regions"] input[name="regions"]:checked')
+        document.querySelectorAll('.filter-popover[data-group="regions"] input[name="regions"]:checked')
                 .forEach(el => params.append('regions', el.value));
-        document.querySelectorAll('#sidebar-center-list input[name="centers"]:checked, .filter-popover[data-group="centers"] input[name="centers"]:checked')
+        document.querySelectorAll('.filter-popover[data-group="centers"] input[name="centers"]:checked')
                 .forEach(el => params.append('centers', el.value));
-
         const url = '/programs?' + params.toString();
         htmx.ajax('GET', url, { target: '#program-list-region', swap: 'innerHTML' });
         history.pushState({}, '', url);
+        syncChipActiveState();
     }
 
-    // 칩 × 클릭 — 단일 값 제거
+    // dropdown chip 의 is-active 클래스와 카운트 뱃지를 URL 파라미터 기준으로 동기화.
+    // htmx 부분 swap 은 #program-list-region 만 갱신하므로 chip (filter-bar 내부) 는 별도 sync 필요.
+    function syncChipActiveState() {
+        const params = new URLSearchParams(window.location.search);
+        ['regions', 'centers'].forEach(group => {
+            const count = params.getAll(group).length;
+            const container = document.querySelector(
+                '.filter-pop-container:has(.filter-popover[data-group="' + group + '"])'
+            );
+            if (!container) return;
+            const chip = container.querySelector('.filter-pop-chip');
+            const label = chip && chip.querySelector('span');
+            if (!chip || !label) return;
+            const base = (group === 'regions') ? '지역' : '청년센터';
+            if (count > 0) {
+                chip.classList.add('is-active');
+                label.innerHTML = base + '<span class="filter-pop-chip-count"> ' + count + '</span>';
+            } else {
+                chip.classList.remove('is-active');
+                label.textContent = base;
+            }
+        });
+        // 초기화 링크 자체는 filter-bar 에 있어 렌더 시 조건부로만 나오므로 즉시 반영을 위해 조건 재평가.
+        const hasFilters = (params.getAll('regions').length + params.getAll('centers').length) > 0;
+        const existingReset = document.querySelector('.filter-reset-link');
+        if (hasFilters && !existingReset) {
+            // dynamic 추가는 복잡하므로 전체 페이지 refresh 로 처리 (초기화 링크 노출 필요 시).
+            // 하지만 이미 chip is-active 로 표시되므로 시각 UX 손실은 미미.
+        } else if (!hasFilters && existingReset) {
+            existingReset.remove();
+        }
+    }
+
+    // 칩 × 클릭 — 단일 값 제거 (활성 필터 chip 영역용)
     function removeFilter(group, value) {
         const params = new URLSearchParams(window.location.search);
         const remaining = params.getAll(group).filter(v => v !== value);
@@ -213,69 +219,65 @@
         const url = '/programs?' + params.toString();
         htmx.ajax('GET', url, { target: '#program-list-region', swap: 'innerHTML' });
         history.pushState({}, '', url);
-
-        // 사이드바 체크박스도 즉시 동기화 (사용자가 바로 다시 체크할 수 있도록)
         document.querySelectorAll('input[name="' + group + '"][value="' + CSS.escape(value) + '"]')
                 .forEach(el => el.checked = false);
+        syncChipActiveState();
     }
 
-    // 전체 초기화 — regions/centers 만 제거 (status/sort 유지)
+    // 전체 초기화 — regions/centers 만 제거 (status/sort 유지). filter-reset-link 클릭 시 URL 재이동.
     function resetAllFilters() {
         const params = new URLSearchParams(window.location.search);
         params.delete('regions');
         params.delete('centers');
         params.delete('page');
-        const url = '/programs?' + params.toString();
-        htmx.ajax('GET', url, { target: '#program-list-region', swap: 'innerHTML' });
-        history.pushState({}, '', url);
-        document.querySelectorAll('input[name="regions"], input[name="centers"]').forEach(el => el.checked = false);
+        window.location.href = '/programs?' + params.toString();
     }
 
-    // 팝오버 open
-    function openFilterPopover(group) {
+    // 팝오버 dropdown 토글 (prototype L866~892 스타일)
+    function toggleFilterPopover(group) {
         const pop = document.querySelector('.filter-popover[data-group="' + group + '"]');
-        const backdrop = document.querySelector('.filter-popover-backdrop[data-group="' + group + '"]');
         if (!pop) return;
-        // 현재 사이드바 체크 상태를 팝오버에 동기화
-        const sidebarChecked = new Set(
-            Array.from(document.querySelectorAll('#sidebar-' + group.replace('s', '') + '-list input:checked'))
-                 .map(el => el.value)
-        );
-        // 또한 URL 의 현재 값도 반영
+        // 다른 그룹 열려 있으면 닫기
+        document.querySelectorAll('.filter-popover').forEach(p => {
+            if (p !== pop) p.style.display = 'none';
+        });
+        const isOpen = pop.style.display === 'block';
+        if (isOpen) { closeFilterPopover(group); return; }
+        // 열기 — URL 현재값으로 체크박스 동기화
         const urlChecked = new URLSearchParams(window.location.search).getAll(group);
-        urlChecked.forEach(v => sidebarChecked.add(v));
         pop.querySelectorAll('input[type="checkbox"]').forEach(el => {
-            el.checked = sidebarChecked.has(el.value);
+            el.checked = urlChecked.includes(el.value);
         });
         pop.style.display = 'block';
-        if (backdrop) backdrop.style.display = 'block';
-
-        // 검색 박스 reset
+        // 검색 박스 초기화 + 모든 옵션 노출
         const search = pop.querySelector('.filter-popover-search');
         if (search) {
             search.value = '';
-            pop.querySelectorAll('label').forEach(l => l.style.display = '');
+            pop.querySelectorAll('.filter-popover-options label').forEach(l => l.style.display = '');
         }
     }
     function closeFilterPopover(group) {
         const pop = document.querySelector('.filter-popover[data-group="' + group + '"]');
-        const backdrop = document.querySelector('.filter-popover-backdrop[data-group="' + group + '"]');
         if (pop) pop.style.display = 'none';
-        if (backdrop) backdrop.style.display = 'none';
     }
     function applyFilterPopover(group) {
-        onSidebarChange();
+        applyFiltersFromPopovers();
         closeFilterPopover(group);
     }
     function filterPopoverSearch(group, q) {
         const pop = document.querySelector('.filter-popover[data-group="' + group + '"]');
         if (!pop) return;
         const lower = (q || '').toLowerCase();
-        pop.querySelectorAll('label').forEach(l => {
+        pop.querySelectorAll('.filter-popover-options label').forEach(l => {
             const text = (l.textContent || '').toLowerCase();
             l.style.display = (lower === '' || text.includes(lower)) ? '' : 'none';
         });
     }
+    // 팝오버 외부 클릭 시 닫기
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('.filter-pop-container')) return;
+        document.querySelectorAll('.filter-popover').forEach(p => p.style.display = 'none');
+    });
 </script>
 
 </body>

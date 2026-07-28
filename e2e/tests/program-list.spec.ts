@@ -2,10 +2,13 @@ import { test, expect, type Page } from '@playwright/test';
 import { abortExternal, waitForHtmx } from '../helpers';
 
 /**
- * F0f — 프로그램 목록 필터 재설계 E2E.
+ * F0f — 프로그램 목록 필터 (2026-07-27 batch3 재설계 반영).
  *
- * 사이드바 체크박스 (지역·청년센터) / 활성 칩 / 팝오버 / 정렬 / 캘린더 토글 / 빈 상태.
- * 데이터 시드: DataInitializer 가 8개 프로그램 + 30 region + 48 center 를 매 부팅마다 재생성.
+ * 좌측 사이드바 제거, 상단 dropdown chip 방식.
+ *  - 지역·청년센터 chip (.filter-pop-chip) 클릭 → 하단 dropdown (.filter-popover) open
+ *  - dropdown 내부 체크박스 체크 → [적용] 버튼 → HTMX partial swap + URL pushState
+ *  - active-filter-chip / active-filter-reset 은 결과 영역 (_list-fragment) 에서 렌더
+ *  - filter-reset-link 는 필터 바 좌측에 노출 (regions/centers 선택 시)
  */
 
 async function gotoPrograms(page: Page, path: string = '/programs') {
@@ -19,38 +22,44 @@ test.beforeEach(async ({ page }) => {
     await expect(page).toHaveTitle(/프로그램/);
 });
 
-test('사이드바에 featured 지역 + 청년센터 + 전체보기 버튼이 보인다', async ({ page }) => {
-    // F-signup-03 이후 (2026-07): featured 지역 상위 10개 (수원·성남·고양·용인·부천·안양·안산·화성·남양주·평택).
-    // Center 도 featured 로 관리 (동일 규모).
-    const regionItems = page.locator('#sidebar-region-list .sidebar-check-item');
-    await expect(regionItems.first()).toBeVisible();
-    const regionCount = await regionItems.count();
-    expect(regionCount).toBeGreaterThanOrEqual(5);
-    expect(regionCount).toBeLessThanOrEqual(15);
-
-    const centerItems = page.locator('#sidebar-center-list .sidebar-check-item');
-    await expect(centerItems.first()).toBeVisible();
-
-    // 전체보기 → 버튼 2개 (지역 + 청년센터)
-    await expect(page.locator('.sidebar-show-all')).toHaveCount(2);
+test('상단 필터 바에 지역 · 청년센터 dropdown chip 이 노출된다', async ({ page }) => {
+    const chips = page.locator('.filter-pop-chip');
+    await expect(chips).toHaveCount(2);
+    await expect(chips.nth(0)).toContainText('지역');
+    await expect(chips.nth(1)).toContainText('청년센터');
 });
 
-test('지역 체크박스 1개를 체크하면 URL 이 갱신되고 칩이 나타난다', async ({ page }) => {
-    const firstRegion = page.locator('#sidebar-region-list input[name="regions"]').first();
-    const value = await firstRegion.getAttribute('value');
-    await firstRegion.check();
+test('지역 chip 클릭 시 dropdown 팝오버가 chip 하단에 열린다', async ({ page }) => {
+    await page.locator('.filter-pop-chip', { hasText: '지역' }).click();
+    const pop = page.locator('.filter-popover[data-group="regions"]');
+    await expect(pop).toBeVisible();
+    // 8개 초과 (30개 region) → 검색 박스 노출
+    await expect(pop.locator('.filter-popover-search')).toBeVisible();
+});
 
-    // htmx ajax 가 끝날 때까지 잠시 대기
+test('지역 dropdown 에서 옵션 체크 후 적용 시 URL 이 갱신되고 chip 활성화된다', async ({ page }) => {
+    await page.locator('.filter-pop-chip', { hasText: '지역' }).click();
+    const pop = page.locator('.filter-popover[data-group="regions"]');
+    const firstOption = pop.locator('input[name="regions"]').first();
+    const value = await firstOption.getAttribute('value');
+    await firstOption.check();
+    await pop.locator('.btn-primary', { hasText: '적용' }).click();
+
     await page.waitForTimeout(500);
-
     await expect(page).toHaveURL(new RegExp(`regions=${encodeURIComponent(value!)}`));
+    // active-filter-chip 하단 결과 영역
     await expect(page.locator('.active-filter-chip')).toContainText(value!);
+    // dropdown chip 자체 is-active 표기 (재렌더 시)
+    await expect(page.locator('.filter-pop-chip', { hasText: '지역' })).toHaveClass(/is-active/);
 });
 
-test('칩 × 버튼을 클릭하면 해당 값만 제거된다', async ({ page }) => {
-    const firstRegion = page.locator('#sidebar-region-list input[name="regions"]').first();
-    const value = await firstRegion.getAttribute('value');
-    await firstRegion.check();
+test('active-filter-chip × 버튼을 클릭하면 해당 값만 제거된다', async ({ page }) => {
+    await page.locator('.filter-pop-chip', { hasText: '지역' }).click();
+    const pop = page.locator('.filter-popover[data-group="regions"]');
+    const firstOption = pop.locator('input[name="regions"]').first();
+    const value = await firstOption.getAttribute('value');
+    await firstOption.check();
+    await pop.locator('.btn-primary', { hasText: '적용' }).click();
     await page.waitForTimeout(500);
 
     await page.locator('.active-filter-chip-x').first().click();
@@ -60,27 +69,19 @@ test('칩 × 버튼을 클릭하면 해당 값만 제거된다', async ({ page }
     await expect(page).not.toHaveURL(new RegExp(`regions=${encodeURIComponent(value!)}`));
 });
 
-test('전체 초기화 버튼은 regions/centers 만 제거하고 status/sort 는 유지한다', async ({ page }) => {
-    // status=active + sort=deadline + regions 1개 조합
-    await gotoPrograms(page, '/programs?status=active&sort=deadline');
-    const firstRegion = page.locator('#sidebar-region-list input[name="regions"]').first();
-    await firstRegion.check();
-    await page.waitForTimeout(500);
+test('필터 바 초기화 링크는 regions/centers 만 제거하고 status/sort 는 유지한다', async ({ page }) => {
+    // status=active + sort=deadline + regions 1개 조합 (URL 직접 접근)
+    await gotoPrograms(page, '/programs?status=active&sort=deadline&regions=%EC%88%98%EC%9B%90%EC%8B%9C');
 
-    await page.locator('.active-filter-reset').click();
-    await page.waitForTimeout(500);
+    const resetLink = page.locator('.filter-reset-link');
+    await expect(resetLink).toBeVisible();
+    await resetLink.click();
+    await page.waitForLoadState('domcontentloaded');
 
     const url = page.url();
     expect(url).toContain('status=active');
     expect(url).toContain('sort=deadline');
     expect(url).not.toContain('regions=');
-});
-
-test('전체보기 버튼을 누르면 팝오버가 열린다', async ({ page }) => {
-    await page.locator('.sidebar-show-all').first().click();
-    await expect(page.locator('.filter-popover[data-group="regions"]')).toBeVisible();
-    // 30개 region 이 시드되므로 8개 초과 → 검색 박스 노출
-    await expect(page.locator('.filter-popover[data-group="regions"] .filter-popover-search')).toBeVisible();
 });
 
 test('인기순 정렬 클릭 시 URL 에 sort=popular 가 들어간다', async ({ page }) => {
