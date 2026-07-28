@@ -2,3 +2,7 @@ node_modules/
 test-results/
 playwright-report/
 playwright/.cache/
+
+# 디자인 계약 갭 리포트 — 매 실행마다 재생성되는 산출물이라 커밋하지 않는다.
+# (test-results/ 안에 두면 Playwright 가 실행 시작 시 지워버려서 별도 디렉토리로 분리함)
+gap-reports/

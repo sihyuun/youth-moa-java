@@ -43,10 +43,29 @@ export default defineConfig({
         stdout: 'pipe',
         stderr: 'pipe',
     },
+    /**
+     * 프로젝트 2분할 (2026-07-28).
+     *
+     * - `chromium`  : 기능 E2E. **green 유지가 원칙** — 여기가 red 면 회귀가 가려진다
+     *                 (2026-07-13 E2E red 방치가 신규 회귀 5건을 마스킹한 사고).
+     * - `contracts` : 디자인 계약 검사 (visual-*.spec.ts). prototype 대비 정량 갭을 리포트하는 게
+     *                 목적이라 **갭이 남아 있는 동안은 의도적으로 red** 다. 기능 E2E 와 섞으면
+     *                 위 원칙이 무너지므로 분리하고, CI 에서는 non-blocking 으로 돌린다.
+     *
+     * 실행:
+     *   npx playwright test --project=chromium    # 기능 E2E (블로킹)
+     *   npx playwright test --project=contracts   # 디자인 계약 (논블로킹)
+     */
     projects: [
         {
             name: 'chromium',
             use: { ...devices['Desktop Chrome'] },
+            testIgnore: /visual-.*\.spec\.ts$/,
+        },
+        {
+            name: 'contracts',
+            use: { ...devices['Desktop Chrome'] },
+            testMatch: /visual-.*\.spec\.ts$/,
         },
     ],
 });
