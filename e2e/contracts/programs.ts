@@ -281,12 +281,21 @@ export const programsContract: ScreenContract = {
             severity: 'P2',
         },
         {
+            id: 'popover.noHeader',
+            desc: '드롭다운에 제목·닫기(×) 헤더가 없다 — 컨테이너 안은 검색 행 + 옵션 목록뿐',
+            selector: '.filter-popover-header',
+            kind: 'exists',
+            expected: false,
+            proto: 'tsx L708~723 (padding:14 컨테이너 직계 자식은 검색 div + 옵션 div 2개뿐)',
+            severity: 'P2',
+        },
+        {
             id: 'popover.noApplyFooter',
             desc: '드롭다운은 체크 즉시 반영 — 취소/적용 버튼 푸터가 없다',
             selector: '.filter-popover-footer',
             kind: 'exists',
             expected: false,
-            proto: 'tsx L714~721 (label onClick 이 곧바로 setSel)',
+            proto: 'tsx L715 (label onClick 이 곧바로 setSel — 확인 단계 없음)',
             severity: 'P2',
         },
 
@@ -379,6 +388,8 @@ export const programsContract: ScreenContract = {
             expected: 0,
             proto: 'tsx L872 (onClick={()=>setView(v)} — 두 항목 모두 활성)',
             severity: 'P1',
+            deferred:
+                '캘린더 뷰 미구현 — docs/specs/F0f-calendar-view.md 로 별도 진행. 그때까지 토글은 disabled 유지',
         },
         {
             id: 'viewtoggle.icon',

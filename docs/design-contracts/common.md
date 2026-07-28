@@ -212,7 +212,7 @@ SNS 순서: Instagram → YouTube → KakaoTalk → Facebook (proto L470~473).
 
 | # | 항목 | prototype | 현재 | 논점 |
 |---|---|---|---|---|
-| Q1 | 헤더 고정 방식 | `position: relative`, `zIndex:100` — 스크롤하면 헤더가 화면 밖으로 사라짐 (proto L415) | `position: sticky; top:0; z-index:200` — 항상 상단 고정 | sticky 가 명백한 UX 개선이라 계약에 넣지 않았다. **확정해 주시면 이 문서에 "의도적 아키텍처 이탈"로 못박습니다.** 홈 hero 는 이미 `margin-top: calc(-1 * var(--header-h))` 로 sticky 를 전제하고 있음 |
+| ~~Q1~~ | ~~헤더 고정 방식~~ | **철회 (2026-07-28) — 오판이었음.** prototype 도 sticky 다: `Header` 함수 본문은 `position:'relative'`(L415) 지만 `App` 이 L2715 에서 `position:'sticky', top:0, zIndex:200` 래퍼로 감싸고 `onScroll` 로 `scrollTop>60` 에서 `scrolled` 를 켠다. 구현과 정합이므로 결정할 것이 없다. 홈 hero 의 `margin-top: calc(-1 * var(--header-h))` 도 그래서 맞다 | | 컴포넌트 본문만 읽고 레이아웃을 판정하면 상위 래퍼 속성을 놓친다 → `POLICY.md` 「관련 ADR」 절에 교훈 기록 |
 | Q2 | 그림자 정책 | 헤더·알림 패널만 중립 검정 그림자 | 전역 `--shadow-*` 브랜드 틴트 토큰 적용 | 디자인 시스템 일관성(토큰 우선) vs prototype 재현. 토큰 유지로 결정하면 P2 갭 2건이 `deviation` 처리되어 갭 18건 |
 | Q3 | 푸터 `관리자` 링크 | 있음 (→ `forbidden`) | 없음 | admin 트랙 착수 전까지 **의도적 미노출**인지, 단순 누락인지. 미노출이면 `deviation`, 누락이면 P1 티켓 |
 | Q4 | 알림 `모두 지우기` · 항목 삭제 | 있음 | 없음 | 알림 하드 삭제는 백엔드 API 신설이 필요하다. "읽음 처리만 제공" 이 정책이면 `deviation`, 아니면 후속 티켓 |

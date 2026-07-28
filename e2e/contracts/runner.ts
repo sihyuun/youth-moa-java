@@ -84,7 +84,7 @@ export async function runContract(
     state: AuthState,
 ): Promise<CheckResult[]> {
     const targets = contract.checks.filter(
-        c => (c.states ?? ['anon']).includes(state) && !c.deviation,
+        c => (c.states ?? ['anon']).includes(state) && !c.deviation && !c.deferred,
     );
 
     const results: CheckResult[] = [];
@@ -172,11 +172,26 @@ export function writeGapReport(
         lines.push('');
     }
 
+    // 이월 — 맞출 예정이지만 이번 범위가 아닌 항목. 담당 티켓과 함께 항상 표기한다
+    const deferred = contract.checks.filter(c => c.deferred && !c.deviation);
+    if (deferred.length > 0) {
+        lines.push(`## 이월 (검사 제외 · 맞출 예정) — ${deferred.length}건`);
+        lines.push('');
+        lines.push('| 항목 | prototype 기대값 | 담당 |');
+        lines.push('|---|---|---|');
+        for (const c of deferred) {
+            lines.push(`| \`${c.id}\` — ${c.desc} | ${cell(c.expected)} | ${c.deferred} |`);
+        }
+        lines.push('');
+    }
+
     lines.push('---');
     lines.push('');
     lines.push(
         `**합계: ${total - failed}/${total} 통과 · 갭 ${failed}건**` +
-            (deviations.length > 0 ? ` · 의도적 이탈 ${deviations.length}건 (검사 제외)` : ''),
+            (deviations.length > 0 ? ` · 의도적 이탈 ${deviations.length}건` : '') +
+            (deferred.length > 0 ? ` · 이월 ${deferred.length}건` : '') +
+            (deviations.length + deferred.length > 0 ? ' (검사 제외)' : ''),
     );
     lines.push('');
 

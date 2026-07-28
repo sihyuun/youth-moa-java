@@ -50,56 +50,11 @@ CSS 변수·레이아웃·스타일을 변경하는 모든 작업은 아래 항�
 3. CSS 변수(`--color-*`, `--shadow-*` 등) 가 의도한 값으로 렌더링
 4. 이미지 크기·`object-fit` 사용 방식과 부모 컨테이너 `position` 일치
 
-### prototype 3자산 병렬 정독 (spec 산출 시 필수)
+### spec 산출 규칙 → `ym-spec` 에이전트 정의로 이관 (2026-07-28)
 
-> **배경 (2026-07-07 F0h 사고)**: `/centers` 화면이 prototype 과 근본 아키텍처가 다른 상태로 머지됨 (prototype 3-column [리스트+인라인 상세+지도] vs 구현 2-column + 별도 라우트). 원인은 ym-spec 이 HANDOFF.md 요약 텍스트만 참조하고 prototype.tsx 컴포넌트 구조를 정독하지 않은 것.
+3자산 정독 · 데이터 모델 gap 표 · 데이터 소비 지점 · write→read 왕복 시나리오 규칙은 CLAUDE.md 소관이 아니라 **특정 에이전트의 작업 절차**이므로 `~/.claude/agents/ym-spec.md` 로 옮겼다. spec 산출 시에만 필요한 50줄이 상시 컨텍스트를 차지하고 있었다.
 
-새 화면·기존 화면 개편 spec 을 산출할 때 아래 3자산을 **모두 정독하고, 각 자산에서 발견한 결정 사항을 spec 서두에 인용** 한다.
-
-1. `docs/00_assets/prototype.html` — 실제 렌더 결과
-2. `docs/00_assets/prototype.tsx` — **컴포넌트 구조·상태 머신·인터랙션 흐름 (최우선)**
-3. `docs/00_assets/HANDOFF.md` — 스펙 텍스트·개발 메모·`⚠️` 필수 반영 항목
-
-특히 tsx 는 다음 항목을 **spec 에 상태 다이어그램으로 명시**한다:
-- 화면 내부 `useState` 변수 목록과 각 상태의 UI 변화
-- 컴포넌트 배치 (몇 column, 각 폭, 반응형 축소 모드)
-- CTA 클릭 시 route 이동 vs 인라인 패널 전환 여부
-
-**언제 발동**: ym-spec 실행 시 첫 단계.
-**위반 감지**: spec 문서에 tsx 라인 번호 인용이 하나도 없거나, HANDOFF 의 `⚠️` 블록 항목이 spec 에 매핑 안 되어 있으면 위반.
-
-### spec 산출 시 데이터 모델 gap 표 필수
-
-prototype 이 참조하는 mock 데이터 (예: `CENTER_DATA`, `PROGRAMS`) 의 **모든 프로퍼티를 열거**하고 현재 엔티티 필드와 매핑한다. 누락 필드는 spec 의 "데이터 모델 변경" 섹션에 마이그레이션 안과 함께 명시.
-
-| prototype 필드 | 현재 엔티티 | 조치 |
-|---|---|---|
-| `desc` | ❌ | 컬럼 추가 |
-| `hours` | ❌ | 컬럼 추가 |
-
-**언제 발동**: ym-spec 산출 첫 단계.
-**위반 감지**: spec 에 이 표가 없거나 "조치" 컬럼이 비어 있으면 위반.
-
-### spec 산출 시 "데이터 소비 지점" 리스트 필수 (2026-07-14 추가)
-
-**배경**: F-signup-03 WelcomeScreen 이 관심 지역·분야를 저장하도록 구현했으나, 저장된 데이터가 mypage 프로필 요약 카드에 표시되는 것을 spec 이 커버하지 않아 태그 형식이 prototype 매칭 안 됨 (mypage 는 `#tag` 노출, prototype 은 `관심 지역 · X` + `관심 · Y·Z` 형식).
-
-**규칙**: 저장·수정·삭제 데이터를 다루는 spec 은 **해당 데이터가 표시·편집·요약되는 모든 화면**을 열거하고, 각 화면에 대해 prototype 매칭 상태를 확인·기록한다.
-
-| 소비 지점 (화면·컴포넌트) | prototype 참조 | 현재 상태 | 갭 |
-|---|---|---|---|
-| WelcomeScreen 저장 폼 | tsx L1541~1591 | 이번 티켓 신규 | — |
-| mypage 프로필 요약 태그 | tsx L1237 | `#tag` 혼재 | 형식 불일치 |
-| mypage 개인정보 수정 폼 | tsx L1380~ | 필드 부재 | 편집 UI 미구현 |
-
-**언제 발동**: ym-spec 산출 시. 데이터 필드 신설·마이그레이션 티켓은 반드시.
-**위반 감지**: spec 에 "데이터 소비 지점" 표가 없거나, 표에 나열된 소비 지점 중 prototype 매칭 확인 미기재 항목이 있으면 위반.
-
-### spec 산출 시 write→read 왕복 통합 시나리오 필수
-
-**규칙**: 저장·수정 티켓은 "저장 → 재로드 후 값 확인" 통합 시나리오를 spec 검증 항목에 명시. 각 소비 지점(위 표) 별로 저장 후 어떻게 표시되는지 시나리오화.
-
-**감지**: 렌더 테스트만 있고 write→read 왕복 assertion 없으면 위반.
+> 참고: `prototype.html` 과 `prototype.tsx` 는 **같은 소스**다 (단일 파일 React 앱, 컴포넌트 목록 차이 0건, `html 라인 = tsx 라인 + 35`). 둘을 "충돌 시 우선순위" 로 비교하는 절차는 실행할 일이 없다.
 
 ---
 
@@ -228,41 +183,22 @@ PR 본문·커밋 본문·메시지 모두 정적·동적·시각 검증 범위�
 - 브라우저에서 ⟨A⟩ 토글 시 ⟨B⟩ 동작
 ```
 
-### prototype 시각 대조 — 화면 신설·개편 PR 필수 별도 단계
+### prototype 시각 대조 → 디자인 계약이 대체 (2026-07-28)
 
-> **배경 (2026-07-07 F0h 사고)**: `/centers` PR 이 curl 정적/동적 검증만 통과한 채 머지됐으나 prototype 과 아키텍처가 근본 불일치 (2-col vs 3-col, 별도 라우트 vs 인라인 패널). curl 은 "마크업 존재만" 검증하며 시각·구조 갭은 감지 못 함.
+기존에는 착수 전·PR 단계에서 prototype 을 사람이 육안 대조하도록 산문 규칙 2개를 두었다. 그 방식은 **7/22 에 규칙을 신설한 뒤에도 7/27 전수 스캔에서 갭 60건**이 나와 실패로 확인됐다. 기준이 매 세션 재해석되는 원문(2,733줄)이라 판단이 흔들리고, 육안 비교로는 정량값(`width 400 vs 460`, `font 34 vs 42`)을 잡을 수 없었다.
 
-curl 기반 동적 검증은 "마크업이 존재하는가" 만 검증한다. 새 화면·개편 PR 은 아래 절차를 **추가 수행** 한다.
+지금은 **디자인 계약**이 이 역할을 기계적으로 수행한다.
 
-1. Claude Preview (`preview_start(name: "youth-moa-e2e")`) 로 bootRun 기동
-2. `snapshot` 으로 렌더 결과 캡처 → `docs/00_assets/prototype.html` 해당 섹션과 나란히 비교
-3. **컬럼 수 · 필터바 구성 · 카드 정보 항목 · CTA 위치** 4항목을 표로 대조 리포트
-4. 갭이 있으면 PR 본문 "prototype 갭" 섹션에 명시. spec 초안 결함이면 티켓 재발행
+- 사용법·계약 현황: [docs/design-contracts/README.md](docs/design-contracts/README.md)
+- 전 화면 공통 정책: [docs/design-contracts/POLICY.md](docs/design-contracts/POLICY.md)
+- 실행: `cd e2e && BASE_URL=http://localhost:8090 npx playwright test --project=contracts`
 
-**언제 발동**: `/centers`, `/programs`, `/mypage` 등 사용자 대면 화면의 신설·구조 변경 PR.
-**위반 감지**: PR 본문에 "prototype 갭" 섹션이 없거나, 갭 존재 시 후속 티켓 링크가 없으면 위반.
+**화면 작업 규칙**
 
-### 작업 착수 전 프로토타입 시각 대조 — 티켓·수정 요청 접수 시 첫 단계 (2026-07-22 추가)
-
-> **배경 (F0f post-merge visual fix 사고)**: F0f fix-1/3/4/5/6 5개 PR 이 spec 문서 기반으로 ym-impl 후 ym-verify (spec 매핑 refute) 통과 → 머지. 그러나 시각 검증이 머지 후로 밀려 프로토타입과 4개 화면 갭 발생 (mypage 4탭 전면 재작업 필요). 코드 착수 전 프로토타입 시각 대조가 누락되면 spec 자체가 프로토타입을 반영 못 하는 경우 검증이 무력함.
-
-**규칙**: 사용자 대면 화면을 손대는 **모든 티켓·수정 요청** 은 코드 편집·spec 확정 이전에 아래 절차 선행.
-
-1. 현재 구현을 Playwright 로 스크린샷 (`browser_navigate` → `browser_take_screenshot`, fullPage)
-2. `docs/00_assets/prototype.tsx` 의 대응 섹션 정독 + 라인 번호 인용 (예: "MyPage L1317~1600")
-3. **갭 표** 작성 — 컴포넌트 구조 · 라벨 · 스타일 · 상태 UI · CTA 위치 · 인터랙션. 각 항목 prototype vs 현재
-4. 갭 요약 + 수정 스코프 제안 → **사용자 컨펌 후에만** 코드 편집 착수
-
-**언제 발동**: 사용자가 화면 관련 티켓·수정·재작업을 요청할 때. 순수 백엔드·인프라 티켓 제외.
-
-**위반 감지**:
-- 갭 표 작성 없이 첫 편집 도구 호출 (Edit/Write) 이 발생하면 위반
-- prototype.tsx 라인 인용 없이 "프로토타입과 일치" 라고 판단하면 위반
-- 시각 대조 스킵하고 spec·에이전트 결과만 신뢰하면 위반 (spec 결함을 감지 못 함)
-
-**예외**:
-- 사용자가 "바로 수정해줘" 등 명시적 skip 지시
-- 갭이 이미 앞선 세션에서 스크린샷·인용까지 정리된 경우 (그 세션 내 후속 작업 한정)
+1. 계약이 있는 화면은 prototype 원문 대신 **계약 + 갭 리포트**를 읽는다
+2. 완료 기준은 "해당 화면 갭 0" 이다. 기능 E2E(`--project=chromium`) green 유지도 함께 확인한다
+3. 계약이 없는 화면은 작업과 함께 계약을 신설한다 (`home.ts` / `home.md` 패턴)
+4. **구현이 계약과 다르다고 계약 기대값을 구현에 맞춰 고치지 말 것** — `deviation`(영구 이탈) 또는 `deferred`(이월, 담당 티켓 명시) 필드로 처리한다. 계약을 구현에 맞추면 장치 전체가 무의미해진다
 
 ---
 
@@ -353,27 +289,13 @@ git pull
 
 ### 파괴적 명령 체이닝 금지
 
-**배경**: 2026-07-06 F0i 세션에서 `git checkout main && git reset --hard origin/main` 을 F0i 브랜치에서 실행. `checkout main` 이 미스테이시 파일로 실패했으나 `&&` 다음 명령 (reset --hard) 이 여전히 F0i 브랜치에서 실행되어 **로컬 F0i 커밋이 origin/main 으로 초기화**됨. 원격에 push 된 상태라 `git reset --hard <sha>` 로 복구 가능했지만, 다음 재발 방지 규칙:
+`git reset --hard`, `git clean -f`, `git checkout -- .`, `git branch -D` 등은 **`&&` 체인으로 실행하지 않는다.** 앞 명령이 실패해도 뒤 명령이 의도하지 않은 브랜치·상태에서 실행된다.
 
-- ❌ **파괴적 명령을 `&&` 체인으로 실행 금지**:
-  - `git reset --hard`, `git clean -f`, `git checkout -- .`, `git branch -D` 등
-  - 체인 앞 명령이 fail 하면 뒤 명령이 **의도하지 않은 브랜치·상태에서 실행**됨
-- ✅ **각 파괴적 명령 이전에 상태 검증**:
-  ```bash
-  git status --short           # 현재 브랜치·미커밋 파일 확인
-  git branch --show-current    # 현재 브랜치 이름 재확인
-  git reset --hard origin/main # 그 다음에만 실행
-  ```
-- ✅ **체이닝이 필요하면 `set -e` 또는 명시적 실패 감지**:
-  ```bash
-  git checkout main && git reset --hard origin/main
-  # 이 형태는 체크아웃 실패 시 reset 이 뒤 브랜치에서 실행됨
-  # → 대신 아래 형태:
-  git checkout main || { echo "checkout failed"; exit 1; }
-  git reset --hard origin/main
-  ```
-- ✅ **파괴적 명령 실행 전 로컬 커밋 원격 존재 확인**: `git log --oneline @{u}..HEAD` 로 unpushed 커밋 있는지. 있으면 push or 우회
-- 사고 발생 시 첫 조치: **reflog 조회** (`git reflog -20`) — 최근 HEAD 이동 이력에서 사고 이전 SHA 확인 → `git reset --hard <sha>` 로 복구
+- 실행 전 `git status --short` + `git branch --show-current` 로 현재 상태 확인
+- unpushed 커밋 유무는 `git log --oneline @{u}..HEAD`
+- 사고 시 첫 조치는 `git reflog -20` → 사고 이전 SHA 로 `git reset --hard <sha>`
+
+→ 실제 사고 경위: [docs/postmortems/2026-07-06-destructive-git-chain.md](docs/postmortems/2026-07-06-destructive-git-chain.md)
 
 ### main 보호 정책
 
@@ -449,289 +371,17 @@ io.github.sihyuuun.youthmoa/
 
 ---
 
-## Spring Boot 4.x 주의사항
+## 프레임워크 함정 모음 → `docs/patterns/`
 
-Boot 4 는 패키지를 모듈화하면서 다수 starter 의 클래스 경로가 이동했습니다. IDE auto-import 가 구 경로(Boot 3.x) 를 잡으면 수동 수정 필요.
+Boot 4 / Thymeleaf / JPA 에서 **이 프로젝트가 실제로 사고 낸 패턴**은 별도 문서로 분리했다 (2026-07-28). 상시 준수 규칙이 아니라 해당 영역을 건드릴 때 펼쳐 보는 자료라 상시 컨텍스트에서 덜어냈다.
 
-| 어노테이션 | Boot 3.x | Boot 4.x |
-|---|---|---|
-| `@DataJpaTest` | `org.springframework.boot.test.autoconfigure.orm.jpa` | `org.springframework.boot.data.jpa.test.autoconfigure` |
-| `@AutoConfigureTestDatabase` | `...test.autoconfigure.jdbc` | `org.springframework.boot.jdbc.test.autoconfigure` |
+| 문서 | 언제 읽나 |
+|---|---|
+| [patterns/thymeleaf-spring.md](docs/patterns/thymeleaf-spring.md) | 템플릿·폼·HTMX·`th:fragment` 작업 전 (**새 화면 작업 시 일독 권장**) |
+| [patterns/jpa-postgres.md](docs/patterns/jpa-postgres.md) | 엔티티·연관관계·`@Lob`·컬렉션 작업 전 |
+| [patterns/spring-boot-4.md](docs/patterns/spring-boot-4.md) | Boot 3.x 예제를 참고할 때 (패키지 경로가 이동했음) |
 
-Spring Security 7 변경:
-- `AntPathRequestMatcher` 제거 → POST 폼 기본 사용 또는 신 matcher 적용
-
----
-
-## Thymeleaf / Spring Form 주의사항
-
-이 프로젝트에서 실제로 사고 났던 패턴 모음. 새 화면 작업 전 일독 권장.
-
-### `th:field` 의 type=password 동작
-`<input type="password" th:field="*{password}">` 는 **보안상 value 를 강제로 빈 문자열로 출력**. 검증 실패 후 폼 재표시 시 비밀번호 입력값이 사라지는 사고 발생.
-
-```html
-<!-- ❌ 검증 실패 후 value 가 비어짐 -->
-<input type="password" th:field="*{password}">
-
-<!-- ✅ name + th:value 수동 명시 → 값 보존 -->
-<input type="password" id="password" name="password" th:value="*{password}">
-```
-
-`th:errors` 는 form 의 `th:object` 만 있으면 그대로 동작하므로 위 변경은 에러 표시에 영향 없음.
-
-### `th:field` 가 checkbox id 를 자동 변경
-`<input type="checkbox" th:field="*{termsAgreed}">` 의 실제 id 는 `termsAgreed1` 처럼 숫자 접미사가 붙음.
-JS 에서 같은 폼 내 체크박스 제어 시 `getElementById('termsAgreed')` 는 null. **항상 name 으로 querySelector 사용**.
-
-```javascript
-// ❌ null
-document.getElementById('termsAgreed')
-
-// ✅
-document.querySelector('input[type="checkbox"][name="termsAgreed"]')
-```
-
-### 정적 리소스 `static-path-pattern` 함정
-`application.yml` 의 `spring.mvc.static-path-pattern: /static/**` 같은 설정을 두면 모든 정적 리소스가 `/static/` prefix 가 없는 한 404 → SecurityConfig 가 매칭 못 함 → 302 redirect → 화면 전체 깨짐.
-
-해당 설정은 **두지 않는다**. `/css/**`, `/images/**`, `/webjars/**`, `/favicon.ico` 가 자동으로 서빙되는 기본 동작 유지.
-
-### Thymeleaf cache + bootRun 의 sourceResources
-- `application.yml`: `spring.thymeleaf.cache: false` 기본 적용 (개발 시 즉시 반영)
-- `build.gradle.kts`: `bootRun { sourceResources(sourceSets["main"]) }` 적용 (2026-06-30 도입) → src/main/resources 가 classpath 에 직접 들어가 `.html` 변경 즉시 반영. `./gradlew processResources` 강제 실행 **불필요**.
-- DevTools (`spring-boot-devtools` developmentOnly) 와 함께 작동 → Java 파일 변경 시 자동 restart.
-
-### 정적 리소스(CSS/JS/이미지) 는 sourceResources 로도 즉시 반영 안 됨 — 별도 조치 필요
-
-**배경**: 2026-07-02 D1b 작업 중 `main.css` 수정이 bootRun 서버에 반영 안 됐고, `curl /css/main.css` 로 확인 시 옛 버전이 계속 서빙됨. Java·`.html` 은 즉시 반영되는데 CSS 만 안 됨.
-
-**원인**: IntelliJ `bootRun` 은 classpath 상 `build/resources/main/**` 을 먼저 서빙. `sourceResources` 가 `src/main/resources` 를 추가해도 static 파일은 build 산출물이 우선 로드됨 (Java·template 은 hot-reload 경로가 별도이므로 무관). 즉 CSS·JS·이미지 변경 후에는 반드시 `build/` 를 갱신해야 함.
-
-**대응 패턴**:
-
-```powershell
-# 1. CSS/JS/이미지 변경 후
-.\gradlew.bat processResources
-
-# 2. 이미 서버가 로드한 CSS 는 브라우저 캐시도 잡고 있음 → 캐시 무효화
-#    (a) Playwright/curl: URL 뒤에 ?v=timestamp 붙이거나 link[href] 를 JS 로 교체
-#    (b) 브라우저: Ctrl+Shift+R (강제 새로고침)
-```
-
-**감지 방법**:
-- `curl http://localhost:8080/css/main.css | grep "<변경한 클래스명>"` 로 실제 서빙 CSS 확인 → 옛 내용이면 processResources 미수행 상태
-- 시각 확인 전 반드시 서빙 CSS 실측 필수 (변경 안 됐는데 눈으로만 확인하면 사고 재발)
-
-**자동화 상태 (2026-07-07)**:
-- `bootRun` 은 Gradle 태스크 그래프상 이미 `classes → processResources` 에 의존하므로 **기동 시점** 산출물은 항상 최신 — 문제는 서버 실행 중 변경분만임.
-- 실행 중 변경분 대응: `.claude/hooks/post-edit-css.sh.proposed` 에 static/** 수정 시 `build/resources/main` 으로 즉시 미러 복사하는 훅 확장안 준비됨 (검토 후 본 파일로 교체 시 활성화).
-
-### Form binding 의 boolean
-hidden input 의 `value="true"` / `"false"` 를 Spring Form Binder 가 자동으로 boolean 으로 변환. JS 에서 `hidden.value = 'true'` 처럼 문자열로 set 해도 OK.
-
-### Thymeleaf 모델 attribute 이름 예약어 충돌
-
-Thymeleaf/Spring MVC 는 `application` / `session` / `request` 같은 이름을 **ServletContext scope 예약어** 로 취급. 모델 attribute 를 이 이름으로 넣으면 shadowing 되어 우리 객체가 아닌 servletContext 가 resolve 되며, 필드가 없으니 모두 `null` 로 렌더됨 (에러 안 남 → 시각 확인 없으면 놓치기 쉬움).
-
-**금지 이름**: `application`, `session`, `request`, `response`, `servletContext`, `param`
-
-```java
-// ❌ shadowing — ${application.id} → null, ${application.appliedAt} → null
-model.addAttribute("application", application);
-
-// ✅ 다른 이름 사용
-model.addAttribute("myApplication", application);
-// 또는 도메인 별칭
-model.addAttribute("apply", application);
-```
-
-**감지 방법**: 시각 확인 시 특정 객체의 여러 필드가 일제히 `null` 로 출력되면 이름 충돌 의심. `${application}` 을 통째로 출력해 보면 ServletContext 객체가 찍힘.
-
-**2026-07-02 D1b 사고**: 신청 완료 페이지에 `#Anull`, `신청일시 null` 출력. 원인은 `application` 이름 shadowing.
-
-### `<sec:authentication>` 태그는 Spring Security 7 에서 리터럴 렌더됨 → `#authentication` 유틸리티 사용
-
-Spring Boot 4.1 (Spring Security 7) + `thymeleaf-extras-springsecurity6` 조합에서 **element 형태의 `<sec:authentication property="..."/>` 태그는 Thymeleaf 가 처리 못 하고 HTML 리터럴로 출력됨**. 브라우저에서 unknown element 로 무시되어 빈 텍스트로 보임.
-
-```html
-<!-- ❌ 리터럴로 렌더됨 (렌더 결과에 <sec:authentication .../> 이 그대로 남음) -->
-<span class="header-user-name">
-    <sec:authentication property="principal.displayName"/>님
-</span>
-
-<!-- ✅ Thymeleaf 표현식 유틸리티 사용 -->
-<span class="header-user-name"
-      th:text="|${#authentication.principal.displayName}님|">이름님</span>
-```
-
-- attribute 형태의 `sec:authorize="isAuthenticated()"` 는 **정상 동작**. element 형태만 문제.
-- `#authentication` 유틸리티는 정상 → `${#authentication.principal.<field>}` 조합 안전.
-- 감지 방법: `curl /` 응답에 `<sec:authentication`이 grep 되면 문제. 정상이면 그런 문자열 없음.
-- **2026-07-03 E2E 대량 실패 사고**: 헤더 사용자 이름이 `. header-user-name` 안에서 whitespace + "님" 만 렌더됨 → login/header-nav spec 3개 실패.
-
-### prototype 이 SVG 인 곳에 이모지로 대체 금지
-
-**배경 (2026-07-09 F0h-c4 사고)**: `/centers` 상세 패널에 `📍`, `🕒`, `📞`, `🏢`, `×` 등을 사용했으나 prototype 은 lucide 스타일 인라인 SVG(`Icon` 컴포넌트) 를 사용. 이모지는 폰트별 렌더 편차·시각 편차·색상 제어 불가·아이콘 종류 오류(prototype 은 `📞` 대신 `user`, `🕒` 대신 `calendar` 사용) 등 여러 문제를 야기.
-
-**규칙**:
-- prototype.tsx 에 `<Icon n="...">` 또는 lucide 아이콘이 있으면 이모지 대체 금지. `templates/fragments/icons.html` 의 SVG fragment 를 재사용
-- 새 아이콘 필요 시 prototype.tsx 의 `Icon` 컴포넌트 정의부(L54~77) 에서 path 데이터 그대로 이식
-- 아이콘 종류(pin/calendar/user/close 등) 는 prototype 명시 값 그대로 사용 — "폰이니까 phone" 같은 임의 판단 금지
-- `CenterListRenderTest.F0h_c4_*` 처럼 이모지 리터럴 부재 + `<svg` 존재 assertion 을 렌더 테스트에 포함해 회귀 방어
-
-### `th:fragment` 는 반드시 별도 파일에 두기 (부모 body 안 금지)
-
-**배경 (2026-07-09 F0h-c2 사고)**: `templates/center/list.html` 하단에 `<th:block th:fragment="detail-panel-content(...)">` 를 두었더니, `/centers` 렌더 시 fragment BODY 도 인라인 실행되어 `detailCenter=null` 상태에서 `${detailCenter.imageUrl}` 평가 → SpelEvaluationException.
-
-Thymeleaf 는 "natural template" 특성상 부모 템플릿을 렌더할 때 body 내부 모든 요소를 평가한다. `th:fragment` 만으로는 실행을 막지 못하므로:
-
-```
-❌ templates/center/list.html
-   <body>
-     ...
-     <th:block th:fragment="detail-panel-content(detailCenter, ...)">
-       <div th:text="${detailCenter.name}">...  ← /centers 렌더 시 detailCenter=null 로 실행됨
-     </th:block>
-   </body>
-
-✅ templates/center/list-fragments.html  (별도 파일)
-   <body>
-     <th:block th:fragment="detail-panel-content(detailCenter, ...)">
-       <div th:text="${detailCenter.name}">...  ← th:replace 로 호출될 때만 실행
-     </th:block>
-   </body>
-
-   templates/center/list.html:
-     <th:block th:replace="~{center/list-fragments :: detail-panel-content(...)}"></th:block>
-```
-
-**규칙**: `th:fragment` 를 정의할 때는 항상 `<파일명>-fragments.html` 같은 별도 파일에 배치. 부모 body 안에 두지 말 것. 컨트롤러가 fragment 를 반환할 때(`return "center/list-fragments :: card-list-content";`)도 fragments 파일 참조.
-
-### `th:if + th:replace` 같은 element 조합 금지
-
-**배경 (2026-07-09 F0h-c2 사고)**: 다음 조합은 th:if 가 false 인데도 th:replace 가 실행되어 fragment body NPE 발생.
-
-```html
-❌ <th:block th:if="${detailCenter != null}"
-             th:replace="~{center/list-fragments :: detail-panel-content(...)}"></th:block>
-
-✅ <th:block th:if="${detailCenter != null}">
-     <th:block th:replace="~{center/list-fragments :: detail-panel-content(...)}"></th:block>
-   </th:block>
-```
-
-th:if(precedence 4) 와 th:replace(precedence 100) 는 서로 다른 요소에 두어 확실히 격리한다.
-
-### HTMX 프래그먼트 재렌더 시 스타일 파라미터 왕복 (`hx-vals` 패턴)
-
-HTMX `outerHTML` swap 으로 부분 렌더할 때, 프래그먼트가 **자신을 렌더한 컨텍스트를 다시 필요로 하면** (예: card 인지 detail 인지 구분하는 `styleClass`) 그 값을 서버가 알 방법이 없다. HTTP 요청은 stateless 이므로 클라이언트가 `hx-vals` 로 되돌려주는 패턴을 사용한다.
-
-```html
-<!-- ❌ 최초 render 는 되지만 outerHTML 응답에서 styleClass 가 null -->
-<button th:hx-post="@{/toggle}" hx-swap="outerHTML"
-        th:class="${styleClass + ' bookmark-btn'}">☆</button>
-
-<!-- ✅ hx-vals 로 styleClass 왕복 -->
-<button th:hx-post="@{/toggle}" hx-swap="outerHTML"
-        th:attr="hx-vals=|{&quot;styleClass&quot;:&quot;${styleClass}&quot;}|"
-        th:class="${styleClass + ' bookmark-btn'}">☆</button>
-```
-
-컨트롤러에서 `@RequestParam` 으로 받아 model 에 다시 넣는다. 누락하면 렌더 결과가 `class="null bookmark-btn ..."` 처럼 나와 카드/상세 스타일이 무너진다.
-
-- **2026-07-03 사고**: `BookmarkController.toggle()` 이 model 에 `styleClass` 를 안 넣어 HTMX 응답이 `class="null bookmark-btn is-bookmarked"` → bookmark spec 3개 실패.
-- 검증: `curl -X POST /bookmarks/programs/{id}/toggle` 응답의 `class="..."` 확인.
-
-### HTML `[hidden]` 속성과 CSS `display` override 사고 방지
-
-**배경 (2026-07-14 F-signup-03 이후 발견)**: `mypage/history.html` 취소 모달이 `<div class="mypage-modal" hidden>` 로 초기 숨김 의도였으나 CSS `.mypage-modal { display: flex; ... }` 가 브라우저 UA 의 기본 `[hidden] { display:none }` 을 override → 마이페이지 진입 시 취소 모달이 자동 노출됨.
-
-**규칙**: `hidden` 속성으로 토글하는 요소의 CSS 규칙은 반드시 `:not([hidden])` 셀렉터로 감싼다.
-
-```css
-/* ❌ hidden 속성 무시됨 */
-.my-modal { display: flex; position: fixed; ... }
-
-/* ✅ hidden 시 display:none 유지, 그 외에만 flex */
-.my-modal:not([hidden]) { display: flex; position: fixed; ... }
-```
-
-**감지**: `hidden` 속성 붙인 요소가 화면에 계속 보이면 CSS override 의심. `curl <path> | grep 'hidden'` 으로 마크업 존재 + 브라우저에서 display 실측 대조.
-
----
-
-## JPA / PostgreSQL 주의사항
-
-이 프로젝트에서 실제로 사고 났던 패턴. 새 엔티티·화면 작업 전 일독 권장.
-
-### `@Lob` + `open-in-view: false` — LOB streaming 오류
-`application.yml` 의 `spring.jpa.open-in-view: false` (현재 설정) 환경에서 `@Lob` 필드(예: `Program.content`, `Program.requirements`) 를 컨트롤러 반환 이후 템플릿에서 읽거나, 트랜잭션 밖에서 접근하면 다음 예외 발생:
-
-```
-org.postgresql.util.PSQLException: Large Objects may not be used in auto-commit mode.
-```
-
-**원인**: PostgreSQL 은 CLOB 을 `LargeObjectManager` 로 streaming 하며, streaming 은 트랜잭션 안에서만 가능. auto-commit 모드에서는 큰 객체 스트림을 열 수 없음.
-
-**해결 패턴 (택 1)**:
-```java
-// A. Controller 메서드에 read-only 트랜잭션 부착 (권장 — 스코프 최소)
-@GetMapping("/apply/complete")
-@Transactional(readOnly = true)
-public String complete(...) { ... }
-
-// B. Service 로 옮기고 서비스 메서드에 @Transactional 부착
-```
-
-**어떻게 감지되는가**: `@WebMvcTest` 는 실 DB 를 안 쓰므로 이 사고를 못 잡음. **화면 변경 PR 은 curl 동적 검증 필수**.
-
-### `@ManyToOne(LAZY)` + 템플릿 접근 → `LazyInitializationException`
-`open-in-view: false` 상태에서 컨트롤러가 엔티티를 반환하고 템플릿에서 lazy 연관을 접근하면:
-
-```
-org.hibernate.LazyInitializationException: Could not initialize proxy [X] - no session
-```
-
-**해결 패턴 (권장)**: Repository 메서드에 `@EntityGraph` 로 fetch join.
-
-```java
-@EntityGraph(attributePaths = {"program", "user"})
-Optional<Application> findWithProgramAndUserById(Long id);
-```
-
-컨트롤러에 `@Transactional(readOnly=true)` 만 부착해도 lazy 로딩은 되지만, 트랜잭션이 뷰 렌더 끝날 때까지 열려 있어야 하므로 커넥션 점유 시간이 길어짐. `@EntityGraph` 로 필요한 그래프만 로드하는 편이 성능·확장성 모두 유리.
-
-**주의**: `@EntityGraph` 는 필요한 관계만 명시. 지나치게 많이 넣으면 카티션 곱 발생 → 별도 쿼리 필요.
-
-### `@ElementCollection` 필드 참조 재할당 금지 — 반드시 mutate
-
-**배경 (2026-07-14 F-signup-03 WelcomeScreen 저장 사고)**: `User.updateInterests(regions, categories)` 가 필드를 재할당 (`this.interestRegions = regions`) 하도록 구현되어, welcome 화면에서 선택한 값이 mypage 태그에 반영되지 않음. Hibernate 는 엔티티 로드 시 `@ElementCollection` 필드에 `PersistentSet` 프록시를 세팅해 변경사항을 추적하는데, 새 컬렉션 인스턴스를 재할당하면 트래킹이 끊겨 flush 시 DELETE/INSERT 가 일부 또는 전혀 실행되지 않음.
-
-```java
-// ❌ 재할당 — Hibernate PersistentSet 트래킹 끊김, 저장 실패 or 부분 저장
-public void updateInterests(Set<String> regions, Set<String> categories) {
-    this.interestRegions = regions;
-    this.interestCategories = categories;
-}
-
-// ✅ 동일 인스턴스 mutate — DELETE + INSERT 정상 실행
-public void updateInterests(Set<String> regions, Set<String> categories) {
-    this.interestRegions.clear();
-    if (regions != null) this.interestRegions.addAll(regions);
-    this.interestCategories.clear();
-    if (categories != null) this.interestCategories.addAll(categories);
-}
-```
-
-**감지 방법**: 저장 API 200 응답 오는데 재조회 시 값이 옛 상태거나 빈 상태 → 재할당 패턴 의심. `@ElementCollection` `@OneToMany(orphanRemoval=true)` 등 컬렉션 관계 필드는 항상 mutate 패턴 사용.
-
-### `@WebMvcTest` 는 실제 렌더링 하지 않음
-`@WebMvcTest(Controller.class)` 는 view name / model attribute 만 검증. Thymeleaf 실제 파싱·EL 평가·엔티티 lazy 접근은 실행되지 않아 위 두 사고 유형 모두 통과함.
-
-**대응**:
-- 화면 변경 PR 은 **반드시** curl 동적 검증 (CLAUDE.md "검증 규칙" 재강조).
-- 주요 렌더 경로는 `@SpringBootTest + MockMvc` 통합 렌더링 테스트 병행 검토 (후속 티켓 `chore/integration-test-render`).
+여기 있는 사고는 전부 재발 이력이 있다. `@WebMvcTest` 는 이 유형을 못 잡으므로 **화면 변경 PR 은 동적 검증이 필수**라는 결론만 기억한다.
 
 ---
 
@@ -818,13 +468,14 @@ SiteImage(slot="HOME_SPACE_1", imageUrl="...", sortOrder=1, ...)
 | 자산 | 경로 | 호출 |
 |---|---|---|
 | `ym-pm` 에이전트 | `.claude/agents/ym-pm.md` (repo) → fallback `~/.claude/agents/ym-pm.md` | PM Review — 화면·정책 검토 (read-only). 원격 루틴에서도 사용 |
-| `ym-spec` 에이전트 | `~/.claude/agents/ym-spec.md` | 새 화면 작업 명세 산출 (prototype 3자산 비교) |
+| `ym-spec` 에이전트 | `~/.claude/agents/ym-spec.md` | 새 화면 작업 명세 산출. **계약이 있는 화면은 계약을 먼저 읽는다 (0단계)**. spec 산출 필수 규칙 4개도 이 파일에 있음 |
 | `ym-impl` 에이전트 | `~/.claude/agents/ym-impl.md` | 명세 → 풀스택 구현 |
 | `ym-qa` 에이전트 | `~/.claude/agents/ym-qa.md` | 단위 테스트 + 정적/동적/회귀 검증 |
 | `ym-verify` 에이전트 | `~/.claude/agents/ym-verify.md` | 적대적 검증 (refute-first) — 커밋 전 최종 관문. spec 구현 매핑 행 단위 재대조, PASS/FAIL/UNVERIFIED 3단 판정 |
 | `/pm-review` Skill | `.claude/skills/pm-review/SKILL.md` | ym-pm 페르소나 단발성 슬래시 호출 |
 | `/qa` Skill | `.claude/skills/qa/SKILL.md` | 정적·동적·E2E·시각 4영역 분리 리포트 |
-| `/prototype-check` Skill | `.claude/skills/prototype-check/SKILL.md` | prototype vs Thymeleaf 갭 정기 스캔 |
+| **디자인 계약** | `docs/design-contracts/` + `e2e/contracts/` | prototype 대비 **정량 갭 자동 검사**. `npx playwright test --project=contracts` → 갭 리포트 `e2e/gap-reports/`. 화면 작업의 기준이자 완료 판정. 공통 정책은 `POLICY.md` |
+| `/prototype-check` Skill | `.claude/skills/prototype-check/SKILL.md` | **계약이 없는 화면**의 갭 정기 스캔·계약 신설용. 계약이 있는 화면은 계약 검사가 대체 |
 | `/wrap-up` Skill | `.claude/skills/wrap-up/SKILL.md` | commit·push·PR·merge·pull·prune 자동 |
 | `/memory-sync` Skill | `.claude/skills/memory-sync/SKILL.md` | git log + gh PR 기반 메모리 자동 갱신 |
 | `/build-check` Skill | `.claude/skills/build-check/SKILL.md` | Gradle 빌드 + JPA 매핑 테스트 실행 |
@@ -834,6 +485,20 @@ SiteImage(slot="HOME_SPACE_1", imageUrl="...", sortOrder=1, ...)
 
 화면 작업 표준 사이클: **ym-spec → 사용자 컨펌 → ym-impl → ym-qa → ym-verify → 머지**.
 선택 0단계 (사고): **ym-pm** — prototype·정책 검토, 대안 제시 후 ym-spec 인계.
+
+**계약이 있는 화면은 사이클이 짧아진다**: 계약 + 갭 리포트가 spec 역할을 하므로 ym-spec 을 건너뛰고 구현 → 계약 검사 갭 0 확인으로 끝낼 수 있다. 계약이 없는 화면은 위 전체 사이클을 따르되 **계약을 함께 신설**한다.
+
+참조 문서 지도:
+
+| 찾는 것 | 위치 |
+|---|---|
+| 화면이 어떻게 생겨야 하는가 | `docs/design-contracts/<screen>.md` + `e2e/contracts/<screen>.ts` |
+| 전 화면 공통 디자인 정책 | `docs/design-contracts/POLICY.md` |
+| 프레임워크 함정 (Thymeleaf·JPA·Boot 4) | `docs/patterns/` |
+| 과거 사고 경위 | `docs/postmortems/` |
+| 아키텍처 결정 근거 | `docs/adr/` |
+| 확정 명세 큐 | `docs/specs/` |
+| 현재 진행 상황 | `docs/STATE.md` (메모리 미러) |
 
 에이전트 파일 우선순위: repo `.claude/agents/` 가 전역 `~/.claude/agents/` 보다 우선. 같은 이름이면 repo 판이 채택됨. 원격 루틴(CCR) 은 전역을 못 보므로 repo 판이 필수.
 

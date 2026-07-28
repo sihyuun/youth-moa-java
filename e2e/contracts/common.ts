@@ -73,6 +73,8 @@ const headerChecks: Check[] = [
         expected: 'rgba(0, 0, 0, 0.06) 0px 1px 8px 0px',
         proto: 'tsx L415 (boxShadow)',
         severity: 'P2',
+        deviation:
+            'POLICY.md P-2 — 그림자는 브랜드 틴트 토큰(--shadow-*) 유지. prototype 은 헤더·알림패널만 중립 검정을 쓰는데 두 곳만 예외를 두면 토큰 체계에 구멍이 생긴다',
     },
     {
         id: 'header.padding',
@@ -632,6 +634,8 @@ const dropdownChecks: Check[] = [
         proto: 'tsx L382 (boxShadow)',
         severity: 'P2',
         states: ['auth'],
+        deviation:
+            'POLICY.md P-2 — 그림자 브랜드 틴트 토큰 유지',
     },
     {
         id: 'userMenu.item.count',
@@ -784,6 +788,8 @@ const dropdownChecks: Check[] = [
         proto: 'tsx L329 (boxShadow)',
         severity: 'P2',
         states: ['auth'],
+        deviation:
+            'POLICY.md P-2 — 그림자 브랜드 틴트 토큰 유지',
     },
     {
         id: 'notif.head.padding',
@@ -838,6 +844,8 @@ const dropdownChecks: Check[] = [
         proto: 'tsx L338 (clearAll)',
         severity: 'P1',
         states: ['auth'],
+        deviation:
+            '알림은 읽음 처리만 제공하기로 결정 (2026-07-28). 하드 삭제는 감사 추적을 잃고 백엔드 API 신설이 필요해 도입하지 않는다',
     },
     {
         id: 'notif.actions.divider',
@@ -848,6 +856,8 @@ const dropdownChecks: Check[] = [
         proto: 'tsx L337',
         severity: 'P2',
         states: ['auth'],
+        deviation:
+            '모두 지우기 미도입에 따라 구분자도 불필요 (notif.actions.clearAll 참조)',
     },
     {
         id: 'notif.item.count',
@@ -900,6 +910,8 @@ const dropdownChecks: Check[] = [
         proto: 'tsx L356~358 (remove)',
         severity: 'P1',
         states: ['auth'],
+        deviation:
+            '알림은 읽음 처리만 제공 (notif.actions.clearAll 과 동일 결정)',
     },
     {
         id: 'notif.item.title.fontSize',
@@ -1102,6 +1114,8 @@ const footerChecks: Check[] = [
         expected: 4,
         proto: 'tsx L468 (links) + L486 (관리자)',
         severity: 'P1',
+        deferred:
+            'admin 트랙 — 기대값 4 는 관리자 링크 포함 수 (footer.links.admin 참조). 현행 3개',
     },
     {
         id: 'footer.links.1.text',
@@ -1138,6 +1152,8 @@ const footerChecks: Check[] = [
         expected: true,
         proto: 'tsx L486 (go("forbidden"))',
         severity: 'P1',
+        deferred:
+            'admin 트랙 — docs/specs/ADMIN-00-master-directive.md (A1 shell). 지금 링크를 넣으면 /admin 미구현이라 404',
     },
     {
         id: 'footer.links.divider',
@@ -1147,6 +1163,8 @@ const footerChecks: Check[] = [
         expected: true,
         proto: 'tsx L485 (width:1 height:10 background:#ccc)',
         severity: 'P2',
+        deferred:
+            'admin 트랙 — footer.links.admin 과 세트',
     },
     {
         id: 'footer.links.gap',

@@ -44,10 +44,21 @@ export interface Check {
     /** 실행할 로그인 상태. 기본 ['anon'] */
     states?: AuthState[];
     /**
-     * prototype 을 의도적으로 벗어나기로 결정한 항목.
+     * prototype 을 **영구히** 벗어나기로 결정한 항목 (= 앞으로도 안 맞출 것).
      * 값이 있으면 검사에서 제외되며, 사유가 기록으로 남는다.
+     * 전 화면 공통 정책이면 `docs/design-contracts/POLICY.md` 의 항목 번호를 인용한다.
      */
     deviation?: string;
+
+    /**
+     * prototype 대로 맞출 예정이지만 **이번 범위가 아닌** 항목 (= 나중에 할 것).
+     * 값에는 담당 티켓·스펙 경로를 적는다 (예: 'docs/specs/F0f-calendar-view.md').
+     *
+     * `deviation` 과 구분하는 이유: 이월 항목을 deviation 으로 적으면 "안 하기로 했다" 로
+     * 의도가 왜곡되고, 반대로 갭으로 남겨두면 그 화면의 갭이 영구히 0 이 되지 않아
+     * 스크린샷 baseline 등록·블로킹 승격을 막는다. 검사에서는 빠지고 리포트에는 별도 절로 실린다.
+     */
+    deferred?: string;
 }
 
 export interface ScreenContract {
