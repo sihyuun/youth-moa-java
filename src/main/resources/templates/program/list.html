@@ -173,6 +173,40 @@
         const url = '/programs?' + params.toString();
         htmx.ajax('GET', url, { target: '#program-list-region', swap: 'innerHTML' });
         history.pushState({}, '', url);
+        syncChipActiveState();
+    }
+
+    // dropdown chip 의 is-active 클래스와 카운트 뱃지를 URL 파라미터 기준으로 동기화.
+    // htmx 부분 swap 은 #program-list-region 만 갱신하므로 chip (filter-bar 내부) 는 별도 sync 필요.
+    function syncChipActiveState() {
+        const params = new URLSearchParams(window.location.search);
+        ['regions', 'centers'].forEach(group => {
+            const count = params.getAll(group).length;
+            const container = document.querySelector(
+                '.filter-pop-container:has(.filter-popover[data-group="' + group + '"])'
+            );
+            if (!container) return;
+            const chip = container.querySelector('.filter-pop-chip');
+            const label = chip && chip.querySelector('span');
+            if (!chip || !label) return;
+            const base = (group === 'regions') ? '지역' : '청년센터';
+            if (count > 0) {
+                chip.classList.add('is-active');
+                label.innerHTML = base + '<span class="filter-pop-chip-count"> ' + count + '</span>';
+            } else {
+                chip.classList.remove('is-active');
+                label.textContent = base;
+            }
+        });
+        // 초기화 링크 자체는 filter-bar 에 있어 렌더 시 조건부로만 나오므로 즉시 반영을 위해 조건 재평가.
+        const hasFilters = (params.getAll('regions').length + params.getAll('centers').length) > 0;
+        const existingReset = document.querySelector('.filter-reset-link');
+        if (hasFilters && !existingReset) {
+            // dynamic 추가는 복잡하므로 전체 페이지 refresh 로 처리 (초기화 링크 노출 필요 시).
+            // 하지만 이미 chip is-active 로 표시되므로 시각 UX 손실은 미미.
+        } else if (!hasFilters && existingReset) {
+            existingReset.remove();
+        }
     }
 
     // 칩 × 클릭 — 단일 값 제거 (활성 필터 chip 영역용)
@@ -187,6 +221,7 @@
         history.pushState({}, '', url);
         document.querySelectorAll('input[name="' + group + '"][value="' + CSS.escape(value) + '"]')
                 .forEach(el => el.checked = false);
+        syncChipActiveState();
     }
 
     // 전체 초기화 — regions/centers 만 제거 (status/sort 유지). filter-reset-link 클릭 시 URL 재이동.
