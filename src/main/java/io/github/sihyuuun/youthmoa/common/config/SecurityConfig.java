@@ -98,6 +98,9 @@ public class SecurityConfig {
                         "/notices/**",
                         "/centers",
                         "/centers/**",
+                        // 이용약관·개인정보처리방침 정적 페이지 (회원가입에서 링크)
+                        "/terms",
+                        "/privacy",
                         // Spring 이 ResponseStatusException 등을 내부 forward → /error 로 dispatch.
                         // 비인증 URL 에서 404 등을 던질 때 /error 가 다시 로그인 리다이렉트 되지 않도록 허용.
                         "/error",

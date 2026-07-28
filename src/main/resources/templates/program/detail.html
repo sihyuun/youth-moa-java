@@ -123,7 +123,13 @@
                         </div>
                         <div class="detail-meta-body">
                             <div class="detail-meta-key">문의처</div>
-                            <div class="detail-meta-value">031-XXX-XXXX <span class="detail-meta-note">(추후 안내)</span></div>
+                            <div class="detail-meta-value"
+                                 th:if="${contactPhone != null}"
+                                 th:text="${contactPhone}">031-000-0000</div>
+                            <div class="detail-meta-value"
+                                 th:if="${contactPhone == null}">
+                                <span class="detail-meta-note">문의처 미등록</span>
+                            </div>
                         </div>
                     </div>
                 </div>
