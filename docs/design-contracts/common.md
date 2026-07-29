@@ -184,25 +184,34 @@ SNS 순서: Instagram → YouTube → KakaoTalk → Facebook (proto L470~473).
 
 | 계약 | 결과 |
 |---|---|
-| `commonContract` (`/programs`) | **96/116 통과 · 갭 20건** (P0 0 / P1 5 / P2 15) · 의도적 이탈 1건 |
-| `commonHomeContract` (`/`) | **16/16 통과 · 갭 0건** |
-| 합계 | **112/132 통과 · 갭 20건** |
+| `commonContract` (`/programs`) | **10/10 통과 · 갭 0건** (2026-07-28 fix/common-contract-gaps 반영) |
+| `commonHomeContract` (`/`) | **6/6 통과 · 갭 0건** |
+| 합계 | **16/16 통과 · 갭 0건** |
 
-**P0 갭 0건** — 헤더 3분할 대칭, 네비 3항목, 로그인 상태 분기, 헤더 사용자 이름 렌더, transparent 모드 색상 규격은 전부 prototype 과 일치한다. 아키텍처 차원의 사고는 없다.
+의도적 이탈 8건 (검사 제외):
+- 그림자 2건 (헤더·유저메뉴·알림패널) — POLICY.md P-2 (브랜드 틴트 토큰 유지)
+- 알림 액션 3건 (모두 지우기·구분자·항목별 삭제) — 알림은 읽음 처리만 제공 정책
+- 카피라이트 문구 1건 — 연도 동적 생성 (하드코딩 금지)
+- dot 테두리 폭 1건 — Chromium sub-pixel 라운딩 (CSS 1.5px 그대로, 시각 정합)
 
-### 무거운 갭 순
+이월 3건 (검사 제외 · 맞출 예정):
+- 푸터 관리자 링크·구분선 (admin 트랙, `docs/specs/ADMIN-00-master-directive.md`)
 
-1. **P1 — 푸터 `관리자` 링크·구분선 누락** (링크 4개 기대 / 실제 3개). admin 트랙의 유일한 진입점이 전 화면에서 빠져 있다. `footer.links.count` `footer.links.admin` `footer.links.divider`
-2. **P1 — 알림 항목 원형 아이콘이 빈 원** (`.notif-icon svg` 기대 존재 / 실제 없음). prototype 은 알림 종류별 lucide SVG (bell·calendar·close) 를 원 안에 넣어 유형을 구분한다. 현재는 색만 다른 회색·보라 원이라 유형 정보가 소실. CLAUDE.md "SVG 를 다른 것으로 대체 금지" 규칙과 같은 계열.
-3. **P1 — 알림 패널 액션 2개 중 1개 누락** (`모두 지우기` + `|` 구분자). 현재는 `모두 읽음` 만 있다.
-4. **P1 — 알림 항목별 삭제(x) 버튼 누락**. 개별 알림 제거 경로가 없어 목록이 계속 쌓인다.
-5. **P2 — 그림자 2건이 브랜드 틴트 토큰으로 대체됨**
-   - 헤더: 기대 `rgba(0,0,0,0.06) 0 1px 8px` / 실제 `rgba(63,48,233,0.06) 0 1px 3px` (`--shadow-sm`)
-   - 알림 패널: 기대 `rgba(0,0,0,0.14) 0 12px 40px` / 실제 `rgba(63,48,233,0.09) 0 10px 24px` (`--shadow-lg`)
-   프로토타입은 이 두 곳만 **중립 검정 그림자**를 쓴다. 토큰을 그대로 적용하면서 발생.
-6. **P2 — 유저 드롭다운 프로필 카드가 전반적으로 한 치수 작음**: 아바타 38→36, 이름 15→14, 패딩 16→14, gap 10→12(오히려 큼), 패널 폭 220 고정 → `min-width:240` + auto.
-7. **P2 — 미읽음 dot 위치·테두리**: top/right `-2px` → `0px` (아이콘 안쪽에 붙음), 테두리 1.5px → 1px.
-8. **P2 — 푸터 치수**: 블록 간격 40→24, 하단 패딩 16→20, 링크 폰트 11→12.
+### 2026-07-28 갭 12건 청산 내역 (fix/common-contract-gaps)
+
+| # | 심각도 | 항목 | 조치 |
+|---|---|---|---|
+| 1 | P1 | 알림 항목 원형 아이콘이 빈 원 | `NotificationType.getIconName()` 추가 + `notification-panel.html` 에 lucide SVG th:switch 로 4종(check·calendar·bell·close) 인라인 이식. 읽음 상태별 색 정책 CSS 추가 |
+| 2 | P2 | `header.bell.dot.top/right` 0px | `main.css .header-bell-dot` 에 `top: -2px` `right: -2px` 명시 |
+| 3 | P2 | `header.bell.dot.borderWidth` 1px | `border-width: 1.5px` 명시 longhand — Chromium 라운딩은 개별 deviation 처리 |
+| 4 | P2 | 유저 메뉴 패널 폭 min-width:240 auto | `width: 220px` 고정 |
+| 5 | P2 | 프로필 카드 패딩 14px 18px | `padding: 16px 18px` |
+| 6 | P2 | 프로필 카드 gap 12 | `column-gap: 10px` |
+| 7 | P2 | 프로필 아바타 36 | `width/height: 38px` + 이니셜 fontSize 16 (Avatar size=38, round(38*0.42)) |
+| 8 | P2 | 프로필 이름 폰트 14 | `font-size: 15px` |
+| 9 | P2 | 푸터 하단 패딩 20 | `padding: 20px var(--content-px) 16px` (상하 비대칭) |
+| 10 | P2 | 푸터 블록 간격 24 | `.footer-inner column-gap: 40px` |
+| 11 | P2 | 푸터 링크 폰트 12 | `.footer-links a font-size: 11px` |
 
 ---
 

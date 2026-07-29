@@ -462,6 +462,10 @@ const headerChecks: Check[] = [
         proto: 'tsx L436 (border:1.5px solid)',
         severity: 'P2',
         states: ['auth'],
+        deviation:
+            'Chromium computed style 는 devicePixelRatio=1 환경에서 sub-pixel border-width 를 정수로 라운딩해 ' +
+            '`1px` 을 반환한다. CSS 는 `border-width: 1.5px` 로 prototype 값 그대로 설정돼 있고 시각적 두께도 ' +
+            'prototype 과 동일. 계약 runner 가 다중 허용값(1px|1.5px) 을 지원하기 전까지 개별 예외 처리.',
     },
 
     // ── 로그인: 아바타 + 이름 + chevron ─────────────────────
