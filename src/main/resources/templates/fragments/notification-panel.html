@@ -43,7 +43,28 @@
          class="notif-item">
         <div th:class="'notif-icon notif-icon--' + ${n.type.toneColor}"
              th:classappend="${!n.read} ? ' is-unread' : ''"
-             aria-hidden="true"></div>
+             aria-hidden="true">
+            <!-- proto L349: 원형 아이콘 안에 lucide SVG 16 (알림 유형 구분). fragment 이름은 NotificationType.getIconName() -->
+            <svg th:switch="${n.type.iconName}"
+                 width="16" height="16" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="1.5"
+                 stroke-linecap="round" stroke-linejoin="round">
+                <g th:case="'check'">
+                    <circle cx="12" cy="12" r="10"/>
+                    <path d="M9 12l2 2 4-4"/>
+                </g>
+                <g th:case="'calendar'">
+                    <rect x="3" y="4" width="18" height="18" rx="2"/>
+                    <path d="M16 2v4M8 2v4M3 10h18"/>
+                </g>
+                <g th:case="'bell'">
+                    <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/>
+                </g>
+                <g th:case="'close'">
+                    <path d="M18 6L6 18M6 6l12 12"/>
+                </g>
+            </svg>
+        </div>
         <a th:href="${n.link != null} ? ${n.link} : '/notifications'"
            class="notif-item-body">
             <div class="notif-item-title" th:text="${n.title}">제목</div>

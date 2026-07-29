@@ -31,4 +31,27 @@ public enum NotificationType {
       case WELCOME -> "primary";
     };
   }
+
+  /**
+   * 알림 원형 아이콘 안에 렌더할 lucide SVG fragment 이름.
+   *
+   * <p>prototype.tsx L314~319 NOTIF_ITEMS 매핑:
+   *
+   * <ul>
+   *   <li>APPROVED → check
+   *   <li>DEADLINE_NEAR → calendar
+   *   <li>WELCOME (공지사항) / WAITLIST_PROMOTED (빈자리) → bell
+   *   <li>REJECTED / CANCELLED → close
+   * </ul>
+   *
+   * <p>icons.html fragment 이름과 정확히 일치해야 한다.
+   */
+  public String getIconName() {
+    return switch (this) {
+      case APPLICATION_APPROVED -> "check";
+      case PROGRAM_DEADLINE_NEAR -> "calendar";
+      case WELCOME, WAITLIST_PROMOTED -> "bell";
+      case APPLICATION_REJECTED, APPLICATION_CANCELLED -> "close";
+    };
+  }
 }
