@@ -31,6 +31,9 @@ class HomeControllerTest {
 
   @MockitoBean HomeService homeService;
 
+  // 2026-07-29 fix/home-contract-gaps: HomeController 가 즐겨찾기 별·CTA 렌더용으로 BookmarkService 를 주입받음
+  @MockitoBean io.github.sihyuuun.youthmoa.bookmark.BookmarkService bookmarkService;
+
   // HeaderNotificationAdvice 의존성 mock (F2 @ControllerAdvice 도입 후 필요)
   @MockitoBean io.github.sihyuuun.youthmoa.notification.NotificationService notificationService;
 

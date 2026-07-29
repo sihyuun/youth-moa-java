@@ -92,6 +92,35 @@ public class HomeService {
     return toCardDtos(programs);
   }
 
+  /**
+   * 맞춤 추천 섹션 제목 옆 관심 태그 chip 문자열.
+   *
+   * <p>prototype.tsx L581 형식: {첫 관심 지역} · {관심 카테고리들 · 로 join} 관심. 예: "부천시 · 취업·창업 관심".
+   *
+   * <p>지역·카테고리 둘 다 없으면 null → 뷰에서 chip 미노출.
+   */
+  public String getRecommendInterestChip(Long userId) {
+    return userRepository
+        .findById(userId)
+        .map(
+            u -> {
+              String firstRegion =
+                  u.getInterestRegions() != null && !u.getInterestRegions().isEmpty()
+                      ? u.getInterestRegions().iterator().next()
+                      : null;
+              String catsJoined =
+                  u.getInterestCategories() != null && !u.getInterestCategories().isEmpty()
+                      ? String.join("·", u.getInterestCategories())
+                      : null;
+              if (firstRegion == null && catsJoined == null) return null;
+              if (firstRegion != null && catsJoined != null) {
+                return firstRegion + " · " + catsJoined + " 관심";
+              }
+              return firstRegion != null ? firstRegion + " 관심" : catsJoined + " 관심";
+            })
+        .orElse(null);
+  }
+
   private List<ProgramCardDto> toCardDtos(List<Program> programs) {
     if (programs.isEmpty()) return List.of();
     List<Long> ids = programs.stream().map(Program::getId).collect(Collectors.toList());

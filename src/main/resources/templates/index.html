@@ -53,21 +53,27 @@
     <!-- Quick Stats -->
     <section class="quick-stats">
         <div class="quick-stat">
-            <div class="quick-stat-icon">✓</div>
+            <div class="quick-stat-icon">
+                <svg th:replace="~{fragments/icons :: check(22, 'var(--color-primary)')}"></svg>
+            </div>
             <div>
                 <div class="quick-stat-value" th:text="${activeProgramCount}">0</div>
                 <div class="quick-stat-label">모집중 프로그램</div>
             </div>
         </div>
         <div class="quick-stat">
-            <div class="quick-stat-icon">✓</div>
+            <div class="quick-stat-icon">
+                <svg th:replace="~{fragments/icons :: check(22, 'var(--color-primary)')}"></svg>
+            </div>
             <div>
                 <div class="quick-stat-value" th:text="${centerCount}">0</div>
                 <div class="quick-stat-label">참여 청년센터</div>
             </div>
         </div>
         <div class="quick-stat">
-            <div class="quick-stat-icon">✓</div>
+            <div class="quick-stat-icon">
+                <svg th:replace="~{fragments/icons :: check(22, 'var(--color-primary)')}"></svg>
+            </div>
             <div>
                 <div class="quick-stat-value" th:text="${totalApplicantCount}">0</div>
                 <div class="quick-stat-label">누적 참여자</div>
@@ -76,7 +82,7 @@
     </section>
 
     <!-- 퀵메뉴 4그리드 (prototype L561~575) — 프로그램/센터/신청현황/공지 진입 -->
-    <section class="home-quickmenu container">
+    <section class="home-quickmenu">
         <a th:href="@{/programs}" class="home-quickmenu-card">
             <div class="home-quickmenu-icon">
                 <svg th:replace="~{fragments/icons :: search(22, 'var(--color-primary)')}"></svg>
@@ -109,6 +115,10 @@
             <div>
                 <div class="home-section-title">
                     <span th:text="${userDisplayName} + '님 맞춤 추천'">사용자 맞춤 추천</span>
+                    <!-- proto L581: 제목 옆 관심 태그 chip. 관심 정보 없으면 미노출 -->
+                    <span th:if="${recommendInterestChip != null}"
+                          class="interest-chip"
+                          th:text="${recommendInterestChip}">부천시 · 취업·창업 관심</span>
                 </div>
                 <div class="home-section-sub">관심 지역과 분야를 바탕으로 골라드렸어요</div>
             </div>
@@ -117,7 +127,7 @@
         <div class="home-program-row">
             <a th:each="pg, iter : ${recommendedPrograms}"
                th:href="@{/programs/{id}(id=${pg.id})}"
-               class="home-program-card">
+               class="home-program-card home-program-card--recommend">
                 <div class="program-card-image">
                     <img th:if="${pg.imageUrl}" th:src="${pg.imageUrl}" alt="">
                     <div th:unless="${pg.imageUrl}" class="program-card-placeholder"
@@ -143,31 +153,59 @@
             <a th:href="@{/programs}" class="btn-outline-primary btn-sm">전체보기</a>
         </div>
         <div class="home-program-row">
-            <a th:each="dto : ${topPrograms}"
-               th:href="@{/programs/{id}(id=${dto.id})}"
-               class="home-program-card">
-                <div class="program-card-image">
-                    <img th:if="${dto.imageUrl}" th:src="${dto.imageUrl}" alt=""
-                         th:style="${dto.status.name() == 'ENDED'} ? 'filter:grayscale(1) brightness(0.82)' : ''">
-                    <div th:unless="${dto.imageUrl}" class="program-card-placeholder"
-                         th:text="${#strings.substring(dto.title, 0, 1)}">P</div>
-                    <span class="dday-chip" th:text="${dto.ddayLabel}">D-3</span>
+            <!-- proto L615~636: 비로그인 카드 = 이미지(170) + 즐겨찾기 별(우상단) + 정보 + CapacityBar + CTA 버튼 -->
+            <article th:each="dto : ${topPrograms}"
+                     th:classappend="${dto.status.name() == 'ENDED'} ? ' program-card--ended'"
+                     class="home-program-card">
+                <a th:href="@{/programs/{id}(id=${dto.id})}" class="program-card-link">
+                    <div class="program-card-image">
+                        <img th:if="${dto.imageUrl}" th:src="${dto.imageUrl}" alt=""
+                             th:style="${dto.status.name() == 'ENDED'} ? 'filter:grayscale(1) brightness(0.82)' : ''">
+                        <div th:unless="${dto.imageUrl}" class="program-card-placeholder"
+                             th:text="${#strings.substring(dto.title, 0, 1)}">P</div>
+                        <span class="dday-chip" th:text="${dto.ddayLabel}">D-3</span>
+                    </div>
+                    <div class="program-card-body">
+                        <div class="program-card-title" th:text="${dto.title}">프로그램 제목</div>
+                        <div class="program-card-org" th:text="${dto.organization}">주관 기관</div>
+                        <div class="program-card-date"
+                             th:if="${dto.dateLabel != null}"
+                             th:text="${dto.dateLabel}">2024-08-01~08-31</div>
+                        <!-- CapacityBar -->
+                        <div th:replace="~{fragments/capacity-bar :: capacityBar(
+                            pct=${dto.pct},
+                            colorClass=${dto.colorClass},
+                            primaryLabel=${dto.primaryLabel},
+                            secondaryLabel=${dto.secondaryLabel},
+                            showBar=${dto.capacity != null})}"></div>
+                    </div>
+                </a>
+                <!-- proto L629~632: 카드 하단 CTA 5분기 (dto.ctaType 기반, 목록 카드와 동일 마크업) -->
+                <div class="program-card-cta">
+                    <a th:if="${dto.ctaType == 'apply'}"
+                       th:href="@{/programs/{id}/apply(id=${dto.id})}"
+                       class="card-action-btn card-action-btn--primary">
+                        <svg th:replace="~{fragments/icons :: check(14, 'currentColor')}"></svg>
+                        <span th:text="${dto.ctaLabel}">신청하기</span>
+                    </a>
+                    <button th:if="${dto.ctaType == 'openAlert' or dto.ctaType == 'waitlist'}"
+                            type="button"
+                            th:data-alert-type="${dto.ctaType}"
+                            th:data-program-id="${dto.id}"
+                            th:data-program-title="${dto.title}"
+                            th:classappend="'card-action-btn--' + ${dto.ctaColorClass}"
+                            class="card-action-btn">
+                        <svg th:replace="~{fragments/icons :: bell(14, 'currentColor')}"></svg>
+                        <span th:text="${dto.ctaLabel}">알림 받기</span>
+                    </button>
+                    <button th:if="${dto.ctaType == 'expired' or dto.ctaType == 'inactive'}"
+                            type="button" disabled
+                            class="card-action-btn card-action-btn--muted card-action-btn--disabled"
+                            th:text="${dto.ctaLabel}">비활성</button>
                 </div>
-                <div class="program-card-body">
-                    <div class="program-card-title" th:text="${dto.title}">프로그램 제목</div>
-                    <div class="program-card-org" th:text="${dto.organization}">주관 기관</div>
-                    <div class="program-card-date"
-                         th:if="${dto.dateLabel != null}"
-                         th:text="${dto.dateLabel}">2024-08-01~08-31</div>
-                    <!-- CapacityBar -->
-                    <div th:replace="~{fragments/capacity-bar :: capacityBar(
-                        pct=${dto.pct},
-                        colorClass=${dto.colorClass},
-                        primaryLabel=${dto.primaryLabel},
-                        secondaryLabel=${dto.secondaryLabel},
-                        showBar=${dto.capacity != null})}"></div>
-                </div>
-            </a>
+                <!-- proto L620~622: 우상단 즐겨찾기 별 (목록 카드와 동일 fragment) -->
+                <div th:replace="~{fragments/bookmark-button :: button(programId=${dto.id}, bookmarked=${bookmarkedIds.contains(dto.id)}, styleClass='card-bookmark-btn')}"></div>
+            </article>
         </div>
     </section>
 
