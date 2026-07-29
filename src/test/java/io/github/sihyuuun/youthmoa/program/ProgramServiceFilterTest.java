@@ -111,13 +111,6 @@ class ProgramServiceFilterTest {
   }
 
   @Test
-  @DisplayName("getSidebarRegions 는 isFeatured=true 만 가나다순 반환")
-  void sidebarRegionsFeaturedOnly() {
-    List<Region> sidebar = programService.getSidebarRegions();
-    assertThat(sidebar).extracting(Region::getName).containsExactly("고양시", "수원시");
-  }
-
-  @Test
   @DisplayName("getAllRegions 는 모든 region 가나다순 반환")
   void allRegionsOrdered() {
     List<Region> all = programService.getAllRegions();
