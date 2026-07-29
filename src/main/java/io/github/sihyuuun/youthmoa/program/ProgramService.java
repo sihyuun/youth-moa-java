@@ -70,22 +70,12 @@ public class ProgramService {
     return programRepository.findAll(spec, PageRequest.of(page, PAGE_SIZE, sortOrder));
   }
 
-  /** 사이드바 노출용 지역 5개 (isFeatured=true, 가나다순) */
-  public List<Region> getSidebarRegions() {
-    return regionRepository.findAllByIsFeaturedTrueOrderByNameAsc();
-  }
-
-  /** 팝오버 전체 지역 (가나다순) */
+  /** 팝오버 전체 지역 (가나다순) — batch3 filter chip dropdown 데이터 소스 */
   public List<Region> getAllRegions() {
     return regionRepository.findAllByOrderByNameAsc();
   }
 
-  /** 사이드바 노출용 청년센터 5개 (isFeatured=true, 가나다순) */
-  public List<Center> getSidebarCenters() {
-    return centerRepository.findAllByIsFeaturedTrueOrderByNameAsc();
-  }
-
-  /** 팝오버 전체 청년센터 (가나다순) */
+  /** 팝오버 전체 청년센터 (가나다순) — batch3 filter chip dropdown 데이터 소스 */
   public List<Center> getAllCenters() {
     return centerRepository.findAllByOrderByNameAsc();
   }

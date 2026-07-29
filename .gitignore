@@ -58,5 +58,10 @@ core.*
 .claude/settings.local.json
 .playwright-mcp/
 
+### Obsidian ###
+# repo 를 vault 로 열어 docs/ 를 탐색한다 (별도 vault 를 만들면 git 이력·Claude 접근이 끊김).
+# 개인 UI 설정·플러그인·작업공간 상태는 커밋하지 않는다.
+.obsidian/
+
 ### Screenshot artifacts (Playwright dynamic verification) ###
 /*.png

@@ -260,8 +260,7 @@
                         <span class="signup-checkbox-line"></span>
                         <span class="signup-agree-label">회원가입약관 <span class="required-inline">(필수)</span></span>
                     </label>
-                    <a href="#" class="signup-agree-view"
-                       onclick="alert('이용약관 내용입니다.'); return false;">약관보기 ›</a>
+                    <a th:href="@{/terms}" target="_blank" rel="noopener" class="signup-agree-view">약관보기 ›</a>
                 </div>
 
                 <div class="signup-agree-row">
@@ -270,8 +269,7 @@
                         <span class="signup-checkbox-line"></span>
                         <span class="signup-agree-label">개인정보처리방침 안내 <span class="required-inline">(필수)</span></span>
                     </label>
-                    <a href="#" class="signup-agree-view"
-                       onclick="alert('개인정보처리방침 내용입니다.'); return false;">약관보기 ›</a>
+                    <a th:href="@{/privacy}" target="_blank" rel="noopener" class="signup-agree-view">약관보기 ›</a>
                 </div>
 
                 <!-- isAllTermsAccepted() @AssertTrue 결과 — Spring 이 "allTermsAccepted" 가상 필드 에러로 등록 -->

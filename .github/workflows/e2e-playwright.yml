@@ -71,7 +71,50 @@ jobs:
         working-directory: e2e
         env:
           BASE_URL: http://localhost:8080
-        run: npx playwright test --reporter=html,line
+        run: npx playwright test --project=chromium --reporter=html,line
+
+      # 디자인 계약 검사 — prototype 대비 정량 갭을 리포트한다.
+      # 갭이 남아 있는 동안은 의도적으로 실패하므로 **논블로킹**으로 돌린다.
+      # 기능 E2E(위 스텝)와 섞으면 "E2E red 방치" 가 되어 신규 회귀를 가린다 (2026-07-13 사고).
+      # 화면별 갭이 0 이 되면 그 화면부터 블로킹으로 승격한다.
+      - name: Design contract check (non-blocking)
+        id: contracts
+        continue-on-error: true
+        working-directory: e2e
+        env:
+          BASE_URL: http://localhost:8080
+        run: npx playwright test --project=contracts --reporter=line
+
+      - name: Summarize design contract gaps
+        if: always()
+        working-directory: e2e
+        run: |
+          if [ -d gap-reports ]; then
+            {
+              echo "## 디자인 계약 갭"
+              echo ""
+              echo "| 화면 | 결과 |"
+              echo "|---|---|"
+              for f in gap-reports/*.md; do
+                screen=$(basename "$f" .md | sed 's/^gap-//')
+                total=$(grep -E '^\*\*합계' "$f" | sed 's/\*\*//g' || echo "-")
+                echo "| \`$screen\` | ${total:-측정 실패} |"
+              done
+              echo ""
+              echo "> 논블로킹 스텝입니다. 상세는 \`design-contract-gaps\` 아티팩트를 받아 확인하세요."
+            } >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "갭 리포트가 생성되지 않았습니다 (계약 스펙이 중간에 실패했을 수 있음)." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload design contract gap reports
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: design-contract-gaps-${{ github.run_number }}
+          path: e2e/gap-reports/
+          retention-days: 14
+          if-no-files-found: warn
 
       - name: Stop Spring Boot
         if: always()
