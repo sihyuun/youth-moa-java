@@ -300,12 +300,12 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
 }
 
 /* 드롭다운 — U-COMMON-02: click 토글 (window.Dropdown 이 .is-open 부착).
-   D3 확정값: radius 14px, shadow 0 12px 40px rgba(0,0,0,0.14), min-width 240px. */
+   proto L382 (width:220) — 알림 패널 380 과 다르게 유저 메뉴는 고정 220. */
 .header-user-dropdown {
   position: absolute;
   top: calc(100% + 8px);
   right: 0;
-  min-width: 240px;
+  width: 220px;
   background: var(--color-surface);
   border-radius: 14px;
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.14);
@@ -348,12 +348,13 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
   margin: 0;
 }
 
-/* 프로필 카드 (D2 A안 — 아바타 + 이름 + 이메일, 클릭 시 /mypage) */
+/* 프로필 카드 (D2 A안 — 아바타 + 이름 + 이메일, 클릭 시 /mypage)
+   proto L383~389: padding 16px 18px · gap 10 · Avatar size=38 · 이름 fontSize:15 */
 .header-dropdown-profile {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 14px 18px;
+  gap: 10px;
+  padding: 16px 18px;
   color: var(--color-text);
   text-decoration: none;
   transition: background 0.1s;
@@ -362,13 +363,13 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
   background: var(--color-primary-bg);
 }
 .header-dropdown-profile-avatar {
-  width: 36px;
-  height: 36px;
+  width: 38px;
+  height: 38px;
   border-radius: 50%;
   background: var(--color-primary-light);
   color: var(--color-primary);
   font-weight: 700;
-  font-size: 15px;
+  font-size: 16px; /* proto L369 fs=round(38*0.42)=16 */
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -381,7 +382,7 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
   min-width: 0;
 }
 .header-dropdown-profile-name {
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 600;
   color: var(--color-text);
   overflow: hidden;
@@ -2117,18 +2118,20 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
 .btn-cancel:hover { border-color: var(--color-primary); color: var(--color-primary); }
 
 /* ── Site footer ──────────────────────────────────────────── */
+/* proto L476 (padding:20px 80px 16px) — 상하 비대칭 유지 */
 .site-footer {
   background: #f5f5f5;
   border-top: 1px solid var(--color-border);
-  padding: 20px var(--content-px);
+  padding: 20px var(--content-px) 16px;
 }
 
+/* proto L477 (gap:40) — 3블록(로고·중앙·SNS) 간격 */
 .footer-inner {
   max-width: var(--content-max);
   margin: 0 auto;
   display: flex;
   align-items: center;
-  gap: 24px;
+  gap: 40px;
   flex-wrap: wrap;
 }
 
@@ -2175,7 +2178,7 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
 }
 
 .footer-links a {
-  font-size: 12px;
+  font-size: 11px; /* proto L484 (fontSize:11) */
   font-weight: 500;
   color: #444;
   text-decoration: none;
@@ -3946,15 +3949,18 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
 .header-bell-trigger:focus,
 .header-bell-trigger:focus-visible { outline: none; }
 
+/* proto L436: top -2 / right -2 / border 1.5px solid — 아이콘 밖으로 살짝 돌출, 배경과 분리 */
 .header-bell-dot {
   position: absolute;
-  top: 0;
-  right: 0;
+  top: -2px;
+  right: -2px;
   width: 7px;
   height: 7px;
   border-radius: 50%;
   background: var(--color-error);
-  border: 1.5px solid var(--color-surface);
+  border-style: solid;
+  border-width: 1.5px;
+  border-color: var(--color-surface);
 }
 .header-bell-dot--hidden { display: none; }
 
@@ -4040,17 +4046,29 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
 }
 .notif-item.is-unread { background: var(--color-primary-bg); }
 
+/* proto L348~349: 36 원 안에 lucide SVG 16. 읽음(회색 배경)은 톤 컬러 아이콘, 미읽음(톤 배경)은 흰색 아이콘. */
 .notif-icon {
   width: 36px;
   height: 36px;
   border-radius: 50%;
   background: #E5E7EB;
   flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-sec);
 }
+.notif-icon.notif-icon--success { color: var(--color-success); }
+.notif-icon.notif-icon--warning { color: var(--color-warning); }
+.notif-icon.notif-icon--error   { color: var(--color-error); }
+.notif-icon.notif-icon--primary { color: var(--color-primary); }
+
+/* 미읽음: 배경을 톤 컬러로 채우고 아이콘은 흰색 */
 .notif-icon.is-unread.notif-icon--success { background: var(--color-success); }
 .notif-icon.is-unread.notif-icon--warning { background: var(--color-warning); }
 .notif-icon.is-unread.notif-icon--error   { background: var(--color-error); }
 .notif-icon.is-unread.notif-icon--primary { background: var(--color-primary); }
+.notif-icon.is-unread { color: #fff; }
 
 .notif-item-body {
   flex: 1;
