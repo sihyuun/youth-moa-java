@@ -60,8 +60,7 @@ public class ProgramSpec {
   }
 
   /**
-   * "전체" 탭에서 종료 프로그램을 제외 — 계약 grid.excludeEnded (wireframe WF-5-001-01). 종료 프로그램은 "종료" 탭에서만
-   * 노출한다.
+   * "전체" 탭에서 종료 프로그램을 제외 — 계약 grid.excludeEnded (wireframe WF-5-001-01). 종료 프로그램은 "종료" 탭에서만 노출한다.
    *
    * <p>endDate 가 null 이거나 endDate >= today 인 프로그램만 통과.
    */
@@ -92,8 +91,8 @@ public class ProgramSpec {
   }
 
   /**
-   * 기본 정렬순 — wireframe WF-5-001-01 정책 반영. 로그인 사용자의 즐겨찾기 프로그램을 먼저 노출한 뒤, 나머지는 최신 등록순으로 노출한다.
-   * 즐겨찾기 없는(비로그인 포함) 사용자는 최신 등록순만 노출된다 (2026-07-29 결정).
+   * 기본 정렬순 — wireframe WF-5-001-01 정책 반영. 로그인 사용자의 즐겨찾기 프로그램을 먼저 노출한 뒤, 나머지는 최신 등록순으로 노출한다. 즐겨찾기
+   * 없는(비로그인 포함) 사용자는 최신 등록순만 노출된다 (2026-07-29 결정).
    *
    * <p>ids 가 null 또는 empty 이면 predicate + orderBy 를 주입하지 않고 conjunction 만 반환하여, 호출부의
    * Sort.by(createdAt DESC) 가 그대로 적용되도록 한다.
@@ -106,10 +105,7 @@ public class ProgramSpec {
           && long.class != query.getResultType()) {
         // CASE WHEN id IN (:ids) THEN 0 ELSE 1 END → ASC 로 즐겨찾기 프로그램이 먼저
         jakarta.persistence.criteria.Expression<Integer> bookmarkFlag =
-            cb.<Integer>selectCase()
-                .when(root.get("id").in(ids), 0)
-                .otherwise(1)
-                .as(Integer.class);
+            cb.<Integer>selectCase().when(root.get("id").in(ids), 0).otherwise(1).as(Integer.class);
         java.util.List<jakarta.persistence.criteria.Order> existing =
             new java.util.ArrayList<>(query.getOrderList());
         java.util.List<jakarta.persistence.criteria.Order> merged = new java.util.ArrayList<>();

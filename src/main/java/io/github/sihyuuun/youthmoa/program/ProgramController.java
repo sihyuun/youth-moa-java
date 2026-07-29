@@ -47,8 +47,7 @@ public class ProgramController {
 
     // 즐겨찾기 IDs 를 먼저 계산 — 기본 정렬순(default) 로직과 카드 렌더 N+1 회피 모두에 사용
     Set<Long> bookmarkedIds =
-        bookmarkService.getBookmarkedProgramIds(
-            principal != null ? principal.getUsername() : null);
+        bookmarkService.getBookmarkedProgramIds(principal != null ? principal.getUsername() : null);
 
     Page<Program> programs =
         programService.search(status, safeRegions, safeCenters, sort, page, bookmarkedIds);

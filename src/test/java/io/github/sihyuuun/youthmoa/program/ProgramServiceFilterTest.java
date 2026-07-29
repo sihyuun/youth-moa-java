@@ -80,7 +80,12 @@ class ProgramServiceFilterTest {
   void searchByMultipleRegions() {
     Page<Program> result =
         programService.search(
-            "", List.of("수원시", "고양시"), Collections.emptyList(), "newest", 0, Collections.emptySet());
+            "",
+            List.of("수원시", "고양시"),
+            Collections.emptyList(),
+            "newest",
+            0,
+            Collections.emptySet());
     assertThat(result.getContent())
         .extracting(Program::getRegion)
         .containsExactlyInAnyOrder("수원시", "고양시");
@@ -110,7 +115,12 @@ class ProgramServiceFilterTest {
   void searchPopular() {
     Page<Program> result =
         programService.search(
-            "", Collections.emptyList(), Collections.emptyList(), "popular", 0, Collections.emptySet());
+            "",
+            Collections.emptyList(),
+            Collections.emptyList(),
+            "popular",
+            0,
+            Collections.emptySet());
     // 신청 데이터가 없어도 ORDER BY 가 동작해 NPE/예외 없이 결과 반환되어야 함.
     // "전체" 탭(status="")은 종료 프로그램 제외 (wireframe WF-5-001-01 정책) → seed 3개 중 종료 1개 제외 = 2개.
     assertThat(result.getTotalElements()).isEqualTo(2);
