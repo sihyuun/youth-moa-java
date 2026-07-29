@@ -24,14 +24,19 @@
 
 ## 계약 현황 (2026-07-28)
 
+공통 정책은 [POLICY.md](POLICY.md) 를 먼저 본다. 아래는 2026-07-28 정책 반영 후 수치.
+
 | 화면 | 경로 | 기계 계약 | 서술 계약 | 검사 결과 |
 |---|---|---|---|---|
 | 홈 | `/` | `home.ts` | `home.md` | 22/41 · 갭 **19** (P0 2) |
 | 프로그램 목록 | `/programs` | `programs.ts` | `programs.md` | 58/75 · 갭 **17** |
 | 프로그램 상세 | `/programs/{id}` | `program-detail.ts` | `program-detail.md` | 90/101 · 갭 **11** |
 | 청년센터 | `/centers` | `centers.ts` | `centers.md` | 80/98 · 갭 **18** |
-| 헤더·푸터 (공통) | `/programs` · `/` | `common.ts` | `common.md` | 112/132 · 갭 **20** |
-| **합계** | | | | **362/447 · 갭 85 · 의도적 이탈 8** |
+| 헤더·푸터 (공통) | `/programs` | `common.ts` | `common.md` | 95/107 · 갭 **12** |
+| 헤더·푸터 (홈 transparent) | `/` | `common.ts` | `common.md` | 16/16 · 갭 **0** ✅ |
+| **합계** | | | | **361/438 · 갭 77 · 의도적 이탈 10 · 이월 4** |
+
+수정 착수 권장 순서: **공통(12) → 홈(19, P0 포함) → 목록(17) → 상세(11) → 센터(18)**. 헤더·푸터는 전 화면에 렌더되므로 나중에 고치면 그 전에 등록한 화면별 스크린샷 baseline 이 모두 무효화된다.
 
 미착수: `/login` · `/signup` · `/programs/{id}/apply` · `/apply/complete` · `/notices` · `/notices/{id}` · `/mypage` (4탭) · `/mypage/profile/edit` · `/notifications`
 
@@ -77,9 +82,11 @@ soft assertion 이라 **한 번 실행하면 통과·실패 전 항목이 리스
 1. ✅ 홈 화면 파일럿 (2026-07-28)
 2. 🟡 13개 사용자 대면 화면 확산 — **5개 완료** (홈·목록·상세·센터·공통), 9개 미착수
 3. ✅ CI 편입 — `e2e-playwright.yml` 에 논블로킹 `contracts` 스텝 + 갭 리포트 아티팩트
-4. ⏳ 갭 85건 수정 — P0 2건(홈 Hero 정렬) 부터
-5. ⏳ 갭이 0 이 된 화면부터 `toHaveScreenshot` baseline 등록 → 픽셀 회귀 차단 + 블로킹 승격
-6. ⏳ CLAUDE.md 의 시각 대조 산문 규칙을 본 장치 참조로 축약
+4. ✅ 공통 정책 확정 — [POLICY.md](POLICY.md) P-1~P-5 + `deviation`/`deferred` 필드 반영
+5. ✅ CLAUDE.md 축약 — 시각 대조 산문 규칙을 본 장치 참조로 대체 (917 → 581줄, 커밋 `aa77009`)
+6. ⏳ **갭 77건 수정** ← 현재 여기. P0 2건(홈 Hero 정렬) 부터
+7. ⏳ 갭이 0 이 된 화면부터 `toHaveScreenshot` baseline 등록 → 픽셀 회귀 차단 + 블로킹 승격
+8. ⏳ 남은 9화면 계약 신설 (`/login` `/signup` `/apply` `/apply/complete` `/notices` `/notices/{id}` `/mypage` 4탭 `/mypage/profile/edit` `/notifications`)
 
 ## 알려진 함정 (재발 방지)
 
