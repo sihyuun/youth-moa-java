@@ -9,12 +9,13 @@
 -->
 <th:block th:fragment="list-region">
 
-    <!-- 활성 필터 칩 + 결과 카운트 -->
-    <div class="active-filter-bar">
-        <span class="result-count">
-            전체 <strong th:text="${programs.totalElements}">0</strong>건
-        </span>
+    <!-- 결과 카운트는 필터 바 우측 그룹으로 이동 (계약 resultcount.placement). htmx 부분 갱신 시 OOB 로 동기화. -->
+    <span id="result-count-el" hx-swap-oob="true" class="result-count">
+        전체 <strong th:text="${programs.totalElements}">0</strong>건
+    </span>
 
+    <!-- 활성 필터 칩 -->
+    <div class="active-filter-bar">
         <div class="active-filter-chips" th:if="${activeFilters != null and !activeFilters.isEmpty()}">
             <span class="active-filter-chip" th:each="f : ${activeFilters}">
                 <span th:text="${f.label}">라벨</span>

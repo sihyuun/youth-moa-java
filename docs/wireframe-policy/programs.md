@@ -142,6 +142,14 @@
 **2026-07-29 사용자 결정**:
 1. **정렬 규칙** → wireframe 채택. `기본 정렬순` = 즐겨찾기 우선 + 즐겨찾기 없으면 최신 등록순 fallback. 이전 Q1 결정(원본 순서)은 폐기.
 2. **필터 적용 방식** → 현재 계약(즉시 반영) 유지. wireframe `확인 버튼` 미채택 = **의도적 이탈(deviation)** 로 기록. Reason: 계약 §10-A 이미 확정, prototype 도 즉시 반영 방식.
+3. **마감임박순 제거** → wireframe 정렬 목록에 없음 (기본순/최신순/인기순 3종만 정의). 현재 구현의 `deadline` 옵션 제거. 유입되는 `?sort=deadline` URL 은 default 로 fallback (backward compatible).
+4. **PR1 구현 완료 (커밋 대기)** — P1 5건 + wireframe 정렬 로직 반영:
+   - `notEnded()` Specification 추가 → "전체" 탭에서 종료 프로그램 제외
+   - `orderByBookmarkedFirst(Set<Long>)` Specification 추가 → 기본순 로직
+   - result-count 를 `.filter-right` 안으로 이동 + htmx OOB swap
+   - viewtoggle 에 grid/calendar SVG 아이콘 추가
+   - CTA border-radius `--radius-md` → `--radius-pill`
+   - 갭 리포트: 58/75 → **62/74 통과** (P1 5건 모두 통과)
 
 ## 결정 대기 항목 (추후 논의)
 

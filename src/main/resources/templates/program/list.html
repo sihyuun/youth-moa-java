@@ -127,24 +127,33 @@
                     </button>
                 </div>
 
-                <!-- 우측 group: 정렬 + 뷰 전환 (count 는 하단 결과 영역에 렌더) -->
+                <!-- 우측 group: 카운트 + 정렬 + 뷰 전환 (P1 resultcount.placement — 정렬 왼쪽으로 이동) -->
                 <div class="filter-right">
+                    <span class="result-count" id="result-count-el">
+                        전체 <strong th:text="${programs.totalElements}">0</strong>건
+                    </span>
                     <div class="sort-options">
-                        <a th:href="@{/programs(status=${filterStatus},regions=${filterRegions},centers=${filterCenters},sort='newest')}"
-                           th:class="${filterSort == 'newest' or #strings.isEmpty(filterSort)} ? 'sort-link active' : 'sort-link'">최신순</a>
+                        <a th:href="@{/programs(status=${filterStatus},regions=${filterRegions},centers=${filterCenters},sort='default')}"
+                           th:class="${filterSort == 'default' or #strings.isEmpty(filterSort)} ? 'sort-link active' : 'sort-link'">기본순</a>
                         <span class="sort-sep">·</span>
-                        <a th:href="@{/programs(status=${filterStatus},regions=${filterRegions},centers=${filterCenters},sort='deadline')}"
-                           th:class="${filterSort == 'deadline'} ? 'sort-link active' : 'sort-link'">마감임박순</a>
+                        <a th:href="@{/programs(status=${filterStatus},regions=${filterRegions},centers=${filterCenters},sort='newest')}"
+                           th:class="${filterSort == 'newest'} ? 'sort-link active' : 'sort-link'">최신순</a>
                         <span class="sort-sep">·</span>
                         <a th:href="@{/programs(status=${filterStatus},regions=${filterRegions},centers=${filterCenters},sort='popular')}"
                            th:class="${filterSort == 'popular'} ? 'sort-link active' : 'sort-link'">인기순</a>
                     </div>
 
                     <div class="view-toggle">
-                        <button type="button" class="view-toggle-btn active" aria-pressed="true">목록</button>
+                        <button type="button" class="view-toggle-btn active" aria-pressed="true">
+                            <svg th:replace="~{fragments/icons :: grid(14, 'currentColor')}"></svg>
+                            <span>목록</span>
+                        </button>
                         <button type="button" class="view-toggle-btn view-toggle-btn--disabled"
                                 title="캘린더 보기는 곧 제공돼요"
-                                disabled>캘린더</button>
+                                disabled>
+                            <svg th:replace="~{fragments/icons :: calendar(14, 'currentColor')}"></svg>
+                            <span>캘린더</span>
+                        </button>
                     </div>
                 </div>
             </div>

@@ -79,7 +79,8 @@ class ProgramServiceFilterTest {
   @DisplayName("regions 다중 선택 시 IN 절로 두 지역의 프로그램만 반환")
   void searchByMultipleRegions() {
     Page<Program> result =
-        programService.search("", List.of("수원시", "고양시"), Collections.emptyList(), "newest", 0);
+        programService.search(
+            "", List.of("수원시", "고양시"), Collections.emptyList(), "newest", 0, Collections.emptySet());
     assertThat(result.getContent())
         .extracting(Program::getRegion)
         .containsExactlyInAnyOrder("수원시", "고양시");
@@ -89,14 +90,17 @@ class ProgramServiceFilterTest {
   @DisplayName("centers 다중 선택 시 organization IN 절로 매칭")
   void searchByMultipleCenters() {
     Page<Program> result =
-        programService.search("", Collections.emptyList(), List.of("내일스퀘어"), "newest", 0);
+        programService.search(
+            "", Collections.emptyList(), List.of("내일스퀘어"), "newest", 0, Collections.emptySet());
     assertThat(result.getContent()).extracting(Program::getOrganization).containsExactly("내일스퀘어");
   }
 
   @Test
   @DisplayName("regions + centers 결합 — AND 로 좁혀짐")
   void searchByRegionsAndCenters() {
-    Page<Program> result = programService.search("", List.of("수원시"), List.of("내일스퀘어"), "newest", 0);
+    Page<Program> result =
+        programService.search(
+            "", List.of("수원시"), List.of("내일스퀘어"), "newest", 0, Collections.emptySet());
     assertThat(result.getContent()).hasSize(1);
     assertThat(result.getContent().get(0).getRegion()).isEqualTo("수원시");
   }
@@ -105,9 +109,11 @@ class ProgramServiceFilterTest {
   @DisplayName("sort=popular 도 예외 없이 결과를 반환한다")
   void searchPopular() {
     Page<Program> result =
-        programService.search("", Collections.emptyList(), Collections.emptyList(), "popular", 0);
-    // 신청 데이터가 없어도 ORDER BY 가 동작해 NPE/예외 없이 결과 반환되어야 함
-    assertThat(result.getTotalElements()).isEqualTo(3);
+        programService.search(
+            "", Collections.emptyList(), Collections.emptyList(), "popular", 0, Collections.emptySet());
+    // 신청 데이터가 없어도 ORDER BY 가 동작해 NPE/예외 없이 결과 반환되어야 함.
+    // "전체" 탭(status="")은 종료 프로그램 제외 (wireframe WF-5-001-01 정책) → seed 3개 중 종료 1개 제외 = 2개.
+    assertThat(result.getTotalElements()).isEqualTo(2);
   }
 
   @Test
