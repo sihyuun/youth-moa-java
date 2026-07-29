@@ -3502,7 +3502,7 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
 .card-action-btn {
   flex: 1;
   text-align: center;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-pill);
   font-size: 13px;
   font-weight: 600;
   padding: 8px 12px;

@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -35,7 +36,7 @@ public class ProgramController {
       @RequestParam(required = false, defaultValue = "") String status,
       @RequestParam(name = "regions", required = false) List<String> regions,
       @RequestParam(name = "centers", required = false) List<String> centers,
-      @RequestParam(required = false, defaultValue = "newest") String sort,
+      @RequestParam(required = false, defaultValue = "default") String sort,
       @RequestParam(required = false, defaultValue = "0") int page,
       @RequestHeader(name = "HX-Request", required = false) String hxRequest,
       @AuthenticationPrincipal UserDetails principal,
@@ -44,7 +45,12 @@ public class ProgramController {
     List<String> safeRegions = regions == null ? Collections.emptyList() : regions;
     List<String> safeCenters = centers == null ? Collections.emptyList() : centers;
 
-    Page<Program> programs = programService.search(status, safeRegions, safeCenters, sort, page);
+    // 즐겨찾기 IDs 를 먼저 계산 — 기본 정렬순(default) 로직과 카드 렌더 N+1 회피 모두에 사용
+    Set<Long> bookmarkedIds =
+        bookmarkService.getBookmarkedProgramIds(principal != null ? principal.getUsername() : null);
+
+    Page<Program> programs =
+        programService.search(status, safeRegions, safeCenters, sort, page, bookmarkedIds);
 
     model.addAttribute("currentPage", "programs");
     model.addAttribute("programs", programs);
@@ -63,11 +69,8 @@ public class ProgramController {
         buildActiveFilters(status, safeRegions, safeCenters, sort);
     model.addAttribute("activeFilters", activeFilters);
 
-    // 인증된 사용자의 즐겨찾기 program id Set (카드 N개 N+1 회피)
-    model.addAttribute(
-        "bookmarkedIds",
-        bookmarkService.getBookmarkedProgramIds(
-            principal != null ? principal.getUsername() : null));
+    // 인증된 사용자의 즐겨찾기 program id Set (카드 N개 N+1 회피) — 위에서 계산한 Set 재사용
+    model.addAttribute("bookmarkedIds", bookmarkedIds);
 
     // CapacityBar용 DTO (IN 쿼리 1회, N+1 방지)
     model.addAttribute("cardDtos", programService.toCardDtos(programs.getContent()));

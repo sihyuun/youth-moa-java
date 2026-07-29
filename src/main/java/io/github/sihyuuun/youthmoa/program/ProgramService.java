@@ -8,6 +8,7 @@ import io.github.sihyuuun.youthmoa.region.Region;
 import io.github.sihyuuun.youthmoa.region.RegionRepository;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -34,15 +35,20 @@ public class ProgramService {
   private final ApplicationRepository applicationRepository;
 
   public Page<Program> search(
-      String status, List<String> regions, List<String> centers, String sort, int page) {
+      String status,
+      List<String> regions,
+      List<String> centers,
+      String sort,
+      int page,
+      Set<Long> bookmarkedIds) {
     Specification<Program> spec = Specification.where(ProgramSpec.isActive());
 
     Specification<Program> dateSpec = ProgramSpec.withDateStatus(status);
     if (dateSpec != null) {
       spec = spec.and(dateSpec);
     } else {
-      // 전체 탭 (status 필터 없음) — ENDED 프로그램은 목록 뒤로 정렬 (F0f-fix-3)
-      spec = spec.and(ProgramSpec.endedLast());
+      // 전체 탭 (status 필터 없음) — 종료 프로그램은 제외 (계약 grid.excludeEnded, wireframe WF-5-001-01)
+      spec = spec.and(ProgramSpec.notEnded());
     }
 
     Specification<Program> regionSpec = ProgramSpec.withRegions(regions);
@@ -51,7 +57,7 @@ public class ProgramService {
     Specification<Program> centerSpec = ProgramSpec.withCenters(centers);
     if (centerSpec != null) spec = spec.and(centerSpec);
 
-    String safeSort = sort == null ? "newest" : sort;
+    String safeSort = sort == null ? "default" : sort;
 
     if ("popular".equals(safeSort)) {
       // 인기순: Specification 안에서 orderBy 주입 → Pageable 의 Sort 는 unsorted
@@ -60,9 +66,17 @@ public class ProgramService {
       return programRepository.findAll(spec, pageable);
     }
 
+    // 기본 정렬순 (wireframe WF-5-001-01): 로그인 유저의 즐겨찾기 프로그램을 먼저 노출하고, 나머지는 최신 등록순 fallback.
+    // 즐겨찾기 없는(비로그인 포함) 사용자는 최신 등록순만 노출.
+    if ("default".equals(safeSort)) {
+      spec = spec.and(ProgramSpec.orderByBookmarkedFirst(bookmarkedIds));
+      // orderBy 는 Specification 이 주입. Pageable Sort 는 fallback 용으로 createdAt DESC 지정.
+      return programRepository.findAll(
+          spec, PageRequest.of(page, PAGE_SIZE, Sort.by(Sort.Direction.DESC, "createdAt")));
+    }
+
     Sort sortOrder =
         switch (safeSort) {
-          case "deadline" -> Sort.by(Sort.Direction.ASC, "endDate");
           case "newest" -> Sort.by(Sort.Direction.DESC, "createdAt");
           default -> Sort.by(Sort.Direction.DESC, "createdAt");
         };
