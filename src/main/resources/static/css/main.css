@@ -490,6 +490,7 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
   pointer-events: none;
 }
 
+/* proto L522: alignItems center · textAlign center · padding 헤더*2 40 (헤더 아래로 hero 콘텐츠 세로 중앙) */
 .hero-inner {
   position: relative;
   z-index: 3;
@@ -501,33 +502,39 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  align-items: flex-start;
+  align-items: center;
+  text-align: center;
   color: #fff;
 }
 
-
-
+/* proto L523~524: 반투명 chip 스타일 (배경·radius 20·padding·backdropFilter·fontSize 14·weight 500) */
 .hero-eyebrow {
-  font-size: 13px;
-  font-weight: 600;
+  display: inline-flex;
+  padding: 6px 16px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(4px);
+  font-size: 14px;
+  font-weight: 500;
   letter-spacing: 0.04em;
-  opacity: 0.9;
-  margin-bottom: 12px;
+  margin-bottom: 16px;
   color: #fff;
 }
 
+/* proto L526: fontSize 42 · weight 800 */
 .hero-title {
-  font-size: 34px;
+  font-size: 42px;
   font-weight: 800;
   color: #fff;
   line-height: 1.25;
   letter-spacing: -0.02em;
-  margin: 0 0 10px;
+  margin: 0 0 12px;
   text-shadow: 0 2px 12px rgba(0, 0, 0, 0.25);
 }
 
+/* proto L527: fontSize 16 · marginTop 12 */
 .hero-desc {
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 500;
   color: rgba(255, 255, 255, 0.92);
   line-height: 1.6;
@@ -635,12 +642,13 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
 }
 
 /* ── Home quickmenu (prototype L561~575) — 홈 Stats 아래 4그리드 진입 카드 ─── */
+/* proto L561: maxWidth 1080 — 다른 섹션(1440)보다 좁게 두는 의도적 비대칭. POLICY P-4 */
 .home-quickmenu {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 14px;
   padding: 28px var(--content-px) 4px;
-  max-width: var(--content-max);
+  max-width: 1080px;
   margin: 0 auto;
 }
 .home-quickmenu-card {
@@ -3177,15 +3185,15 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
    F0e — 홈 prototype 정렬 (Hero search / Quick Stats / 프로그램 / 공지 / 공간)
    ============================================================ */
 
-/* Hero 검색바 — prototype line 433~439 */
+/* Hero 검색바 — proto L528~530: 460 x 52, input fontSize 15 */
 .hero-search-bar {
   display: inline-flex;
   align-items: center;
   background: #fff;
   border-radius: var(--radius-pill);
   padding: 0 6px 0 18px;
-  height: 48px;
-  width: 400px;
+  height: 52px;
+  width: 460px;
   max-width: 100%;
   margin-top: 24px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
@@ -3194,7 +3202,7 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
   flex: 1;
   border: none;
   outline: none;
-  font-size: 14px;
+  font-size: 15px;
   color: var(--color-text);
   margin-left: 10px;
   background: transparent;
@@ -3268,6 +3276,20 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
   font-size: 24px;
   font-weight: 700;
   color: var(--color-text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* proto L581: 맞춤 추천 제목 옆 관심 태그 chip (primaryBg pill) */
+.interest-chip {
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--color-primary-bg);
+  color: var(--color-primary);
+  font-size: 12px;
+  font-weight: 600;
 }
 .home-section-sub {
   font-size: 14px;
@@ -3291,11 +3313,34 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
   color: inherit;
   transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
   display: block;
+  position: relative;
 }
 .home-program-card:hover {
   transform: translateY(-3px);
   box-shadow: var(--shadow-lg);
   border-color: var(--color-primary);
+}
+
+/* proto L617 (170) / L590 (150) — 비로그인 = 정보 카드 (넓게), 로그인 = 간소 카드 (좁게) */
+.home-program-card .program-card-image { height: 170px; }
+.home-program-card--recommend .program-card-image { height: 150px; }
+
+/* proto L625 (15) / L596 (14) — 카드 유형별 제목 폰트 */
+.home-program-card .program-card-title { font-size: 15px; }
+.home-program-card--recommend .program-card-title { font-size: 14px; }
+
+/* proto L629~632: 카드 하단 CTA 컨테이너 — flex + 패딩 */
+.home-program-card .program-card-cta {
+  padding: 0 14px 14px;
+  display: flex;
+  gap: 6px;
+}
+.home-program-card .program-card-cta .card-action-btn {
+  flex: 1;
+  height: 34px;
+  border-radius: var(--radius-pill);
+  font-size: 13px;
+  font-weight: 600;
 }
 .recommend-badge {
   position: absolute;

@@ -72,18 +72,37 @@
 - 알림 신청 모달 (`WaitlistModal`) 열림·완료 후 라벨 전환 — proto L690
 - 공지 리스트 마지막 행 `border-bottom` 없음 — proto L661 (`i<2`)
 
-## 6. 현재 갭 (2026-07-28 계약 검사 결과)
+## 6. 현재 갭 (2026-07-29 계약 검사 결과)
 
-`e2e/gap-reports/gap-home.md` 참조. **22/41 통과 · 갭 19건** (P0 2 / P1 10 / P2 7) · 의도적 이탈 2건(카피, POLICY P-1).
+`e2e/gap-reports/gap-home.md` 참조. **41/41 통과 · 갭 0건** (2026-07-29 fix/home-contract-gaps 반영) · 의도적 이탈 2건(카피, POLICY P-1).
 
-가장 무거운 것부터:
+### 2026-07-29 갭 19건 청산 내역 (fix/home-contract-gaps)
 
-1. **P0 — Hero 콘텐츠가 좌측 정렬** (`align-items: flex-start`, `text-align: start`). prototype 은 중앙 정렬. 7/27 전수 갭 스캔이 놓친 항목으로, 홈 첫인상을 좌우한다
-2. **P1 — Hero 배지가 chip 이 아니라 맨 텍스트**. 7/27 batch1 이 문구만 고치고 반투명 chip 스타일(배경·radius·padding)은 적용하지 않음
-3. **P1 — 비로그인 카드에 즐겨찾기 별·CTA 버튼 없음**. prototype 카드의 핵심 인터랙션 2개가 홈에만 누락 (목록 화면엔 있음)
-4. **P1 — 퀵메뉴 폭 1440** (계약 1080). batch2 가 `.container` 정책을 그대로 적용하면서 발생
-5. **P1 — Stats 아이콘이 텍스트 `✓`**. CLAUDE.md "이모지·텍스트로 SVG 대체 금지" 규칙 위반이 남아 있음
-6. **P1 — Hero 타이틀 34px** (계약 42px), 검색바 400x48 (계약 460x52)
+| # | 심각도 | 항목 | 조치 |
+|---|---|---|---|
+| 1 | P0 | Hero 콘텐츠 좌측 정렬 | `.hero-inner`: `align-items: center` + `text-align: center` (proto L522) |
+| 2 | P0 | Hero 텍스트 좌측 정렬 | 위와 동일 (한 규칙에서 처리) |
+| 3 | P1 | Hero 배지 chip 스타일 | `.hero-eyebrow` 반투명 chip (bg rgba(255,255,255,0.2) · radius 20 · padding 6/16 · backdrop-filter blur, proto L523) |
+| 4 | P1 | Hero 배지 radius 20 | 위와 동일 |
+| 5 | P1 | Hero 타이틀 42 | `.hero-title font-size: 42px` (proto L526) |
+| 6 | P1 | 검색바 460 | `.hero-search-bar width: 460px` (proto L528) |
+| 7 | P1 | 검색바 52 | `.hero-search-bar height: 52px` (proto L528) |
+| 8 | P1 | Stats 아이콘 SVG | `index.html` ✓ 텍스트 3건 → `~{fragments/icons :: check(22, primary)}` (proto L551, POLICY P-3 SVG 이탈 금지) |
+| 9 | P1 | 퀵메뉴 폭 1080 | `.home-quickmenu max-width: 1080px` + `container` 클래스 제거 (proto L561, POLICY P-4) |
+| 10 | P1 | 카드 즐겨찾기 별 | 비로그인 카드에 `bookmark-button` fragment 삽입 + `HomeController` 에 `bookmarkedIds` 모델 attr 노출 (proto L620~622) |
+| 11 | P1 | 카드 하단 CTA | 비로그인 카드에 `.program-card-cta` block 신설 (dto.ctaType 5분기, 목록 카드와 동일 마크업, proto L629~632) |
+| 12 | P2 | Hero 배지 font 14 | `.hero-eyebrow font-size: 14px` |
+| 13 | P2 | Hero 배지 weight 500 | `.hero-eyebrow font-weight: 500` |
+| 14 | P2 | Hero desc font 16 | `.hero-desc font-size: 16px` |
+| 15 | P2 | 검색 input font 15 | `.hero-search-input font-size: 15px` |
+| 16 | P2 | 비로그인 카드 이미지 170 | `.home-program-card .program-card-image height: 170px` (Q4 = A prototype 대로 분리) |
+| 17 | P1 | 맞춤 추천 관심 chip | `HomeService.getRecommendInterestChip()` + `HomeController` model + `.interest-chip` CSS + `index.html` 렌더 (proto L581). seed1 유저에 관심 지역·분야 시드 (부천시 / 취업·창업) |
+| 18 | P2 | 로그인 카드 이미지 150 | `.home-program-card--recommend .program-card-image height: 150px` (Q4 = A) |
+| 19 | P2 | 로그인 카드 제목 14 | `.home-program-card--recommend .program-card-title font-size: 14px` (비로그인은 15) — modifier class 로 분기 |
+
+의도적 이탈 2건 유지:
+- `hero.title.text` — POLICY P-1 (카피)
+- `hero.desc.text` — POLICY P-1 (카피)
 
 ## 7. 결정 현황
 
@@ -92,6 +111,4 @@
 | ~~Q1~~ | Hero 타이틀 카피 | 경기도 청년의 내일을 / 함께 만들어갑니다 | 청년의 모든 기회를 / 한곳에서 | **✅ 현행 유지** — POLICY P-1, `deviation` 처리됨 |
 | ~~Q2~~ | Hero 설명 카피 | 경기도 31개 시·군 청년센터의 프로그램을 한눈에 확인하세요 | 프로그램·공간·정책을 청년모아에서 만나보세요 | **✅ 현행 유지** — POLICY P-1, `deviation` 처리됨 |
 | ~~Q3~~ | Stats 숫자 | 127 / 31 / 15,420 (목업) | 실제 시드값 | **✅ 계약 제외** — 목업 숫자를 재현할 이유가 없다. 애초에 계약에 미포함 |
-| **Q4** | 카드 이미지 높이 | 170(비로그인) / 150(로그인) | 둘 다 160 | ⏳ **미결정** — prototype 은 두 카드 유형을 의도적으로 다르게 뒀다(간소 카드 150 / 정보 카드 170). 한 값으로 통일한 게 의도인지 확인 필요. 관련 갭 2건 (`programs.card.image.height`, `recommend.card.image.height`) |
-
-Q4 를 "160 통일 유지" 로 결정하시면 두 항목을 `deviation` 처리해 갭이 19 → 17건이 된다.
+| ~~Q4~~ | 카드 이미지 높이 | 170(비로그인) / 150(로그인) | 둘 다 160 | **✅ prototype 대로 분리 반영 (2026-07-29)** — `.home-program-card--recommend` modifier 로 로그인 카드만 150 지정, 비로그인 카드는 default 170 |

@@ -913,12 +913,21 @@ public class DataInitializer implements ApplicationRunner {
     }
 
     // 더미 유저 30명 생성 (UniqueConstraint: user+program 쌍)
+    // seed1 은 계약 검사(interest chip · 맞춤 추천)의 대표 시나리오라 관심 지역·분야를 설정한다.
     List<User> seedUsers = new ArrayList<>();
     for (int i = 1; i <= 30; i++) {
       String email = "seed" + i + "@youth-moa.test";
       if (!userRepository.existsByEmail(email)) {
         // F0i: 아이디/비밀번호 찾기 매칭용 phone 시드 (하이픈 없이 저장 — signup 정책과 동일)
         String phone = String.format("0100000%04d", i);
+        java.util.Set<String> regions =
+            (i == 1)
+                ? new java.util.HashSet<>(java.util.List.of("부천시"))
+                : new java.util.HashSet<>();
+        java.util.Set<String> cats =
+            (i == 1)
+                ? new java.util.HashSet<>(java.util.List.of("취업", "창업"))
+                : new java.util.HashSet<>();
         seedUsers.add(
             userRepository.save(
                 User.builder()
@@ -927,6 +936,8 @@ public class DataInitializer implements ApplicationRunner {
                     .name("시드유저" + i)
                     .phone(phone)
                     .role(UserRole.USER)
+                    .interestRegions(regions)
+                    .interestCategories(cats)
                     .build()));
       } else {
         userRepository.findByEmail(email).ifPresent(seedUsers::add);
