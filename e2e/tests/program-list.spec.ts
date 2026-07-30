@@ -42,8 +42,8 @@ test('지역 dropdown 에서 옵션 체크 후 적용 시 URL 이 갱신되고 c
     const pop = page.locator('.filter-popover[data-group="regions"]');
     const firstOption = pop.locator('input[name="regions"]').first();
     const value = await firstOption.getAttribute('value');
+    // 계약 §10-A + PR2 popover.noHeader/noApplyFooter — 체크박스 change 시 즉시 반영 (적용 버튼 없음)
     await firstOption.check();
-    await pop.locator('.btn-primary', { hasText: '적용' }).click();
 
     await page.waitForTimeout(500);
     await expect(page).toHaveURL(new RegExp(`regions=${encodeURIComponent(value!)}`));
@@ -58,8 +58,8 @@ test('active-filter-chip × 버튼을 클릭하면 해당 값만 제거된다', 
     const pop = page.locator('.filter-popover[data-group="regions"]');
     const firstOption = pop.locator('input[name="regions"]').first();
     const value = await firstOption.getAttribute('value');
+    // 계약 §10-A + PR2 popover.noHeader/noApplyFooter — 체크박스 change 시 즉시 반영 (적용 버튼 없음)
     await firstOption.check();
-    await pop.locator('.btn-primary', { hasText: '적용' }).click();
     await page.waitForTimeout(500);
 
     await page.locator('.active-filter-chip-x').first().click();
