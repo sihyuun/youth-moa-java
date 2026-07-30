@@ -77,7 +77,7 @@
                 <a th:if="${dto.ctaType == 'apply'}"
                    th:href="@{/programs/{id}/apply(id=${dto.id})}"
                    class="card-action-btn card-action-btn--primary">
-                    <svg th:replace="~{fragments/icons :: check(14, 'currentColor')}"></svg>
+                    <svg th:replace="~{fragments/icons :: check(15, 'currentColor')}"></svg>
                     <span th:text="${dto.ctaLabel}">신청하기</span>
                 </a>
                 <!-- openAlert / waitlist: modal 트리거 (bell 아이콘) -->
@@ -88,7 +88,7 @@
                         th:data-program-title="${dto.title}"
                         th:classappend="'card-action-btn--' + ${dto.ctaColorClass}"
                         class="card-action-btn">
-                    <svg th:replace="~{fragments/icons :: bell(14, 'currentColor')}"></svg>
+                    <svg th:replace="~{fragments/icons :: bell(15, 'currentColor')}"></svg>
                     <span th:text="${dto.ctaLabel}">알림 받기</span>
                 </button>
                 <!-- expired / inactive: disabled 회색 (no icon) -->
