@@ -75,4 +75,28 @@ class SignupRenderTest {
         .andExpect(content().string(not(containsString("signup-section"))))
         .andExpect(content().string(not(containsString("class=\"signup-input"))));
   }
+
+  @Test
+  void signup_페이지가_활성_약관을_동적_렌더한다() throws Exception {
+    // F-signup-terms-agreement: DataInitializer 가 시드한 SERVICE·PRIVACY 2건이 나와야 한다.
+    // 마스터 토글·(필수) 라벨·약관보기 링크는 UX 축이라 계약과 무관하게 회귀 방어.
+    mockMvc
+        .perform(get("/signup"))
+        .andExpect(status().isOk())
+        // 전체 동의 (마스터 토글) — 하드코딩 마크업 유지
+        .andExpect(content().string(containsString("id=\"agreeAll\"")))
+        .andExpect(content().string(containsString("전체 동의")))
+        // 활성 약관 2건 동적 렌더 — 안정 셀렉터 data-term-code
+        .andExpect(content().string(containsString("data-term-code=\"SERVICE\"")))
+        .andExpect(content().string(containsString("data-term-code=\"PRIVACY\"")))
+        // 폼 name 은 Map 바인딩 규약
+        .andExpect(content().string(containsString("name=\"agreements[SERVICE]\"")))
+        .andExpect(content().string(containsString("name=\"agreements[PRIVACY]\"")))
+        // 필수 라벨 + 약관보기
+        .andExpect(content().string(containsString("(필수)")))
+        .andExpect(content().string(containsString("약관보기")))
+        // 옛 하드코딩 name 이 사라졌는지 (회귀 방어)
+        .andExpect(content().string(not(containsString("name=\"termsAgreed\""))))
+        .andExpect(content().string(not(containsString("name=\"privacyAgreed\""))));
+  }
 }

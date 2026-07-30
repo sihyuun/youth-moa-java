@@ -52,7 +52,7 @@ test.beforeEach(async ({ page }) => {
     await expect(page).toHaveTitle(/회원가입/);
 });
 
-test('빈 폼 제출 시 1단계(RequiredCheck) 메시지만 노출', async ({ page }) => {
+test('빈 폼 제출 시 필수 입력 헬프 9개 + 약관 미동의 헬프 노출', async ({ page }) => {
     await page.locator('button.signup-submit-btn').click();
     const errs = await collectErrors(page);
 
@@ -67,10 +67,12 @@ test('빈 폼 제출 시 1단계(RequiredCheck) 메시지만 노출', async ({ p
     expect(errs).toContain('우편번호를 입력해주세요.');
     expect(errs).toContain('주소를 입력해주세요.');
 
-    // 2단계(FormatCheck) 메시지는 안 보여야 함
+    // F-signup-terms-agreement (2026-07-30 UX 결정): 약관 미동의는 GroupSequence 우회하여 항상 노출
+    expect(errs).toContain('이용약관과 개인정보처리방침에 모두 동의해주세요.');
+
+    // 2단계(FormatCheck) 나머지 메시지는 여전히 지연 노출 (RequiredCheck 통과 후 등장)
     const formatMsgs = [
         '아이디 중복확인을 진행해주세요.',
-        '이용약관과 개인정보처리방침에 모두 동의해주세요.',
         '비밀번호와 비밀번호 확인이 일치하지 않습니다.',
         '비밀번호는 8자 이상이어야 합니다.',
         '비밀번호는 영문과 숫자를 모두 포함해야 합니다.',
@@ -112,8 +114,9 @@ test('서버 측 비밀번호 정책 위반 — 한 문장 통합', async ({ pag
     await page.locator('#birthDateText').fill('1990-01-01');
     // 우편번호 / 주소는 readonly 라 dummy 검색
     await fillDummyAddress(page);
-    await page.locator('input[name="termsAgreed"]').check({ force: true });
-    await page.locator('input[name="privacyAgreed"]').check({ force: true });
+    // F-signup-terms-agreement: name 이 agreements[SERVICE] 형태로 바뀌어 안정 셀렉터 data-term-code 사용
+    await page.locator('input[data-term-code="SERVICE"]').check({ force: true });
+    await page.locator('input[data-term-code="PRIVACY"]').check({ force: true });
     // emailChecked 는 hidden 으로 default false → 위반 케이스 만들기 위해 그대로 두면
     // "아이디 중복확인" 메시지도 같이 나옴. 통합 메시지만 검증 위해 true 로 강제.
     await page.evaluate(() => {
@@ -165,8 +168,9 @@ test('중복확인 안 누르고 제출 — 안내 메시지 노출', async ({ p
     await selectGender(page, 'MALE');
     await page.locator('#birthDateText').fill('1990-01-01');
     await fillDummyAddress(page);
-    await page.locator('input[name="termsAgreed"]').check({ force: true });
-    await page.locator('input[name="privacyAgreed"]').check({ force: true });
+    // F-signup-terms-agreement: data-term-code 안정 셀렉터
+    await page.locator('input[data-term-code="SERVICE"]').check({ force: true });
+    await page.locator('input[data-term-code="PRIVACY"]').check({ force: true });
 
     await page.locator('button.signup-submit-btn').click();
 

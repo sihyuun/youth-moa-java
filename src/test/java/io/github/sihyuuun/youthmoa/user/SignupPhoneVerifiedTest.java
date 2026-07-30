@@ -34,6 +34,7 @@ class SignupPhoneVerifiedTest {
 
   @Autowired MockMvc mockMvc;
   @Autowired UserRepository userRepository;
+  @Autowired UserAgreementRepository userAgreementRepository;
 
   private static final String BASE_EMAIL_PREFIX = "sp-phone-verified-";
 
@@ -51,13 +52,20 @@ class SignupPhoneVerifiedTest {
         .param("zipcode", "12345")
         .param("address", "경기도 수원시")
         .param("addressDetail", "101호")
-        .param("termsAgreed", "true")
-        .param("privacyAgreed", "true")
+        .param("agreements[SERVICE]", "true")
+        .param("agreements[PRIVACY]", "true")
         .param("emailChecked", "true");
   }
 
   private void cleanup(String email) {
-    userRepository.findByEmail(email).ifPresent(userRepository::delete);
+    userRepository
+        .findByEmail(email)
+        .ifPresent(
+            u -> {
+              // F-signup-terms-agreement: FK 회피용 이력 청소
+              userAgreementRepository.deleteAll(userAgreementRepository.findByUser(u));
+              userRepository.delete(u);
+            });
   }
 
   @Test
