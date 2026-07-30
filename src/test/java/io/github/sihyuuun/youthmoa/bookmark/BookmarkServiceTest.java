@@ -177,4 +177,62 @@ class BookmarkServiceTest {
   void getBookmarkedProgramIds_unknown_user() {
     assertThat(bookmarkService.getBookmarkedProgramIds("ghost@nowhere.com")).isEmpty();
   }
+
+  // ── wireframe WF-3-002 즐겨찾기 20개 상한 정책 강제 테스트 (F-wireframe-batch2) ─────────────
+
+  @Test
+  @DisplayName("정책 강제 — 21번째 즐겨찾기 추가 시 가장 오래된 1건 자동 삭제 (총 20개 유지)")
+  void toggle_maxLimit_evictsOldest() {
+    // 20개 시드 (createdAt 순차 부여)
+    Long firstProgramId = program.getId();
+    for (int i = 2; i <= 20; i++) {
+      Program p =
+          programRepository.save(
+              Program.builder()
+                  .title("샘플 " + i)
+                  .organization("내일스퀘어")
+                  .region("수원시")
+                  .content("c")
+                  .startDate(LocalDate.now().minusDays(3))
+                  .endDate(LocalDate.now().plusDays(10))
+                  .build());
+      bookmarkService.toggle(user.getEmail(), p.getId());
+    }
+    // 첫 번째 program 도 즐겨찾기 → 이제 20개
+    bookmarkService.toggle(user.getEmail(), firstProgramId);
+    assertThat(bookmarkRepository.count()).isEqualTo(20);
+
+    // 21번째 프로그램 즐겨찾기 → 가장 오래된 것(=샘플 2, 첫 저장분) 삭제, 총 20 유지
+    Program overflow =
+        programRepository.save(
+            Program.builder()
+                .title("오버플로우")
+                .organization("내일스퀘어")
+                .region("수원시")
+                .content("c")
+                .startDate(LocalDate.now().minusDays(3))
+                .endDate(LocalDate.now().plusDays(10))
+                .build());
+    boolean added = bookmarkService.toggle(user.getEmail(), overflow.getId());
+
+    assertThat(added).isTrue();
+    assertThat(bookmarkRepository.count()).isEqualTo(20);
+    assertThat(bookmarkRepository.existsByUserAndProgram(user, overflow)).isTrue();
+    // 가장 오래된 = 시드 루프의 첫 저장 (샘플 2)
+    Program oldest =
+        programRepository.findAll().stream()
+            .filter(p -> "샘플 2".equals(p.getTitle()))
+            .findFirst()
+            .orElseThrow();
+    assertThat(bookmarkRepository.existsByUserAndProgram(user, oldest)).isFalse();
+  }
+
+  @Test
+  @DisplayName("정책 강제 — 20개 미만이면 상한 로직 미발동")
+  void toggle_underLimit_noEviction() {
+    bookmarkService.toggle(user.getEmail(), program.getId());
+    assertThat(bookmarkRepository.count()).isEqualTo(1);
+    // 삭제 없이 그대로 유지되는지만 검증
+    assertThat(bookmarkRepository.existsByUserAndProgram(user, program)).isTrue();
+  }
 }
