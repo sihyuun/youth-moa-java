@@ -3,6 +3,10 @@ package io.github.sihyuuun.youthmoa.user;
 import io.github.sihyuuun.youthmoa.application.ApplicationRepository;
 import io.github.sihyuuun.youthmoa.bookmark.BookmarkRepository;
 import io.github.sihyuuun.youthmoa.notification.NotificationRepository;
+import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -22,6 +26,8 @@ public class UserService implements UserDetailsService {
   private final ApplicationRepository applicationRepository;
   private final BookmarkRepository bookmarkRepository;
   private final NotificationRepository notificationRepository;
+  private final TermRepository termRepository;
+  private final UserAgreementRepository userAgreementRepository;
 
   @Override
   public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
@@ -101,6 +107,8 @@ public class UserService implements UserDetailsService {
     notificationRepository.deleteAll(
         notificationRepository.findAllByUserOrderByCreatedAtDesc(
             user, org.springframework.data.domain.Pageable.unpaged()));
+    // F-signup-terms-agreement: user_agreements FK 회피
+    userAgreementRepository.deleteAllByUser(user);
     userRepository.delete(user);
   }
 
@@ -120,12 +128,24 @@ public class UserService implements UserDetailsService {
   /**
    * F-signup-01: phoneVerified 는 UserController 가 세션을 재확인한 뒤에만 true 로 넘긴다. hidden field 값은 절대 신뢰하지
    * 않는다.
+   *
+   * <p>F-signup-terms-agreement: 활성 약관 목록을 조회해 (1) 필수 약관 전건 동의 검증 (누락 시 TermsAgreementException)
+   * (2) 활성 약관 전건에 대해 UserAgreement 이력 INSERT. 컨트롤러에서 사전 검증했더라도 방어적으로 재검증한다.
    */
   @Transactional
   public void signUp(SignUpRequest request, boolean phoneVerified) {
     if (userRepository.existsByEmail(request.getEmail())) {
       throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
     }
+
+    List<Term> activeTerms = termRepository.findByIsActiveTrueOrderBySortOrderAsc();
+    Map<String, Boolean> agreements =
+        request.getAgreements() != null ? request.getAgreements() : Collections.emptyMap();
+    List<String> missing = findMissingRequiredTermCodes(activeTerms, agreements);
+    if (!missing.isEmpty()) {
+      throw new TermsAgreementException(missing);
+    }
+
     User user =
         User.builder()
             .email(request.getEmail())
@@ -141,5 +161,38 @@ public class UserService implements UserDetailsService {
             .phoneVerified(phoneVerified)
             .build();
     userRepository.save(user);
+
+    LocalDateTime now = LocalDateTime.now();
+    for (Term term : activeTerms) {
+      boolean agreed = Boolean.TRUE.equals(agreements.get(term.getCode()));
+      userAgreementRepository.save(
+          UserAgreement.builder()
+              .user(user)
+              .term(term)
+              .agreedVersion(term.getVersion())
+              .agreed(agreed)
+              .agreedAt(now)
+              .build());
+    }
+  }
+
+  /**
+   * F-signup-terms-agreement: 컨트롤러 사전 검증용 — 활성 약관 중 필수인데 동의 누락된 code 목록을 반환.
+   *
+   * <p>bindingResult 다른 위반과 함께 한 번에 노출하기 위해 서비스가 아닌 컨트롤러가 먼저 호출한다.
+   */
+  public List<String> findMissingRequiredTermCodes(Map<String, Boolean> agreements) {
+    return findMissingRequiredTermCodes(
+        termRepository.findByIsActiveTrueOrderBySortOrderAsc(),
+        agreements != null ? agreements : Collections.emptyMap());
+  }
+
+  private List<String> findMissingRequiredTermCodes(
+      List<Term> activeTerms, Map<String, Boolean> agreements) {
+    return activeTerms.stream()
+        .filter(Term::isRequired)
+        .filter(t -> !Boolean.TRUE.equals(agreements.get(t.getCode())))
+        .map(Term::getCode)
+        .toList();
   }
 }

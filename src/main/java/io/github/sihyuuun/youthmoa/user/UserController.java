@@ -27,6 +27,7 @@ public class UserController {
 
   private final UserService userService;
   private final UserRepository userRepository;
+  private final TermRepository termRepository;
   private final SecurityContextRepository securityContextRepository;
 
   @Value("${youthmoa.coolsms.session-valid-minutes:30}")
@@ -68,6 +69,8 @@ public class UserController {
   @GetMapping("/signup")
   public String signUpPage(Model model) {
     model.addAttribute("signUpRequest", new SignUpRequest());
+    // F-signup-terms-agreement: 활성 약관 목록을 폼에 동적 렌더
+    model.addAttribute("activeTerms", termRepository.findByIsActiveTrueOrderBySortOrderAsc());
     return "user/signup";
   }
 
@@ -79,6 +82,11 @@ public class UserController {
       HttpServletResponse response,
       HttpSession session,
       Model model) {
+    // F-signup-terms-agreement (2026-07-30 UX 결정): 약관 미동의 헬프는 GroupSequence 우회하여 항상 노출한다.
+    // 다른 필수 필드 미입력 상태에서 약관 체크박스가 무반응인 것이 어색하다는 사용자 지적 반영.
+    if (!userService.findMissingRequiredTermCodes(signUpRequest.getAgreements()).isEmpty()) {
+      bindingResult.rejectValue("agreements", "terms.required", "이용약관과 개인정보처리방침에 모두 동의해주세요.");
+    }
     if (bindingResult.hasErrors()) {
       // password 의 @Size + @Pattern 위반을 한 문장으로 통합 → model 의 passwordPolicyMsg.
       String unified =
@@ -86,6 +94,7 @@ public class UserController {
       if (unified != null) {
         model.addAttribute("passwordPolicyMsg", unified);
       }
+      model.addAttribute("activeTerms", termRepository.findByIsActiveTrueOrderBySortOrderAsc());
       return "user/signup";
     }
     // F-signup-01: 세션 재확인. hidden field 는 신뢰하지 않는다.
@@ -94,12 +103,19 @@ public class UserController {
     // - 세션 번호 vs 폼 phone 불일치 → 재인증 필요
     if (!isPhoneVerifiedInSession(session, signUpRequest.getPhone())) {
       model.addAttribute("errorMsg", "휴대폰 인증을 완료해주세요.");
+      model.addAttribute("activeTerms", termRepository.findByIsActiveTrueOrderBySortOrderAsc());
       return "user/signup";
     }
     try {
       userService.signUp(signUpRequest, true);
+    } catch (TermsAgreementException e) {
+      // 컨트롤러 사전 검증에서 잡히지 않은 경우 방어. rejectValue → 폼 재렌더.
+      bindingResult.rejectValue("agreements", "terms.required", "이용약관과 개인정보처리방침에 모두 동의해주세요.");
+      model.addAttribute("activeTerms", termRepository.findByIsActiveTrueOrderBySortOrderAsc());
+      return "user/signup";
     } catch (IllegalArgumentException e) {
       model.addAttribute("errorMsg", e.getMessage());
+      model.addAttribute("activeTerms", termRepository.findByIsActiveTrueOrderBySortOrderAsc());
       return "user/signup";
     }
     // 회원가입 성공 → 인증 세션 정보 소거 (다음 회원가입에서 재사용 방지)

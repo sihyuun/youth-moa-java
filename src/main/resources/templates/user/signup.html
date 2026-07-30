@@ -253,27 +253,29 @@
                     <span class="signup-agree-all-text">전체 동의</span>
                 </label>
 
-                <!-- 각 약관 -->
-                <div class="signup-agree-row">
+                <!-- F-signup-terms-agreement: activeTerms 목록 동적 렌더. data-term-code 안정 셀렉터로 E2E 대응. -->
+                <div class="signup-agree-row" th:each="term : ${activeTerms}" th:attr="data-term-code=${term.code}">
                     <label class="signup-agree-item">
-                        <input type="checkbox" th:field="*{termsAgreed}">
+                        <input type="checkbox"
+                               class="signup-term-checkbox"
+                               th:name="'agreements[' + ${term.code} + ']'"
+                               th:value="true"
+                               th:checked="${signUpRequest.agreements != null and signUpRequest.agreements.get(term.code) == true}"
+                               th:attr="data-term-code=${term.code}">
                         <span class="signup-checkbox-line"></span>
-                        <span class="signup-agree-label">회원가입약관 <span class="required-inline">(필수)</span></span>
+                        <span class="signup-agree-label">
+                            <span th:text="${term.title}">회원가입약관</span>
+                            <span th:if="${term.required}" class="required-inline"> (필수)</span>
+                            <span th:unless="${term.required}" class="optional-inline"> (선택)</span>
+                        </span>
                     </label>
-                    <a th:href="@{/terms}" target="_blank" rel="noopener" class="signup-agree-view">약관보기 ›</a>
+                    <a th:href="${term.contentPath}" target="_blank" rel="noopener"
+                       th:attr="data-modal-title=${term.title}"
+                       class="signup-agree-view">약관보기 ›</a>
                 </div>
 
-                <div class="signup-agree-row">
-                    <label class="signup-agree-item">
-                        <input type="checkbox" th:field="*{privacyAgreed}">
-                        <span class="signup-checkbox-line"></span>
-                        <span class="signup-agree-label">개인정보처리방침 안내 <span class="required-inline">(필수)</span></span>
-                    </label>
-                    <a th:href="@{/privacy}" target="_blank" rel="noopener" class="signup-agree-view">약관보기 ›</a>
-                </div>
-
-                <!-- isAllTermsAccepted() @AssertTrue 결과 — Spring 이 "allTermsAccepted" 가상 필드 에러로 등록 -->
-                <p class="signup-field-error" th:if="${#fields.hasErrors('allTermsAccepted')}" th:errors="*{allTermsAccepted}"></p>
+                <!-- 필수 약관 미동의 에러 (컨트롤러가 rejectValue 로 등록) -->
+                <p class="signup-field-error" th:if="${#fields.hasErrors('agreements')}" th:errors="*{agreements}"></p>
             </section>
 
             <!-- ════ 액션 (prototype L1975~1978: fullWidth 회원가입 + 로그인 링크) ════ -->
@@ -289,6 +291,23 @@
 </main>
 
 <div th:replace="~{fragments/footer :: footer}"></div>
+
+<!-- F-signup-terms-agreement (2026-07-30): 약관보기 모달. JS 로 /terms · /privacy 페이지를 fetch 하여 .policy-page 만 injection. -->
+<div id="terms-modal" class="terms-modal" hidden role="dialog" aria-modal="true" aria-labelledby="terms-modal-title" aria-hidden="true">
+    <div class="terms-modal-backdrop" data-terms-modal-close></div>
+    <div class="terms-modal-panel">
+        <div class="terms-modal-head">
+            <h2 id="terms-modal-title" class="terms-modal-title">약관 보기</h2>
+            <button type="button" class="terms-modal-close" data-terms-modal-close aria-label="닫기">×</button>
+        </div>
+        <div class="terms-modal-body" id="terms-modal-body">
+            <p class="terms-modal-loading">불러오는 중...</p>
+        </div>
+        <div class="terms-modal-foot">
+            <button type="button" id="terms-modal-agree" class="btn-primary">동의</button>
+        </div>
+    </div>
+</div>
 
 <script>
     // 비밀번호 가시성 토글 (눈 아이콘 클릭 시 password ↔ text)
@@ -372,20 +391,91 @@
         pw2.addEventListener('input', check);
     })();
 
-    // 전체 동의 토글 — th:field 가 checkbox id 를 자동 변경(termsAgreed→termsAgreed1)하므로 name 기준
+    // 전체 동의 토글 — F-signup-terms-agreement: 약관 목록이 동적이므로 공통 셀렉터(.signup-term-checkbox) 로 순회.
+    // name 은 agreements[SERVICE] 등 code 별로 다르므로 셀렉터로 대체.
     (function () {
         const all = document.getElementById('agreeAll');
-        const t = document.querySelector('input[type="checkbox"][name="termsAgreed"]');
-        const p = document.querySelector('input[type="checkbox"][name="privacyAgreed"]');
-        if (!all || !t || !p) return;
-        function syncAll() { all.checked = t.checked && p.checked; }
+        const boxes = document.querySelectorAll('.signup-term-checkbox');
+        if (!all || boxes.length === 0) return;
+        function syncAll() {
+            all.checked = Array.from(boxes).every(b => b.checked);
+        }
         all.addEventListener('change', () => {
-            t.checked = all.checked;
-            p.checked = all.checked;
+            boxes.forEach(b => { b.checked = all.checked; });
         });
-        t.addEventListener('change', syncAll);
-        p.addEventListener('change', syncAll);
+        boxes.forEach(b => b.addEventListener('change', syncAll));
         syncAll();
+    })();
+
+    // F-signup-terms-agreement (2026-07-30): 약관보기 모달. 새 탭 이동 대신 오버레이 팝업으로 회원가입 흐름 유지.
+    // JS 비활성화 시엔 <a> 기본 동작(새 탭)이 fallback 으로 남는다.
+    (function () {
+        const modal = document.getElementById('terms-modal');
+        const modalBody = document.getElementById('terms-modal-body');
+        const modalTitle = document.getElementById('terms-modal-title');
+        const agreeBtn = document.getElementById('terms-modal-agree');
+        if (!modal || !modalBody || !modalTitle || !agreeBtn) return;
+
+        function openModal() {
+            modal.hidden = false;
+            modal.setAttribute('aria-hidden', 'false');
+            document.body.style.overflow = 'hidden';
+        }
+        function closeModal() {
+            modal.hidden = true;
+            modal.setAttribute('aria-hidden', 'true');
+            document.body.style.overflow = '';
+            modalBody.innerHTML = '<p class="terms-modal-loading">불러오는 중...</p>';
+            delete modal.dataset.currentTermCode;
+        }
+        modal.querySelectorAll('[data-terms-modal-close]').forEach(el =>
+            el.addEventListener('click', closeModal));
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && !modal.hidden) closeModal();
+        });
+
+        // 동의 버튼 → 해당 term 체크박스 check + change 이벤트 발화 (전체 동의 sync 자동 처리)
+        agreeBtn.addEventListener('click', () => {
+            const code = modal.dataset.currentTermCode;
+            if (code) {
+                const cb = document.querySelector('.signup-term-checkbox[data-term-code="' + code + '"]');
+                if (cb && !cb.checked) {
+                    cb.checked = true;
+                    cb.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+            }
+            closeModal();
+        });
+
+        document.querySelectorAll('.signup-agree-view').forEach(link => {
+            link.addEventListener('click', async (e) => {
+                e.preventDefault();
+                const url = link.getAttribute('href');
+                // .signup-agree-row 의 data-term-code 상속 (개별 checkbox 와 동일 code)
+                const row = link.closest('[data-term-code]');
+                modal.dataset.currentTermCode = row ? row.getAttribute('data-term-code') : '';
+                modalTitle.textContent = link.getAttribute('data-modal-title') || '약관 보기';
+                modalBody.innerHTML = '<p class="terms-modal-loading">불러오는 중...</p>';
+                openModal();
+                try {
+                    const res = await fetch(url, { credentials: 'same-origin' });
+                    if (!res.ok) throw new Error(res.status);
+                    const html = await res.text();
+                    const doc = new DOMParser().parseFromString(html, 'text/html');
+                    const content = doc.querySelector('.policy-page');
+                    if (content) {
+                        // 원본 페이지의 하단 "회원가입으로 돌아가기" 버튼은 모달 컨텍스트에서 부적절 → 제거
+                        const foot = content.querySelector('.policy-page-foot');
+                        if (foot) foot.remove();
+                        modalBody.innerHTML = content.outerHTML;
+                    } else {
+                        modalBody.innerHTML = '<p class="terms-modal-error">내용을 불러올 수 없습니다.</p>';
+                    }
+                } catch {
+                    modalBody.innerHTML = '<p class="terms-modal-error">내용을 불러올 수 없습니다.</p>';
+                }
+            });
+        });
     })();
 
     // 아이디 중복확인 — 서버 API 호출 + emailChecked hidden 갱신

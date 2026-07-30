@@ -20,6 +20,8 @@ import io.github.sihyuuun.youthmoa.program.ProgramEligibility;
 import io.github.sihyuuun.youthmoa.program.ProgramRepository;
 import io.github.sihyuuun.youthmoa.region.Region;
 import io.github.sihyuuun.youthmoa.region.RegionRepository;
+import io.github.sihyuuun.youthmoa.user.Term;
+import io.github.sihyuuun.youthmoa.user.TermRepository;
 import io.github.sihyuuun.youthmoa.user.User;
 import io.github.sihyuuun.youthmoa.user.UserRepository;
 import io.github.sihyuuun.youthmoa.user.UserRole;
@@ -70,6 +72,7 @@ public class DataInitializer implements ApplicationRunner {
   private final CenterCsvLoader centerCsvLoader;
   private final CenterContentCsvLoader centerContentCsvLoader;
   private final CenterContentRepository centerContentRepository;
+  private final TermRepository termRepository;
 
   @Override
   @Transactional
@@ -81,6 +84,39 @@ public class DataInitializer implements ApplicationRunner {
     seedApplications();
     seedNotifications();
     seedAdmins();
+    seedTerms();
+  }
+
+  /**
+   * F-signup-terms-agreement: 약관 정의 시드. 재기동 시 멱등 (count 체크). Spec §3-E 표를 그대로 반영 — PRIVACY 는
+   * version=2 상태로 시작 (개정 이력 반영).
+   */
+  private void seedTerms() {
+    if (termRepository.count() > 0) {
+      log.info("Terms already seeded (count={}), skip", termRepository.count());
+      return;
+    }
+    termRepository.save(
+        Term.builder()
+            .code("SERVICE")
+            .title("회원가입약관")
+            .contentPath("/terms")
+            .required(true)
+            .version(1)
+            .sortOrder(1)
+            .isActive(true)
+            .build());
+    termRepository.save(
+        Term.builder()
+            .code("PRIVACY")
+            .title("개인정보처리방침 안내")
+            .contentPath("/privacy")
+            .required(true)
+            .version(2)
+            .sortOrder(2)
+            .isActive(true)
+            .build());
+    log.info("Seeded 2 terms (SERVICE, PRIVACY)");
   }
 
   /**

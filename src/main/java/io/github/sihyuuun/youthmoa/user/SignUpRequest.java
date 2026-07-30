@@ -10,6 +10,8 @@ import jakarta.validation.constraints.Size;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.HashMap;
+import java.util.Map;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -83,9 +85,10 @@ public class SignUpRequest {
 
   private String addressDetail;
 
-  // ── 약관 동의 (2개 분리, prototype.tsx) ────────────
-  private boolean termsAgreed;
-  private boolean privacyAgreed;
+  // ── 약관 동의 — F-signup-terms-agreement (Q1=a: Map<code, Boolean>) ────────────
+  // 폼 바인딩 예: agreements[SERVICE]=true / agreements[PRIVACY]=true. 미체크 시 key 없음.
+  // 필수 약관 전건 동의 검증은 활성 약관 목록을 아는 서비스 계층에서 수행 (DTO 로는 표현 불가).
+  private Map<String, Boolean> agreements = new HashMap<>();
 
   // 중복확인 통과 여부 — hidden input 으로 전송, 이메일 변경 시 false 로 reset
   private boolean emailChecked;
@@ -100,11 +103,6 @@ public class SignUpRequest {
   @AssertTrue(message = "비밀번호와 비밀번호 확인이 일치하지 않습니다.", groups = FormatCheck.class)
   public boolean isPasswordMatched() {
     return password != null && password.equals(passwordConfirm);
-  }
-
-  @AssertTrue(message = "이용약관과 개인정보처리방침에 모두 동의해주세요.", groups = FormatCheck.class)
-  public boolean isAllTermsAccepted() {
-    return termsAgreed && privacyAgreed;
   }
 
   @AssertTrue(message = "아이디 중복확인을 진행해주세요.", groups = FormatCheck.class)

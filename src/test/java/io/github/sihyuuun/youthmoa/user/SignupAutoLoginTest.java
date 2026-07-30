@@ -30,6 +30,7 @@ class SignupAutoLoginTest {
 
   @Autowired MockMvc mockMvc;
   @Autowired UserRepository userRepository;
+  @Autowired UserAgreementRepository userAgreementRepository;
 
   @Test
   void POST_signup_302_welcome_세션에_SecurityContext_저장() throws Exception {
@@ -61,8 +62,8 @@ class SignupAutoLoginTest {
                     .param("zipcode", "12345")
                     .param("address", "경기도 수원시")
                     .param("addressDetail", "101호")
-                    .param("termsAgreed", "true")
-                    .param("privacyAgreed", "true")
+                    .param("agreements[SERVICE]", "true")
+                    .param("agreements[PRIVACY]", "true")
                     .param("emailChecked", "true"))
             .andExpect(status().is3xxRedirection())
             .andExpect(redirectedUrl("/welcome"))
@@ -87,7 +88,13 @@ class SignupAutoLoginTest {
     MockHttpServletResponse response = result.getResponse();
     org.junit.jupiter.api.Assertions.assertEquals(302, response.getStatus());
 
-    // 뒷정리
-    userRepository.findByEmail(email).ifPresent(userRepository::delete);
+    // 뒷정리 — F-signup-terms-agreement: FK 회피용 이력 청소 선행
+    userRepository
+        .findByEmail(email)
+        .ifPresent(
+            u -> {
+              userAgreementRepository.deleteAll(userAgreementRepository.findByUser(u));
+              userRepository.delete(u);
+            });
   }
 }
