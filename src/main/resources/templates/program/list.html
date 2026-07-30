@@ -58,27 +58,18 @@
                                            th:text="' ' + ${filterRegions.size()}"></span></span>
                             <svg th:replace="~{fragments/icons :: chevD(13, 'currentColor')}"></svg>
                         </button>
+                        <!-- 계약 §10-A (2026-07-28 확정) + P2 popover.noHeader/noApplyFooter — 헤더/푸터 제거, 체크 즉시 반영 -->
                         <div class="filter-popover" data-group="regions" style="display:none">
-                            <div class="filter-popover-header">
-                                <h4>지역 선택</h4>
-                                <button type="button" class="filter-popover-close" aria-label="닫기"
-                                        onclick="closeFilterPopover('regions')">×</button>
-                            </div>
                             <input type="text" class="filter-popover-search" placeholder="지역 검색"
                                    oninput="filterPopoverSearch('regions', this.value)"
                                    th:if="${allRegions != null and allRegions.size() > 8}">
                             <div class="filter-popover-options">
                                 <label th:each="opt : ${allRegions}">
                                     <input type="checkbox" name="regions" th:value="${opt.name}"
-                                           th:checked="${filterRegions != null and filterRegions.contains(opt.name)}">
+                                           th:checked="${filterRegions != null and filterRegions.contains(opt.name)}"
+                                           onchange="applyFiltersFromPopovers()">
                                     <span th:text="${opt.name}">옵션</span>
                                 </label>
-                            </div>
-                            <div class="filter-popover-footer">
-                                <button type="button" class="btn-secondary"
-                                        onclick="closeFilterPopover('regions')">취소</button>
-                                <button type="button" class="btn-primary"
-                                        onclick="applyFilterPopover('regions')">적용</button>
                             </div>
                         </div>
                     </div>
@@ -93,27 +84,18 @@
                                                th:text="' ' + ${filterCenters.size()}"></span></span>
                             <svg th:replace="~{fragments/icons :: chevD(13, 'currentColor')}"></svg>
                         </button>
+                        <!-- 계약 §10-A + P2 popover.noHeader/noApplyFooter — 헤더/푸터 제거, 체크 즉시 반영 -->
                         <div class="filter-popover" data-group="centers" style="display:none">
-                            <div class="filter-popover-header">
-                                <h4>청년센터 선택</h4>
-                                <button type="button" class="filter-popover-close" aria-label="닫기"
-                                        onclick="closeFilterPopover('centers')">×</button>
-                            </div>
                             <input type="text" class="filter-popover-search" placeholder="청년센터 검색"
                                    oninput="filterPopoverSearch('centers', this.value)"
                                    th:if="${allCenters != null and allCenters.size() > 8}">
                             <div class="filter-popover-options">
                                 <label th:each="opt : ${allCenters}">
                                     <input type="checkbox" name="centers" th:value="${opt.name}"
-                                           th:checked="${filterCenters != null and filterCenters.contains(opt.name)}">
+                                           th:checked="${filterCenters != null and filterCenters.contains(opt.name)}"
+                                           onchange="applyFiltersFromPopovers()">
                                     <span th:text="${opt.name}">옵션</span>
                                 </label>
-                            </div>
-                            <div class="filter-popover-footer">
-                                <button type="button" class="btn-secondary"
-                                        onclick="closeFilterPopover('centers')">취소</button>
-                                <button type="button" class="btn-primary"
-                                        onclick="applyFilterPopover('centers')">적용</button>
                             </div>
                         </div>
                     </div>
