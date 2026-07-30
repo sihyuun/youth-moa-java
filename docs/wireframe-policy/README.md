@@ -49,11 +49,11 @@
 
 | # | 항목 | wireframe | 현재 | 상세 |
 |---|---|---|---|---|
-| C1 | 즐겨찾기 상한 | 20개, 초과 시 자동 삭제 | 무제한 (확인 필요) | [mypage.md](mypage.md) #2 |
+| ~~C1~~ | 즐겨찾기 상한 | 20개, 초과 시 자동 삭제 | ✅ 반영 (2026-07-31) — `BookmarkService.MAX_BOOKMARKS_PER_USER=20` + toggle 시 오래된 것 자동 삭제. 정책 강제 테스트 2건 추가 | [mypage.md](mypage.md) #2 |
 | C2 | 즐겨찾기 정렬 | 즐겨찾기한 최신순 | 정렬 축 미확인 | [mypage.md](mypage.md) #12 |
-| C3 | 신청 상태 enum | 대기/승인/반려/취소 | ApplicationStatus 매핑 필요 | [mypage.md](mypage.md) #3 |
-| C4 | 취소 사유 필드 | Radio 필수 | 미확인 | [mypage.md](mypage.md) #4 |
-| C5 | 기간 필터 | 3M/6M/1Y/3Y | 미구현 가능성 | [mypage.md](mypage.md) #5 |
+| ~~C3~~ | 신청 상태 enum | 대기/승인/반려/취소 | ✅ 이미 정합 — ApplicationStatus enum (PENDING/APPROVED/REJECTED/CANCELLED) + `history.html` badge 매핑 완료 | [mypage.md](mypage.md) #3 |
+| ~~C4~~ | 취소 사유 필드 | Radio 필수 | ✅ 이미 정합 — `Application.cancelReason` + `CancelReason` enum + `history.html` Radio required + OTHER 텍스트 | [mypage.md](mypage.md) #4 |
+| ~~C5~~ | 기간 필터 | 3M/6M/1Y/3Y | ✅ 이미 정합 — `MyPageController.periodCutoff` + `history.html` 탭 UI | [mypage.md](mypage.md) #5 |
 
 ### D. 공지사항
 
