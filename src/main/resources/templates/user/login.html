@@ -45,6 +45,15 @@
         <div th:if="${logoutMsg}" class="alert alert-success" th:text="${logoutMsg}"></div>
         <div th:if="${errorMsg}" class="alert alert-error" th:text="${errorMsg}"></div>
 
+        <!-- F-wireframe #7 (WF-3-003-02): 회원 탈퇴 완료 토스트. wireframe 문구 "탈퇴처리되었습니다." 준수. -->
+        <script th:if="${param.withdraw}">
+            document.addEventListener('DOMContentLoaded', function () {
+                if (window.Toast) {
+                    window.Toast.show('탈퇴처리되었습니다.', 'success', 2800);
+                }
+            });
+        </script>
+
         <!-- 로그인 폼 -->
         <form th:action="@{/login}" method="post" class="auth-form-prototype">
             <!-- 실패 시 username 보존 (SecurityConfig 의 failureHandler 에서 flash 로 주입) -->

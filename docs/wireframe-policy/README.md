@@ -42,8 +42,8 @@
 | B4 | 이용약관 | 1개 Checkbox | prototype 4개 세분화 | [signup.md](signup.md) #6 |
 | B5 | 관심 지역·카테고리 | 미언급 | 회원가입·마이페이지에서 편집 | [signup.md](signup.md) #7, [mypage.md](mypage.md) #10 |
 | B6 | 생년월일 입력 | 텍스트 (숫자·특수문자) | date picker | [signup.md](signup.md) #5, [mypage.md](mypage.md) #9 |
-| B7 | 개인정보 수정 재인증 | 비밀번호 재확인 필수 | 미구현 가능성 | [mypage.md](mypage.md) #6 |
-| B8 | 회원 탈퇴 | 탈퇴하기 → 확인 → 처리 | 미확인 | [mypage.md](mypage.md) #8 |
+| ~~B7~~ | 개인정보 수정 재인증 | 비밀번호 재확인 필수 | ✅ 이미 정합 — `/mypage/profile/verify` + 세션 flag + 10분 TTL | [mypage.md](mypage.md) #6 |
+| ~~B8~~ | 회원 탈퇴 | 탈퇴하기 → 확인 → 처리 | ✅ 반영 (2026-07-31) — 로직·모달·redirect 이미 완비. 로그인 페이지 완료 알림을 alert → 토스트로 변경 ("탈퇴처리되었습니다.") | [mypage.md](mypage.md) #8 |
 
 ### C. 마이페이지 신청 · 즐겨찾기
 
