@@ -65,3 +65,6 @@ core.*
 
 ### Screenshot artifacts (Playwright dynamic verification) ###
 /*.png
+
+# audit script output
+tools/audit-out/
