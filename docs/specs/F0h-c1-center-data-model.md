@@ -1,9 +1,8 @@
 # 작업 명세: F0h-c1 — 청년센터 데이터 모델 확장 (description / operatingHours / imageUrl)
 
-- **상태**: `spec_confirmed`
-- **브랜치 후보**: `feature/F0h-c1-center-data-model`
-- **선행**: 없음. F0h-c2/c3/c4 의 선행 티켓
-- **작업 단위**: 1 PR (엔티티 3필드 + 시드 갱신 + 매핑 테스트)
+- **상태**: **`impl_done` — PR #83 (`8110498` 260710_F0h_center_desc_image)**
+- 후속 CSV 시드는 PR #78 (`b7cddf8`) 에서 완성
+- Center.operatingHours 유지 + description/imageUrl 은 CenterContent 엔티티로 분리 (파생 시드 근절 원칙)
 
 ---
 

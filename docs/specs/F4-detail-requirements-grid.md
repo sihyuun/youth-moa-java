@@ -1,6 +1,7 @@
 # 작업 명세: F4-detail-requirements-grid — 프로그램 상세 자격요건 grid 데이터 연동 (entity 확장)
 
-> 산출: ym-spec, 2026-07-07. 상태: **spec_confirmed (2026-07-07 사용자 결정 완료 — ym-impl 인계 가능)**
+> 산출: ym-spec, 2026-07-07. 상태: **`impl_done` — PR #73 (`194605f` 260707_F4_requirements_data)**
+> 구현 위치: `program/ProgramEligibility.java` (@Embeddable), `program/Program.java` (@Embedded eligibility), `templates/program/detail.html` 바인딩 완료 (Q3-B 기본 문구 포함)
 
 ## ✅ 결정 확정 (2026-07-07, 전부 권장안 채택)
 

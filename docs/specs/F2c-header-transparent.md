@@ -1,6 +1,7 @@
 # 작업 명세: F2c-header-transparent — 공통 헤더 transparent 모드
 
-> 산출: ym-spec, 2026-07-07. 상태: **spec_confirmed (2026-07-07 사용자 결정 완료 — ym-impl 인계 가능)**
+> 산출: ym-spec, 2026-07-07. 상태: **`impl_done` — PR #72 (`68df6b6` 260707_F2c_header_transparent)**
+> 구현 위치: `main.css` `.site-header--transparent` + `body.is-scrolled` 전환. 홈 스크롤 60px 백색 전환 완료
 
 ## ✅ 결정 확정 (2026-07-07, 전부 권장안 채택)
 
