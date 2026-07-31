@@ -1,5 +1,6 @@
 package io.github.sihyuuun.youthmoa.notice;
 
+import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
@@ -19,9 +20,11 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 /**
- * 공지사항 첨부파일 (F0g).
+ * 공지사항 첨부파일 (F0g + F-notice-attachment).
  *
- * <p>학습 단계에서는 실제 파일 저장 인프라 없이 메타데이터만 관리하고 다운로드는 JS alert stub 처리. storedName 은 향후 실 파일 경로로 승격 예정.
+ * <p>F-notice-attachment (2026-07-31): 실 바이트 저장을 위한 {@code data} 컬럼 추가 — @Lob byte[]. 학습 단계 인프라 결정
+ * 유예 (Supabase Storage 로 이관 시 storedName + storageUrl 로 승격 예정). 상한 5MB / 허용 확장자 pdf·hwp·docx·xlsx
+ * 정책은 {@code NoticeService} 상수로 관리.
  */
 @Getter
 @Entity
@@ -53,6 +56,17 @@ public class NoticeAttachment {
   @Column(nullable = false)
   private int sortOrder;
 
+  /**
+   * 실 파일 바이트. LAZY fetch 로 목록 조회 시 로드하지 않음 (다운로드 시에만 explicit fetch). Supabase Storage 이관 시엔
+   * nullable 로 두고 storageUrl 로 대체 예정.
+   *
+   * <p>{@code columnDefinition="bytea"} — PostgreSQL 과 H2(MODE=PostgreSQL) 모두 안전. Hibernate @Lob 기본
+   * 매핑(BLOB) 은 H2 에서 인식되지 않아 명시적 bytea 사용.
+   */
+  @Basic(fetch = FetchType.LAZY)
+  @Column(name = "data", columnDefinition = "bytea")
+  private byte[] data;
+
   @CreatedDate
   @Column(nullable = false, updatable = false)
   private LocalDateTime createdAt;
@@ -64,13 +78,15 @@ public class NoticeAttachment {
       String storedName,
       long fileSize,
       String contentType,
-      Integer sortOrder) {
+      Integer sortOrder,
+      byte[] data) {
     this.notice = notice;
     this.fileName = fileName;
     this.storedName = storedName;
     this.fileSize = fileSize;
     this.contentType = contentType;
     this.sortOrder = sortOrder != null ? sortOrder : 0;
+    this.data = data;
   }
 
   /** 사람이 읽는 파일 크기 표기 (예: "1.2MB"). */

@@ -43,16 +43,15 @@
             <p>본문</p>
         </div>
 
-        <!-- 첨부파일 (다운로드는 stub) -->
+        <!-- F-notice-attachment: 클릭 시 실 다운로드 (WF-6-002). 링크 컴포넌트로 키보드 접근성 자동 확보. -->
         <div th:if="${!attachments.isEmpty()}" class="notice-attachments">
-            <div th:each="a : ${attachments}" class="notice-attachment"
-                 role="button" tabindex="0"
-                 onclick="alert('첨부파일 다운로드는 준비 중입니다.');"
-                 onkeydown="if(event.key==='Enter'){alert('첨부파일 다운로드는 준비 중입니다.');}">
+            <a th:each="a : ${attachments}" class="notice-attachment"
+               th:href="@{/notices/{noticeId}/attachments/{attachmentId}/download(noticeId=${notice.id},attachmentId=${a.id})}"
+               th:data-attachment-id="${a.id}">
                 <span class="notice-attachment-icon">⬇</span>
                 <span class="notice-attachment-name" th:text="${a.fileName}">파일명.pdf</span>
                 <span class="notice-attachment-size" th:text="${a.humanFileSize}">1.2MB</span>
-            </div>
+            </a>
         </div>
 
         <!-- 이전/다음 (전체 기준, 카테고리 필터 무시) -->

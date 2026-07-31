@@ -60,7 +60,7 @@
 | # | 항목 | wireframe | 현재 | 상세 |
 |---|---|---|---|---|
 | D1 | 구분(카테고리) 값 | `전체` + `{구분값}` (미명시) | NoticeCategory (NOTICE 등) | [notice.md](notice.md) #1 |
-| D2 | 첨부파일 | 상세 하단 다운로드 | 스키마 미존재 | [notice.md](notice.md) #5 |
+| ~~D2~~ | 첨부파일 | 상세 하단 다운로드 | ✅ 반영 (2026-07-31) — `NoticeAttachment.data` (@Lob byte[]) + V4 마이그레이션 + `GET /notices/{id}/attachments/{aid}/download` + sample.pdf 시드 | [notice.md](notice.md) #5 |
 | D3 | 페이지당 개수 | 10개 | 확인 필요 | [notice.md](notice.md) #2 |
 
 ### E. 프로그램 · 신청 폼

@@ -362,16 +362,20 @@ public class DataInitializer implements ApplicationRunner {
         notices.size(),
         notices.stream().filter(Notice::isPinned).count());
 
-    // 첨부파일 시드 — 앞 3건에 각 1~2개씩 (다운로드는 alert stub)
+    // 첨부파일 시드 — 앞 3건에 각 1~2개씩.
+    // F-notice-attachment (2026-07-31): 첫 번째 첨부파일은 실 바이트 (classpath resource sample.pdf) 를 주입해
+    // 사용자 관점 다운로드가 진짜 파일을 반환하도록 한다. 나머지 3건은 메타만 (legacy, 다운로드 시 404).
+    byte[] samplePdf = loadSampleAttachmentBytes();
     List<NoticeAttachment> attachments = new ArrayList<>();
     attachments.add(
         NoticeAttachment.builder()
             .notice(notices.get(0))
             .fileName("청년의날_축제_안내문.pdf")
             .storedName("dummy-1.pdf")
-            .fileSize(1_258_291L)
+            .fileSize(samplePdf != null ? samplePdf.length : 1_258_291L)
             .contentType("application/pdf")
             .sortOrder(0)
+            .data(samplePdf)
             .build());
     attachments.add(
         NoticeAttachment.builder()
@@ -401,7 +405,22 @@ public class DataInitializer implements ApplicationRunner {
             .sortOrder(0)
             .build());
     noticeAttachmentRepository.saveAll(attachments);
-    log.info("Seeded {} notice attachments", attachments.size());
+    log.info("Seeded {} notice attachments (1 with real PDF bytes)", attachments.size());
+  }
+
+  /** F-notice-attachment: classpath 의 sample.pdf 를 byte[] 로 로드. 리소스가 없으면 null 반환 (테스트 격리 환경 대응). */
+  private byte[] loadSampleAttachmentBytes() {
+    try {
+      org.springframework.core.io.Resource resource =
+          new org.springframework.core.io.ClassPathResource("data/notice-attachments/sample.pdf");
+      if (!resource.exists()) return null;
+      try (java.io.InputStream in = resource.getInputStream()) {
+        return in.readAllBytes();
+      }
+    } catch (java.io.IOException e) {
+      log.warn("Failed to load sample.pdf for notice attachment seed: {}", e.getMessage());
+      return null;
+    }
   }
 
   private void seedRegionsAndCenters() {
