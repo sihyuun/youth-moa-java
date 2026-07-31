@@ -207,7 +207,19 @@ public class MyPageController {
       model.addAttribute("editUser", currentUser);
       return "mypage/profile-edit";
     }
-    userService.updateProfile(principal.getUsername(), request);
+    // 2026-07-31: 비밀번호 인라인 변경 정책 검증 실패 시 IllegalArgumentException 이 발생.
+    // password 필드에 rejectValue 로 매핑하여 폼 재렌더.
+    try {
+      userService.updateProfile(principal.getUsername(), request);
+    } catch (IllegalArgumentException e) {
+      bindingResult.rejectValue("password", "password.invalid", e.getMessage());
+      User currentUser = loadUser(principal);
+      addSummary(currentUser, model);
+      model.addAttribute("currentTab", "profile");
+      model.addAttribute("currentPage", "mypage");
+      model.addAttribute("editUser", currentUser);
+      return "mypage/profile-edit";
+    }
     // 갱신 후 세션 flag 는 유지 (사용자 편의)
     redirectAttributes.addFlashAttribute("mypageToast", "저장했어요");
     return "redirect:/mypage?tab=profile";

@@ -30,10 +30,44 @@
                 <label class="mypage-edit-label" for="editName">이름</label>
                 <input id="editName" type="text" th:field="*{name}" class="form-input" required>
 
-                <label class="mypage-edit-label mypage-edit-label--top">비밀번호 변경</label>
-                <div class="mypage-edit-pw-note">
-                    <a th:href="@{/find-password}" class="btn-outline btn-outline--sm">비밀번호 변경하기</a>
-                    <span class="mypage-edit-pw-hint">비밀번호는 별도 페이지에서 변경할 수 있어요.</span>
+                <!-- 2026-07-31 (fix/password-change-inline): wireframe WF-3-003-02 정합.
+                     새 비밀번호 optional. 빈 값이면 변경 안 함. -->
+                <label class="mypage-edit-label" for="editNewPassword">새 비밀번호</label>
+                <div class="mypage-edit-pw-field">
+                    <div class="auth-input-with-eye">
+                        <input id="editNewPassword" type="password" th:field="*{password}"
+                               class="form-input form-input--with-eye"
+                               placeholder="변경 시에만 입력 (영문+숫자 포함 8자 이상)"
+                               autocomplete="new-password">
+                        <button type="button" class="auth-eye-btn" data-target="editNewPassword"
+                                aria-label="비밀번호 표시 전환">
+                            <svg class="auth-eye-icon" viewBox="0 0 24 24" width="18" height="18"
+                                 fill="none" stroke="currentColor" stroke-width="1.5"
+                                 stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/>
+                                <circle cx="12" cy="12" r="3"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <label class="mypage-edit-label" for="editNewPasswordConfirm">새 비밀번호 확인</label>
+                <div class="mypage-edit-pw-field">
+                    <div class="auth-input-with-eye">
+                        <input id="editNewPasswordConfirm" type="password" th:field="*{passwordConfirm}"
+                               class="form-input form-input--with-eye"
+                               placeholder="새 비밀번호 확인"
+                               autocomplete="new-password">
+                        <button type="button" class="auth-eye-btn" data-target="editNewPasswordConfirm"
+                                aria-label="비밀번호 표시 전환">
+                            <svg class="auth-eye-icon" viewBox="0 0 24 24" width="18" height="18"
+                                 fill="none" stroke="currentColor" stroke-width="1.5"
+                                 stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/>
+                                <circle cx="12" cy="12" r="3"/>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
 
                 <label class="mypage-edit-label" for="editPhone">핸드폰 번호</label>
@@ -66,6 +100,8 @@
             <div th:if="${#fields.hasErrors('${profileUpdateRequest.*}')}" class="mypage-edit-errors">
                 <p class="auth-field-error" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></p>
                 <p class="auth-field-error" th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}"></p>
+                <!-- 2026-07-31: 비밀번호 정책·불일치 에러 -->
+                <p class="auth-field-error" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></p>
             </div>
 
             <div class="mypage-edit-divider"></div>
@@ -128,6 +164,17 @@
             if (window.Toast && window.Toast.show) window.Toast.show('주소 검색 창이 열립니다.', 'info');
         });
     }
+    // F-wireframe #9 / fix/password-change-inline: 비밀번호 눈 아이콘 토글
+    document.querySelectorAll('.auth-eye-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            var id = btn.getAttribute('data-target');
+            var input = document.getElementById(id);
+            if (!input) return;
+            var isText = input.type === 'text';
+            input.type = isText ? 'password' : 'text';
+            btn.classList.toggle('is-visible', !isText);
+        });
+    });
 })();
 </script>
 
