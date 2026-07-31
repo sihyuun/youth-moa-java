@@ -39,13 +39,34 @@ public class UserService implements UserDetailsService {
     return new UserPrincipal(user);
   }
 
-  /** D5: 마이페이지 프로필 수정. 세션 재확인 통과 후 호출. */
+  /**
+   * D5: 마이페이지 프로필 수정. 세션 재확인 통과 후 호출.
+   *
+   * <p>2026-07-31 (fix/password-change-inline): 새 비밀번호가 제공된 경우 회원가입 정책과 동일한 검증 (8자 이상, 영문+숫자 포함,
+   * confirm 일치) 을 수행한 뒤 encode + save. 빈 값이면 변경 스킵. wireframe WF-3-003-02 정합.
+   */
   @Transactional
   public void updateProfile(String email, ProfileUpdateRequest request) {
     User user =
         userRepository
             .findByEmail(email)
             .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다: " + email));
+
+    // 비밀번호 변경 요청이 있으면 정책 검증 후 encode. 빈 값이면 스킵.
+    if (request.getPassword() != null && !request.getPassword().isBlank()) {
+      String pw = request.getPassword();
+      if (pw.length() < 8) {
+        throw new IllegalArgumentException("비밀번호는 8자 이상이어야 합니다.");
+      }
+      if (!pw.matches("^(?=.*[A-Za-z])(?=.*\\d).+$")) {
+        throw new IllegalArgumentException("비밀번호는 영문과 숫자를 모두 포함해야 합니다.");
+      }
+      if (!pw.equals(request.getPasswordConfirm())) {
+        throw new IllegalArgumentException("입력한 비밀번호와 일치하지 않습니다.");
+      }
+      user.changePassword(passwordEncoder.encode(pw));
+    }
+
     user.updateProfile(
         request.getName(),
         request.getPhone(),

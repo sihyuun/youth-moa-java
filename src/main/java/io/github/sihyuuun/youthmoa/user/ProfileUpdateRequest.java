@@ -14,7 +14,11 @@ import org.springframework.format.annotation.DateTimeFormat;
 /**
  * D5 개인정보 수정 요청 (Step2).
  *
- * <p>성별은 편집 불가(회원가입 시 확정). 이메일은 readonly. 비밀번호 변경은 F0i 재사용 (별도 링크).
+ * <p>성별은 편집 불가(회원가입 시 확정). 이메일은 readonly.
+ *
+ * <p>2026-07-31 (fix/password-change-inline): 비밀번호 변경을 별도 페이지 이동에서 인라인 필드로 전환 (wireframe
+ * WF-3-003-02 정합). password/passwordConfirm 은 optional — 빈 값이면 변경 안 함. 검증은 UserService 에서 수행 (양쪽 값
+ * 공존 · 정책 · 일치).
  */
 @Getter
 @Setter
@@ -45,4 +49,10 @@ public class ProfileUpdateRequest {
   private Set<String> interestRegions = new HashSet<>();
 
   private Set<String> interestCategories = new HashSet<>();
+
+  /** 새 비밀번호 (optional). 빈 값이면 비밀번호 변경 스킵. 검증은 서비스에서 수행. */
+  private String password;
+
+  /** 새 비밀번호 확인 (optional). password 가 있을 때만 필수. */
+  private String passwordConfirm;
 }
