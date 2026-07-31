@@ -3,11 +3,10 @@
 > **개정 (2026-07-09)**: client-state 기반 재설계. prototype 충실도 우선. 개정 사유는 §0 참고
 > **개정 (2026-07-09 두번째)**: list↔map 양방향 연동 정합·CustomEvent 채널 도입·인포윈도우 CTA client-state 화·zoom clamp 확정 (ym-verify FAIL 4 · spec 결함 3 반영). 상세는 §2 상태 머신 표 3개 CustomEvent 행, §3 변경 범위 centers-detail.js dispatch 규약, §4.3 카드 클릭 흐름 5단계, §7 시나리오 N#1~N#4 참고
 
-- **상태**: `spec_confirmed`
-- **브랜치 후보**: `feature/F0h-c2-list-3col`
-- **선행**: F0f (Region 엔티티) — 완료. 현재 코드 `region/Region.java` 존재
-- **후속**: `F0h-c3` (인라인 상세 패널 내용 채우기 · 인포윈도우 · 마커 클러스터링), `F0h-c4` (popstate 시 필터 재조회 · HTMX 부분 리렌더)
-- **관련 사고**: 2026-07-07 F0h 사고 — prototype 3-column 을 2-column 으로 잘못 옮김
+- **상태**: **`impl_done` — PR #78 (`b7cddf8` F0h 청년센터 3-column 재설계) + 후속 PR #116 (`90994ff` /centers 재검증)**
+- 구현 위치: `templates/center/list.html` `.centers-list-col` + `.centers-list-scroll` 3-column 구조
+- **후속 파생 작업 (별도 티켓)**: `F0h-c3` (인라인 상세 패널 내용 채우기 · 인포윈도우 · 마커 클러스터링), `F0h-c4` (popstate 시 필터 재조회 · HTMX 부분 리렌더)
+- **관련 사고**: 2026-07-07 F0h 사고 — prototype 3-column 을 2-column 으로 잘못 옮김. 이 spec 으로 해결됨
 
 ---
 

@@ -10,21 +10,27 @@ ym-spec 이 산출하고 사용자가 결정까지 마친 명세 모음. **`spec
 | `spec_confirmed` | 결정 반영 완료 — ym-impl 인계 가능 |
 | `impl_done` | 구현 PR 머지 완료 — 파일 상단에 PR 번호 기록 후 보관 |
 
-## 현재 큐 (2026-07-07)
+## 현재 큐 (2026-07-31 갱신 — 모두 완료)
 
-| 명세 | 브랜치 후보 | 상태 | 비고 |
-|---|---|---|---|
-| [F0h-c1-center-data-model.md](F0h-c1-center-data-model.md) | `feature/F0h-c1-center-data-model` | spec_confirmed | Center 3필드(desc/hours/imageUrl) + 시드. c2/c3/c4 선행 |
-| [F0h-c2-list-3col.md](F0h-c2-list-3col.md) | `feature/F0h-c2-list-3col` | spec_confirmed | 청년센터 목록 3-column 재구성. 8개 상태 매핑·커스텀 지역 드롭다운·정렬 pill·토글 스위치. c1 선행 권장 |
-| [F4-detail-requirements-grid.md](F4-detail-requirements-grid.md) | `feature/F4-requirements-data` | spec_confirmed | 가장 작은 단위 (entity+시드+바인딩 1 PR). 워밍업 추천 |
-| [F2c-header-transparent.md](F2c-header-transparent.md) | `feature/F2c-header-transparent` | spec_confirmed | `main.css` 수정 |
-| [F0c-remainder.md](F0c-remainder.md) | `feature/F0c-apply-wizard` | spec_confirmed | `main.css` 수정 |
+**큐 비어있음.** 아래는 2026-07-07 등록 후 이미 구현된 이력을 감사·정리 (2026-07-31).
 
-### 병렬 실행 시 주의
+| 명세 | 구현 PR | 상태 |
+|---|---|---|
+| [F0h-c1-center-data-model.md](F0h-c1-center-data-model.md) | #83 (`8110498`) | ✅ impl_done |
+| [F0h-c2-list-3col.md](F0h-c2-list-3col.md) | #78 (`b7cddf8`) + #116 후속 | ✅ impl_done |
+| [F4-detail-requirements-grid.md](F4-detail-requirements-grid.md) | #73 (`194605f`) | ✅ impl_done |
+| [F2c-header-transparent.md](F2c-header-transparent.md) | #72 (`68df6b6`) | ✅ impl_done |
+| [F0c-remainder.md](F0c-remainder.md) | #75 (`80f1dd3`) + #85 (E2E) | ✅ impl_done |
 
-- 세 작업은 Java·템플릿 파일이 겹치지 않아 **worktree 격리 병렬 가능**
-- 단 **F2c 와 F0c 는 둘 다 `main.css` 를 수정** → 머지는 순차로 하고, 뒤에 머지하는 브랜치에서 main rebase 후 충돌 해소 1회 필요
-- 세션 시작 시 `git branch --show-current` 확인 (다중 세션 규칙) — SessionStart hook 이 worktree 를 자동 안내함
+### 2026-07-31 갱신 이력
+
+이 상태 정리는 spec 파일이 `spec_confirmed` 로 남아있으나 실제 코드는 이미 구현된 상태였음을 감사해서 정리한 결과. 이후 신설된 spec:
+
+| 명세 | PR | 상태 |
+|---|---|---|
+| [F-signup-terms-agreement](F-signup-terms-agreement.md) | #125 | ✅ impl_done |
+| [F-notice-attachment](F-notice-attachment.md) | #130 | ✅ impl_done |
+| [F-home-30-pagination](F-home-30-pagination.md) | #129 | ⛔ spec_declined (wireframe 이탈 결정) |
 
 ## 구현 세션 표준 절차
 
@@ -42,3 +48,5 @@ ym-spec 이 산출하고 사용자가 결정까지 마친 명세 모음. **`spec
 | `F0c-dynamic-fields` | F0c Q5 | 관리자 설정 동적 추가정보 (강좌 dropdown·질문·첨부) — admin 트랙 선행 필요 |
 | `fix/apply-complete-header` | F2c Q4 | 신청 완료 페이지 헤더 추가 + complete.html 주석 오기 정정 |
 | admin 프로그램 등록 폼의 자격요건 입력 | F4 | `ProgramEligibility` 스키마 사용 — admin 트랙 |
+| admin 공지사항 첨부파일 업로드 | F-notice-attachment | 다운로드는 PR #130 완료. `POST /admin/notices/{id}/attachments` 추가 필요 |
+| admin 약관 CRUD | F-signup-terms-agreement | Term 엔티티 준비 완료 (PR #125). `POST/PUT /admin/terms` 추가 필요 |

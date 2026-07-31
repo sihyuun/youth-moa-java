@@ -1,6 +1,7 @@
 # 작업 명세: F0c-remainder — 신청 폼 prototype 잔여 갭
 
-> 산출: ym-spec, 2026-07-07. 상태: **spec_confirmed (2026-07-07 사용자 결정 완료 — ym-impl 인계 가능)**
+> 산출: ym-spec, 2026-07-07. 상태: **`impl_done` — PR #75 (`80f1dd3` 260707_F0c_apply_wizard) + PR #85 (E2E 이관)**
+> 구현 위치: `templates/application/apply.html` (3단계 위저드 `.apply-step-card`). 후속 `F0c-dynamic-fields` 는 admin 트랙 파생 큐로 이관
 
 ## ✅ 결정 확정 (2026-07-07, 전부 권장안 채택)
 
