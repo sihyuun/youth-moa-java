@@ -583,7 +583,8 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
   margin-top: 40px;
 }
 .detail-sticky-inner {
-  max-width: var(--content-max);
+  /* F-contract-gaps-p1: 하단 바 내부 폭 1080 — 본문 1000·전역 1440 과 다른 고유 값. tsx L1096. */
+  max-width: 1080px;
   margin: 0 auto;
   padding: 14px 24px;
   display: flex;
@@ -1214,7 +1215,8 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
 /* 상세 페이지 CapacityBar 확장형 — prototype.tsx L945~951 매칭 (배경 박스 + 헤드라인/카운트 + bar + subtext) */
 .detail-capacity-box {
   padding: 14px;
-  border-radius: var(--radius-md);
+  /* F-contract-gaps-p1: radius 12 (--radius-lg). tsx L986 (borderRadius:T.radius) 매칭 */
+  border-radius: var(--radius-lg);
   margin-bottom: 20px;
 }
 .detail-capacity-box--emphasized {
@@ -4336,10 +4338,18 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
 .centers-filter-search-wrap {
   position: relative;
 }
+/* F-contract-gaps-p1 (2026-07-31): 검색 박스 내부 좌측 lucide search 아이콘. tsx L2202 매칭. */
+.centers-filter-search-icon {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
 .centers-filter-search {
   width: 250px;
   height: 38px;
-  padding: 0 12px;
+  padding: 0 12px 0 32px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   font-size: 14px;
@@ -4837,9 +4847,12 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
   overflow-wrap: anywhere;
 }
 .centers-detail-cta {
-  display: block;
-  text-align: center;
-  padding: 10px;
+  /* F-contract-gaps-p1 (2026-07-31): Btn size="m" (42px). tsx L2347+L85 매칭. */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 42px;
+  padding: 0 14px;
   background: var(--color-primary);
   color: #fff;
   text-decoration: none;

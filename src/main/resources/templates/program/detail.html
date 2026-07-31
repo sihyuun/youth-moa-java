@@ -150,7 +150,9 @@
                     <a th:if="${program.status.name() == 'OPEN'}"
                        th:href="@{/programs/{id}/apply(id=${program.id})}"
                        class="btn-primary btn-lg detail-cta">
-                        신청하기
+                        <!-- F-contract-gaps-p1: 모집중 CTA 좌측 check 아이콘. tsx L1030 매칭 -->
+                        <svg th:replace="~{fragments/icons :: check(18, '#fff')}"></svg>
+                        <span>신청하기</span>
                     </a>
                     <button th:if="${program.status.name() == 'UPCOMING'}"
                             type="button" class="btn-outline-primary detail-cta" disabled>
@@ -233,7 +235,10 @@
                 </div>
             </div>
             <div class="detail-warning">
-                <span class="detail-warning-icon">⚠</span>
+                <!-- F-contract-gaps-p1: 지원 대상 경고 아이콘은 lucide bell SVG. tsx L1057 매칭 (이모지 ⚠ 대체 금지) -->
+                <span class="detail-warning-icon">
+                    <svg th:replace="~{fragments/icons :: bell(16, 'var(--color-warning, #B45309)')}"></svg>
+                </span>
                 <span class="detail-warning-text">
                     신청 전 <strong>지원 대상을 반드시 확인</strong>해주세요.
                     요건 미충족 시 프로그램 신청이 반려될 수 있습니다.
@@ -267,9 +272,13 @@
                      th:text="${program.status.label}">모집중</div>
             </div>
             <div th:replace="~{fragments/bookmark-button :: button(programId=${program.id}, bookmarked=${bookmarked}, styleClass='detail-sticky-bookmark')}"></div>
+            <!-- F-contract-gaps-p1: sticky CTA 좌측 아이콘 (모집중 check / 종료 search). tsx L1106·L1115 매칭 -->
             <a th:if="${program.status.name() == 'OPEN'}"
                th:href="@{/programs/{id}/apply(id=${program.id})}"
-               class="btn-primary detail-sticky-cta-btn">신청하기</a>
+               class="btn-primary detail-sticky-cta-btn">
+                <svg th:replace="~{fragments/icons :: check(19, '#fff')}"></svg>
+                <span>신청하기</span>
+            </a>
             <button th:if="${program.status.name() == 'UPCOMING'}"
                     type="button" class="btn-outline-primary detail-sticky-cta-btn" disabled>
                 오픈 알림 받기
@@ -277,7 +286,8 @@
             <a th:if="${program.status.name() == 'ENDED'}"
                th:href="@{/programs}"
                class="btn-outline-primary detail-sticky-cta-btn">
-                비슷한 프로그램 보기
+                <svg th:replace="~{fragments/icons :: search(18, 'var(--color-primary)')}"></svg>
+                <span>비슷한 프로그램 보기</span>
             </a>
             <button th:if="${program.status.name() == 'SUSPENDED'}"
                     type="button" class="detail-sticky-cta-btn is-disabled" disabled>

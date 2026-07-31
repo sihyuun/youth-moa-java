@@ -33,6 +33,8 @@
         <div class="container centers-filter-inner">
             <form class="centers-filter-form" method="get" th:action="@{/centers}">
                 <div class="centers-filter-search-wrap">
+                    <svg class="centers-filter-search-icon"
+                         th:replace="~{fragments/icons :: search(15, 'var(--color-text-tri)')}"></svg>
                     <input class="centers-filter-search" type="text" name="q" placeholder="센터명, 지역 검색"
                            th:value="${filterQ}">
                 </div>
@@ -50,7 +52,9 @@
                               th:if="${!#strings.isEmpty(filterRegion)}"
                               data-region-clear
                               title="지역 선택 해제">×</span>
-                        <span class="centers-filter-region-chevron" th:if="${#strings.isEmpty(filterRegion)}">▾</span>
+                        <span class="centers-filter-region-chevron" th:if="${#strings.isEmpty(filterRegion)}">
+                            <svg th:replace="~{fragments/icons :: chevD(14, 'currentColor')}"></svg>
+                        </span>
                     </button>
                     <div class="centers-filter-region-panel" hidden data-region-panel>
                         <input type="text" class="centers-filter-region-search"
