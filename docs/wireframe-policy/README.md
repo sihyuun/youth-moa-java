@@ -27,7 +27,7 @@
 
 | # | 항목 | wireframe | 현재 | 상세 |
 |---|---|---|---|---|
-| A1 | 홈 프로그램 노출 | 최대 30개, 4개씩 페이지네이션 | Top 4 고정 (마감임박 정렬) | [home.md](home.md) #1, #2, #3 |
+| ~~A1~~ | 홈 프로그램 노출 | 최대 30개, 4개씩 페이지네이션 | Top 4 고정 (마감임박 정렬) | ✅ **의도적 이탈 (2026-07-31)** — prototype 도 4장 고정이라 wireframe 만 근거로 UX 확장하는 것은 판정 규칙 역행. `docs/specs/F-home-30-pagination.md` §0-A 결정 근거 참조 |
 | A2 | 홈 프로그램 정렬 | 최신 등록순 | 마감임박 ASC | [home.md](home.md) #2 |
 | A3 | 공간안내 | 이미지 슬라이드 (움직임) | 정적 그리드 3장 | [home.md](home.md) #5 |
 | A4 | Hero 배너·Quick Stats·맞춤추천 | wireframe 미언급 | 현재 구현됨 | [home.md](home.md) #6, #7, #8 |
