@@ -1,9 +1,15 @@
 package io.github.sihyuuun.youthmoa.notice;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -81,6 +87,38 @@ public class NoticeController {
     model.addAttribute("nextNotice", next.orElse(null));
     model.addAttribute("attachments", noticeService.findAttachments(id));
     return "notice/detail";
+  }
+
+  /**
+   * F-notice-attachment: 공지사항 첨부파일 다운로드. wireframe WF-6-002 하단 파일명 클릭 시 진입.
+   *
+   * <p>경로에 {noticeId}·{attachmentId} 를 함께 두어 서비스가 소속 관계를 검증한다 (URL 조작 방어). 파일명은 RFC 5987 filename*
+   * 로 UTF-8 인코딩. Content-Type 은 저장된 값 사용, 없으면 application/octet-stream 로 fallback.
+   */
+  @GetMapping("/notices/{noticeId}/attachments/{attachmentId}/download")
+  public ResponseEntity<ByteArrayResource> downloadAttachment(
+      @PathVariable Long noticeId, @PathVariable Long attachmentId) {
+    NoticeAttachment attachment;
+    try {
+      attachment = noticeService.findAttachmentForDownload(noticeId, attachmentId);
+    } catch (IllegalArgumentException e) {
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+    }
+
+    String encoded =
+        URLEncoder.encode(attachment.getFileName(), StandardCharsets.UTF_8).replace("+", "%20");
+    String disposition = "attachment; filename*=UTF-8''" + encoded;
+
+    MediaType mediaType =
+        attachment.getContentType() != null && !attachment.getContentType().isBlank()
+            ? MediaType.parseMediaType(attachment.getContentType())
+            : MediaType.APPLICATION_OCTET_STREAM;
+
+    return ResponseEntity.ok()
+        .header(HttpHeaders.CONTENT_DISPOSITION, disposition)
+        .contentType(mediaType)
+        .contentLength(attachment.getData().length)
+        .body(new ByteArrayResource(attachment.getData()));
   }
 
   private NoticeCategory parseCategory(String raw) {
