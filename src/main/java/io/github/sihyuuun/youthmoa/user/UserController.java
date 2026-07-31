@@ -60,9 +60,8 @@ public class UserController {
     if (logout != null) {
       model.addAttribute("logoutMsg", "로그아웃되었습니다.");
     }
-    if (withdraw != null) {
-      model.addAttribute("logoutMsg", "회원 탈퇴가 완료되었습니다.");
-    }
+    // F-wireframe #7 (WF-3-003-02): 탈퇴 완료는 alert 가 아닌 토스트로 노출. login.html 의 script 가
+    // window.Toast API 를 호출한다. 여기선 별도 model attribute 를 두지 않고 URL 파라미터로 판정.
     return "user/login";
   }
 
