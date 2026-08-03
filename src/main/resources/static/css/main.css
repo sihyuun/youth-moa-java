@@ -1312,7 +1312,8 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
 .detail-actions {
   display: flex;
   gap: 10px;
-  margin-top: 4px;
+  /* P2 actions.marginTop: 20 (tsx L1012) */
+  margin-top: 20px;
 }
 
 .detail-action-icon {
@@ -1398,6 +1399,8 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
   align-items: center;
   justify-content: center;
   gap: 6px;
+  /* P2 cta.ended.borderWidth: 1.5px (tsx L1020). btn-primary (border:none) 는 style=none 으로 무효 → OPEN 무영향 */
+  border-width: 1.5px;
 }
 
 .btn-outline-primary {
@@ -1534,12 +1537,14 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 4px 10px;
+  /* P2 meta.mapBtn.padding: 3 9 (tsx L1003) */
+  padding: 3px 9px;
   border-radius: var(--radius-pill);
   border: 1px solid var(--color-primary);
   background: transparent;
   color: var(--color-primary);
-  font-size: 12px;
+  /* P2 meta.mapBtn.fontSize: 11.5 (tsx L1004) */
+  font-size: 11.5px;
   font-weight: 600;
   cursor: pointer;
   font-family: inherit;
@@ -3497,7 +3502,8 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
 .capacity-bar-fill--warning   { background: var(--color-warning); }
 .capacity-bar-fill--error     { background: var(--color-error); }
 .capacity-bar-fill--secondary { background: var(--color-secondary); }
-.capacity-bar-fill--muted     { background: var(--color-text-tri); }
+/* P2 status.bar.ended.fillColor: 종료 프로그램 bar 색 border (tsx L991→L223) */
+.capacity-bar-fill--muted     { background: var(--color-border); }
 
 /* ===== 카드 액션 버튼 ===== */
 .program-card-actions {
@@ -4322,7 +4328,8 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
 /* ── 필터 바 (full-width, height 56, gap 12) ── */
 .centers-filter-bar {
   background: var(--color-surface);
-  border-bottom: 1px solid var(--color-border-light);
+  /* P2 filter.bar.borderColor: tsx L2198 T.border */
+  border-bottom: 1px solid var(--color-border);
 }
 .centers-filter-inner {
   height: 56px;
@@ -4352,7 +4359,8 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
   padding: 0 12px 0 32px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  font-size: 14px;
+  /* P2 filter.search.fontSize: tsx L2203 (13) */
+  font-size: 13px;
   font-family: inherit;
   color: var(--color-text);
   background: #fff;
@@ -4376,7 +4384,8 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
   border: 1.5px solid var(--color-border);
   border-radius: var(--radius-md);
   background: #fff;
-  font-size: 14px;
+  /* P2 filter.region.trigger.fontSize: tsx L2220 (13) */
+  font-size: 13px;
   font-family: inherit;
   color: var(--color-text-tri);
   cursor: pointer;
@@ -4521,7 +4530,8 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
   display: flex;
   gap: 16px;
   align-items: flex-start;
-  padding-top: 16px;
+  /* P2 layout.paddingTop: 컨테이너가 상단 여백 담당. tsx L2269 매칭. */
+  padding-top: 0;
 }
 .centers-list-col {
   width: 360px;
@@ -4553,7 +4563,8 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
 .centers-sort-pill {
   display: inline-flex;
   gap: 4px;
-  background: var(--color-bg);
+  /* P2 list.sort.wrap.background: prototype 은 개별 pill 만 active 배경. 컨테이너 배경 없음. tsx L2275 */
+  background: transparent;
   border-radius: var(--radius-pill);
   padding: 2px;
 }
@@ -4614,7 +4625,8 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
 .center-card-head {
   display: flex;
   align-items: center;
-  gap: 8px;
+  /* P2 card.head.gap: 센터명–배지 간격 7 (tsx L2302) */
+  gap: 7px;
   margin-bottom: 6px;
 }
 .center-card-name {
@@ -4640,7 +4652,8 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
 .center-card-address {
   font-size: 12px;
   color: var(--color-text-sec);
-  margin-bottom: 8px;
+  /* P2 card.address.marginBottom: 6 (tsx L2307) */
+  margin-bottom: 6px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -4790,13 +4803,15 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
   color: var(--color-primary);
 }
 .centers-detail-body {
-  padding: 16px;
+  /* P2 detail.body.paddingLeft: 좌우 18 · 상하 16 (tsx L2330) */
+  padding: 16px 18px;
 }
 .centers-detail-head {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 6px;
+  /* P2 detail.name.marginBottom: 4 (tsx L2331) */
+  margin-bottom: 4px;
 }
 .centers-detail-name {
   font-size: 17px;
@@ -4808,12 +4823,14 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
   font-size: 13px;
   color: var(--color-text-sec);
   margin: 0 0 12px;
-  line-height: 1.5;
+  /* P2 detail.desc.lineHeight: 1.6 (tsx L2332) */
+  line-height: 1.6;
 }
 .centers-detail-meta {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  /* P2 detail.meta.gap: 8 (tsx L2333). row-gap 로 매칭. */
+  gap: 8px;
   font-size: 12px;
   color: var(--color-text-sec);
   margin-bottom: 14px;
@@ -4836,8 +4853,10 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
   justify-content: center;
   width: 26px;
   height: 26px;
-  border-radius: var(--radius-md);
-  background: var(--color-primary-bg);
+  /* P2 detail.meta.badge.radius: 6 (tsx L2336) */
+  border-radius: 6px;
+  /* P2 detail.meta.badge.background: primaryLight (tsx L2336) */
+  background: var(--color-primary-light);
   flex-shrink: 0;
 }
 /* F0h-real-coords §9-8 (2026-07-09 재개정): 운영시간 자동 줄바꿈. 컨테이너 폭 넘어가면 브라우저가 자연스럽게 wrap. */
@@ -4847,7 +4866,8 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
   overflow-wrap: anywhere;
 }
 .centers-detail-cta {
-  /* F-contract-gaps-p1 (2026-07-31): Btn size="m" (42px). tsx L2347+L85 매칭. */
+  /* F-contract-gaps-p1 (2026-07-31): Btn size="m" (42px). tsx L2347+L85 매칭.
+     P2 detail.cta.fontSize (2026-08): 14 (Btn size="m" fs). */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -4857,7 +4877,7 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
   color: #fff;
   text-decoration: none;
   border-radius: var(--radius-md);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
 }
 .centers-detail-cta:hover {

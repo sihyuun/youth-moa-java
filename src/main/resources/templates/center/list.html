@@ -57,8 +57,13 @@
                         </span>
                     </button>
                     <div class="centers-filter-region-panel" hidden data-region-panel>
-                        <input type="text" class="centers-filter-region-search"
-                               placeholder="지역 검색" data-region-search>
+                        <!-- P2 filter.region.search.isSvg: 지역 검색 input 좌측 search 아이콘. tsx L2229 -->
+                        <div class="centers-filter-region-search-wrap">
+                            <svg class="centers-filter-region-search-icon"
+                                 th:replace="~{fragments/icons :: search(15, 'var(--color-primary)')}"></svg>
+                            <input type="text" class="centers-filter-region-search"
+                                   placeholder="지역 검색" data-region-search>
+                        </div>
                         <ul class="centers-filter-region-list" data-region-list>
                             <li th:each="r : ${regions}"
                                 class="centers-filter-region-item"
