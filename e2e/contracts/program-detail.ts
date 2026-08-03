@@ -649,6 +649,10 @@ export const programDetailContract: ScreenContract = {
             proto: 'tsx L1020 (border:1.5px solid T.primary)',
             severity: 'P2',
             states: ['auth'],
+            // 2026-08-03: CSS 에 border-width:1.5px 를 지정해도 Chromium 이 subpixel 라운딩으로 1px 반환.
+            // prototype 도 동일 브라우저 이슈. 소스 스펙 (1.5) 은 유지하되 검사에서는 제외.
+            deviation:
+                '브라우저 subpixel 라운딩 — Chromium 이 1.5px 지정을 getComputedStyle 에서 1px 로 반환 (prototype 도 동일). CSS 소스는 1.5px 유지, 계약은 이탈로 기록',
         },
         {
             id: 'cta.ended.fontWeight',
