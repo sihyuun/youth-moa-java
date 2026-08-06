@@ -31,7 +31,7 @@ dependencies {
 	implementation("org.webjars.npm:htmx.org:2.0.4")
 	implementation("org.webjars:webjars-locator-core")
 	// F0h-real-coords: CSV 시드 로더 (RFC 4180 파싱). 48행 규모, DataInitializer 에서만 사용.
-	implementation("com.opencsv:opencsv:5.9")
+	implementation("com.opencsv:opencsv:5.12.0")
 	// F-signup-01: CoolSMS SDK — 실 SMS 발송용. youthmoa.coolsms.enabled=false 이면 MockSmsSender 사용.
 	implementation("net.nurigo:sdk:4.3.0")
 	// P0-1 Flyway (2026-07-22 활성화). Boot 4 는 flyway auto-config 를 별도 모듈로 분리 →
