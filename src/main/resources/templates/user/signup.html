@@ -174,39 +174,44 @@
                         <p class="signup-field-error" th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}"></p>
                     </div>
 
-                    <!-- 성별 (prototype L1924~1935 pill 토글) — hidden radio 로 Spring form 바인딩 유지 -->
-                    <div class="signup-field-block" th:classappend="${#fields.hasErrors('gender')} ? 'has-error'">
-                        <span class="signup-field-label">성별 <span class="required">*</span></span>
-                        <div class="signup-gender-pill-group" role="radiogroup" aria-label="성별">
-                            <input type="radio" th:field="*{gender}" value="MALE" class="signup-gender-radio-input">
-                            <input type="radio" th:field="*{gender}" value="FEMALE" class="signup-gender-radio-input">
-                            <button type="button" class="signup-gender-pill" data-value="MALE"
-                                    th:classappend="${signUpRequest.gender != null and signUpRequest.gender.name() == 'MALE'} ? 'is-selected'">
-                                <svg class="signup-gender-check" viewBox="0 0 24 24" width="15" height="15" fill="none"
-                                     stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                    <polyline points="20 6 9 17 4 12"/>
-                                </svg>
-                                <span>남</span>
-                            </button>
-                            <button type="button" class="signup-gender-pill" data-value="FEMALE"
-                                    th:classappend="${signUpRequest.gender != null and signUpRequest.gender.name() == 'FEMALE'} ? 'is-selected'">
-                                <svg class="signup-gender-check" viewBox="0 0 24 24" width="15" height="15" fill="none"
-                                     stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                    <polyline points="20 6 9 17 4 12"/>
-                                </svg>
-                                <span>여</span>
-                            </button>
+                    <!-- 성별·생년월일 2컬럼 (prototype L1924~1940 flex gap:14) — 2026-08-10 복원 -->
+                    <div class="signup-field-row-2col">
+                        <!-- 성별 (prototype L1924~1935 pill 토글) — hidden radio 로 Spring form 바인딩 유지 -->
+                        <div class="signup-field-block" th:classappend="${#fields.hasErrors('gender')} ? 'has-error'">
+                            <span class="signup-field-label">성별 <span class="required">*</span></span>
+                            <div class="signup-gender-pill-group" role="radiogroup" aria-label="성별">
+                                <input type="radio" th:field="*{gender}" value="MALE" class="signup-gender-radio-input">
+                                <input type="radio" th:field="*{gender}" value="FEMALE" class="signup-gender-radio-input">
+                                <button type="button" class="signup-gender-pill" data-value="MALE"
+                                        th:classappend="${signUpRequest.gender != null and signUpRequest.gender.name() == 'MALE'} ? 'is-selected'">
+                                    <svg class="signup-gender-check" viewBox="0 0 24 24" width="15" height="15" fill="none"
+                                         stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                        <polyline points="20 6 9 17 4 12"/>
+                                    </svg>
+                                    <span>남</span>
+                                </button>
+                                <button type="button" class="signup-gender-pill" data-value="FEMALE"
+                                        th:classappend="${signUpRequest.gender != null and signUpRequest.gender.name() == 'FEMALE'} ? 'is-selected'">
+                                    <svg class="signup-gender-check" viewBox="0 0 24 24" width="15" height="15" fill="none"
+                                         stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                        <polyline points="20 6 9 17 4 12"/>
+                                    </svg>
+                                    <span>여</span>
+                                </button>
+                            </div>
+                            <p class="signup-field-error" th:if="${#fields.hasErrors('gender')}" th:errors="*{gender}"></p>
                         </div>
-                        <p class="signup-field-error" th:if="${#fields.hasErrors('gender')}" th:errors="*{gender}"></p>
-                    </div>
 
-                    <!-- 생년월일 (브라우저 native date picker — type=date) -->
-                    <div class="signup-field-block" th:classappend="${#fields.hasErrors('birthDateText')} ? 'has-error'">
-                        <label for="birthDateText" class="signup-field-label">생년월일 <span class="required">*</span></label>
-                        <input type="date" id="birthDateText" th:field="*{birthDateText}"
-                               max="2099-12-31" required
-                               class="form-input form-input--date">
-                        <p class="signup-field-error" th:if="${#fields.hasErrors('birthDateText')}" th:errors="*{birthDateText}"></p>
+                        <!-- 생년월일 — 브라우저 native date picker (type=date).
+                             prototype 는 type=text placeholder="YYYY / MM / DD" 이지만, 접근성·모바일 UX·유효성
+                             자동 검증 이점이 커 native picker 를 유지하는 의도적 이탈 (2026-08-10 결정). -->
+                        <div class="signup-field-block" th:classappend="${#fields.hasErrors('birthDateText')} ? 'has-error'">
+                            <label for="birthDateText" class="signup-field-label">생년월일 <span class="required">*</span></label>
+                            <input type="date" id="birthDateText" th:field="*{birthDateText}"
+                                   max="2099-12-31" required
+                                   class="form-input form-input--date">
+                            <p class="signup-field-error" th:if="${#fields.hasErrors('birthDateText')}" th:errors="*{birthDateText}"></p>
+                        </div>
                     </div>
 
                     <!-- 주소 (우편번호 readonly + 검색 SVG / 주소 readonly / 상세주소) -->

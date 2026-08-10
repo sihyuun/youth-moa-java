@@ -28,7 +28,7 @@
                 <div id="editEmail" class="form-input form-input--readonly" th:text="${myUser.email}">email@sample.com</div>
 
                 <label class="mypage-edit-label" for="editName">이름</label>
-                <input id="editName" type="text" th:field="*{name}" class="form-input" required>
+                <input id="editName" type="text" th:field="*{name}" class="form-input" placeholder="이름" required>
 
                 <!-- 2026-07-31 (fix/password-change-inline): wireframe WF-3-003-02 정합.
                      새 비밀번호 optional. 빈 값이면 변경 안 함. -->
