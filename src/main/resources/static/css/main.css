@@ -2255,23 +2255,41 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
   gap: 10px;
 }
 
+/* 계약 Q-1 (2026-08-10): .auth-input 을 signup .form-input 과 동일 규격으로 통일.
+   prototype L105 inputStyle: height 42, radius 10, border 1px, padding 0 14, fs 14.
+   레퍼런스 패턴 A (2026-08-10 채택): 편집 가능한 상태(empty/filled/focus) 모두 흰 배경,
+   회색 배경은 readonly 에만 유지. 근거: 국내 참조군(토스·카카오·당근·컬리)이 모두 A 패턴,
+   "회색=편집불가" 단일 시그널로 압축해 학습 비용 최소. prototype 의 empty=gray 는 이탈. */
 .auth-input {
-  height: 46px;
-  border-radius: var(--radius-md);
-  border: 1.5px solid var(--color-border);
-  padding: 0 16px;
+  width: 100%;
+  height: 42px;
+  border-radius: 10px;
+  border: 1px solid var(--color-border);
+  padding: 0 14px;
   font-size: 14px;
   font-family: inherit;
   color: var(--color-text);
   background: var(--color-surface);
   outline: none;
-  transition: border-color 0.15s;
+  transition: border-color 0.15s, background 0.15s;
+  box-sizing: border-box;
+  display: block;
 }
 .auth-input:focus {
   border-color: var(--color-primary);
 }
 .auth-input::placeholder {
   color: var(--color-text-tri);
+}
+/* filled 상태 — 값 있으면 primary border 로 "편집됨" 강조 (배경은 흰색 유지) */
+.auth-input:not(:placeholder-shown):not(:focus):not(:read-only) {
+  border-color: var(--color-primary);
+}
+/* readonly — 회색 배경으로 "편집 불가" 시그널 (레퍼런스 A) */
+.auth-input:read-only {
+  background: #F7F8FA;
+  color: var(--color-text-sec);
+  cursor: default;
 }
 
 .auth-options {
@@ -2431,7 +2449,7 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
 .required-inline { color: var(--color-error); font-weight: 400; }
 
 /* Input — prototype L105 inputStyle: height 42, radius 10, 1px border, padding 0 14, fs 14
-   평상시: 연회색 필드 (#F7F8FA) → 값 채워지면 흰색 + primary 테두리 */
+   레퍼런스 패턴 A (2026-08-10): 편집 가능 상태 모두 흰 배경, 회색은 readonly 에만. */
 .form-input {
   width: 100%;
   height: 42px;
@@ -2441,7 +2459,7 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
   font-size: 14px;
   font-family: inherit;
   color: var(--color-text);
-  background: #F7F8FA;
+  background: var(--color-surface);
   outline: none;
   transition: border-color 0.15s, background 0.15s;
   box-sizing: border-box;
@@ -2449,27 +2467,32 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
 }
 .form-input:focus {
   border-color: var(--color-primary);
-  background: var(--color-surface);
 }
 .form-input::placeholder { color: var(--color-text-tri); }
 
-/* 값 있을 때 primary border + 흰 배경 (prototype filled 상태) */
+/* 값 있을 때 primary border 로 "편집됨" 강조 (배경은 흰색 유지) */
 .form-input:not(:placeholder-shown):not(:focus):not(:read-only) {
   border-color: var(--color-primary);
-  background: var(--color-surface);
 }
 
 /* type=date 는 :placeholder-shown 미지원 → :invalid(required 미입력) 으로 unfilled 판정.
    특이성 상향(.form-input.form-input--date) 으로 위의 filled 규칙보다 우선 적용. */
 .form-input.form-input--date:invalid:not(:focus):not(:read-only) {
   border-color: var(--color-border);
-  background: #F7F8FA;
   color: var(--color-text-tri);
 }
 .form-input.form-input--date:valid:not(:focus):not(:read-only) {
   border-color: var(--color-primary);
-  background: var(--color-surface);
   color: var(--color-text);
+}
+
+/* readonly HTML 속성 — 회색 배경으로 "편집 불가" 시그널 (레퍼런스 A).
+   .form-input--readonly 클래스는 별도 진한 회색(#F3F4F6, 아래) 사용 → :not() 로 제외해
+   :read-only pseudo-class 규칙과의 특이성 충돌 방지. 그 외 readonly 인풋에 대한 폴백. */
+.form-input:not(.form-input--readonly):read-only {
+  background: #F7F8FA;
+  color: var(--color-text-sec);
+  cursor: default;
 }
 
 /* readOnly (우편번호 / 주소) — bg #F3F4F6, border-light (prototype L106 inputRO).
@@ -2571,6 +2594,16 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
 }
 .signup-field-row .form-input { flex: 1; min-width: 0; }
 
+/* prototype L1924 성별·생년월일 2컬럼 (flex, gap 14). 각 필드 flex:1 로 절반씩. */
+.signup-field-row-2col {
+  display: flex;
+  gap: 14px;
+}
+.signup-field-row-2col > .signup-field-block {
+  flex: 1;
+  min-width: 0;
+}
+
 /* prototype L1856 btnSide: minWidth 84, height 42, padding 0 14, fs 13 */
 .signup-side-btn {
   flex-shrink: 0;
@@ -2602,12 +2635,14 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
   width: 0;
   height: 0;
 }
+/* 레퍼런스 패턴 A 확장 (2026-08-10): 선택 전 배경 흰색 (prototype #F7F8FA 이탈).
+   토글 pill 도 input 과 동일 정책으로 통일 — 선택 전 흰색 · 선택 후 primary-bg. */
 .signup-gender-pill {
   flex: 1;
   height: 42px;
   border-radius: 10px;
   border: 1px solid var(--color-border);
-  background: #F7F8FA;
+  background: var(--color-surface);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -2634,11 +2669,12 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
   display: inline-flex;
 }
 
-/* btn-outline-sm (중복확인 / 인증요청 / 검색) */
+/* btn-outline-sm (중복확인 / 인증요청 / 검색) — prototype L90 variant=outline
+   { bg: transparent, fg: T.primary, border: 1px solid T.primary } */
 .btn-outline-sm {
-  background: var(--color-surface);
-  color: var(--color-text);
-  border: 1px solid var(--color-text);
+  background: transparent;
+  color: var(--color-primary);
+  border: 1px solid var(--color-primary);
   border-radius: var(--radius-md);
   font-size: 14px;
   font-weight: 600;
@@ -2793,9 +2829,9 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
 }
 
 /* ── F0i: 아이디/비밀번호 찾기 ─────────────────────────────
-   auth-screen-inner 폭 확장 (login 400px → 480px),
+   폭은 login 과 동일 400px (2026-08-10 통일). --wide 480px 는 폐기 유지.
    Stepper, 결과 박스, 필드 에러 텍스트. */
-.auth-screen-inner--wide { width: 480px; }
+.auth-screen-inner--wide { width: 400px; }
 
 .auth-stepper {
   list-style: none;
