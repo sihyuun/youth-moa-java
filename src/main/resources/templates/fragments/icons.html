@@ -135,6 +135,19 @@
     <path d="M21 21l-4.35-4.35" th:attr="stroke=${color}"/>
 </svg>
 
+<!--
+  download — notice/detail 첨부 아이콘 도입 시 신설 (2026-08-11, PR notices-contract-fix).
+  현재 소비자 1곳(notice/detail.html)이지만, mypage/apply 트랙 등 다른 화면의
+  다운로드/첨부 UI 에서 재사용 예정이므로 표준 fragment 로 유지한다. lucide 시그니처 통일.
+-->
+<svg th:fragment="download(size, color)"
+     th:attr="width=${size},height=${size}"
+     viewBox="0 0 24 24" fill="none"
+     stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+     th:attrappend="style='flex-shrink:0;'">
+    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" th:attr="stroke=${color}"/>
+</svg>
+
 <svg th:fragment="check(size, color)"
      th:attr="width=${size},height=${size}"
      viewBox="0 0 24 24" fill="none"
