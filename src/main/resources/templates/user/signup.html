@@ -76,7 +76,7 @@
                                  검증 실패 후 폼 재표시 시 입력값 보존을 위해 name/th:value 수동 명시. -->
                             <input type="password" id="password" name="password"
                                    th:value="*{password}"
-                                   placeholder="영문, 숫자 포함 8자 이상"
+                                   placeholder="영문, 숫자 포함 8자 이상 입력해주세요"
                                    autocomplete="new-password"
                                    class="form-input form-input--with-eye">
                             <button type="button" class="signup-eye-btn" data-target="password"
@@ -233,7 +233,7 @@
                                 </button>
                             </div>
                             <input type="text" id="address" th:field="*{address}"
-                                   placeholder="주소 (검색으로 입력)" readonly
+                                   placeholder="주소" readonly
                                    class="form-input form-input--readonly">
                             <input type="text" id="addressDetail" th:field="*{addressDetail}"
                                    placeholder="상세주소를 입력해주세요"
@@ -254,7 +254,12 @@
                 <!-- 전체 동의 -->
                 <label class="signup-agree-all">
                     <input type="checkbox" id="agreeAll">
-                    <span class="signup-checkbox-square"></span>
+                    <span class="signup-checkbox-square">
+                        <!-- prototype L1960: checked 시에만 렌더되는 SVG (stroke=#fff) -->
+                        <svg class="signup-check-icon signup-check-icon--all" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M5 12l4 4 10-10" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </span>
                     <span class="signup-agree-all-text">전체 동의</span>
                 </label>
 
@@ -267,7 +272,10 @@
                                th:value="true"
                                th:checked="${signUpRequest.agreements != null and signUpRequest.agreements.get(term.code) == true}"
                                th:attr="data-term-code=${term.code}">
-                        <span class="signup-checkbox-line"></span>
+                        <!-- prototype L1967: 항상 렌더되는 SVG, checked 시 stroke=primary / uncheck 시 border -->
+                        <svg class="signup-check-icon signup-check-icon--item" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M5 12l4 4 10-10" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
                         <span class="signup-agree-label">
                             <span th:text="${term.title}">회원가입약관</span>
                             <span th:if="${term.required}" class="required-inline"> (필수)</span>
