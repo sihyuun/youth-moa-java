@@ -19,7 +19,8 @@
     <div class="notice-detail">
 
         <a th:href="@{/notices}" class="notice-back-btn" title="목록으로" aria-label="목록으로">
-            <span>←</span>
+            <!-- POLICY P-3: 문자 아이콘 → SVG (prototype.tsx L2099 Icon n="arrowL" · L76 arrowL path) -->
+            <svg th:replace="~{fragments/icons :: arrowL(20, '#666')}"></svg>
         </a>
 
         <div class="notice-detail-badges">
@@ -48,13 +49,20 @@
             <a th:each="a : ${attachments}" class="notice-attachment"
                th:href="@{/notices/{noticeId}/attachments/{attachmentId}/download(noticeId=${notice.id},attachmentId=${a.id})}"
                th:data-attachment-id="${a.id}">
-                <span class="notice-attachment-icon">⬇</span>
+                <!-- POLICY P-3: 문자 아이콘 → SVG (prototype.tsx L2124 Icon n="download" · L73 download path) -->
+                <span class="notice-attachment-icon">
+                    <svg th:replace="~{fragments/icons :: download(18, 'var(--color-primary)')}"></svg>
+                </span>
                 <span class="notice-attachment-name" th:text="${a.fileName}">파일명.pdf</span>
                 <span class="notice-attachment-size" th:text="${a.humanFileSize}">1.2MB</span>
             </a>
         </div>
 
-        <!-- 이전/다음 (전체 기준, 카테고리 필터 무시) -->
+        <!--
+            이전/다음 (전체 기준, 카테고리 필터 무시)
+            정보구조 강화 — notice-detail.md §8 Q-2 통일: prototype 은 클릭 시 목록 회귀였으나
+            구현은 실제 이전/다음 공지로 이동한다 (signup.md §8 Q-2 정보구조 강화 원칙과 동일).
+        -->
         <div class="notice-adjacent">
             <a th:if="${prevNotice != null}"
                th:href="@{/notices/{id}(id=${prevNotice.id})}"
