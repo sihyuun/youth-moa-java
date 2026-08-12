@@ -967,10 +967,11 @@ public class DataInitializer implements ApplicationRunner {
       return;
     }
 
-    // 더미 유저 30명 생성 (UniqueConstraint: user+program 쌍)
+    // 더미 유저 50명 생성 (UniqueConstraint: user+program 쌍)
     // seed1 은 계약 검사(interest chip · 맞춤 추천)의 대표 시나리오라 관심 지역·분야를 설정한다.
+    // seed29~48 은 apply-complete 계약이 로컬 반복 실행 시 로테이션 풀로 사용 (2026-08-12 확장).
     List<User> seedUsers = new ArrayList<>();
-    for (int i = 1; i <= 30; i++) {
+    for (int i = 1; i <= 50; i++) {
       String email = "seed" + i + "@youth-moa.test";
       if (!userRepository.existsByEmail(email)) {
         // F0i: 아이디/비밀번호 찾기 매칭용 phone 시드 (하이픈 없이 저장 — signup 정책과 동일)

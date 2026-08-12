@@ -82,7 +82,7 @@
 | 3 | hero 헤더 뒤 확장 (-68px/556px) | 분리 렌더 460px | line 519 | **높음** (1 의 전제) |
 | 4 | hero 상단 110px darken scrim | 없음 | line 527 | **높음** (가독성) |
 | 5 | 전환 transition 300ms | 0.15s | 300ms ease | 중간 |
-| 6 | `application/complete.html` 헤더 미포함 (주석이 사실과 다름 — prototype `noHeader` 에 apply-complete 없음 → 헤더 표시가 정답) | 헤더 없음 | 헤더 있음 | 낮음 — **Q4, 별도 분리 권장** |
+| 6 | `application/complete.html` 헤더 (2026-08-11 재판정 — prototype ApplyComplete L1217~1249 실측 결과 **헤더 없음이 정답**. 최초 판단 오류 정정) | 헤더 없음 | 헤더 없음 (2026-08-11 apply-contract-fix 로 완료) | 해소 |
 
 **완료 확인 (변경 불필요):** 68px sticky 헤더 · 로고+청년모아 · nav 3종 + 활성 underline · 검색(D4) · 알림 종+dot+패널(F2/F2b) · 아바타 드롭다운 · 비인증 로그인 아이콘 · noHeader 페이지 (signup 은 사용자 결정으로 헤더 포함 — 문서화된 의도적 편차)
 
@@ -117,4 +117,4 @@
 - **Q1. wireframe ↔ prototype 정책 충돌 확인** — wireframe 은 백색 고정. HANDOFF 4.4 가 2모드 명시라 prototype 채택 제안, 규칙상 wireframe 충돌은 확인 필수. **(제안: prototype 채택)**
 - **Q2. 로고 white 처리** — `filter: brightness(0) invert(1)` (전환 자연) vs `logo_white.png` 스왑 (결과 확실). **(제안: filter 우선, 시각 확인 후 어색하면 스왑)**
 - **Q3. hero 높이·정렬** — prototype 556px + 중앙 정렬 + 인기검색어 5칩 vs 현행 460px + 좌측 정렬 + 자체 카피 3칩 (F0e 사용자 결정). **(제안: 높이만 556px, 정렬·카피 현행 유지)**
-- **Q4. 신청 완료 페이지 헤더** — prototype 은 헤더 표시, 현행 없음 + 주석 오기. **(제안: 별도 fix 분리)**
+- **Q4. 신청 완료 페이지 헤더** — ~~prototype 은 헤더 표시, 현행 없음~~ **정정 (2026-08-11)**: prototype ApplyComplete L1217~1249 실측 결과 헤더 없음이 정답이며 현행도 헤더 없음으로 이미 정합. `apply-contract-fix` PR 에서 apply·apply-complete 두 화면 모두 헤더 제거 확정 (Q-1(A) apply.md·apply-complete.md). complete.html 주석 오기도 L1217~1249 로 정정 완료. **해소.**

@@ -14,9 +14,10 @@
 <body>
 
 <!--/*
-  prototype.html ProgramApply (line 1108~1197) 기준 — F0c-remainder 3단계 위저드.
+  prototype.tsx ProgramApply L1125~1214 기준 — F0c-remainder 3단계 위저드.
+  - 헤더 미렌더 (prototype 정합, Q-1(A) 확정 2026-08-11)
   - max-width 700, padding 36px 0 48px
-  - 뒤로가기 38x38 아이콘 버튼 (step 1 = 상세로 / step>=2 = 이전 단계)
+  - 뒤로가기 38x38 아이콘 버튼 arrowL SVG (step 1 = 상세로 / step>=2 = 이전 단계)
   - 스텝 프로그레스 3단계: 신청자 정보 / 추가 정보 / 약관 동의
   - Summary 카드 (항상 노출): 64x64 이미지 + 뱃지 + 제목 + 기관·기간
   - 단계 카드 1장 (surface, radius-lg, border-light, shadow-sm)
@@ -27,15 +28,13 @@
   - 단일 form 유지, 클라이언트 JS 로 step 전환. 검증 실패 시 에러 있는 스텝으로 초기 노출.
 */-->
 
-<div th:replace="~{fragments/header :: header('programs')}"></div>
-
 <main class="apply-screen">
     <div class="apply-inner">
 
         <!-- 뒤로가기 아이콘 버튼 (JS 로 step>=2 시 이전 스텝 이동) -->
         <a th:href="@{/programs/{id}(id=${program.id})}" class="apply-back-btn" id="applyBackBtn"
            title="이전으로">
-            <span aria-hidden="true">&larr;</span>
+            <svg th:replace="~{fragments/icons :: arrowL(18, 'var(--color-text-sec)')}"></svg>
         </a>
 
         <h2 class="apply-title">프로그램 신청</h2>

@@ -14,8 +14,8 @@ import { abortExternal, applyNextStep, login, seedEmail } from '../helpers';
  * 여기서는 E2E 관점의 사용자 여정 (실 폼 제출 → 실 redirect → 실 페이지 렌더) 을 검증한다.
  */
 
-// seed29: 어떤 프로그램에도 신청 안 함 (DataInitializer seed loop 상 seed1~seed28만 신청)
-const FRESH_USER = seedEmail(29);
+// seed 39~48 rotation pool (2026-08-12): DataInitializer 50 유저 확장 + 초 단위 rotation.
+// visual-apply-complete.spec.ts 는 seed29~38 을 사용해 pool 분리 → 두 spec 이 같은 초에 실행돼도 collision 없음.
 // program 7 = 청년 문화예술 스쿨 (today-7 ~ today+30, ACTIVE, capacity 40, 시드 신청 없음).
 // program 4 는 endDate=today-5 로 CLOSED 라 신청 자체가 거부됨 → 리다이렉트 안 됨.
 const FRESH_PROGRAM_ID = 7;
@@ -25,7 +25,8 @@ test.beforeEach(async ({ page }) => {
 });
 
 test('신청 제출 후 완료 페이지가 렌더된다 (성공 아이콘·요약 카드·CTA)', async ({ page }) => {
-    await login(page, FRESH_USER);
+    const freshSeedIdx = 39 + (Math.floor(Date.now() / 1000) % 10);
+    await login(page, seedEmail(freshSeedIdx));
 
     // 신청 폼 (3단계 위저드, PR #75 F0c) → 성공 제출
     await page.goto(`/programs/${FRESH_PROGRAM_ID}/apply`, { waitUntil: 'commit' });
@@ -58,7 +59,8 @@ test('신청 제출 후 완료 페이지가 렌더된다 (성공 아이콘·요�
 });
 
 test('존재하지 않는 applicationId 로 접근 시 404', async ({ page }) => {
-    await login(page, FRESH_USER);
+    // 이 테스트는 신청을 만들지 않으므로 seed 소유권 무관 — seed1 사용 (또는 아무 유저)
+    await login(page, seedEmail(1));
     // ResponseStatusException(NOT_FOUND) — 실 응답 상태 코드 검증
     const resp = await page.goto('/apply/complete?applicationId=999999');
     expect(resp?.status()).toBe(404);
