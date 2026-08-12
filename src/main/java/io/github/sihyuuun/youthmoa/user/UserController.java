@@ -84,7 +84,7 @@ public class UserController {
     // F-signup-terms-agreement (2026-07-30 UX 결정): 약관 미동의 헬프는 GroupSequence 우회하여 항상 노출한다.
     // 다른 필수 필드 미입력 상태에서 약관 체크박스가 무반응인 것이 어색하다는 사용자 지적 반영.
     if (!userService.findMissingRequiredTermCodes(signUpRequest.getAgreements()).isEmpty()) {
-      bindingResult.rejectValue("agreements", "terms.required", "이용약관과 개인정보처리방침에 모두 동의해주세요.");
+      bindingResult.rejectValue("agreements", "terms.required", "회원가입약관과 개인정보처리방침에 모두 동의해주세요.");
     }
     if (bindingResult.hasErrors()) {
       // password 의 @Size + @Pattern 위반을 한 문장으로 통합 → model 의 passwordPolicyMsg.
@@ -109,7 +109,7 @@ public class UserController {
       userService.signUp(signUpRequest, true);
     } catch (TermsAgreementException e) {
       // 컨트롤러 사전 검증에서 잡히지 않은 경우 방어. rejectValue → 폼 재렌더.
-      bindingResult.rejectValue("agreements", "terms.required", "이용약관과 개인정보처리방침에 모두 동의해주세요.");
+      bindingResult.rejectValue("agreements", "terms.required", "회원가입약관과 개인정보처리방침에 모두 동의해주세요.");
       model.addAttribute("activeTerms", termRepository.findByIsActiveTrueOrderBySortOrderAsc());
       return "user/signup";
     } catch (IllegalArgumentException e) {

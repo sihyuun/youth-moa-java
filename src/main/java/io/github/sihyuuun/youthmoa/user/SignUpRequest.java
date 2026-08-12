@@ -53,7 +53,7 @@ public class SignUpRequest {
       groups = FormatCheck.class)
   private String password;
 
-  @NotBlank(message = "비밀번호 확인을 입력해주세요.", groups = RequiredCheck.class)
+  @NotBlank(message = "비밀번호를 다시 입력해주세요.", groups = RequiredCheck.class)
   private String passwordConfirm;
 
   // ── 개인 정보 ───────────────────────────────────────

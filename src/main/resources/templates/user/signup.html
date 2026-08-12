@@ -239,8 +239,9 @@
                                    placeholder="상세주소를 입력해주세요"
                                    class="form-input">
                         </div>
-                        <p class="signup-field-error" th:if="${#fields.hasErrors('zipcode')}" th:errors="*{zipcode}"></p>
-                        <p class="signup-field-error" th:if="${#fields.hasErrors('address')}" th:errors="*{address}"></p>
+                        <!-- 주소 블록은 우편번호+주소가 postcode 검색으로 함께 채워지므로 오류도 단일 문구로 통합 (2026-08-12) -->
+                        <p class="signup-field-error"
+                           th:if="${#fields.hasErrors('address') or #fields.hasErrors('zipcode')}">주소를 입력해주세요.</p>
                     </div>
                 </div>
             </section>
