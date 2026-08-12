@@ -19,9 +19,10 @@ import { abortExternal, applyNextStep, login, seedEmail } from '../helpers';
  * program 4 는 CLOSED 라 신청 거부 → 다른 program 사용 불가.
  *
  * seed rotation (2026-08-12): 로컬 반복 실행 시 seed29 가 이미 신청 상태라 실패하던 이슈 해소.
- * DataInitializer 50 유저 확장 + 초(second) 단위 rotation 으로 seed29~48 순환 사용.
- * CI 는 매번 fresh H2 라 어차피 신선하지만, 로컬 다중 실행 방어 목적.
- * 같은 초에 반복 실행하면 여전히 충돌하지만 인간이 그렇게 빠르게 재실행할 일은 없다.
+ * DataInitializer 50 유저 확장 + 초(second) 단위 rotation.
+ * pool 분리: 이 spec 은 seed29~38, `apply-complete.spec.ts` (기능 E2E) 는 seed39~48 사용.
+ * 두 spec 이 같은 초에 실행돼도 pool 이 달라 collision 없음.
+ * CI 는 매번 fresh H2 라 어차피 신선하지만, 로컬 다중 실행·CI 내 순차 실행 모두 방어.
  */
 test('신청 완료 화면 디자인 계약 — 신청 제출 후 실 URL 에서 검증', async ({ page }) => {
     await abortExternal(page);
@@ -30,8 +31,8 @@ test('신청 완료 화면 디자인 계약 — 신청 제출 후 실 URL 에서
         height: applyCompleteContract.viewport.height,
     });
 
-    // 로그인 + 신청 폼 제출로 실 applicationId 확보 (seed 29~48 second-rotation)
-    const seedIdx = 29 + (Math.floor(Date.now() / 1000) % 20);
+    // 로그인 + 신청 폼 제출로 실 applicationId 확보 (seed 29~38 second-rotation)
+    const seedIdx = 29 + (Math.floor(Date.now() / 1000) % 10);
     await login(page, seedEmail(seedIdx));
     await page.goto('/programs/7/apply', { waitUntil: 'commit' });
     await applyNextStep(page, 2);
