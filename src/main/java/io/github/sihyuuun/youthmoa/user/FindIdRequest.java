@@ -20,6 +20,6 @@ public class FindIdRequest {
   private String name;
 
   @NotBlank(message = "핸드폰 번호를 입력해주세요.")
-  @Pattern(regexp = "^01[0-9]-?\\d{3,4}-?\\d{4}$", message = "올바른 휴대폰 번호 형식이 아닙니다.")
+  @Pattern(regexp = "^01[0-9]-?\\d{3,4}-?\\d{4}$", message = "핸드폰 번호를 올바른 양식으로 입력해주세요.")
   private String phone;
 }

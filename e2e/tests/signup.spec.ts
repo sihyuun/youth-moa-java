@@ -56,19 +56,19 @@ test('빈 폼 제출 시 필수 입력 헬프 9개 + 약관 미동의 헬프 노
     await page.locator('button.signup-submit-btn').click();
     const errs = await collectErrors(page);
 
-    // 입력 안 한 9개 필드의 NotBlank/NotNull 메시지
+    // 입력 안 한 필드의 NotBlank/NotNull 메시지 (주소 블록은 우편번호+주소를 하나로 통합 노출)
     expect(errs).toContain('이메일을 입력해주세요.');
     expect(errs).toContain('비밀번호를 입력해주세요.');
-    expect(errs).toContain('비밀번호 확인을 입력해주세요.');
+    expect(errs).toContain('비밀번호를 다시 입력해주세요.');
     expect(errs).toContain('이름을 입력해주세요.');
     expect(errs).toContain('핸드폰 번호를 입력해주세요.');
     expect(errs).toContain('성별을 선택해주세요.');
     expect(errs).toContain('생년월일을 입력해주세요.');
-    expect(errs).toContain('우편번호를 입력해주세요.');
     expect(errs).toContain('주소를 입력해주세요.');
+    expect(errs).not.toContain('우편번호를 입력해주세요.'); // 주소 블록 통합 (2026-08-12)
 
     // F-signup-terms-agreement (2026-07-30 UX 결정): 약관 미동의는 GroupSequence 우회하여 항상 노출
-    expect(errs).toContain('이용약관과 개인정보처리방침에 모두 동의해주세요.');
+    expect(errs).toContain('회원가입약관과 개인정보처리방침에 모두 동의해주세요.');
 
     // 2단계(FormatCheck) 나머지 메시지는 여전히 지연 노출 (RequiredCheck 통과 후 등장)
     const formatMsgs = [
@@ -154,7 +154,7 @@ test('FormatCheck 그룹 내 다중 @AssertTrue 위반 모두 노출 (회귀)', 
     const errs = await collectErrors(page);
     // 3개 모두 노출되어야 함
     expect(errs).toContain('비밀번호와 비밀번호 확인이 일치하지 않습니다.');
-    expect(errs).toContain('이용약관과 개인정보처리방침에 모두 동의해주세요.');
+    expect(errs).toContain('회원가입약관과 개인정보처리방침에 모두 동의해주세요.');
     expect(errs).toContain('아이디 중복확인을 진행해주세요.');
 });
 

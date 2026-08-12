@@ -47,7 +47,7 @@
                  th:errors="*{name}"></div>
 
             <input type="tel" name="phone" th:value="*{phone}"
-                   placeholder="핸드폰 번호 (예: 01012345678)"
+                   placeholder="핸드폰 번호를 입력해주세요."
                    autocomplete="tel"
                    class="auth-input" required>
             <div th:if="${#fields.hasErrors('phone')}" class="auth-field-error"
