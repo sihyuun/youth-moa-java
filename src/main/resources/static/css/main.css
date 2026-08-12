@@ -1507,7 +1507,7 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
 .apply-screen {
   max-width: 700px;
   margin: 0 auto;
-  padding: 36px var(--content-px) 48px;
+  padding: 36px 0 48px;
 }
 
 .apply-inner { width: 100%; }
@@ -3638,7 +3638,7 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
 }
 .apply-complete-card {
   width: 520px;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   padding: 20px;
@@ -3701,7 +3701,7 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
   margin-bottom: 20px;
 }
 .apply-complete-btn {
-  height: 48px;
+  height: 50px;
   border-radius: var(--radius-md);
   font-size: 15px;
   font-weight: 600;

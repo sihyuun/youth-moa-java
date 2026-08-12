@@ -46,7 +46,6 @@ ym-spec 이 산출하고 사용자가 결정까지 마친 명세 모음. **`spec
 | 작업 | 출처 | 내용 |
 |---|---|---|
 | `F0c-dynamic-fields` | F0c Q5 | 관리자 설정 동적 추가정보 (강좌 dropdown·질문·첨부) — admin 트랙 선행 필요 |
-| `fix/apply-complete-header` | F2c Q4 | 신청 완료 페이지 헤더 추가 + complete.html 주석 오기 정정 |
 | admin 프로그램 등록 폼의 자격요건 입력 | F4 | `ProgramEligibility` 스키마 사용 — admin 트랙 |
 | admin 공지사항 첨부파일 업로드 | F-notice-attachment | 다운로드는 PR #130 완료. `POST /admin/notices/{id}/attachments` 추가 필요 |
 | admin 약관 CRUD | F-signup-terms-agreement | Term 엔티티 준비 완료 (PR #125). `POST/PUT /admin/terms` 추가 필요 |
