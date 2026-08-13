@@ -124,4 +124,27 @@ public class NotificationService {
     n.markAsRead();
     return n;
   }
+
+  /**
+   * 개별 알림 삭제 (hard delete). 소유자 검증 후 즉시 제거.
+   *
+   * <p>prototype L1305 close(X) 정합. Notification 엔티티에 soft-delete 컬럼이 없으므로 hard delete.
+   *
+   * @throws org.springframework.web.server.ResponseStatusException 404 — 존재하지 않거나 다른 유저 알림
+   */
+  @Transactional
+  public void delete(Long notificationId, Long userId) {
+    Notification n =
+        notificationRepository
+            .findById(notificationId)
+            .orElseThrow(
+                () ->
+                    new org.springframework.web.server.ResponseStatusException(
+                        org.springframework.http.HttpStatus.NOT_FOUND));
+    if (!n.getUser().getId().equals(userId)) {
+      throw new org.springframework.web.server.ResponseStatusException(
+          org.springframework.http.HttpStatus.NOT_FOUND);
+    }
+    notificationRepository.delete(n);
+  }
 }

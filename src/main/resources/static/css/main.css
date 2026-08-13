@@ -4178,6 +4178,13 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
   font-weight: 600;
   color: var(--color-text);
 }
+/* 전체보기 페이지 아이템 텍스트 (prototype L1300~1303) — 헤더 드롭다운(.notif-item-*)과 크기 분리 */
+.notif-page-item .notif-item-title {
+  font-size: 14.5px;
+}
+.notif-page-item .notif-item-message {
+  font-size: 13.5px;
+}
 .notif-item-message {
   font-size: 13px;
   color: var(--color-text-sec);
@@ -4203,9 +4210,9 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
 }
 .notif-panel-footer:hover { background: var(--color-primary-bg); }
 
-/* ── 전체보기 페이지 (stub) ── */
+/* ── 전체보기 페이지 (prototype L1264 maxWidth:680) ── */
 .notif-page {
-  max-width: 720px;
+  max-width: 680px;
   margin: 40px auto;
   padding: 0 var(--content-px);
 }
@@ -4305,31 +4312,34 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
 }
 .notif-mark-all-btn:hover { color: var(--color-text); }
 
+/* prototype L1276 gap:6, L1278 padding:7px 15px · fontSize:13.5 · active 시 primary-bg + primary text */
 .notif-filter-bar {
   display: flex;
-  gap: 8px;
-  margin-bottom: 16px;
+  gap: 6px;
+  margin-bottom: 18px;
 }
 .notif-filter-pill {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 14px;
+  padding: 7px 15px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-pill);
-  background: #fff;
+  background: var(--color-surface);
   color: var(--color-text-sec);
-  font-size: 13px;
+  font-size: 13.5px;
+  font-weight: 400;
   text-decoration: none;
   transition: all 0.15s;
 }
 .notif-filter-pill:hover { background: var(--color-bg); }
 .notif-filter-pill--active {
-  background: var(--color-primary);
+  background: var(--color-primary-bg);
   border-color: var(--color-primary);
-  color: #fff;
+  color: var(--color-primary);
+  font-weight: 600;
 }
-.notif-filter-pill--active .notif-filter-count { color: rgba(255,255,255,0.85); }
+.notif-filter-pill--active .notif-filter-count { color: var(--color-primary); }
 .notif-filter-count {
   font-size: 12px;
   color: var(--color-text-tri);
@@ -4339,14 +4349,38 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
 .notif-group + .notif-group { margin-top: 24px; }
 .notif-group-header {
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--color-text-sec);
   margin: 0 0 8px;
   padding: 0 4px;
 }
+.notif-page-item {
+  position: relative;
+}
 .notif-page-item.notif-item--unread {
   border-left-color: var(--color-primary);
   background: var(--color-primary-bg);
+}
+
+/* prototype L1305 개별 삭제(X) 버튼 — item 우측 정렬, hover 시 배경 강조 */
+.notif-item-close {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-text-tri);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.notif-item-close:hover {
+  background: var(--color-border-light);
+  color: var(--color-text);
 }
 
 /* ============================================================

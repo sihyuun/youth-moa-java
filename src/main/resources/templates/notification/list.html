@@ -24,10 +24,7 @@
         <button type="button" class="notif-back-btn"
                 onclick="history.length > 1 ? history.back() : (window.location.href='/')"
                 aria-label="뒤로가기">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
-                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M19 12H5M12 19l-7-7 7-7"/>
-            </svg>
+            <svg th:replace="~{fragments/icons :: arrowL(18, 'currentColor')}"></svg>
         </button>
 
         <!-- 타이틀 + 카운트 뱃지 + 모두 읽음 -->
@@ -38,10 +35,7 @@
             </div>
             <form th:if="${unreadCount > 0}" th:action="@{/notifications/read-all}" method="post" class="notif-mark-all-form">
                 <button type="submit" class="notif-mark-all-btn">
-                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor"
-                         stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                        <polyline points="20 6 9 17 4 12"/>
-                    </svg>
+                    <svg th:replace="~{fragments/icons :: check(14, 'currentColor')}"></svg>
                     모두 읽음
                 </button>
             </form>
@@ -74,11 +68,22 @@
                     th:text="${entry.key == 'today' ? '오늘' : (entry.key == 'week' ? '지난 7일' : '이전')}">그룹</h2>
                 <ul class="notif-page-list">
                     <li th:each="n : ${entry.value}"
+                        th:id="'notif-item-' + ${n.id}"
                         th:classappend="${!n.read} ? ' notif-item--unread' : ''"
                         class="notif-page-item">
                         <div th:class="'notif-icon notif-icon--' + ${n.type.toneColor}"
                              th:classappend="${!n.read} ? ' is-unread' : ''"
-                             aria-hidden="true"></div>
+                             aria-hidden="true">
+                            <!--
+                              POLICY P-3: notif-icon 안에 lucide SVG 렌더 (prototype L1295 Icon n={item.icon}).
+                              NotificationType#getIconName() 이 매핑 반환. th:switch 로 fragment 선택.
+                              색: 미읽음(is-unread)은 흰색, 읽음은 currentColor(부모 tone color 상속).
+                            -->
+                            <th:block th:with="iconColor=${!n.read} ? '#fff' : 'currentColor', iconName=${n.type.iconName}">
+                                <!-- 전처리 문법 __${...}__ 로 fragment 이름 치환. th:if 로 th:replace 를 제어할 수 없어 필요. -->
+                                <svg th:replace="~{fragments/icons :: __${iconName}__(16, ${iconColor})}"></svg>
+                            </th:block>
+                        </div>
                         <a th:href="${n.link != null} ? ${n.link} : '#'"
                            th:hx-post="@{/notifications/{id}/read(id=${n.id})}"
                            hx-swap="none"
@@ -88,6 +93,17 @@
                             <div class="notif-item-time"
                                  th:text="${#temporals.format(n.createdAt, 'yyyy.MM.dd HH:mm')}">2026.07.06 12:00</div>
                         </a>
+                        <!--
+                          prototype L1305 close(X) — 개별 삭제.
+                          HTMX POST /notifications/{id}/delete → 204 No Content, hx-target=closest li 를 hx-swap="delete" 로 제거.
+                        -->
+                        <button type="button" class="notif-item-close"
+                                th:hx-post="@{/notifications/{id}/delete(id=${n.id})}"
+                                hx-target="closest li"
+                                hx-swap="delete"
+                                aria-label="알림 삭제">
+                            <svg th:replace="~{fragments/icons :: close(14, 'currentColor')}"></svg>
+                        </button>
                     </li>
                 </ul>
             </div>

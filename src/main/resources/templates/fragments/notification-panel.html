@@ -11,8 +11,9 @@
   OOB swap: 응답에 header-bell-dot 를 hx-swap-oob 로 포함해 헤더 dot 도 동시 갱신.
 -->
 
+<!-- 2026-08-13: id 제거. 헤더 wrapper 가 id="header-notif-dropdown" 를 소유하고 있어 중복 id 문제 발생.
+     HTMX outerHTML swap 이 wrapper 를 덮어써 헤더 레이아웃이 깨지던 버그 조치. -->
 <div th:fragment="panel"
-     id="header-notif-dropdown"
      class="notif-panel">
 
     <div class="notif-panel-head">
@@ -27,7 +28,7 @@
                   method="post"
                   hx-post="/notifications/read-all"
                   hx-target="#header-notif-dropdown"
-                  hx-swap="outerHTML"
+                  hx-swap="innerHTML"
                   class="notif-inline-form">
                 <button type="submit" class="notif-linklike">모두 읽음</button>
             </form>
