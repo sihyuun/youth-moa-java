@@ -6,6 +6,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
@@ -126,6 +127,43 @@ class NotificationControllerTest {
         .perform(post("/notifications/22/read").with(user(principal)).with(csrf()))
         .andExpect(status().isOk())
         .andExpect(model().attribute("redirectLink", "/notifications"));
+  }
+
+  // ── 개별 삭제 (Q-3 / 2026-08-13) ──────────────────────────
+  @Test
+  void POST_id_delete_HX요청은_200_빈본문_반환() throws Exception {
+    // 2026-08-13: HTMX 2.0 은 204 응답 시 swap 스킵. hx-swap="delete" 를 유효하게 하려면 200 이어야 함.
+    mockMvc
+        .perform(
+            post("/notifications/33/delete")
+                .header("HX-Request", "true")
+                .with(user(principal))
+                .with(csrf()))
+        .andExpect(status().isOk());
+
+    org.mockito.Mockito.verify(notificationService).delete(33L, 7L);
+  }
+
+  @Test
+  void POST_id_delete_일반POST는_notifications로_302_리다이렉트() throws Exception {
+    mockMvc
+        .perform(post("/notifications/33/delete").with(user(principal)).with(csrf()))
+        .andExpect(status().is3xxRedirection())
+        .andExpect(header().string("Location", "/notifications"));
+
+    org.mockito.Mockito.verify(notificationService).delete(33L, 7L);
+  }
+
+  @Test
+  void POST_id_delete_소유자_아니면_404_전파() throws Exception {
+    org.mockito.Mockito.doThrow(new org.springframework.web.server.ResponseStatusException(
+            org.springframework.http.HttpStatus.NOT_FOUND))
+        .when(notificationService)
+        .delete(999L, 7L);
+
+    mockMvc
+        .perform(post("/notifications/999/delete").with(user(principal)).with(csrf()))
+        .andExpect(status().isNotFound());
   }
 
   @org.springframework.boot.test.context.TestConfiguration
