@@ -23,8 +23,8 @@ import org.springframework.web.server.ResponseStatusException;
 /**
  * Q-3 (2026-08-13) 개별 알림 삭제 서비스 계층 검증.
  *
- * <p>NotificationServiceDeleteTest — 소유자 검증(다른 유저 알림 접근 시 404), 존재하지 않는 id 시 404, 정상 삭제 시 Repository.delete
- * 위임 확인. hard delete 라 soft-delete 컬럼은 검증 대상 아님.
+ * <p>NotificationServiceDeleteTest — 소유자 검증(다른 유저 알림 접근 시 404), 존재하지 않는 id 시 404, 정상 삭제 시
+ * Repository.delete 위임 확인. hard delete 라 soft-delete 컬럼은 검증 대상 아님.
  */
 @ExtendWith(MockitoExtension.class)
 class NotificationServiceDeleteTest {

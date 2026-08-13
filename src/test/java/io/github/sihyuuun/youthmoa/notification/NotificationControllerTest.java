@@ -156,8 +156,9 @@ class NotificationControllerTest {
 
   @Test
   void POST_id_delete_소유자_아니면_404_전파() throws Exception {
-    org.mockito.Mockito.doThrow(new org.springframework.web.server.ResponseStatusException(
-            org.springframework.http.HttpStatus.NOT_FOUND))
+    org.mockito.Mockito.doThrow(
+            new org.springframework.web.server.ResponseStatusException(
+                org.springframework.http.HttpStatus.NOT_FOUND))
         .when(notificationService)
         .delete(999L, 7L);
 

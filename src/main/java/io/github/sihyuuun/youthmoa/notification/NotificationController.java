@@ -89,8 +89,7 @@ public class NotificationController {
    * <p>HTMX 요청: 200 OK 빈 본문 반환 → 프론트가 대상 li 를 hx-swap="delete" 로 DOM 제거. 폼 제출(non-HX): 302
    * /notifications 리다이렉트.
    *
-   * <p>주의: HTMX 2.0 은 기본적으로 204 No Content 응답 시 swap 을 스킵한다. 대상 li 를 실제로 제거하려면 200 OK
-   * 응답이어야 한다.
+   * <p>주의: HTMX 2.0 은 기본적으로 204 No Content 응답 시 swap 을 스킵한다. 대상 li 를 실제로 제거하려면 200 OK 응답이어야 한다.
    */
   @PostMapping("/notifications/{id}/delete")
   @org.springframework.web.bind.annotation.ResponseBody
