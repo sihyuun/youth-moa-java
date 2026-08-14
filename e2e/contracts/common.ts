@@ -907,15 +907,13 @@ const dropdownChecks: Check[] = [
     },
     {
         id: 'notif.item.remove',
-        desc: '알림 항목 우측 개별 삭제(x) 버튼 — 미구현',
-        selector: '.notif-item .notif-item-remove',
+        desc: '알림 항목 우측 개별 삭제(x) 버튼 (2026-08-13 도입, prototype L356~358)',
+        selector: '.notif-item .notif-item-close',
         kind: 'exists',
         expected: true,
-        proto: 'tsx L356~358 (remove)',
+        proto: 'tsx L356~358 (remove) — /notifications/{id}/delete API 재사용',
         severity: 'P1',
         states: ['auth'],
-        deviation:
-            '알림은 읽음 처리만 제공 (notif.actions.clearAll 과 동일 결정)',
     },
     {
         id: 'notif.item.title.fontSize',

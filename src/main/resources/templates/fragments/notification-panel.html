@@ -19,7 +19,10 @@
     <div class="notif-panel-head">
         <div class="notif-panel-title">
             <span>알림</span>
-            <span th:if="${headerUnreadCount > 0}"
+            <!-- 항상 렌더 (id 안정) — count=0 이면 hidden 속성으로 숨김. OOB 대상. -->
+            <span id="notif-panel-badge"
+                  th:with="visible=${headerUnreadCount > 0}"
+                  th:hidden="${!visible}"
                   class="notif-panel-badge"
                   th:text="${headerUnreadCount}">0</span>
         </div>
@@ -66,13 +69,28 @@
                 </g>
             </svg>
         </div>
+        <!-- 클릭 시 read 처리 (2026-08-13) — hx-post 로 서버에 읽음 통지, 응답 OOB 로 뱃지/dot 즉시 갱신 + HX-Redirect 로 link 이동 -->
         <a th:href="${n.link != null} ? ${n.link} : '/notifications'"
+           th:hx-post="@{/notifications/{id}/read(id=${n.id})}"
+           hx-swap="none"
            class="notif-item-body">
             <div class="notif-item-title" th:text="${n.title}">제목</div>
             <div class="notif-item-message" th:text="${n.message}">본문</div>
             <div class="notif-item-time"
                  th:text="${#temporals.format(n.createdAt, 'MM.dd HH:mm')}">07.06 12:00</div>
         </a>
+        <!--
+          prototype L356 close(X) — 헤더 팝업 개별 삭제 (2026-08-13 추가).
+          /notifications/{id}/delete API 재사용. hx-swap="delete" 로 이 .notif-item 만 제거.
+          badge/dot 갱신은 다음 팝업 오픈 시 동기화 (즉시 갱신은 향후 OOB 확장).
+        -->
+        <button type="button" class="notif-item-close"
+                th:hx-post="@{/notifications/{id}/delete(id=${n.id})}"
+                hx-target="closest .notif-item"
+                hx-swap="delete"
+                aria-label="알림 삭제">
+            <svg th:replace="~{fragments/icons :: close(14, 'currentColor')}"></svg>
+        </button>
     </div>
 
     <a th:href="@{/notifications}" class="notif-panel-footer">알림 전체보기</a>

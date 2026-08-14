@@ -31,7 +31,11 @@
         <div class="notif-page-head">
             <div class="notif-page-title-group">
                 <h1 class="notif-page-title">알림</h1>
-                <span th:if="${unreadCount > 0}" class="notif-unread-badge" th:text="${unreadCount}">0</span>
+                <!-- 항상 렌더 (id 안정) — count=0 이면 hidden. 삭제 endpoint OOB 대상. -->
+                <span id="notif-unread-badge"
+                      th:hidden="${unreadCount == 0}"
+                      class="notif-unread-badge"
+                      th:text="${unreadCount}">0</span>
             </div>
             <form th:if="${unreadCount > 0}" th:action="@{/notifications/read-all}" method="post" class="notif-mark-all-form">
                 <button type="submit" class="notif-mark-all-btn">
