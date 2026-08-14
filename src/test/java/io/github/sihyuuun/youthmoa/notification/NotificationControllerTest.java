@@ -89,7 +89,8 @@ class NotificationControllerTest {
   }
 
   @Test
-  void POST_id_read_개별_읽음_처리후_redirectLink_주입() throws Exception {
+  void POST_id_read_HX요청은_200_OOB_body_HX_Redirect_헤더() throws Exception {
+    // 2026-08-13: read endpoint 갱신 — OOB body + HX-Redirect. view name/model 반환 방식 폐기.
     Notification n =
         Notification.builder()
             .user(seed)
@@ -100,17 +101,22 @@ class NotificationControllerTest {
             .build();
     given(notificationService.markAsRead(11L, 7L)).willReturn(n);
     given(notificationService.unreadCount(seed)).willReturn(3L);
-    given(notificationService.recentForHeader(seed)).willReturn(List.of(n));
 
     mockMvc
-        .perform(post("/notifications/11/read").with(user(principal)).with(csrf()))
+        .perform(
+            post("/notifications/11/read")
+                .header("HX-Request", "true")
+                .with(user(principal))
+                .with(csrf()))
         .andExpect(status().isOk())
-        .andExpect(view().name("fragments/notification-panel :: panel"))
-        .andExpect(model().attribute("redirectLink", "/apply/complete?applicationId=1"));
+        .andExpect(header().string("HX-Redirect", "/apply/complete?applicationId=1"))
+        .andExpect(
+            org.springframework.test.web.servlet.result.MockMvcResultMatchers.content()
+                .string(org.hamcrest.Matchers.containsString("id=\"notif-panel-badge\"")));
   }
 
   @Test
-  void POST_id_read_link_null_이면_기본_notifications_경로() throws Exception {
+  void POST_id_read_link_null_이면_HX_Redirect_헤더_없음() throws Exception {
     Notification n =
         Notification.builder()
             .user(seed)
@@ -121,12 +127,33 @@ class NotificationControllerTest {
             .build();
     given(notificationService.markAsRead(any(), any())).willReturn(n);
     given(notificationService.unreadCount(seed)).willReturn(0L);
-    given(notificationService.recentForHeader(seed)).willReturn(List.of());
 
     mockMvc
-        .perform(post("/notifications/22/read").with(user(principal)).with(csrf()))
+        .perform(
+            post("/notifications/22/read")
+                .header("HX-Request", "true")
+                .with(user(principal))
+                .with(csrf()))
         .andExpect(status().isOk())
-        .andExpect(model().attribute("redirectLink", "/notifications"));
+        .andExpect(header().doesNotExist("HX-Redirect"));
+  }
+
+  @Test
+  void POST_id_read_non_HX_요청은_link_로_302() throws Exception {
+    Notification n =
+        Notification.builder()
+            .user(seed)
+            .type(NotificationType.APPLICATION_APPROVED)
+            .title("t")
+            .message("m")
+            .link("/apply/complete?applicationId=1")
+            .build();
+    given(notificationService.markAsRead(any(), any())).willReturn(n);
+
+    mockMvc
+        .perform(post("/notifications/33/read").with(user(principal)).with(csrf()))
+        .andExpect(status().is3xxRedirection())
+        .andExpect(header().string("Location", "/apply/complete?applicationId=1"));
   }
 
   // ── 개별 삭제 (Q-3 / 2026-08-13) ──────────────────────────
