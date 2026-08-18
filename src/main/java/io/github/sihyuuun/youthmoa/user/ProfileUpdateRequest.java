@@ -45,6 +45,9 @@ public class ProfileUpdateRequest {
   @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
   private LocalDate birthDate;
 
+  /** Q-5 (P-Q2): 성별 편집 허용 (prototype tsx L1526). null / MALE / FEMALE. */
+  private UserGender gender;
+
   // F-signup-03: interests 를 2개 컬럼으로 분리 (관심 지역 + 관심 분야).
   private Set<String> interestRegions = new HashSet<>();
 

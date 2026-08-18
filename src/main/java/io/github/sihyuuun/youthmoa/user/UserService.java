@@ -74,6 +74,7 @@ public class UserService implements UserDetailsService {
         request.getAddress(),
         request.getAddressDetail(),
         request.getBirthDate(),
+        request.getGender(),
         request.getInterestRegions(),
         request.getInterestCategories());
   }

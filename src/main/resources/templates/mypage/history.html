@@ -74,7 +74,7 @@
                     <div class="history-card-head">
                         <span class="history-card-time"
                               th:text="${#temporals.format(app.appliedAt, 'yyyy.MM.dd HH:mm:ss')}">2026.07.05 17:11:31</span>
-                        <a th:href="@{/apply/complete(applicationId=${app.id})}" class="history-card-detail-link">
+                        <a th:href="@{/mypage/applications/{id}(id=${app.id})}" class="history-card-detail-link">
                             <span>신청 상세</span>
                             <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor"
                                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">

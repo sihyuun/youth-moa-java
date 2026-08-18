@@ -5,12 +5,15 @@ import io.github.sihyuuun.youthmoa.application.ApplicationRepository;
 import io.github.sihyuuun.youthmoa.application.ApplicationStatus;
 import io.github.sihyuuun.youthmoa.bookmark.Bookmark;
 import io.github.sihyuuun.youthmoa.bookmark.BookmarkRepository;
+import io.github.sihyuuun.youthmoa.notification.NotificationChannel;
+import io.github.sihyuuun.youthmoa.notification.NotificationChannelResolver;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
@@ -19,9 +22,11 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 /**
@@ -52,6 +57,9 @@ public class MyPageController {
   private final UserService userService;
   private final ApplicationRepository applicationRepository;
   private final BookmarkRepository bookmarkRepository;
+  private final NotificationChannelResolver notificationChannelResolver;
+  private final io.github.sihyuuun.youthmoa.program.ProgramService programService;
+  private final io.github.sihyuuun.youthmoa.region.RegionRepository regionRepository;
 
   @GetMapping
   @Transactional(readOnly = true)
@@ -69,9 +77,18 @@ public class MyPageController {
 
     switch (tab) {
       case "favorites" -> {
+        // Q-2: prototype 은 즐겨찾기 목록도 ProgramCard 재사용. bookmarks → Program 추출 →
+        // ProgramCardDto 로 변환해 program 카드 그리드와 동일 UI 노출.
         List<Bookmark> bookmarks =
             bookmarkRepository.findAllByUserOrderByCreatedAtDesc(currentUser);
+        List<io.github.sihyuuun.youthmoa.program.Program> programs =
+            bookmarks.stream().map(Bookmark::getProgram).toList();
         model.addAttribute("bookmarks", bookmarks);
+        model.addAttribute("cardDtos", programService.toCardDtos(programs));
+        // bookmark 토글 재사용을 위해 bookmarked id 셋
+        model.addAttribute(
+            "bookmarkedIds",
+            programs.stream().map(p -> p.getId()).collect(java.util.stream.Collectors.toSet()));
         return "mypage/favorites";
       }
       case "noti" -> {
@@ -116,6 +133,40 @@ public class MyPageController {
         return "mypage/history";
       }
     }
+  }
+
+  /**
+   * D5 Q-1: 신청 상세 페이지 (prototype tsx L1442 application-detail).
+   *
+   * <p>소유자 검증: application 의 user id 가 현재 로그인 사용자와 다르면 404. 존재 여부 자체를 노출하지 않기 위해 403 이 아닌 404.
+   *
+   * <p>기존 {@code /apply/complete?applicationId=X} 는 신청 직후 완료 화면으로 유지 (다른 사용 맥락). 여기는 마이페이지 신청 내역에서
+   * 열람하는 상세 뷰다.
+   */
+  @GetMapping("/applications/{id}")
+  @Transactional(readOnly = true)
+  public String applicationDetail(
+      @PathVariable("id") Long applicationId,
+      @AuthenticationPrincipal UserDetails principal,
+      Model model) {
+    User currentUser = loadUser(principal);
+    Application application =
+        applicationRepository
+            .findWithProgramAndUserById(applicationId)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+    if (!application.getUser().getId().equals(currentUser.getId())) {
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+    }
+    addSummary(currentUser, model);
+    model.addAttribute("currentTab", "history");
+    model.addAttribute("currentPage", "mypage");
+
+    List<NotificationChannel> channels = notificationChannelResolver.activeChannelsFor(currentUser);
+    // "application" 예약어 회피 (Thymeleaf ServletContext scope) → myApplication
+    model.addAttribute("myApplication", application);
+    model.addAttribute("program", application.getProgram());
+    model.addAttribute("channels", channels);
+    return "mypage/application-detail";
   }
 
   /**
@@ -181,11 +232,43 @@ public class MyPageController {
       req.setAddress(currentUser.getAddress());
       req.setAddressDetail(currentUser.getAddressDetail());
       req.setBirthDate(currentUser.getBirthDate());
+      req.setGender(currentUser.getGender());
       req.setInterestRegions(currentUser.getInterestRegions());
       req.setInterestCategories(currentUser.getInterestCategories());
       model.addAttribute("profileUpdateRequest", req);
     }
+    // P-Q1: 관심 편집 모달용 옵션 (welcome 과 동일 소스)
+    List<String> topRegions =
+        regionRepository.findAllByIsFeaturedTrueOrderByNameAsc().stream()
+            .map(io.github.sihyuuun.youthmoa.region.Region::getName)
+            .toList();
+    List<String> moreRegions =
+        regionRepository.findAllByIsFeaturedFalseOrderByNameAsc().stream()
+            .map(io.github.sihyuuun.youthmoa.region.Region::getName)
+            .toList();
+    model.addAttribute("welcomeRegionsTop", topRegions);
+    model.addAttribute("welcomeRegionsMore", moreRegions);
+    model.addAttribute("welcomeCategories", UserInterestCategory.ALL);
     return "mypage/profile-edit";
+  }
+
+  /** P-Q1 (Q-3): 관심 지역/분야 편집 저장. HTMX 폼 POST → 편집 화면 재로드. */
+  @PostMapping("/interests")
+  public String updateInterests(
+      @RequestParam(name = "regions", required = false) java.util.Set<String> regions,
+      @RequestParam(name = "categories", required = false) java.util.Set<String> categories,
+      @AuthenticationPrincipal UserDetails principal,
+      HttpSession session,
+      RedirectAttributes redirectAttributes) {
+    if (!isProfileVerified(session)) {
+      return "redirect:/mypage?tab=profile";
+    }
+    userService.updateInterests(
+        principal.getUsername(),
+        regions != null ? regions : java.util.Collections.emptySet(),
+        categories != null ? categories : java.util.Collections.emptySet());
+    redirectAttributes.addFlashAttribute("mypageToast", "관심 정보를 저장했어요");
+    return "redirect:/mypage/profile/edit";
   }
 
   @PostMapping("/profile")

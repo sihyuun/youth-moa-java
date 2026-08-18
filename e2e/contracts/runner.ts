@@ -75,10 +75,10 @@ function isPass(check: Check, actual: string): boolean {
 }
 
 /**
- * 계약의 한 상태(anon/auth) 분을 실행한다.
- * 페이지는 호출자가 미리 목표 경로로 이동시켜 둔 상태여야 한다.
+ * 계약의 한 상태(anon/auth) 분을 측정만 수행 (assert 없음).
+ * 여러 페이지/탭을 순회하며 결과를 병합해야 하는 경우 사용.
  */
-export async function runContract(
+export async function collectContract(
     page: Page,
     contract: ScreenContract,
     state: AuthState,
@@ -86,14 +86,16 @@ export async function runContract(
     const targets = contract.checks.filter(
         c => (c.states ?? ['anon']).includes(state) && !c.deviation && !c.deferred,
     );
-
     const results: CheckResult[] = [];
     for (const check of targets) {
         const actual = await measure(page, check);
         results.push({ check, pass: isPass(check, actual), actual });
     }
+    return results;
+}
 
-    // soft assertion — 전 항목을 보고하고 스위트는 끝까지 진행
+/** 결과 배열에 대해 soft assertion 만 수행. collectContract 병합 후 최종 관문에서 사용. */
+export function assertResults(results: CheckResult[]): void {
     for (const r of results) {
         expect
             .soft(
@@ -102,14 +104,25 @@ export async function runContract(
             )
             .toBe(
                 r.check.kind === 'box'
-                    ? // box 는 tolerance 를 쓰므로, 통과 시 기대값을 그대로 넣어 메시지 노이즈를 없앤다
-                      r.pass
+                    ? r.pass
                         ? r.actual
                         : String(r.check.expected)
                     : String(r.check.expected),
             );
     }
+}
 
+/**
+ * 계약의 한 상태(anon/auth) 분을 실행한다.
+ * 페이지는 호출자가 미리 목표 경로로 이동시켜 둔 상태여야 한다.
+ */
+export async function runContract(
+    page: Page,
+    contract: ScreenContract,
+    state: AuthState,
+): Promise<CheckResult[]> {
+    const results = await collectContract(page, contract, state);
+    assertResults(results);
     return results;
 }
 
