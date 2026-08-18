@@ -5480,12 +5480,18 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
 .mypage-summary {
     background: var(--color-surface);
     border-radius: var(--radius-lg);
-    padding: 24px 28px;
     box-shadow: var(--shadow-sm);
     border: 1px solid var(--color-border-light);
     margin-bottom: 24px;
 }
-.mypage-summary-inner { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+/* P2 (2026-08-18): prototype L1353 padding: 26px 30px 은 inner 컨테이너 기준. */
+.mypage-summary-inner {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+    padding: 26px 30px;
+}
 .mypage-summary-avatar {
     width: 58px; height: 58px;
     border-radius: 50%;
@@ -5495,7 +5501,7 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
     display: flex; align-items: center; justify-content: center;
 }
 .mypage-summary-info { flex: 1; min-width: 200px; }
-.mypage-summary-hello { font-size: 18px; font-weight: 700; margin: 0 0 4px; }
+.mypage-summary-hello { font-size: 20px; font-weight: 700; margin: 0 0 4px; }
 .mypage-summary-email { font-size: 13px; color: var(--color-text-sec); margin: 0 0 8px; }
 /* prototype.tsx L1236~1252 매칭: 관심 정보 그룹형 (아이콘+라벨 + 값칩 + `+N` + 편집 링크) */
 .mypage-interest-groups {
@@ -5578,7 +5584,7 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
     font-weight: 700;
 }
 
-.mypage-section-title { font-size: 18px; font-weight: 700; margin: 0 0 6px; }
+.mypage-section-title { font-size: 20px; font-weight: 700; margin: 0 0 6px; }
 .mypage-section-subtitle { font-size: 13px; color: var(--color-text-tri); margin: 0 0 16px; }
 .mypage-section-hint { font-size: 13px; color: var(--color-text-sec); margin-bottom: 16px; }
 
@@ -5725,7 +5731,13 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
 }
 
 /* ── D5 알림 설정 탭 (prototype L1555~1580) ─────────────────────────── */
-.mypage-noti { max-width: 620px; margin: 0 auto; }
+/* 2026-08-18: 알림 카드는 다른 mypage 카드(history/favorites)와 폭 일치, profile 탭과 정렬 통일.
+   - h3·섹션 헤더·서브 텍스트 → 카드 왼쪽 padding
+   - 실제 컨트롤(채널 리스트·항목 리스트·자동 저장 힌트) → 가운데 폭 560 (prototype tsx L1560/L1571) */
+.mypage-noti { margin: 0; }
+.mypage-noti .noti-channel-list,
+.mypage-noti .noti-item-list { max-width: 560px; margin-left: auto; margin-right: auto; }
+.mypage-noti .noti-autosave-hint { max-width: 560px; margin-left: auto; margin-right: auto; }
 .noti-section-heading { font-size: 16px; font-weight: 700; color: var(--color-text); margin: 20px 0 4px; }
 .noti-section-heading:first-of-type { margin-top: 8px; }
 .noti-section-sub { font-size: 13px; color: var(--color-text-sec); margin: 0 0 14px; }
