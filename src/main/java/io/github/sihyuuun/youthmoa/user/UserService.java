@@ -67,6 +67,9 @@ public class UserService implements UserDetailsService {
       user.changePassword(passwordEncoder.encode(pw));
     }
 
+    // 2026-08-18: 프로필 저장 폼에는 interests 필드가 없다 (관심 편집은 /mypage/interests 별도 endpoint).
+    // ProfileUpdateRequest 기본값이 empty Set 이라 그대로 전달하면 관심 정보가 초기화되는 버그가 있었음.
+    // 현재 값 그대로 전달해 profile 저장이 interests 를 건드리지 않도록 보장.
     user.updateProfile(
         request.getName(),
         request.getPhone(),
@@ -75,8 +78,8 @@ public class UserService implements UserDetailsService {
         request.getAddressDetail(),
         request.getBirthDate(),
         request.getGender(),
-        request.getInterestRegions(),
-        request.getInterestCategories());
+        user.getInterestRegions(),
+        user.getInterestCategories());
   }
 
   /** F-signup-03: WelcomeScreen 에서 관심 지역/분야 저장. */
