@@ -2,7 +2,7 @@
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>마이페이지 — 개인정보 · 청년모아</title>
+    <title>마이페이지 — 개인 정보 · 청년모아</title>
     <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" rel="stylesheet">
     <link rel="icon" type="image/png" th:href="@{/images/logo_symbol.png}">
     <link rel="stylesheet" th:href="@{/css/main.css}">
@@ -17,38 +17,42 @@
     <div class="container">
         <div th:replace="~{mypage/layout :: head}"></div>
 
-        <section class="mypage-profile-verify">
-            <h3 class="mypage-section-title">개인정보 수정</h3>
+        <section class="mypage-profile-verify mypage-card">
+            <h3 class="mypage-section-title">개인 정보 수정</h3>
             <p class="mypage-section-hint">본인 확인을 위해 비밀번호를 다시 입력해 주세요.</p>
 
             <div th:if="${profileVerifyError}" class="alert alert-error"
                  th:text="${profileVerifyError}"></div>
 
             <form th:action="@{/mypage/profile/verify}" method="post" class="mypage-verify-form">
-                <div class="mypage-verify-field">
-                    <label class="visually-hidden" for="verifyEmail">아이디</label>
-                    <input id="verifyEmail" type="email" class="auth-input"
-                           th:value="${myUser.email}" readonly>
-                </div>
-                <div class="mypage-verify-field">
-                    <label class="visually-hidden" for="verifyPassword">비밀번호</label>
-                    <!-- F-wireframe #9: 비밀번호 표시 토글 (login .auth-eye-btn 패턴 재사용) -->
-                    <div class="auth-input-with-eye">
-                        <input id="verifyPassword" type="password" name="password"
-                               class="auth-input auth-input--with-eye"
-                               placeholder="비밀번호" required autocomplete="current-password">
-                        <button type="button" class="auth-eye-btn" data-target="verifyPassword"
-                                aria-label="비밀번호 표시 전환">
-                            <svg class="auth-eye-icon" viewBox="0 0 24 24" width="18" height="18"
-                                 fill="none" stroke="currentColor" stroke-width="1.5"
-                                 stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/>
-                                <circle cx="12" cy="12" r="3"/>
-                            </svg>
-                        </button>
+                <div class="mypage-verify-grid">
+                    <label class="mypage-verify-label" for="verifyEmail">아이디</label>
+                    <div class="mypage-verify-field">
+                        <input id="verifyEmail" type="email" class="auth-input"
+                               th:value="${myUser.email}" readonly>
+                    </div>
+                    <label class="mypage-verify-label" for="verifyPassword">비밀번호 <span class="required">*</span></label>
+                    <div class="mypage-verify-field">
+                        <!-- F-wireframe #9: 비밀번호 표시 토글 (login .auth-eye-btn 패턴 재사용) -->
+                        <div class="auth-input-with-eye">
+                            <input id="verifyPassword" type="password" name="password"
+                                   class="auth-input auth-input--with-eye"
+                                   placeholder="비밀번호를 입력해주세요." required autocomplete="current-password">
+                            <button type="button" class="auth-eye-btn" data-target="verifyPassword"
+                                    aria-label="비밀번호 표시 전환">
+                                <svg class="auth-eye-icon" viewBox="0 0 24 24" width="18" height="18"
+                                     fill="none" stroke="currentColor" stroke-width="1.5"
+                                     stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/>
+                                    <circle cx="12" cy="12" r="3"/>
+                                </svg>
+                            </button>
+                        </div>
                     </div>
                 </div>
-                <button type="submit" class="btn-auth btn-auth--primary">확인</button>
+                <div class="mypage-verify-actions">
+                    <button type="submit" class="btn-auth btn-auth--primary">확인</button>
+                </div>
             </form>
         </section>
     </div>

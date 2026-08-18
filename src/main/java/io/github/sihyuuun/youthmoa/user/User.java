@@ -183,6 +183,7 @@ public class User extends BaseTimeEntity {
       String address,
       String addressDetail,
       LocalDate birthDate,
+      UserGender gender,
       Set<String> interestRegions,
       Set<String> interestCategories) {
     this.name = name;
@@ -191,6 +192,10 @@ public class User extends BaseTimeEntity {
     this.address = address;
     this.addressDetail = addressDetail;
     this.birthDate = birthDate;
+    // Q-5: 성별 편집 허용 (null 이면 미변경)
+    if (gender != null) {
+      this.gender = gender;
+    }
     this.interestRegions = interestRegions != null ? interestRegions : new HashSet<>();
     this.interestCategories = interestCategories != null ? interestCategories : new HashSet<>();
   }

@@ -22,6 +22,14 @@ export function seedEmail(n: number): string {
 }
 
 /**
+ * 시드 유저 비밀번호. DataInitializer 시드는 seed1~30 이 모두 SEED_PASS 를 사용.
+ * mypage-profile-edit 계약처럼 재확인 폼 통과가 필요한 시나리오용.
+ */
+export function seedPassword(_n: number): string {
+    return SEED_PASS;
+}
+
+/**
  * 외부 도메인 (CDN/폰트 등) 호출을 모두 차단한다.
  * 회사 PC SSL 프록시 환경에서 hang 회피 목적.
  * test.beforeEach 안에서 호출.

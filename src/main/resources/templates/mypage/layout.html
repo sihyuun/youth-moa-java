@@ -49,18 +49,19 @@
                 </div>
             </div>
             <div class="mypage-summary-kpis">
-                <div class="mypage-kpi">
+                <!-- Q-4: KPI 카드 clickable (prototype tsx L1380 setTab). 서버 렌더 등가 = ?tab= 링크. -->
+                <a class="mypage-kpi" th:href="@{/mypage(tab='history', status='PENDING')}">
                     <div class="mypage-kpi-value" th:text="${kpiOngoing}">0</div>
                     <div class="mypage-kpi-label">진행중인 신청</div>
-                </div>
-                <div class="mypage-kpi">
+                </a>
+                <a class="mypage-kpi" th:href="@{/mypage(tab='history', status='REJECTED')}">
                     <div class="mypage-kpi-value" th:text="${kpiFinished}">0</div>
                     <div class="mypage-kpi-label">종료된 신청</div>
-                </div>
-                <div class="mypage-kpi">
+                </a>
+                <a class="mypage-kpi" th:href="@{/mypage(tab='favorites')}">
                     <div class="mypage-kpi-value" th:text="${kpiFavorites}">0</div>
                     <div class="mypage-kpi-label">즐겨찾기</div>
-                </div>
+                </a>
             </div>
         </div>
     </section>
@@ -84,7 +85,7 @@
         <a th:href="@{/mypage(tab='profile')}"
            th:class="${currentTab == 'profile'} ? 'mypage-tab active' : 'mypage-tab'">
             <svg th:replace="~{fragments/icons :: user(16, 'currentColor')}"></svg>
-            <span>개인정보 수정</span>
+            <span>개인 정보 수정</span>
         </a>
     </nav>
 

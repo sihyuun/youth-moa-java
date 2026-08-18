@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>마이페이지 — 신청 상세 · 청년모아</title>
+    <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" rel="stylesheet">
+    <link rel="icon" type="image/png" th:href="@{/images/logo_symbol.png}">
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+    <meta name="_csrf" th:content="${_csrf?.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf?.headerName}"/>
+</head>
+<body>
+
+<!--
+  D5 Q-1 신청 상세 (prototype tsx L1442 application-detail).
+  마이페이지 신청 내역 카드 → "신청 상세" 링크 진입 시 이 화면.
+  기존 /apply/complete 는 신청 직후 완료 화면 (다른 맥락) — 재사용 X.
+-->
+
+<div th:replace="~{fragments/header :: header('mypage')}"></div>
+
+<main class="mypage-page">
+    <div class="container">
+        <div th:replace="~{mypage/layout :: head}"></div>
+
+        <section class="mypage-application-detail mypage-card">
+            <div class="mypage-application-head">
+                <a th:href="@{/mypage(tab='history')}" class="mypage-application-back">
+                    <svg th:replace="~{fragments/icons :: arrowL(16, 'currentColor')}"></svg>
+                    <span>신청 내역으로</span>
+                </a>
+                <h3 class="mypage-section-title">신청 상세</h3>
+            </div>
+
+            <div class="mypage-application-summary">
+                <div class="history-card-thumb">
+                    <img th:if="${program.imageUrl != null}"
+                         th:src="${program.imageUrl}" alt=""/>
+                    <div th:if="${program.imageUrl == null}" class="history-card-thumb-placeholder"></div>
+                </div>
+                <div class="mypage-application-info">
+                    <div class="mypage-application-title-row">
+                        <a th:href="@{/programs/{id}(id=${program.id})}"
+                           class="history-card-title"
+                           th:text="${program.title}">프로그램 제목</a>
+                        <span th:class="'history-status-badge history-status-badge--' + ${myApplication.status.name().toLowerCase()}"
+                              th:text="${myApplication.status.name() == 'APPROVED' ? '승인'
+                                      : (myApplication.status.name() == 'PENDING' ? '대기'
+                                      : (myApplication.status.name() == 'REJECTED' ? '반려' : '취소'))}">승인</span>
+                    </div>
+                    <div class="history-card-sub">
+                        <span th:text="${program.organization}">기관</span>
+                        <span th:if="${program.region != null}"
+                              th:text="' · ' + ${program.region}"> · 지역</span>
+                    </div>
+                    <div class="history-card-sub"
+                         th:if="${program.startDate != null and program.endDate != null}"
+                         th:text="${#temporals.format(program.startDate, 'yyyy.MM.dd')} + ' ~ ' + ${#temporals.format(program.endDate, 'yyyy.MM.dd')}">
+                        기간
+                    </div>
+                </div>
+            </div>
+
+            <dl class="mypage-application-meta">
+                <div>
+                    <dt>신청 번호</dt>
+                    <dd th:text="'#A' + ${myApplication.id}">#A123</dd>
+                </div>
+                <div>
+                    <dt>신청 일시</dt>
+                    <dd th:text="${#temporals.format(myApplication.appliedAt, 'yyyy.MM.dd HH:mm:ss')}">2026.07.05 17:11:31</dd>
+                </div>
+                <div th:if="${myApplication.applyReason != null and !myApplication.applyReason.isBlank()}">
+                    <dt>지원 동기</dt>
+                    <dd th:text="${myApplication.applyReason}">지원 동기</dd>
+                </div>
+            </dl>
+
+            <div class="mypage-application-actions">
+                <a th:href="@{/programs/{id}(id=${program.id})}" class="btn-outline btn-outline--sm">프로그램 보기</a>
+                <a th:if="${myApplication.status.name() == 'REJECTED' or myApplication.status.name() == 'CANCELLED'}"
+                   th:href="@{/programs/{id}/apply(id=${program.id})}"
+                   class="btn-auth btn-auth--primary">재신청</a>
+                <button th:if="${myApplication.status.name() == 'PENDING' or myApplication.status.name() == 'APPROVED'}"
+                        type="button"
+                        class="btn-outline btn-outline--sm btn-outline--danger"
+                        th:attr="data-app-id=${myApplication.id},data-app-title=${program.title}"
+                        onclick="openCancelModalDetail(this)">신청 취소</button>
+            </div>
+        </section>
+
+        <!-- 취소 모달 (history.html 과 동일 마크업 재사용) -->
+        <div id="cancelModal" class="modal-backdrop" aria-hidden="true" hidden>
+            <div class="modal-card modal-card--sm" role="dialog" aria-modal="true" aria-labelledby="cancelModalHeading">
+                <div class="modal-card__header">
+                    <h3 class="modal-card__title" id="cancelModalHeading">신청을 취소하시겠어요?</h3>
+                    <button type="button" class="modal-card__close" aria-label="닫기" onclick="closeCancelModalDetail()">
+                        <svg th:replace="~{fragments/icons :: close(20, 'currentColor')}"></svg>
+                    </button>
+                </div>
+                <div class="modal-card__body">
+                    <p class="modal-card__message" id="cancelModalTitle"></p>
+                    <form th:action="@{/mypage/applications/__/cancel}" method="post" id="cancelForm">
+                        <fieldset class="mypage-reason-list">
+                            <legend class="visually-hidden">취소 사유</legend>
+                            <label><input type="radio" name="reasonCode" value="CHANGE_MIND" required> 단순 변심</label>
+                            <label><input type="radio" name="reasonCode" value="SCHEDULE_CONFLICT"> 일정이 맞지 않음</label>
+                            <label><input type="radio" name="reasonCode" value="DUPLICATE_APPLY"> 중복 신청</label>
+                            <label><input type="radio" name="reasonCode" value="PERSONAL"> 개인 사유</label>
+                            <label><input type="radio" name="reasonCode" value="OTHER" id="reasonOther"> 기타</label>
+                        </fieldset>
+                        <textarea name="reasonText" id="reasonText" maxlength="100"
+                                  placeholder="기타 사유 (최대 100자)" hidden></textarea>
+                        <div class="modal-card__footer">
+                            <button type="button" onclick="closeCancelModalDetail()" class="btn-auth btn-auth--secondary">닫기</button>
+                            <button type="submit" class="btn-auth btn-auth--danger">확인</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+<script>
+    let currentAppId = null;
+    function openCancelModalDetail(btn) {
+        currentAppId = btn.dataset.appId;
+        document.getElementById('cancelModalTitle').textContent = btn.dataset.appTitle;
+        const form = document.getElementById('cancelForm');
+        form.action = '/mypage/applications/' + currentAppId + '/cancel';
+        if (window.Modal) { window.Modal.open('cancelModal'); }
+        else { document.getElementById('cancelModal').hidden = false; }
+    }
+    function closeCancelModalDetail() {
+        if (window.Modal) { window.Modal.close('cancelModal'); }
+        else { document.getElementById('cancelModal').hidden = true; }
+    }
+    document.querySelectorAll('input[name="reasonCode"]').forEach(radio => {
+        radio.addEventListener('change', e => {
+            const ta = document.getElementById('reasonText');
+            const isOther = e.target.value === 'OTHER';
+            ta.hidden = !isOther;
+            ta.required = isOther;
+        });
+    });
+</script>
+
+</body>
+</html>

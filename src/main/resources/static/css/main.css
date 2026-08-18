@@ -5472,7 +5472,9 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
  * D5 마이페이지 (My Page)
  * ═══════════════════════════════════════════════ */
 
-.mypage-page { max-width: var(--content-max); margin: 40px auto; padding: 0 var(--content-px); }
+.mypage-page { margin: 40px auto; padding: 0; }
+/* P0 C1: prototype.tsx L1351 maxWidth:1080 — mypage 전용 컨테이너 폭 override */
+.mypage-page > .container { max-width: 1080px; }
 
 /* 프로필 요약 카드 */
 .mypage-summary {
@@ -5525,9 +5527,20 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
 }
 .mypage-interest-edit:hover { text-decoration: underline; }
 
-.mypage-summary-kpis { display: flex; gap: 24px; }
-.mypage-kpi { text-align: center; }
-.mypage-kpi-value { font-size: 22px; font-weight: 700; color: var(--color-primary); }
+/* P0 C2: prototype.tsx L1378~1389 — KPI 3개 borderLeft divider, 첫 항목 제외 */
+.mypage-summary-kpis { display: flex; gap: 0; }
+.mypage-kpi {
+    text-align: center;
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+    padding: 8px 26px;
+    border-radius: 0;
+    transition: background .12s;
+}
+.mypage-kpi + .mypage-kpi { border-left: 1px solid var(--color-border-light); }
+.mypage-kpi:hover { background: var(--color-primary-bg); }
+.mypage-kpi-value { font-size: 24px; font-weight: 800; color: var(--color-primary); }
 .mypage-kpi-label { font-size: 12px; color: var(--color-text-sec); margin-top: 2px; }
 
 /* 상단 탭 세그먼트 */
@@ -5683,10 +5696,8 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
 .history-card-sub { font-size: 13px; color: var(--color-text-sec); margin-bottom: 12px; }
 .history-card-actions { display: flex; justify-content: flex-end; gap: 8px; }
 
-/* outline 버튼 사이즈·바리안트 */
+/* outline 버튼 사이즈·바리안트 (P0 H11 danger 는 L6082 로 이관 — L6062 .btn-outline 재정의 후행 이슈 해소) */
 .btn-outline--sm { height: auto; padding: 6px 14px; font-size: 13px; }
-.btn-outline--danger { border-color: var(--color-error); color: var(--color-error); }
-.btn-outline--danger:hover { background: #FEF2F2; }
 .btn-outline--secondary { border-color: var(--color-secondary); color: var(--color-secondary); }
 .btn-outline--secondary:hover { background: var(--color-secondary-light); }
 
@@ -5696,16 +5707,22 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
 .status-rejected { background: #FEE2E2; color: var(--color-error); }
 .status-cancelled { background: var(--color-bg); color: var(--color-text-tri); }
 
-/* 즐겨찾기 */
-.mypage-favorites-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
-.mypage-favorites-card {
-    background: var(--color-surface);
-    border: 1px solid var(--color-border-light);
-    border-radius: var(--radius-md);
-    padding: 14px 18px;
+/* 즐겨찾기 (Q-2: ProgramCard 재사용 그리드) */
+.mypage-favorites-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
 }
-.mypage-favorites-title { font-size: 15px; font-weight: 600; color: var(--color-text); text-decoration: none; display: block; margin-bottom: 4px; }
-.mypage-favorites-sub { font-size: 13px; color: var(--color-text-sec); }
+.mypage-favorites-card { position: relative; }
+@media (max-width: 900px) {
+    .mypage-favorites-list { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 600px) {
+    .mypage-favorites-list { grid-template-columns: 1fr; }
+}
 
 /* ── D5 알림 설정 탭 (prototype L1555~1580) ─────────────────────────── */
 .mypage-noti { max-width: 620px; margin: 0 auto; }
@@ -5828,8 +5845,25 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
 }
 
 /* 프로필 편집 */
-.mypage-verify-form { display: grid; gap: 12px; max-width: 400px; }
+/* P0 PV1-3: prototype.tsx L1493~1500 — maxWidth 480 중앙 정렬, 90px 라벨 그리드 */
+.mypage-verify-form { max-width: 480px; margin: 0 auto; }
+.mypage-verify-grid {
+    display: grid;
+    grid-template-columns: 90px 1fr;
+    gap: 14px 16px;
+    align-items: center;
+    margin-bottom: 20px;
+}
+.mypage-verify-label {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--color-text);
+}
+.mypage-verify-label .required { color: var(--color-error); }
 .mypage-verify-field {}
+/* P0 PV6: 확인 버튼 컴팩트 · 중앙 정렬 */
+.mypage-verify-actions { display: flex; justify-content: center; }
+.mypage-verify-actions .btn-auth { width: auto; min-width: 120px; padding-left: 24px; padding-right: 24px; }
 .mypage-edit-form { display: grid; gap: 16px; max-width: 480px; }
 .mypage-edit-field { display: grid; gap: 6px; }
 .mypage-edit-field label { font-size: 13px; font-weight: 600; color: var(--color-text-sec); }
@@ -5902,6 +5936,112 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
     color: var(--color-primary);
     font-weight: 600;
 }
+/* Q-5: gender-pill 을 <button> 으로 변경 → 기본 브라우저 스타일 초기화 + SVG 정렬 */
+button.gender-pill {
+    cursor: pointer;
+    font-family: inherit;
+    gap: 6px;
+}
+button.gender-pill svg { flex-shrink: 0; }
+
+/* P-Q3: 아이콘 + 텍스트 outline 버튼 */
+.btn-outline--icon { display: inline-flex; align-items: center; gap: 6px; }
+
+/* Q-3 / P-Q1: 관심 편집 진입 섹션 (profile-edit 하단) */
+.mypage-edit-interest-section {
+    grid-column: 1 / -1;
+    margin-top: 8px;
+    padding: 14px 16px;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-md);
+    max-width: 560px;
+}
+.mypage-edit-interest-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+.mypage-edit-interest-title { font-size: 14px; font-weight: 700; color: var(--color-text); }
+.mypage-edit-interest-sub { font-size: 12px; color: var(--color-text-sec); margin-top: 4px; }
+
+/* 관심 편집 모달 (prototype tsx L1798 InterestEditModal) */
+.modal-card--wide { max-width: 620px; width: min(620px, calc(100vw - 32px)); }
+.interest-section { margin-bottom: 20px; }
+.interest-section-head { display: flex; align-items: center; gap: 6px; margin-bottom: 10px; }
+.interest-section-title { font-size: 14px; font-weight: 700; color: var(--color-text); }
+.interest-chip-group { display: flex; flex-wrap: wrap; gap: 8px; }
+.interest-chip-label { cursor: pointer; }
+.interest-chip-label input { display: none; }
+.interest-chip {
+    display: inline-block;
+    padding: 8px 14px;
+    border-radius: 20px;
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--color-text-sec);
+    white-space: nowrap;
+    transition: all .15s;
+}
+.interest-chip-label.is-on .interest-chip {
+    border-color: var(--color-primary);
+    background: var(--color-primary-bg);
+    color: var(--color-primary);
+    font-weight: 600;
+}
+
+/* 신청 상세 페이지 (Q-1) */
+.mypage-application-detail .mypage-application-head {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 20px;
+}
+.mypage-application-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 13px;
+    color: var(--color-text-sec);
+    text-decoration: none;
+}
+.mypage-application-back:hover { color: var(--color-primary); }
+.mypage-application-summary {
+    display: flex;
+    gap: 16px;
+    padding: 18px;
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+}
+.mypage-application-info { flex: 1; }
+.mypage-application-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 6px;
+}
+.mypage-application-meta {
+    margin: 20px 0 0;
+    padding: 16px 18px;
+    background: var(--color-bg);
+    border-radius: var(--radius-md);
+    display: grid;
+    gap: 10px;
+}
+.mypage-application-meta div { display: grid; grid-template-columns: 100px 1fr; gap: 10px; align-items: baseline; }
+.mypage-application-meta dt { font-size: 13px; color: var(--color-text-sec); margin: 0; }
+.mypage-application-meta dd { font-size: 14px; color: var(--color-text); margin: 0; }
+.mypage-application-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 18px;
+}
 .mypage-edit-hint {
     margin: 6px 0 0;
     font-size: 12px;
@@ -5929,6 +6069,17 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
 }
 .btn-outline--sm { height: 36px; padding: 0 14px; font-size: 13px; }
 .btn-outline:hover { border-color: var(--color-primary); color: var(--color-primary); }
+
+/* P0 H11 (2026-08-18 재이동): prototype dangerOutline — L5702 원본 위치에서는 L6062 재정의된 .btn-outline
+   (color: --color-text, border: --color-border) 이 후행이라 override 당했다. 여기(L6062 이후)로 이동해
+   source-order 로 승리. selector specificity 는 동일(0,1,0). */
+.btn-outline--danger {
+    background: var(--color-surface);
+    border: 1.5px solid var(--color-error);
+    color: var(--color-error);
+    font-weight: 600;
+}
+.btn-outline--danger:hover { background: #FEF2F2; border-color: var(--color-error); color: var(--color-error); }
 
 /* 회원 탈퇴 확인 모달 (공통 .modal-* 셸 스타일에 얹힘) */
 .btn-auth--ghost {

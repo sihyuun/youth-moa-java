@@ -2,7 +2,7 @@
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>마이페이지 — 개인정보 수정 · 청년모아</title>
+    <title>마이페이지 — 개인 정보 수정 · 청년모아</title>
     <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" rel="stylesheet">
     <link rel="icon" type="image/png" th:href="@{/images/logo_symbol.png}">
     <link rel="stylesheet" th:href="@{/css/main.css}">
@@ -76,11 +76,23 @@
 
                 <label class="mypage-edit-label mypage-edit-label--top">성별</label>
                 <div class="mypage-edit-gender-cell">
-                    <div class="gender-pill-group" aria-readonly="true">
-                        <span class="gender-pill" th:classappend="${myUser.gender != null and myUser.gender.name() == 'MALE'} ? ' is-on' : ''">남</span>
-                        <span class="gender-pill" th:classappend="${myUser.gender != null and myUser.gender.name() == 'FEMALE'} ? ' is-on' : ''">여</span>
+                    <!-- Q-5 (P-Q2): 성별 편집 허용. hidden input + JS 토글로 pill 선택. -->
+                    <input type="hidden" id="editGender" name="gender"
+                           th:value="${myUser.gender != null ? myUser.gender.name() : ''}"/>
+                    <div class="gender-pill-group" role="radiogroup" aria-label="성별">
+                        <button type="button" class="gender-pill" data-gender="MALE"
+                                th:classappend="${myUser.gender != null and myUser.gender.name() == 'MALE'} ? ' is-on' : ''">
+                            <svg th:if="${myUser.gender != null and myUser.gender.name() == 'MALE'}"
+                                 th:replace="~{fragments/icons :: check(15, 'var(--color-primary)')}"></svg>
+                            <span>남</span>
+                        </button>
+                        <button type="button" class="gender-pill" data-gender="FEMALE"
+                                th:classappend="${myUser.gender != null and myUser.gender.name() == 'FEMALE'} ? ' is-on' : ''">
+                            <svg th:if="${myUser.gender != null and myUser.gender.name() == 'FEMALE'}"
+                                 th:replace="~{fragments/icons :: check(15, 'var(--color-primary)')}"></svg>
+                            <span>여</span>
+                        </button>
                     </div>
-                    <p class="mypage-edit-hint">성별은 변경할 수 없어요. 수정이 필요하면 고객센터로 문의해주세요.</p>
                 </div>
 
                 <label class="mypage-edit-label" for="editBirthDate">생년월일</label>
@@ -90,12 +102,37 @@
                 <div class="mypage-edit-addr">
                     <div class="mypage-edit-addr-row">
                         <input id="editZipcode" type="text" th:field="*{zipcode}" class="form-input form-input--readonly" readonly placeholder="우편번호">
-                        <button type="button" class="btn-outline btn-outline--sm" id="btnAddrSearch">검색</button>
+                        <button type="button" class="btn-outline btn-outline--sm btn-outline--icon" id="btnAddrSearch">
+                            <svg th:replace="~{fragments/icons :: search(14, 'currentColor')}"></svg>
+                            <span>검색</span>
+                        </button>
                     </div>
                     <input id="editAddress" type="text" th:field="*{address}" class="form-input form-input--readonly" readonly placeholder="주소">
                     <input id="editAddressDetail" type="text" th:field="*{addressDetail}" class="form-input" placeholder="상세주소">
                 </div>
             </form>
+
+            <!-- P-Q1 (Q-3): 관심 정보 편집 진입. prototype tsx L1374 setShowInterest + L1798 InterestEditModal 대응. -->
+            <div class="mypage-edit-interest-section">
+                <div class="mypage-edit-interest-head">
+                    <div>
+                        <div class="mypage-edit-interest-title">관심 지역·분야</div>
+                        <div class="mypage-edit-interest-sub">
+                            <span th:if="${#sets.isEmpty(myUser.interestRegions) and #sets.isEmpty(myUser.interestCategories)}">
+                                아직 설정되지 않았어요.
+                            </span>
+                            <span th:unless="${#sets.isEmpty(myUser.interestRegions) and #sets.isEmpty(myUser.interestCategories)}"
+                                  th:text="'지역 ' + ${#sets.size(myUser.interestRegions)} + '개 · 분야 ' + ${#sets.size(myUser.interestCategories)} + '개'">
+                                지역 3개 · 분야 2개
+                            </span>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-outline btn-outline--sm btn-outline--icon" id="btnInterestEdit">
+                        <svg th:replace="~{fragments/icons :: edit(14, 'currentColor')}"></svg>
+                        <span>수정</span>
+                    </button>
+                </div>
+            </div>
 
             <div th:if="${#fields.hasErrors('${profileUpdateRequest.*}')}" class="mypage-edit-errors">
                 <p class="auth-field-error" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></p>
@@ -111,11 +148,19 @@
                 <button type="submit" class="btn-auth btn-auth--primary" form="profileEditForm">저장</button>
             </div>
         </section>
+    </div>
+</main>
 
-        <!-- 회원 탈퇴 확인 모달 -->
+<!-- 모달은 <main> 밖에 배치 — common-ui.js 의 Modal.open 이 <main> 을 inert 로 설정하기 때문 -->
+        <!-- 회원 탈퇴 확인 모달 (P-Q4: danger variant + close SVG · prototype tsx L1585 ConfirmDialog) -->
         <div class="modal-backdrop" id="withdrawModal" hidden aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="withdrawModalTitle">
             <div class="modal-card modal-card--danger">
-                <h3 class="modal-title" id="withdrawModalTitle">정말 탈퇴하시겠어요?</h3>
+                <div class="modal-card__header">
+                    <h3 class="modal-title" id="withdrawModalTitle">정말 탈퇴하시겠어요?</h3>
+                    <button type="button" class="modal-card__close" aria-label="닫기" id="btnWithdrawClose">
+                        <svg th:replace="~{fragments/icons :: close(20, 'currentColor')}"></svg>
+                    </button>
+                </div>
                 <p class="modal-message">
                     탈퇴 시 신청 내역·즐겨찾기·관심 정보가 모두 삭제되며<br>
                     복구할 수 없어요.
@@ -128,8 +173,56 @@
                 </div>
             </div>
         </div>
-    </div>
-</main>
+
+        <!-- P-Q1: 관심 지역·분야 편집 모달 (prototype tsx L1798 InterestEditModal) -->
+        <div class="modal-backdrop" id="interestModal" hidden aria-hidden="true"
+             role="dialog" aria-modal="true" aria-labelledby="interestModalTitle">
+            <div class="modal-card modal-card--wide">
+                <div class="modal-card__header">
+                    <h3 class="modal-card__title" id="interestModalTitle">관심 정보 수정</h3>
+                    <button type="button" class="modal-card__close" aria-label="닫기" id="btnInterestClose">
+                        <svg th:replace="~{fragments/icons :: close(20, 'currentColor')}"></svg>
+                    </button>
+                </div>
+                <form th:action="@{/mypage/interests}" method="post" id="interestEditForm" class="modal-card__body">
+                    <div class="interest-section">
+                        <div class="interest-section-head">
+                            <svg th:replace="~{fragments/icons :: pin(16, 'var(--color-primary)')}"></svg>
+                            <span class="interest-section-title">관심 지역</span>
+                        </div>
+                        <div class="interest-chip-group" data-group="regions">
+                            <label th:each="r : ${welcomeRegionsTop}" class="interest-chip-label">
+                                <input type="checkbox" name="regions" th:value="${r}"
+                                       th:checked="${myUser.interestRegions != null and myUser.interestRegions.contains(r)}"/>
+                                <span class="interest-chip" th:text="${r}">지역</span>
+                            </label>
+                            <label th:each="r : ${welcomeRegionsMore}" class="interest-chip-label">
+                                <input type="checkbox" name="regions" th:value="${r}"
+                                       th:checked="${myUser.interestRegions != null and myUser.interestRegions.contains(r)}"/>
+                                <span class="interest-chip" th:text="${r}">지역</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="interest-section">
+                        <div class="interest-section-head">
+                            <svg th:replace="~{fragments/icons :: star(16, 'var(--color-primary)')}"></svg>
+                            <span class="interest-section-title">관심 분야</span>
+                        </div>
+                        <div class="interest-chip-group" data-group="categories">
+                            <label th:each="c : ${welcomeCategories}" class="interest-chip-label">
+                                <input type="checkbox" name="categories" th:value="${c}"
+                                       th:checked="${myUser.interestCategories != null and myUser.interestCategories.contains(c)}"/>
+                                <span class="interest-chip" th:text="${c}">분야</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="modal-card__footer">
+                        <button type="button" class="btn-auth btn-auth--secondary" id="btnInterestCancel">취소</button>
+                        <button type="submit" class="btn-auth btn-auth--primary">저장</button>
+                    </div>
+                </form>
+            </div>
+        </div>
 
 <div th:replace="~{fragments/footer :: footer}"></div>
 
@@ -148,16 +241,70 @@
             }
         });
     }
-    if (btnCancel && modal) {
-        btnCancel.addEventListener('click', function () {
-            if (window.Modal && typeof window.Modal.close === 'function') {
-                window.Modal.close('withdrawModal');
-            } else {
-                modal.hidden = true;
-                modal.setAttribute('aria-hidden', 'true');
-            }
-        });
+    function closeWithdraw() {
+        if (window.Modal && typeof window.Modal.close === 'function') {
+            window.Modal.close('withdrawModal');
+        } else if (modal) {
+            modal.hidden = true;
+            modal.setAttribute('aria-hidden', 'true');
+        }
     }
+    if (btnCancel && modal) {
+        btnCancel.addEventListener('click', closeWithdraw);
+    }
+    var btnWithdrawClose = document.getElementById('btnWithdrawClose');
+    if (btnWithdrawClose) btnWithdrawClose.addEventListener('click', closeWithdraw);
+
+    // P-Q1 (Q-3): 관심 편집 모달 open/close + Q-5 성별 pill 토글
+    var interestModal = document.getElementById('interestModal');
+    var btnInterestEdit = document.getElementById('btnInterestEdit');
+    function openInterest() {
+        if (window.Modal && window.Modal.open) window.Modal.open('interestModal');
+        else if (interestModal) { interestModal.hidden = false; interestModal.setAttribute('aria-hidden', 'false'); }
+    }
+    function closeInterest() {
+        if (window.Modal && window.Modal.close) window.Modal.close('interestModal');
+        else if (interestModal) { interestModal.hidden = true; interestModal.setAttribute('aria-hidden', 'true'); }
+    }
+    if (btnInterestEdit) btnInterestEdit.addEventListener('click', openInterest);
+    var btnInterestClose = document.getElementById('btnInterestClose');
+    if (btnInterestClose) btnInterestClose.addEventListener('click', closeInterest);
+    var btnInterestCancel = document.getElementById('btnInterestCancel');
+    if (btnInterestCancel) btnInterestCancel.addEventListener('click', closeInterest);
+    // interest chip 시각 토글 (checkbox 상태에 따라 클래스)
+    document.querySelectorAll('.interest-chip-label input[type=checkbox]').forEach(function (cb) {
+        function paint() { cb.closest('.interest-chip-label').classList.toggle('is-on', cb.checked); }
+        cb.addEventListener('change', paint);
+        paint();
+    });
+
+    // Q-5 (P-Q2): 성별 pill 클릭 → is-on 토글 + hidden input 갱신
+    document.querySelectorAll('.gender-pill[data-gender]').forEach(function (pill) {
+        pill.addEventListener('click', function () {
+            var val = pill.getAttribute('data-gender');
+            document.querySelectorAll('.gender-pill[data-gender]').forEach(function (p) {
+                p.classList.remove('is-on');
+                // check 아이콘도 함께 제거
+                var svg = p.querySelector('svg');
+                if (svg) svg.remove();
+            });
+            pill.classList.add('is-on');
+            // check svg 삽입 (inline)
+            var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.setAttribute('viewBox', '0 0 24 24');
+            svg.setAttribute('width', '15');
+            svg.setAttribute('height', '15');
+            svg.setAttribute('fill', 'none');
+            svg.setAttribute('stroke', 'var(--color-primary)');
+            svg.setAttribute('stroke-width', '1.5');
+            svg.setAttribute('stroke-linecap', 'round');
+            svg.setAttribute('stroke-linejoin', 'round');
+            svg.innerHTML = '<circle cx="12" cy="12" r="10"/><path d="M9 12l2 2 4-4"/>';
+            pill.insertBefore(svg, pill.firstChild);
+            var input = document.getElementById('editGender');
+            if (input) input.value = val;
+        });
+    });
     var btnAddr = document.getElementById('btnAddrSearch');
     if (btnAddr) {
         btnAddr.addEventListener('click', function () {
