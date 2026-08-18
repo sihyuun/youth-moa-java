@@ -28,8 +28,14 @@
             th:attr="hx-vals=|{&quot;styleClass&quot;:&quot;${styleClass}&quot;}|"
             th:class="${styleClass + ' bookmark-btn' + (bookmarked ? ' is-bookmarked' : '')}"
             th:title="${bookmarked} ? '즐겨찾기 해제' : '즐겨찾기 추가'">
-        <svg th:if="${bookmarked}" th:replace="~{fragments/icons :: starFill(20, '#F59E0B')}"></svg>
-        <svg th:unless="${bookmarked}" th:replace="~{fragments/icons :: star(20, 'currentColor')}"></svg>
+        <!-- CLAUDE.md 함정: th:if + th:replace 같은 element 병치 시 th:if 무시되고 fragment 가 항상 렌더된다.
+             th:block 으로 감싸 조건과 fragment 삽입을 분리한다 (F0h-c2 사고 규칙 동일 적용). -->
+        <th:block th:if="${bookmarked}">
+            <svg th:replace="~{fragments/icons :: starFill(20, '#F59E0B')}"></svg>
+        </th:block>
+        <th:block th:unless="${bookmarked}">
+            <svg th:replace="~{fragments/icons :: star(20, 'currentColor')}"></svg>
+        </th:block>
     </button>
 
     <!-- 비인증 상태 → 로그인 페이지로 -->
