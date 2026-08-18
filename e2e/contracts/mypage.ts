@@ -168,7 +168,8 @@ export const mypageContract: ScreenContract = {
             selector: '.mypage-interest-chip',
             kind: 'css',
             prop: 'background-color',
-            expected: 'oklch(0.9 0.055 280)',
+            // prototype tsx L12 T.primaryLight = oklch(0.93 0.0425 280). 초기 계약 산출값 오류 정정 (2026-08-18).
+            expected: 'oklch(0.93 0.0425 280)',
             proto: 'tsx L1367 background:T.primaryLight',
             states: ['auth'],
             severity: 'P2',
@@ -338,7 +339,8 @@ export const mypageContract: ScreenContract = {
             selector: '.mypage-tab.active',
             kind: 'css',
             prop: 'background-color',
-            expected: 'oklch(0.9 0.055 280)',
+            // prototype tsx L12 T.primaryLight = oklch(0.93 0.0425 280). 초기 계약 산출값 오류 정정 (2026-08-18).
+            expected: 'oklch(0.93 0.0425 280)',
             proto: 'tsx L1394 background:tab===m.key?T.primaryLight:transparent',
             states: ['auth'],
             severity: 'P1',
@@ -628,7 +630,9 @@ export const mypageContract: ScreenContract = {
             states: ['auth'],
             severity: 'P1',
         },
-        // seed 30 계정이 즐겨찾기 0건이면 아래 검사는 empty state 검사가 대신 잡힘
+        // P1-4 후속 (2026-08-18): seed1 에 bookmark 3건 seed 되면서 empty state 렌더 안 됨.
+        // favorites.card.grid (bookmarks 있을 때) 와 favorites.empty.svg (empty 상태) 는 상호 배타적.
+        // seed 정책은 bookmarks 3건이므로 empty SVG check 는 deferred 로 변경.
         {
             id: 'favorites.empty.svg',
             desc: '즐겨찾기 empty state star SVG (POLICY P-3, prototype L1480)',
@@ -638,6 +642,8 @@ export const mypageContract: ScreenContract = {
             proto: 'tsx L1480 Icon n="star" size:64 (empty)',
             states: ['auth'],
             severity: 'P1',
+            deferred:
+                'seed1 에 bookmarks 3건 시드되어 empty state 렌더 안 됨. 별도 empty seed 계정으로 검증하거나 계약 상태 분기 도입 후 활성화 예정',
         },
 
         // ══════════════════════════════════════════════════════

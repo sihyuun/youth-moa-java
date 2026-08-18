@@ -5487,7 +5487,7 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
 }
 .mypage-summary-inner { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
 .mypage-summary-avatar {
-    width: 56px; height: 56px;
+    width: 58px; height: 58px;
     border-radius: 50%;
     background: var(--color-primary-bg);
     color: var(--color-primary);

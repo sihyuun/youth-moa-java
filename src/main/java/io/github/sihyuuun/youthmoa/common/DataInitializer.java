@@ -3,6 +3,8 @@ package io.github.sihyuuun.youthmoa.common;
 import io.github.sihyuuun.youthmoa.application.Application;
 import io.github.sihyuuun.youthmoa.application.ApplicationRepository;
 import io.github.sihyuuun.youthmoa.application.ApplicationStatus;
+import io.github.sihyuuun.youthmoa.bookmark.Bookmark;
+import io.github.sihyuuun.youthmoa.bookmark.BookmarkRepository;
 import io.github.sihyuuun.youthmoa.center.Center;
 import io.github.sihyuuun.youthmoa.center.CenterContent;
 import io.github.sihyuuun.youthmoa.center.CenterContentRepository;
@@ -67,6 +69,7 @@ public class DataInitializer implements ApplicationRunner {
   private final SiteImageRepository siteImageRepository;
   private final UserRepository userRepository;
   private final ApplicationRepository applicationRepository;
+  private final BookmarkRepository bookmarkRepository;
   private final NotificationRepository notificationRepository;
   private final PasswordEncoder passwordEncoder;
   private final CenterCsvLoader centerCsvLoader;
@@ -82,6 +85,7 @@ public class DataInitializer implements ApplicationRunner {
     seedSiteImages();
     seedNotices();
     seedApplications();
+    seedBookmarks();
     seedNotifications();
     seedAdmins();
     seedTerms();
@@ -166,6 +170,33 @@ public class DataInitializer implements ApplicationRunner {
   }
 
   /** F2 헤더 종 UX 검증용 — seed1, seed30 에 알림 각 4건 시드. */
+  /**
+   * seed1 에 즐겨찾기 3건 시드 (2026-08-18 · P1-4). 재기동 시 멱등 (Bookmark count 체크). mypage favorites 탭 시각 계약
+   * 통과 조건.
+   */
+  private void seedBookmarks() {
+    if (bookmarkRepository.count() > 0) {
+      log.info("Bookmarks already seeded, skip");
+      return;
+    }
+    List<Program> programs = programRepository.findAll();
+    if (programs.size() < 3) {
+      log.warn("Not enough programs to seed bookmarks");
+      return;
+    }
+    userRepository
+        .findByEmail("seed1@youth-moa.test")
+        .ifPresent(
+            u -> {
+              List<Bookmark> bs = new ArrayList<>();
+              for (int i = 0; i < 3 && i < programs.size(); i++) {
+                bs.add(Bookmark.builder().user(u).program(programs.get(i)).build());
+              }
+              bookmarkRepository.saveAll(bs);
+              log.info("Seeded {} bookmarks for seed1", bs.size());
+            });
+  }
+
   private void seedNotifications() {
     if (notificationRepository.count() > 0) {
       log.info("Notifications already seeded, skip");

@@ -56,14 +56,19 @@ jobs:
             > /tmp/boot.log 2>&1 &
           echo $! > /tmp/boot.pid
           # 부팅 대기 — /actuator/health 없으면 index.html
-          for i in $(seq 1 60); do
-            if curl -sf http://localhost:8080/ >/dev/null 2>&1; then
-              echo "Boot ready in ${i}s"
+          # HTTP responsive + DataInitializer 완료 두 조건 모두 확인.
+          # 2026-08-18 사고: curl / 응답만 성공하면 boot 완료 판정했으나 DataInitializer 는
+          # 그 이후에도 실행 중 (seed 유저 커밋 전). 첫 test 의 login 이 seed 없는 상태에서
+          # 시도돼 실패하던 이슈. DataInitializer 마지막 로그 "Seeded 2 terms" 도 함께 확인.
+          for i in $(seq 1 90); do
+            if curl -sf http://localhost:8080/ >/dev/null 2>&1 \
+               && grep -q "Seeded 2 terms" /tmp/boot.log 2>/dev/null; then
+              echo "Boot + DataInitializer ready in ${i}s"
               exit 0
             fi
             sleep 1
           done
-          echo "::error::Boot timeout after 60s"
+          echo "::error::Boot timeout after 90s"
           tail -80 /tmp/boot.log
           exit 1
 

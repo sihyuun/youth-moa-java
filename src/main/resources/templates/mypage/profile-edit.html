@@ -27,8 +27,10 @@
                 <label class="mypage-edit-label" for="editEmail">아이디</label>
                 <div id="editEmail" class="form-input form-input--readonly" th:text="${myUser.email}">email@sample.com</div>
 
+                <!-- P1-5 (2026-08-18): prototype tsx L1513 readonly 정합. 이름 변경은 별도 창구 안내. -->
                 <label class="mypage-edit-label" for="editName">이름</label>
-                <input id="editName" type="text" th:field="*{name}" class="form-input" placeholder="이름" required>
+                <div id="editName" class="form-input form-input--readonly" th:text="${myUser.name}">이름</div>
+                <input type="hidden" th:field="*{name}">
 
                 <!-- 2026-07-31 (fix/password-change-inline): wireframe WF-3-003-02 정합.
                      새 비밀번호 optional. 빈 값이면 변경 안 함. -->
