@@ -27,7 +27,7 @@
 
 ### 이메일 무단 수집거부 (`/email-policy`)
 - privacy/terms 와 동일한 왼쪽 정렬 layout (`.policy-page-head` + `.policy-section`). 260819 통일성 조정 — wireframe L651 "centered" 는 사용자 지시로 이탈.
-- 이메일 아이콘 원 72×72 (`--color-primary-bg` 배경) + 우상단 X 뱃지 28×28 (`--color-primary`). 260819 wireframe L649 "빨간 X (--color-error)" → 브랜드 정합성 위해 primary 로 변경 (사용자 지시).
+- **wireframe L649 이메일 아이콘 + X 뱃지 제거** (260819 사용자 지시 · 3페이지 통일감 우선. 이전 이력: 빨간 X → primary 로 색 변경 후 통일감 이슈로 아이콘 전체 제거).
 - 페이지 이름 260819 변경: prototype/wireframe 원문 "이메일주소무단수집거부" → **"이메일 무단 수집거부"** (공백 포함, 가독성 개선).
 - 안내 문안:
   > 본 사이트에 게시된 이메일 주소가 전자우편 수집 프로그램이나 그 밖의 기술적 장치를 이용하여
@@ -55,4 +55,4 @@
 |---|---|---|
 | privacy | 10/10 | 0 |
 | terms | 8/8 | 0 |
-| email-policy | 12/12 | 0 |
+| email-policy | 8/8 | 0 |
