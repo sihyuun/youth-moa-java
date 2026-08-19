@@ -45,15 +45,6 @@
     <circle cx="12" cy="7" r="4" th:attr="stroke=${color}"/>
 </svg>
 
-<svg th:fragment="mail(size, color)"
-     th:attr="width=${size},height=${size}"
-     viewBox="0 0 24 24" fill="none"
-     stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
-     th:attrappend="style='flex-shrink:0;'">
-    <rect x="3" y="5" width="18" height="14" rx="2" th:attr="stroke=${color}"/>
-    <path d="M3 7l9 6 9-6" th:attr="stroke=${color}"/>
-</svg>
-
 <svg th:fragment="close(size, color)"
      th:attr="width=${size},height=${size}"
      viewBox="0 0 24 24" fill="none"

@@ -26,16 +26,9 @@
 <main class="main-content policy-layout">
     <div th:replace="~{fragments/policy-layout :: sidebar('email-policy')}"></div>
 
-    <!-- wireframe L646~L652: 이메일 아이콘(primary 원) + 빨간 X 뱃지 + h1.
-         260819 통일성 수정: privacy/terms 와 동일한 .policy-page-head + .policy-section 구조로 통일 (왼쪽 정렬). -->
+    <!-- 260819 통일성 조정: privacy/terms 와 동일 골격 (.policy-page-head + .policy-section).
+         wireframe L649 이메일 아이콘 + X 뱃지는 세 페이지 통일감 위해 제거 (사용자 지시). -->
     <article class="policy-content">
-        <div class="policy-email-icon" aria-hidden="true">
-            <svg th:replace="~{fragments/icons :: mail(36, 'var(--color-primary)')}"></svg>
-            <span class="policy-email-icon-x">
-                <svg th:replace="~{fragments/icons :: close(20, '#FFFFFF')}"></svg>
-            </span>
-        </div>
-
         <header class="policy-page-head">
             <h1 class="policy-page-title">이메일 무단 수집거부</h1>
             <p class="policy-page-updated">최종 개정일: 2026년 7월 1일</p>

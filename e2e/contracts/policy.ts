@@ -161,52 +161,8 @@ export const emailPolicyContract: ScreenContract = {
     checks: [
         ...sidebarChecks('이메일 무단 수집거부'),
         {
-            id: 'email.hero.icon',
-            desc: 'primary 원 이메일 아이콘',
-            selector: '.policy-email-icon',
-            kind: 'exists',
-            expected: true,
-            proto: 'HANDOFF.md L649 이메일 아이콘(primary 원)',
-            states: ['anon'],
-            severity: 'P1',
-        },
-        {
-            id: 'email.hero.icon.size',
-            desc: '아이콘 원 72×72',
-            selector: '.policy-email-icon',
-            kind: 'box',
-            prop: 'width',
-            expected: 72,
-            tolerance: 1,
-            proto: 'HANDOFF.md L649 아이콘 원',
-            states: ['anon'],
-            severity: 'P2',
-        },
-        {
-            id: 'email.hero.icon.x',
-            desc: '빨간 X 뱃지',
-            selector: '.policy-email-icon-x',
-            kind: 'exists',
-            expected: true,
-            proto: 'HANDOFF.md L649 빨간 X',
-            states: ['anon'],
-            severity: 'P1',
-        },
-        {
-            id: 'email.hero.icon.x.bg',
-            // 260819: wireframe L649 "빨간 X" 였으나 브랜드 정합성 위해 primary 로 변경 (사용자 지시).
-            desc: 'X 뱃지 배경 primary 색',
-            selector: '.policy-email-icon-x',
-            kind: 'css',
-            prop: 'background-color',
-            expected: 'rgb(63, 48, 233)',
-            proto: 'HANDOFF.md L649 (원문 "빨간 X" · 260819 primary 로 변경)',
-            states: ['anon'],
-            severity: 'P2',
-        },
-        {
             // 260819 통일성 수정: privacy/terms 와 layout 구조 통일 (왼쪽 정렬 + .policy-section 재사용).
-            // .policy-email-card 와 .policy-content--centered 는 제거 → 관련 계약 항목 삭제.
+            // wireframe L649 아이콘/X 뱃지, .policy-email-card, .policy-content--centered 모두 제거 → 관련 계약 항목 삭제.
             id: 'email.section.h2-or-p',
             desc: '본문 .policy-section 컨테이너 존재',
             selector: '.policy-section',
