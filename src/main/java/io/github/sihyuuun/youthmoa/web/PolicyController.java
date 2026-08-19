@@ -20,4 +20,10 @@ public class PolicyController {
   public String privacy() {
     return "policy/privacy";
   }
+
+  /** 260819: 이메일 무단 수집거부 페이지 (HANDOFF.md L646~L652). */
+  @GetMapping("/email-policy")
+  public String emailPolicy() {
+    return "policy/email-policy";
+  }
 }

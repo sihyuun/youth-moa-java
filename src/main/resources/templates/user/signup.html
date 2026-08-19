@@ -306,7 +306,7 @@
 
 <div th:replace="~{fragments/footer :: footer}"></div>
 
-<!-- F-signup-terms-agreement (2026-07-30): 약관보기 모달. JS 로 /terms · /privacy 페이지를 fetch 하여 .policy-page 만 injection. -->
+<!-- F-signup-terms-agreement (2026-07-30, 260819 갱신): 약관보기 모달. JS 로 /terms · /privacy 페이지를 fetch 하여 .policy-content 만 injection. -->
 <div id="terms-modal" class="terms-modal" hidden role="dialog" aria-modal="true" aria-labelledby="terms-modal-title" aria-hidden="true">
     <div class="terms-modal-backdrop" data-terms-modal-close></div>
     <div class="terms-modal-panel">
@@ -476,11 +476,12 @@
                     if (!res.ok) throw new Error(res.status);
                     const html = await res.text();
                     const doc = new DOMParser().parseFromString(html, 'text/html');
-                    const content = doc.querySelector('.policy-page');
+                    // 260819: 정책 페이지가 사이드바 레이아웃 (.policy-content) 으로 리팩터됨.
+                    // 모달 컨텍스트에서는 사이드바·모바일 헤더·관련 문서 링크 제거하고 본문만 주입.
+                    const content = doc.querySelector('.policy-content');
                     if (content) {
-                        // 원본 페이지의 하단 "회원가입으로 돌아가기" 버튼은 모달 컨텍스트에서 부적절 → 제거
-                        const foot = content.querySelector('.policy-page-foot');
-                        if (foot) foot.remove();
+                        const related = content.querySelector('.policy-mobile-related');
+                        if (related) related.remove();
                         modalBody.innerHTML = content.outerHTML;
                     } else {
                         modalBody.innerHTML = '<p class="terms-modal-error">내용을 불러올 수 없습니다.</p>';
