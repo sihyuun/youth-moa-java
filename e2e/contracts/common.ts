@@ -1110,7 +1110,7 @@ const footerChecks: Check[] = [
     // ── 푸터 링크 (정보구조) ────────────────────────────────
     {
         id: 'footer.links.count',
-        desc: '푸터 링크 4개 — 개인정보처리방침 / 이용약관 / 이메일주소무단수집거부 / 관리자',
+        desc: '푸터 링크 4개 — 개인정보처리방침 / 이용약관 / 이메일 무단 수집거부 / 관리자',
         selector: '.footer-links a',
         kind: 'count',
         expected: 4,
@@ -1139,11 +1139,13 @@ const footerChecks: Check[] = [
     },
     {
         id: 'footer.links.3.text',
-        desc: '푸터 링크 3 = 이메일주소무단수집거부',
+        // 260819: prototype tsx L468 은 "이메일주소무단수집거부" (공백 없음). 사용자 지시로 가독성 개선 →
+        // "이메일 무단 수집거부" (공백 포함) 로 변경. POLICY P-1 카피 정책에 준하는 이탈.
+        desc: '푸터 링크 3 = 이메일 무단 수집거부',
         selector: '.footer-links a:nth-child(3)',
         kind: 'text',
-        expected: '이메일주소무단수집거부',
-        proto: 'tsx L468',
+        expected: '이메일 무단 수집거부',
+        proto: 'tsx L468 (원문 "이메일주소무단수집거부" · 260819 공백 개선)',
         severity: 'P1',
     },
     {

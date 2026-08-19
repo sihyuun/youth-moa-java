@@ -34,6 +34,9 @@
 | 청년센터 | `/centers` | `centers.ts` | `centers.md` | 80/98 · 갭 **18** |
 | 헤더·푸터 (공통) | `/programs` | `common.ts` | `common.md` | 95/107 · 갭 **12** |
 | 헤더·푸터 (홈 transparent) | `/` | `common.ts` | `common.md` | 16/16 · 갭 **0** ✅ |
+| 개인정보처리방침 | `/privacy` | `policy.ts` | `legal-pages.md` | 10/10 · 갭 **0** ✅ |
+| 이용약관 | `/terms` | `policy.ts` | `legal-pages.md` | 8/8 · 갭 **0** ✅ |
+| 이메일 무단 수집거부 | `/email-policy` | `policy.ts` | `legal-pages.md` | 12/12 · 갭 **0** ✅ |
 | **합계** | | | | **361/438 · 갭 77 · 의도적 이탈 10 · 이월 4** |
 
 수정 착수 권장 순서: **공통(12) → 홈(19, P0 포함) → 목록(17) → 상세(11) → 센터(18)**. 헤더·푸터는 전 화면에 렌더되므로 나중에 고치면 그 전에 등록한 화면별 스크린샷 baseline 이 모두 무효화된다.
