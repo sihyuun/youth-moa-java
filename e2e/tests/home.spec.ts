@@ -10,7 +10,10 @@ import { abortExternal } from '../helpers';
 
 test.beforeEach(async ({ page }) => {
     await abortExternal(page);
-    await page.goto('/', { waitUntil: 'commit' });
+    // 260820: waitUntil:'commit' 은 HTML 파싱 전 반환이라 count() 계열이 0 을 잡는 flakiness 유발.
+    // domcontentloaded 로 승격해 DOM 완성 후 검사 (toHaveCount·toBeVisible 은 자체 auto-wait 이나
+    // await page.locator(...).count() 같은 직접 호출은 auto-wait 없음).
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
     await expect(page).toHaveTitle(/youth-moa/);
 });
 
@@ -30,6 +33,8 @@ test('Quick Stats 3개 지표가 표시된다', async ({ page }) => {
 
 test('프로그램 섹션에 카드가 최대 4개 렌더된다 (비로그인)', async ({ page }) => {
     const cards = page.locator('.home-program-row .home-program-card');
+    // toBeVisible 은 auto-wait 지원. beforeEach 승격 이후 재실행 시 안전.
+    await expect(cards.first()).toBeVisible();
     const count = await cards.count();
     expect(count).toBeLessThanOrEqual(4);
     expect(count).toBeGreaterThan(0);
