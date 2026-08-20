@@ -6373,6 +6373,17 @@ button.gender-pill svg { flex-shrink: 0; }
     text-decoration: none;
   }
   .policy-mobile-related-link:hover { background: var(--color-bg); }
+
+  /* 260820: 사이트 헤더 모바일 대응 — 좁은 뷰포트에서 로고·nav·우측 액션이 겹치는 회귀 수정.
+     - 중앙 nav 3링크 (프로그램·청년센터·공지사항) 숨김. 향후 햄버거 확장 여지 남김.
+     - 로고 텍스트 줄바꿈 방지.
+     - 유저 메뉴 이름 텍스트 숨김 (아바타 + chevron 만 유지).
+     - inner padding 축소. */
+  .site-header .header-inner { padding: 0 16px; }
+  .site-header .header-logo-text { white-space: nowrap; }
+  .site-header .header-nav { display: none; }
+  .site-header .header-user-name { display: none; }
+  .site-header .header-right { gap: 10px; }
 }
 
 /* ═══════ F-signup-terms-agreement: 약관보기 모달 ═══════ */
