@@ -43,6 +43,8 @@
 <div th:replace="~{fragments/drawer :: drawer}"></div>
 <div th:if="${currentTab != null}" th:replace="~{fragments/tabbar :: tabbar(${currentTab})}"></div>
 <script th:src="@{/js/site-drawer.js}" defer></script>
+<!-- 260821 P2 캐러셀 페이드(F4) — 홈·상세 관련 프로그램 가로 스크롤 시각 힌트 -->
+<script th:src="@{/js/carousel-fade.js}" defer></script>
 </th:block>
 
 </body>
