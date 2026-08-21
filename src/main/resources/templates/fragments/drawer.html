@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+
+<!--
+  260821 P1(M2): 모바일 우측 슬라이드 드로어.
+  - 데스크톱은 CSS 로 display:none (모바일 전용 컴포넌트).
+  - 트리거: 헤더 우측 .header-menu-btn (M1).
+  - JS: site-drawer.js — open/close, backdrop 클릭, ESC, body scroll lock, focus trap, F3(401 handler + 링크 close).
+  - 인증 분기: 로그인 시 상단 유저 블록 + MY 서브메뉴 + 로그아웃 · 비인증 시 [로그인][회원가입] 버튼 2개.
+-->
+<div th:fragment="drawer" id="site-drawer" class="site-drawer" role="dialog" aria-modal="true"
+     aria-label="전체 메뉴" hidden>
+    <div class="site-drawer-backdrop" data-drawer-close aria-hidden="true"></div>
+    <div class="site-drawer-panel">
+        <div class="site-drawer-head">
+            <span class="site-drawer-title">메뉴</span>
+            <button type="button" class="site-drawer-close" data-drawer-close aria-label="닫기">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor"
+                     stroke-width="1.7" stroke-linecap="round">
+                    <path d="M6 6l12 12M18 6L6 18"/>
+                </svg>
+            </button>
+        </div>
+
+        <!-- 인증 시 유저 카드 -->
+        <a sec:authorize="isAuthenticated()" th:href="@{/mypage}" class="site-drawer-user">
+            <span class="site-drawer-avatar" aria-hidden="true"
+                  th:text="${#strings.substring(#authentication.principal.displayName, 0, 1)}">박</span>
+            <span class="site-drawer-user-info">
+                <span class="site-drawer-user-name"
+                      th:text="|${#authentication.principal.displayName}님|">이름님</span>
+                <span class="site-drawer-user-email"
+                      th:text="${#authentication.principal.email}">email@example.com</span>
+            </span>
+        </a>
+
+        <!-- 비인증 시 CTA 2개 -->
+        <div sec:authorize="!isAuthenticated()" class="site-drawer-auth">
+            <a th:href="@{/login}" class="btn-primary site-drawer-auth-btn">로그인</a>
+            <a th:href="@{/signup}" class="btn-secondary site-drawer-auth-btn">회원가입</a>
+        </div>
+
+        <!-- 메인 네비 -->
+        <nav class="site-drawer-nav" aria-label="드로어 메뉴">
+            <a th:href="@{/programs}" class="site-drawer-link">프로그램</a>
+            <a th:href="@{/centers}" class="site-drawer-link">청년센터</a>
+            <a th:href="@{/notices}" class="site-drawer-link">공지사항</a>
+
+            <!-- 인증 시 MY 서브메뉴 -->
+            <div sec:authorize="isAuthenticated()" class="site-drawer-divider" aria-hidden="true"></div>
+            <a sec:authorize="isAuthenticated()" th:href="@{/mypage(tab='history')}" class="site-drawer-sub">신청 내역</a>
+            <a sec:authorize="isAuthenticated()" th:href="@{/mypage(tab='favorites')}" class="site-drawer-sub">즐겨찾기</a>
+            <a sec:authorize="isAuthenticated()" th:href="@{/mypage(tab='noti')}" class="site-drawer-sub">알림 설정</a>
+            <a sec:authorize="isAuthenticated()" th:href="@{/mypage/profile/edit}" class="site-drawer-sub">개인 정보 수정</a>
+        </nav>
+
+        <!-- 로그아웃 (인증 시) -->
+        <div sec:authorize="isAuthenticated()" class="site-drawer-foot">
+            <form th:action="@{/logout}" method="post" class="site-drawer-logout">
+                <button type="submit" class="site-drawer-logout-btn">로그아웃</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
