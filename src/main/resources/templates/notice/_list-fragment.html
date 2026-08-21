@@ -14,8 +14,8 @@
 -->
 <div th:fragment="content-region" id="notice-content">
 
-    <!-- 카테고리 pill 탭 -->
-    <div class="notice-tabs">
+    <!-- 카테고리 pill 탭 · 260821 P5(M8): 모바일 가로 스크롤 F6 유지용 data-pill-row -->
+    <div class="notice-tabs" data-pill-row="notice">
         <a th:href="@{/notices}"
            th:class="${filterCategory == null} ? 'notice-tab active' : 'notice-tab'"
            hx-get="/notices" hx-target="#notice-content" hx-swap="outerHTML"
