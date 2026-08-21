@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<meta name="design_doc_mode" content="canvas">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" rel="stylesheet">
+<style>
+body{margin:0;background:#E9E9EE;font-family:'Pretendard',-apple-system,sans-serif;color:oklch(0.22 0.051 280);-webkit-font-smoothing:antialiased}
+a{color:#3F30E9;text-decoration:none}a:hover{color:#3428CF}
+.dv-turn{padding:44px 44px 56px;border-bottom:1px solid rgba(0,0,0,.08)}
+.dv-thd{display:flex;align-items:baseline;gap:10px;margin:0 0 6px}
+.dv-tid{font:600 10px ui-monospace,Menlo,monospace;padding:3px 7px;background:#1a1a1a;color:#fff;border-radius:4px;text-decoration:none}
+.dv-tname{font:700 14px/1.2 'Pretendard',sans-serif}
+.dv-opts{display:flex;flex-wrap:wrap;gap:36px;align-items:flex-start;margin-top:28px}
+.dv-opt{flex:none;width:375px;display:flex;flex-direction:column;gap:10px;scroll-margin-top:16px}
+.dv-olabel{display:flex;align-items:baseline;gap:8px;font:600 12px/1.3 'Pretendard',sans-serif;color:oklch(0.4 0.03 280)}
+.dv-oid{font:600 10.5px ui-monospace,Menlo,monospace;padding:3px 7px;background:rgba(0,0,0,.08);color:#1a1a1a;border-radius:5px;text-decoration:none}
+.dv-opt:target .dv-oid{background:#3F30E9;color:#fff}
+.frame{width:375px;background:#fff;border:1px solid oklch(0.88 0.014 280);border-radius:20px;overflow:hidden;position:relative;box-shadow:0 8px 24px rgba(20,16,60,.10)}
+.note{margin:2px 0 0;font:400 11.5px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace;color:oklch(0.48 0.03 280);white-space:pre-line}
+.nsb{scrollbar-width:none}.nsb::-webkit-scrollbar{display:none}
+@keyframes dsl{from{transform:translateX(100%)}to{transform:translateX(0)}}
+@keyframes dfi{from{opacity:0}to{opacity:1}}
+@keyframes dup{from{transform:translateY(100%)}to{transform:translateY(0)}}
+</style>
+</helmet>
+
+<section class="dv-turn" id="t1">
+<div class="dv-thd"><a class="dv-tid" href="#t1">1</a><span class="dv-tname">청년모아 · 375px 모바일 적응형 시안</span></div>
+<div style="font:400 13px/1.7 'Pretendard',sans-serif;color:oklch(0.45 0.03 280);max-width:900px">데스크톱 계약(≥768px)은 손대지 않고, <b>≤767px</b> 구간만 media query 로 재배치합니다. 카드 안의 햄버거·필터·스텝·탭은 실제로 동작합니다 — 눌러보면서 검토하세요.</div>
+<div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:18px">
+<div style="background:#fff;border:1px solid oklch(0.9 0.014 280);border-radius:10px;padding:12px 16px;min-width:200px"><div style="font:700 11px ui-monospace,Menlo,monospace;color:#3F30E9;margin-bottom:5px">BREAKPOINT</div><div style="font:400 12.5px/1.6 'Pretendard',sans-serif;color:oklch(0.35 0.03 280)">≤767 mobile · 768–1023 tablet · ≥1024 desktop<br>기존 프로젝트 표준 유지 (767/768 경계)</div></div>
+<div style="background:#fff;border:1px solid oklch(0.9 0.014 280);border-radius:10px;padding:12px 16px;min-width:200px"><div style="font:700 11px ui-monospace,Menlo,monospace;color:#3F30E9;margin-bottom:5px">NAVIGATION</div><div style="font:400 12.5px/1.6 'Pretendard',sans-serif;color:oklch(0.35 0.03 280)">하단 탭바 4개 (홈·프로그램·청년센터·마이)<br>+ 우측 슬라이드 드로어 (전체메뉴)</div></div>
+<div style="background:#fff;border:1px solid oklch(0.9 0.014 280);border-radius:10px;padding:12px 16px;min-width:200px"><div style="font:700 11px ui-monospace,Menlo,monospace;color:#3F30E9;margin-bottom:5px">FILTER</div><div style="font:400 12.5px/1.6 'Pretendard',sans-serif;color:oklch(0.35 0.03 280)">가로 스크롤 pill + 바텀시트 드로어<br>정렬은 시트 안 라디오로 통합</div></div>
+<div style="background:#fff;border:1px solid oklch(0.9 0.014 280);border-radius:10px;padding:12px 16px;min-width:200px"><div style="font:700 11px ui-monospace,Menlo,monospace;color:#3F30E9;margin-bottom:5px">TOKEN 오버라이드</div><div style="font:400 12.5px/1.6 'Pretendard',sans-serif;color:oklch(0.35 0.03 280)">--header-h 68→56 · --content-px 80→16<br>터치 타겟 44px · 본문 최소 14px</div></div>
+</div>
+
+<div class="dv-opts" id="cards">
+
+<div class="dv-opt" id="1a">
+<div class="dv-olabel"><a class="dv-oid" href="#1a">1a</a>공통 셸 — 헤더 · 드로어 · 하단 탭바 · 푸터</div>
+<div class="frame">
+  <div style="height:56px;display:flex;align-items:center;padding:0 6px 0 16px;border-bottom:1px solid oklch(0.95 0.007 280);background:#fff">
+    <div style="display:flex;align-items:center;gap:6px;flex:1;min-width:0">
+      <img src="assets/logo_symbol.png" alt="" style="height:26px;width:auto;display:block">
+      <span style="font-weight:800;font-size:16px;letter-spacing:-0.3px;color:#3F30E9;white-space:nowrap">청년모아</span>
+    </div>
+    <div style="display:flex;align-items:center">
+      <div style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:oklch(0.55 0.034 280)"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"></circle><path d="M21 21l-4.35-4.35" stroke-linecap="round"></path></svg></div>
+      <div style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:oklch(0.55 0.034 280);position:relative"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 01-3.46 0"></path></svg><span style="position:absolute;top:11px;right:12px;width:7px;height:7px;border-radius:50%;background:#EF4444;border:1.5px solid #fff"></span></div>
+      <div onClick="{{ openDrawer }}" style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:oklch(0.22 0.051 280);cursor:pointer"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"></path></svg></div>
+    </div>
+  </div>
+  <div style="padding:28px 16px;background:oklch(0.985 0.004 280);min-height:200px;display:flex;flex-direction:column;gap:10px;align-items:center;justify-content:center">
+    <div style="font-size:13px;font-weight:600;color:oklch(0.7 0.02 280)">페이지 콘텐츠</div>
+    <div style="font:400 11.5px/1.6 ui-monospace,Menlo,monospace;color:oklch(0.7 0.02 280);text-align:center">.page-container<br>padding: 0 16px · max-width: none</div>
+  </div>
+  <div style="background:#F5F5F5;border-top:1px solid oklch(0.9 0.014 280);padding:22px 16px 20px;display:flex;flex-direction:column;gap:14px;align-items:center">
+    <div style="display:flex;align-items:center;gap:7px"><img src="assets/logo_symbol.png" alt="" style="height:24px;width:auto;display:block"><span style="font-weight:800;font-size:15px;color:#3F30E9">청년모아</span></div>
+    <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:8px 14px">
+      <span style="font-size:12px;font-weight:500;color:#444">개인정보처리방침</span>
+      <span style="font-size:12px;font-weight:500;color:#444">이용약관</span>
+      <span style="font-size:12px;font-weight:500;color:#444">이메일주소무단수집거부</span>
+    </div>
+    <span style="font-size:11.5px;color:#888;text-align:center">Copyright © 2026 청년모아<br>All Rights Reserved</span>
+    <div style="display:flex;gap:14px;align-items:center">
+      <img src="assets/sns_instagram.png" alt="Instagram" style="width:26px;height:26px">
+      <img src="assets/sns_youtube.png" alt="YouTube" style="width:26px;height:26px">
+      <img src="assets/sns_kakaotalk.png" alt="KakaoTalk" style="width:26px;height:26px">
+      <img src="assets/sns_facebook.png" alt="Facebook" style="width:26px;height:26px">
+    </div>
+  </div>
+  <div style="display:flex;height:58px;border-top:1px solid oklch(0.9 0.014 280);background:#fff">
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#3F30E9"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5L12 4l9 6.5V20a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1z"></path></svg><span style="font-size:11px;font-weight:700">홈</span></div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:oklch(0.7 0.02 280)"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect><rect x="14" y="14" width="7" height="7" rx="1.5"></rect></svg><span style="font-size:11px;font-weight:500">프로그램</span></div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:oklch(0.7 0.02 280)"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"></path><circle cx="12" cy="10" r="3"></circle></svg><span style="font-size:11px;font-weight:500">청년센터</span></div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:oklch(0.7 0.02 280)"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg><span style="font-size:11px;font-weight:500">마이</span></div>
+  </div>
+  <div hidden="{{ drawerHidden }}" style="position:absolute;inset:0;z-index:20">
+    <div onClick="{{ closeDrawer }}" style="position:absolute;inset:0;background:rgba(12,8,32,0.45);animation:dfi 180ms ease"></div>
+    <div style="position:absolute;top:0;right:0;bottom:0;width:300px;background:#fff;box-shadow:-8px 0 30px rgba(12,8,32,0.18);display:flex;flex-direction:column;animation:dsl 220ms cubic-bezier(.2,.8,.2,1)">
+      <div style="height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 6px 0 18px;border-bottom:1px solid oklch(0.95 0.007 280)">
+        <span style="font-size:14px;font-weight:700">전체 메뉴</span>
+        <div onClick="{{ closeDrawer }}" style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:oklch(0.55 0.034 280);cursor:pointer"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"></path></svg></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;padding:16px 18px;background:oklch(0.96 0.0255 280)">
+        <span style="width:38px;height:38px;border-radius:50%;background:#3F30E9;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px">박</span>
+        <div style="min-width:0"><div style="font-size:14px;font-weight:700">박시현님</div><div style="font-size:12px;color:oklch(0.55 0.034 280);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">sihyun@example.com</div></div>
+      </div>
+      <div style="flex:1;overflow-y:auto;padding:6px 0">
+        <div style="display:flex;align-items:center;justify-content:space-between;height:48px;padding:0 18px;font-size:15px;font-weight:600">프로그램<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="oklch(0.7 0.02 280)" stroke-width="2" stroke-linecap="round"><path d="M9 18l6-6-6-6"></path></svg></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;height:48px;padding:0 18px;font-size:15px;font-weight:600">청년센터<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="oklch(0.7 0.02 280)" stroke-width="2" stroke-linecap="round"><path d="M9 18l6-6-6-6"></path></svg></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;height:48px;padding:0 18px;font-size:15px;font-weight:600">공지사항<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="oklch(0.7 0.02 280)" stroke-width="2" stroke-linecap="round"><path d="M9 18l6-6-6-6"></path></svg></div>
+        <div style="height:1px;background:oklch(0.95 0.007 280);margin:8px 18px"></div>
+        <div style="font:600 11px ui-monospace,Menlo,monospace;color:oklch(0.7 0.02 280);padding:6px 18px">MY</div>
+        <div style="display:flex;align-items:center;height:44px;padding:0 18px;font-size:14px;color:oklch(0.35 0.03 280)">신청 내역</div>
+        <div style="display:flex;align-items:center;height:44px;padding:0 18px;font-size:14px;color:oklch(0.35 0.03 280)">즐겨찾기</div>
+        <div style="display:flex;align-items:center;height:44px;padding:0 18px;font-size:14px;color:oklch(0.35 0.03 280)">알림 설정</div>
+        <div style="display:flex;align-items:center;height:44px;padding:0 18px;font-size:14px;color:oklch(0.35 0.03 280)">개인 정보 수정</div>
+      </div>
+      <div style="padding:14px 18px 18px;border-top:1px solid oklch(0.95 0.007 280)">
+        <div style="height:44px;border:1px solid oklch(0.9 0.014 280);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;color:oklch(0.55 0.034 280)">로그아웃</div>
+      </div>
+    </div>
+  </div>
+</div>
+<p class="note">header-h 68→56 · .header-nav 는 계속 display:none, 우측에 .header-menu-btn(신규 마크업) 추가.
+드로어는 우측 300px 슬라이드 + backdrop, body scroll lock. 탭바(신규 마크업)는 4개 루트 화면에만 노출, 하위 화면은 back 헤더.
+푸터: 로고 → 링크(wrap) → copyright → SNS 세로 스택, SNS 아이콘 26px.</p>
+</div>
+
+<div class="dv-opt" id="1b">
+<div class="dv-olabel"><a class="dv-oid" href="#1b">1b</a>홈 <code style="font-family:ui-monospace,Menlo,monospace;font-size:11px;color:oklch(0.6 0.02 280)">/</code></div>
+<div class="frame">
+  <div style="position:relative;height:400px;overflow:hidden">
+    <img src="assets/banner_01.png" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 40%">
+    <div style="position:absolute;inset:0;background:linear-gradient(160deg,oklch(0.30 0.16 280 / 0.86) 0%,oklch(0.42 0.16 280 / 0.70) 55%,oklch(0.55 0.13 280 / 0.60) 100%)"></div>
+    <div style="position:relative;height:56px;display:flex;align-items:center;padding:0 6px 0 16px">
+      <div style="display:flex;align-items:center;gap:6px;flex:1"><img src="assets/logo_white.png" alt="" style="height:24px;width:auto;display:block"><span style="font-weight:800;font-size:16px;letter-spacing:-0.3px;color:#fff">청년모아</span></div>
+      <div style="display:flex;align-items:center;color:rgba(255,255,255,.9)">
+        <div style="width:44px;height:44px;display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"></circle><path d="M21 21l-4.35-4.35" stroke-linecap="round"></path></svg></div>
+        <div style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;position:relative"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 01-3.46 0"></path></svg><span style="position:absolute;top:11px;right:12px;width:7px;height:7px;border-radius:50%;background:#EF4444"></span></div>
+        <div onClick="{{ openDrawer }}" style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;cursor:pointer"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"></path></svg></div>
+      </div>
+    </div>
+    <div style="position:relative;padding:26px 20px 0;display:flex;flex-direction:column;align-items:flex-start">
+      <div style="display:inline-flex;padding:5px 12px;border-radius:20px;background:rgba(255,255,255,0.2);margin-bottom:12px"><span style="color:#fff;font-size:12.5px;font-weight:500">경기도 청년센터 프로그램 통합 플랫폼</span></div>
+      <h1 style="color:#fff;font-size:26px;font-weight:800;line-height:1.35;margin:0;letter-spacing:-0.5px">경기도 청년의 내일을<br>함께 만들어갑니다</h1>
+      <p style="color:rgba(255,255,255,0.86);font-size:13.5px;margin:10px 0 0;line-height:1.5">경기도 31개 시·군 청년센터의<br>프로그램을 한눈에 확인하세요</p>
+      <div style="display:flex;align-items:center;background:#fff;border-radius:24px;padding:0 5px 0 16px;height:48px;width:100%;margin-top:18px;box-shadow:0 4px 20px rgba(0,0,0,0.15)">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#94A3B8" stroke-width="1.5"><circle cx="11" cy="11" r="8"></circle><path d="M21 21l-4.35-4.35" stroke-linecap="round"></path></svg>
+        <span style="flex:1;font-size:14px;color:oklch(0.7 0.02 280);margin-left:9px">프로그램, 센터명으로 검색</span>
+        <div style="height:38px;padding:0 16px;background:#3F30E9;border-radius:20px;display:flex;align-items:center"><span style="color:#fff;font-size:13.5px;font-weight:600">검색</span></div>
+      </div>
+      <div class="nsb" style="display:flex;gap:7px;margin-top:14px;overflow-x:auto;width:100%;padding-bottom:2px">
+        <span style="font-size:12px;color:rgba(255,255,255,0.8);font-weight:600;flex-shrink:0;align-self:center">인기</span>
+        <div style="padding:6px 12px;border-radius:20px;background:rgba(255,255,255,0.18);border:1px solid rgba(255,255,255,0.25);flex-shrink:0"><span style="color:#fff;font-size:12.5px">취업 워크숍</span></div>
+        <div style="padding:6px 12px;border-radius:20px;background:rgba(255,255,255,0.18);border:1px solid rgba(255,255,255,0.25);flex-shrink:0"><span style="color:#fff;font-size:12.5px">창업 지원</span></div>
+        <div style="padding:6px 12px;border-radius:20px;background:rgba(255,255,255,0.18);border:1px solid rgba(255,255,255,0.25);flex-shrink:0"><span style="color:#fff;font-size:12.5px">심리 상담</span></div>
+        <div style="padding:6px 12px;border-radius:20px;background:rgba(255,255,255,0.18);border:1px solid rgba(255,255,255,0.25);flex-shrink:0"><span style="color:#fff;font-size:12.5px">주거 지원</span></div>
+      </div>
+    </div>
+  </div>
+  <div style="display:flex;background:#fff;border-bottom:1px solid oklch(0.95 0.007 280);padding:16px 0">
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px"><div style="font-size:19px;font-weight:800;color:#3F30E9">127</div><div style="font-size:11.5px;color:oklch(0.55 0.034 280)">진행중 프로그램</div></div>
+    <div style="width:1px;background:oklch(0.95 0.007 280)"></div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px"><div style="font-size:19px;font-weight:800;color:#3F30E9">31</div><div style="font-size:11.5px;color:oklch(0.55 0.034 280)">참여 청년센터</div></div>
+    <div style="width:1px;background:oklch(0.95 0.007 280)"></div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px"><div style="font-size:19px;font-weight:800;color:#3F30E9">15,420</div><div style="font-size:11.5px;color:oklch(0.55 0.034 280)">누적 참여자</div></div>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:18px 16px 4px;background:oklch(0.985 0.004 280)">
+    <div style="display:flex;align-items:center;gap:10px;padding:14px 12px;border-radius:12px;background:#fff;border:1px solid oklch(0.95 0.007 280);box-shadow:0 1px 3px rgba(63,48,233,0.06)"><span style="width:38px;height:38px;border-radius:11px;background:oklch(0.93 0.0425 280);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="#3F30E9" stroke-width="1.5"><circle cx="11" cy="11" r="8"></circle><path d="M21 21l-4.35-4.35" stroke-linecap="round"></path></svg></span><span style="font-size:13.5px;font-weight:600">프로그램 찾기</span></div>
+    <div style="display:flex;align-items:center;gap:10px;padding:14px 12px;border-radius:12px;background:#fff;border:1px solid oklch(0.95 0.007 280);box-shadow:0 1px 3px rgba(63,48,233,0.06)"><span style="width:38px;height:38px;border-radius:11px;background:oklch(0.93 0.0425 280);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="#3F30E9" stroke-width="1.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"></path><circle cx="12" cy="10" r="3"></circle></svg></span><span style="font-size:13.5px;font-weight:600">청년센터 찾기</span></div>
+    <div style="display:flex;align-items:center;gap:10px;padding:14px 12px;border-radius:12px;background:#fff;border:1px solid oklch(0.95 0.007 280);box-shadow:0 1px 3px rgba(63,48,233,0.06)"><span style="width:38px;height:38px;border-radius:11px;background:oklch(0.93 0.0425 280);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="#3F30E9" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"></rect><path d="M16 2v4M8 2v4M3 10h18" stroke-linecap="round"></path></svg></span><span style="font-size:13.5px;font-weight:600">내 신청 현황</span></div>
+    <div style="display:flex;align-items:center;gap:10px;padding:14px 12px;border-radius:12px;background:#fff;border:1px solid oklch(0.95 0.007 280);box-shadow:0 1px 3px rgba(63,48,233,0.06)"><span style="width:38px;height:38px;border-radius:11px;background:oklch(0.93 0.0425 280);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="#3F30E9" stroke-width="1.5" stroke-linecap="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 01-3.46 0"></path></svg></span><span style="font-size:13.5px;font-weight:600">공지사항</span></div>
+  </div>
+  <div style="padding:26px 0 6px;background:oklch(0.985 0.004 280)">
+    <div style="display:flex;align-items:flex-end;justify-content:space-between;padding:0 16px;margin-bottom:14px">
+      <div><div style="font-size:18px;font-weight:800;letter-spacing:-0.3px">박시현님 맞춤 추천</div><div style="font-size:12.5px;color:oklch(0.55 0.034 280);margin-top:3px">부천시 · 취업·창업 관심</div></div>
+      <span style="font-size:12.5px;font-weight:600;color:#3F30E9;flex-shrink:0">전체보기</span>
+    </div>
+    <div class="nsb" style="display:flex;gap:12px;overflow-x:auto;padding:0 16px 6px;scroll-snap-type:x mandatory">
+      <div style="width:236px;flex-shrink:0;border-radius:12px;overflow:hidden;background:#fff;border:1px solid oklch(0.95 0.007 280);box-shadow:0 4px 12px rgba(63,48,233,0.07);scroll-snap-align:start">
+        <div style="position:relative;height:132px;background:#e5e7eb"><img src="https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=400&amp;h=280&amp;fit=crop" alt="" style="width:100%;height:100%;object-fit:cover"><span style="position:absolute;top:9px;left:9px;padding:3px 9px;border-radius:20px;background:#EF4444;color:#fff;font-size:11px;font-weight:700">D-3</span><span style="position:absolute;top:9px;right:9px;padding:3px 8px;border-radius:20px;background:rgba(255,255,255,0.92);font-size:10.5px;font-weight:600;color:#3F30E9">관심지역</span></div>
+        <div style="padding:12px 13px 14px"><div style="font-size:14.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">취업역량 강화 워크숍</div><div style="font-size:12px;color:oklch(0.55 0.034 280);margin-top:3px">내일스퀘어 · 부천시</div><div style="font-size:12px;color:oklch(0.7 0.02 280);margin-top:2px">2026-08-01~08-31</div>
+          <div style="margin-top:10px"><div style="display:flex;justify-content:space-between;font-size:11.5px;margin-bottom:5px"><span style="color:oklch(0.55 0.034 280)">27/30명</span><span style="color:#F59E0B;font-weight:700">마감임박</span></div><div style="height:5px;border-radius:3px;background:oklch(0.95 0.007 280);overflow:hidden"><div style="width:90%;height:100%;background:#F59E0B"></div></div></div>
+          <div style="margin-top:12px;height:38px;border:1px solid #3F30E9;border-radius:20px;display:flex;align-items:center;justify-content:center;gap:5px;font-size:13px;font-weight:600;color:#3F30E9">신청하기</div>
+        </div>
+      </div>
+      <div style="width:236px;flex-shrink:0;border-radius:12px;overflow:hidden;background:#fff;border:1px solid oklch(0.95 0.007 280);box-shadow:0 4px 12px rgba(63,48,233,0.07);scroll-snap-align:start">
+        <div style="position:relative;height:132px;background:#e5e7eb"><img src="https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=400&amp;h=280&amp;fit=crop" alt="" style="width:100%;height:100%;object-fit:cover"><span style="position:absolute;top:9px;left:9px;padding:3px 9px;border-radius:20px;background:rgba(0,0,0,0.55);color:#fff;font-size:11px;font-weight:700">오픈 D-14</span></div>
+        <div style="padding:12px 13px 14px"><div style="font-size:14.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">AI 활용 실무 교육</div><div style="font-size:12px;color:oklch(0.55 0.034 280);margin-top:3px">비행지구 · 고양시</div><div style="font-size:12px;color:oklch(0.7 0.02 280);margin-top:2px">2026-09-01~09-30</div>
+          <div style="margin-top:10px"><div style="display:flex;justify-content:space-between;font-size:11.5px;margin-bottom:5px"><span style="color:oklch(0.55 0.034 280)">모집 예정</span><span style="color:#F97316;font-weight:700">8/20 오픈</span></div><div style="height:5px;border-radius:3px;background:oklch(0.95 0.007 280)"></div></div>
+          <div style="margin-top:12px;height:38px;border:1px solid #F97316;border-radius:20px;display:flex;align-items:center;justify-content:center;gap:5px;font-size:13px;font-weight:600;color:#F97316">오픈 알림 받기</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div style="padding:26px 16px 28px;background:oklch(0.96 0.0255 280);margin-top:20px">
+    <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:14px"><div style="font-size:18px;font-weight:800;letter-spacing:-0.3px">공지사항</div><span style="font-size:12.5px;font-weight:600;color:#3F30E9">전체보기</span></div>
+    <div style="border-radius:12px;overflow:hidden;background:#fff;box-shadow:0 4px 12px rgba(63,48,233,0.07)">
+      <div style="height:150px;background:#e5e7eb"><img src="https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=400&amp;h=240&amp;fit=crop" alt="" style="width:100%;height:100%;object-fit:cover"></div>
+      <div style="padding:14px 16px 16px"><span style="display:inline-flex;padding:3px 10px;border-radius:20px;background:oklch(0.93 0.0425 280);color:#3F30E9;font-size:11.5px;font-weight:600">주요</span><div style="font-size:16px;font-weight:700;margin:8px 0 4px;line-height:1.4">제1회 청년의 날 축제 안내</div><div style="font-size:12.5px;color:oklch(0.55 0.034 280)">2026.07.30 · 조회 756</div></div>
+    </div>
+    <div style="margin-top:10px;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(63,48,233,0.06)">
+      <div style="display:flex;align-items:center;gap:10px;padding:13px 14px;border-bottom:1px solid oklch(0.95 0.007 280)"><span style="display:inline-flex;padding:2px 9px;border-radius:20px;background:oklch(0.93 0.0425 280);color:#3F30E9;font-size:11px;font-weight:600;flex-shrink:0">공지</span><span style="flex:1;font-size:13.5px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">7월 청년센터 프로그램 일정 안내</span></div>
+      <div style="display:flex;align-items:center;gap:10px;padding:13px 14px;border-bottom:1px solid oklch(0.95 0.007 280)"><span style="display:inline-flex;padding:2px 9px;border-radius:20px;background:#D1FAE5;color:#10B981;font-size:11px;font-weight:600;flex-shrink:0">운영</span><span style="flex:1;font-size:13.5px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">7월 휴관 일정 안내</span></div>
+      <div style="display:flex;align-items:center;gap:10px;padding:13px 14px"><span style="display:inline-flex;padding:2px 9px;border-radius:20px;background:oklch(0.95 0.007 280);color:oklch(0.7 0.02 280);font-size:11px;font-weight:600;flex-shrink:0">기타</span><span style="flex:1;font-size:13.5px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">2026 경기 사회적 경제 박람회</span></div>
+    </div>
+  </div>
+  <div style="padding:26px 0 30px;background:oklch(0.985 0.004 280)">
+    <div style="display:flex;align-items:flex-end;justify-content:space-between;padding:0 16px;margin-bottom:14px"><div style="font-size:18px;font-weight:800;letter-spacing:-0.3px">공간안내</div><span style="font-size:12.5px;font-weight:600;color:#3F30E9">지도에서 보기</span></div>
+    <div class="nsb" style="display:flex;gap:12px;overflow-x:auto;padding:0 16px">
+      <div style="width:200px;height:150px;flex-shrink:0;border-radius:12px;overflow:hidden;position:relative"><img src="https://images.unsplash.com/photo-1497366216548-37526070297c?w=460&amp;h=340&amp;fit=crop" alt="" style="width:100%;height:100%;object-fit:cover"><div style="position:absolute;bottom:0;left:0;right:0;padding:30px 14px 12px;background:linear-gradient(transparent,rgba(0,0,0,0.65))"><span style="color:#fff;font-weight:700;font-size:14px">상상대로</span></div></div>
+      <div style="width:200px;height:150px;flex-shrink:0;border-radius:12px;overflow:hidden;position:relative"><img src="https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=460&amp;h=340&amp;fit=crop" alt="" style="width:100%;height:100%;object-fit:cover"><div style="position:absolute;bottom:0;left:0;right:0;padding:30px 14px 12px;background:linear-gradient(transparent,rgba(0,0,0,0.65))"><span style="color:#fff;font-weight:700;font-size:14px">내일스퀘어</span></div></div>
+      <div style="width:200px;height:150px;flex-shrink:0;border-radius:12px;overflow:hidden;position:relative"><img src="https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=460&amp;h=340&amp;fit=crop" alt="" style="width:100%;height:100%;object-fit:cover"><div style="position:absolute;bottom:0;left:0;right:0;padding:30px 14px 12px;background:linear-gradient(transparent,rgba(0,0,0,0.65))"><span style="color:#fff;font-weight:700;font-size:14px">비행지구</span></div></div>
+    </div>
+  </div>
+  <div style="display:flex;height:58px;border-top:1px solid oklch(0.9 0.014 280);background:#fff">
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#3F30E9"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5L12 4l9 6.5V20a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1z"></path></svg><span style="font-size:11px;font-weight:700">홈</span></div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:oklch(0.7 0.02 280)"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect><rect x="14" y="14" width="7" height="7" rx="1.5"></rect></svg><span style="font-size:11px;font-weight:500">프로그램</span></div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:oklch(0.7 0.02 280)"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"></path><circle cx="12" cy="10" r="3"></circle></svg><span style="font-size:11px;font-weight:500">청년센터</span></div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:oklch(0.7 0.02 280)"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg><span style="font-size:11px;font-weight:500">마이</span></div>
+  </div>
+</div>
+<p class="note">.hero 488→400px, 콘텐츠 좌측 정렬 (중앙정렬 해제) · h1 42→26px · 검색바 460→100%.
+인기검색어·프로그램·공간 카드는 가로 스크롤(scroll-snap) — .home-program-row{overflow-x:auto} 로 4열 그리드 대체.
+.quick-stats 아이콘 제거 후 3분할 숫자 행 · .home-quickmenu 4열→2×2 아이콘+라벨 좌우 배치.</p>
+</div>
+
+<div class="dv-opt" id="1c">
+<div class="dv-olabel"><a class="dv-oid" href="#1c">1c</a>프로그램 목록 <code style="font-family:ui-monospace,Menlo,monospace;font-size:11px;color:oklch(0.6 0.02 280)">/programs</code> — 필터 버튼 동작</div>
+<div class="frame">
+  <div style="height:56px;display:flex;align-items:center;padding:0 6px 0 16px;border-bottom:1px solid oklch(0.95 0.007 280);background:#fff">
+    <div style="display:flex;align-items:center;gap:6px;flex:1"><img src="assets/logo_symbol.png" alt="" style="height:26px;width:auto;display:block"><span style="font-weight:800;font-size:16px;letter-spacing:-0.3px;color:#3F30E9">청년모아</span></div>
+    <div style="display:flex;align-items:center">
+      <div style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:oklch(0.55 0.034 280)"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"></circle><path d="M21 21l-4.35-4.35" stroke-linecap="round"></path></svg></div>
+      <div onClick="{{ openDrawer }}" style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;cursor:pointer"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"></path></svg></div>
+    </div>
+  </div>
+  <div style="padding:18px 16px 12px;background:#fff">
+    <div style="font-size:21px;font-weight:800;letter-spacing:-0.4px">프로그램</div>
+    <div style="font-size:13px;color:oklch(0.55 0.034 280);margin-top:3px">경기도 청년센터의 프로그램을 찾아보세요</div>
+  </div>
+  <div style="background:#fff;border-bottom:1px solid oklch(0.9 0.014 280);padding-bottom:10px;box-shadow:0 2px 8px rgba(20,16,60,.04)">
+    <div class="nsb" style="display:flex;gap:7px;overflow-x:auto;padding:0 16px 2px">
+      <div style="flex-shrink:0;height:36px;padding:0 15px;border-radius:20px;background:#3F30E9;color:#fff;font-size:13.5px;font-weight:600;display:flex;align-items:center">전체 8</div>
+      <div style="flex-shrink:0;height:36px;padding:0 15px;border-radius:20px;background:#fff;border:1px solid oklch(0.9 0.014 280);color:oklch(0.35 0.03 280);font-size:13.5px;font-weight:500;display:flex;align-items:center">모집중 4</div>
+      <div style="flex-shrink:0;height:36px;padding:0 15px;border-radius:20px;background:#fff;border:1px solid oklch(0.9 0.014 280);color:oklch(0.35 0.03 280);font-size:13.5px;font-weight:500;display:flex;align-items:center">진행예정 2</div>
+      <div style="flex-shrink:0;height:36px;padding:0 15px;border-radius:20px;background:#fff;border:1px solid oklch(0.9 0.014 280);color:oklch(0.35 0.03 280);font-size:13.5px;font-weight:500;display:flex;align-items:center">종료 2</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;padding:10px 16px 0">
+      <div onClick="{{ openSheet }}" style="flex:1;height:44px;border:1px solid #3F30E9;border-radius:10px;display:flex;align-items:center;justify-content:center;gap:7px;cursor:pointer;background:oklch(0.96 0.0255 280)">
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="#3F30E9" stroke-width="1.5" stroke-linejoin="round"><path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"></path></svg>
+        <span style="font-size:13.5px;font-weight:600;color:#3F30E9">지역 · 센터 · 분야</span>
+        <span style="min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#3F30E9;color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center">2</span>
+      </div>
+      <div style="height:44px;padding:0 12px;border:1px solid oklch(0.9 0.014 280);border-radius:10px;display:flex;align-items:center;gap:5px"><span style="font-size:13.5px;font-weight:500;color:oklch(0.35 0.03 280)">최신순</span><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="oklch(0.55 0.034 280)" stroke-width="1.6" stroke-linecap="round"><path d="M6 9l6 6 6-6"></path></svg></div>
+    </div>
+  </div>
+  <div style="padding:14px 16px 0;background:oklch(0.985 0.004 280);display:flex;align-items:center;justify-content:space-between">
+    <span style="font-size:13px;color:oklch(0.55 0.034 280)">총 <b style="color:#3F30E9">8</b>건</span>
+    <div style="display:flex;gap:6px"><span style="padding:4px 10px;border-radius:20px;background:oklch(0.93 0.0425 280);color:#3F30E9;font-size:11.5px;font-weight:600">부천시 ✕</span><span style="padding:4px 10px;border-radius:20px;background:oklch(0.93 0.0425 280);color:#3F30E9;font-size:11.5px;font-weight:600">취업 ✕</span></div>
+  </div>
+  <div style="padding:12px 16px 20px;background:oklch(0.985 0.004 280);display:flex;flex-direction:column;gap:12px">
+    <div style="border-radius:12px;overflow:hidden;background:#fff;border:1px solid oklch(0.95 0.007 280);box-shadow:0 1px 3px rgba(63,48,233,0.06)">
+      <div style="position:relative;height:160px;background:#e5e7eb"><img src="https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=400&amp;h=280&amp;fit=crop" alt="" style="width:100%;height:100%;object-fit:cover"><span style="position:absolute;top:10px;left:10px;padding:3px 9px;border-radius:20px;background:#EF4444;color:#fff;font-size:11px;font-weight:700">D-3</span><span style="position:absolute;top:10px;right:10px;width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,0.9);display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" width="17" height="17" fill="#F59E0B" stroke="#F59E0B" stroke-width="1"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg></span></div>
+      <div style="padding:13px 14px 15px">
+        <div style="display:flex;gap:6px;margin-bottom:7px"><span style="padding:2px 9px;border-radius:20px;background:#D1FAE5;color:#10B981;font-size:11px;font-weight:700">모집중</span><span style="padding:2px 9px;border-radius:20px;background:oklch(0.95 0.007 280);color:oklch(0.55 0.034 280);font-size:11px;font-weight:600">취업</span></div>
+        <div style="font-size:15.5px;font-weight:700;line-height:1.4">취업역량 강화 워크숍</div>
+        <div style="font-size:12.5px;color:oklch(0.55 0.034 280);margin-top:4px">내일스퀘어 · 부천시</div>
+        <div style="font-size:12.5px;color:oklch(0.7 0.02 280);margin-top:2px">2026-08-01 ~ 08-31</div>
+        <div style="margin-top:11px"><div style="display:flex;justify-content:space-between;font-size:11.5px;margin-bottom:5px"><span style="color:oklch(0.55 0.034 280)">27/30명</span><span style="color:#F59E0B;font-weight:700">마감임박</span></div><div style="height:5px;border-radius:3px;background:oklch(0.95 0.007 280);overflow:hidden"><div style="width:90%;height:100%;background:#F59E0B"></div></div></div>
+        <div style="margin-top:12px;height:44px;background:#3F30E9;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14.5px;font-weight:600;color:#fff">신청하기</div>
+      </div>
+    </div>
+    <div style="border-radius:12px;overflow:hidden;background:#fff;border:1px solid oklch(0.95 0.007 280);box-shadow:0 1px 3px rgba(63,48,233,0.06)">
+      <div style="position:relative;height:160px;background:#e5e7eb"><img src="https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=400&amp;h=280&amp;fit=crop" alt="" style="width:100%;height:100%;object-fit:cover;filter:grayscale(0.5)"><span style="position:absolute;top:10px;left:10px;padding:3px 9px;border-radius:20px;background:rgba(120,124,130,0.85);color:#fff;font-size:11px;font-weight:700">마감</span></div>
+      <div style="padding:13px 14px 15px">
+        <div style="display:flex;gap:6px;margin-bottom:7px"><span style="padding:2px 9px;border-radius:20px;background:oklch(0.95 0.007 280);color:oklch(0.7 0.02 280);font-size:11px;font-weight:700">정원마감</span><span style="padding:2px 9px;border-radius:20px;background:oklch(0.95 0.007 280);color:oklch(0.55 0.034 280);font-size:11px;font-weight:600">교육</span></div>
+        <div style="font-size:15.5px;font-weight:700;line-height:1.4">디지털 마케팅 실전반</div>
+        <div style="font-size:12.5px;color:oklch(0.55 0.034 280);margin-top:4px">원미청정구역 · 부천시</div>
+        <div style="font-size:12.5px;color:oklch(0.7 0.02 280);margin-top:2px">2026-07-01 ~ 07-31</div>
+        <div style="margin-top:11px"><div style="display:flex;justify-content:space-between;font-size:11.5px;margin-bottom:5px"><span style="color:oklch(0.55 0.034 280)">15/15명</span><span style="color:oklch(0.7 0.02 280);font-weight:700">정원마감</span></div><div style="height:5px;border-radius:3px;background:oklch(0.95 0.007 280);overflow:hidden"><div style="width:100%;height:100%;background:oklch(0.7 0.02 280)"></div></div></div>
+        <div style="margin-top:12px;height:44px;background:oklch(0.95 0.007 280);border-radius:8px;display:flex;align-items:center;justify-content:center;gap:6px;font-size:14.5px;font-weight:600;color:oklch(0.55 0.034 280)"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 01-3.46 0"></path></svg>빈자리 알림 받기</div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:center;gap:6px;padding:10px 0 4px">
+      <div style="width:36px;height:36px;border-radius:8px;border:1px solid oklch(0.9 0.014 280);display:flex;align-items:center;justify-content:center;color:oklch(0.7 0.02 280)"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 18l-6-6 6-6"></path></svg></div>
+      <div style="width:36px;height:36px;border-radius:8px;background:#3F30E9;color:#fff;display:flex;align-items:center;justify-content:center;font-size:13.5px;font-weight:700">1</div>
+      <div style="width:36px;height:36px;border-radius:8px;border:1px solid oklch(0.9 0.014 280);display:flex;align-items:center;justify-content:center;font-size:13.5px;font-weight:500;color:oklch(0.35 0.03 280)">2</div>
+      <div style="width:36px;height:36px;border-radius:8px;border:1px solid oklch(0.9 0.014 280);display:flex;align-items:center;justify-content:center;font-size:13.5px;font-weight:500;color:oklch(0.35 0.03 280)">3</div>
+      <div style="width:36px;height:36px;border-radius:8px;border:1px solid oklch(0.9 0.014 280);display:flex;align-items:center;justify-content:center;color:oklch(0.35 0.03 280)"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 18l6-6-6-6"></path></svg></div>
+    </div>
+  </div>
+  <div style="display:flex;height:58px;border-top:1px solid oklch(0.9 0.014 280);background:#fff">
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:oklch(0.7 0.02 280)"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M3 10.5L12 4l9 6.5V20a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1z"></path></svg><span style="font-size:11px;font-weight:500">홈</span></div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#3F30E9"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect><rect x="14" y="14" width="7" height="7" rx="1.5"></rect></svg><span style="font-size:11px;font-weight:700">프로그램</span></div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:oklch(0.7 0.02 280)"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"></path><circle cx="12" cy="10" r="3"></circle></svg><span style="font-size:11px;font-weight:500">청년센터</span></div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:oklch(0.7 0.02 280)"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg><span style="font-size:11px;font-weight:500">마이</span></div>
+  </div>
+  <div hidden="{{ sheetHidden }}" style="position:absolute;inset:0;z-index:20">
+    <div onClick="{{ closeSheet }}" style="position:absolute;inset:0;background:rgba(12,8,32,0.45);animation:dfi 180ms ease"></div>
+    <div style="position:absolute;left:0;right:0;bottom:0;max-height:88%;background:#fff;border-radius:16px 16px 0 0;display:flex;flex-direction:column;animation:dup 240ms cubic-bezier(.2,.8,.2,1)">
+      <div style="padding:14px 0 6px;display:flex;justify-content:center"><span style="width:36px;height:4px;border-radius:2px;background:oklch(0.9 0.014 280)"></span></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:2px 8px 10px 18px;border-bottom:1px solid oklch(0.95 0.007 280)">
+        <span style="font-size:16px;font-weight:700">필터</span>
+        <div onClick="{{ closeSheet }}" style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:oklch(0.55 0.034 280);cursor:pointer"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"></path></svg></div>
+      </div>
+      <div style="overflow-y:auto;padding:16px 18px 8px">
+        <div style="font-size:12px;font-weight:700;color:oklch(0.7 0.02 280);margin-bottom:9px">정렬</div>
+        <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:20px">
+          <span style="padding:9px 14px;border-radius:20px;background:#3F30E9;color:#fff;font-size:13px;font-weight:600">최신순</span>
+          <span style="padding:9px 14px;border-radius:20px;border:1px solid oklch(0.9 0.014 280);font-size:13px;color:oklch(0.35 0.03 280)">마감임박순</span>
+          <span style="padding:9px 14px;border-radius:20px;border:1px solid oklch(0.9 0.014 280);font-size:13px;color:oklch(0.35 0.03 280)">인기순</span>
+        </div>
+        <div style="font-size:12px;font-weight:700;color:oklch(0.7 0.02 280);margin-bottom:9px">지역</div>
+        <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:20px">
+          <span style="padding:9px 14px;border-radius:20px;background:#3F30E9;color:#fff;font-size:13px;font-weight:600">부천시</span>
+          <span style="padding:9px 14px;border-radius:20px;border:1px solid oklch(0.9 0.014 280);font-size:13px;color:oklch(0.35 0.03 280)">수원시</span>
+          <span style="padding:9px 14px;border-radius:20px;border:1px solid oklch(0.9 0.014 280);font-size:13px;color:oklch(0.35 0.03 280)">안양시</span>
+          <span style="padding:9px 14px;border-radius:20px;border:1px solid oklch(0.9 0.014 280);font-size:13px;color:oklch(0.35 0.03 280)">고양시</span>
+          <span style="padding:9px 14px;border-radius:20px;border:1px solid oklch(0.9 0.014 280);font-size:13px;color:oklch(0.35 0.03 280)">용인시</span>
+          <span style="padding:9px 14px;border-radius:20px;border:1px solid oklch(0.9 0.014 280);font-size:13px;color:oklch(0.35 0.03 280)">성남시</span>
+        </div>
+        <div style="font-size:12px;font-weight:700;color:oklch(0.7 0.02 280);margin-bottom:9px">분야</div>
+        <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px">
+          <span style="padding:9px 14px;border-radius:20px;background:#3F30E9;color:#fff;font-size:13px;font-weight:600">취업</span>
+          <span style="padding:9px 14px;border-radius:20px;border:1px solid oklch(0.9 0.014 280);font-size:13px;color:oklch(0.35 0.03 280)">창업</span>
+          <span style="padding:9px 14px;border-radius:20px;border:1px solid oklch(0.9 0.014 280);font-size:13px;color:oklch(0.35 0.03 280)">교육</span>
+          <span style="padding:9px 14px;border-radius:20px;border:1px solid oklch(0.9 0.014 280);font-size:13px;color:oklch(0.35 0.03 280)">힐링</span>
+        </div>
+      </div>
+      <div style="display:flex;gap:9px;padding:12px 18px 20px;border-top:1px solid oklch(0.95 0.007 280)">
+        <div style="width:92px;height:48px;border:1px solid oklch(0.9 0.014 280);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;color:oklch(0.55 0.034 280)">초기화</div>
+        <div onClick="{{ closeSheet }}" style="flex:1;height:48px;background:#3F30E9;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:#fff;cursor:pointer">8건 보기</div>
+      </div>
+    </div>
+  </div>
+</div>
+<p class="note">.filter-bar 데스크톱 좌/우 분리 → 모바일 2단: ①상태 pill 가로 스크롤 ②필터 버튼(선택 개수 뱃지) + 정렬 버튼.
+.filter-popover 는 ≤767 에서 바텀시트로 승격 (기존 .modal-card 시트 패턴 재사용) · 적용 전까지 결과 미갱신.
+.program-grid 3열→1열, 이미지 160px, 카드 CTA 44px 풀폭. 페이지네이션 36px 정사각 + ‹ › 만 유지.</p>
+</div>
+
+<div class="dv-opt" id="1d">
+<div class="dv-olabel"><a class="dv-oid" href="#1d">1d</a>프로그램 상세 <code style="font-family:ui-monospace,Menlo,monospace;font-size:11px;color:oklch(0.6 0.02 280)">/programs/{id}</code></div>
+<div class="frame">
+  <div style="height:56px;display:flex;align-items:center;padding:0 6px;border-bottom:1px solid oklch(0.95 0.007 280);background:#fff">
+    <div style="width:44px;height:44px;display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="oklch(0.22 0.051 280)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"></path></svg></div>
+    <span style="flex:1;font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 4px">취업역량 강화 워크숍</span>
+    <div style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:oklch(0.55 0.034 280)"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><path d="M8.59 13.51l6.83 3.98M15.41 6.51l-6.82 3.98"></path></svg></div>
+  </div>
+  <div style="position:relative;height:211px;background:#e5e7eb"><img src="https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=400&amp;h=280&amp;fit=crop" alt="" style="width:100%;height:100%;object-fit:cover"><span style="position:absolute;top:12px;left:16px;padding:4px 11px;border-radius:20px;background:#EF4444;color:#fff;font-size:12px;font-weight:700">D-3 마감임박</span></div>
+  <div style="padding:16px 16px 0">
+    <div style="display:flex;gap:6px;margin-bottom:9px"><span style="padding:3px 10px;border-radius:20px;background:#D1FAE5;color:#10B981;font-size:11.5px;font-weight:700">모집중</span><span style="padding:3px 10px;border-radius:20px;background:oklch(0.93 0.0425 280);color:#3F30E9;font-size:11.5px;font-weight:600">취업</span></div>
+    <h1 style="font-size:20px;font-weight:800;line-height:1.4;margin:0;letter-spacing:-0.4px">취업역량 강화 워크숍</h1>
+    <div style="font-size:13px;color:oklch(0.55 0.034 280);margin-top:6px">내일스퀘어 · 부천시</div>
+    <div style="margin-top:14px;border:1px solid oklch(0.9 0.014 280);border-radius:12px;padding:14px;background:#fff">
+      <div style="display:flex;align-items:baseline;justify-content:space-between"><span style="font-size:13px;color:oklch(0.55 0.034 280)">신청 현황</span><span style="font-size:13px;font-weight:700;color:#F59E0B">마감임박</span></div>
+      <div style="display:flex;align-items:baseline;gap:4px;margin-top:6px"><span style="font-size:26px;font-weight:800;color:#F59E0B">27</span><span style="font-size:14px;color:oklch(0.55 0.034 280)">/ 30명 · 잔여 3석</span></div>
+      <div style="height:6px;border-radius:3px;background:oklch(0.95 0.007 280);overflow:hidden;margin-top:9px"><div style="width:90%;height:100%;background:#F59E0B"></div></div>
+      <div style="font-size:12px;color:oklch(0.7 0.02 280);margin-top:8px">신청 마감 2026-08-28 18:00</div>
+    </div>
+    <div style="margin-top:14px;display:flex;flex-direction:column;gap:1px;border:1px solid oklch(0.95 0.007 280);border-radius:12px;overflow:hidden">
+      <div style="display:flex;gap:10px;padding:13px 14px;background:oklch(0.985 0.004 280)"><span style="width:26px;flex-shrink:0;color:#3F30E9"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"></rect><path d="M16 2v4M8 2v4M3 10h18" stroke-linecap="round"></path></svg></span><div><div style="font-size:11.5px;color:oklch(0.7 0.02 280)">운영 기간</div><div style="font-size:13.5px;font-weight:600;margin-top:2px">2026-08-01 ~ 08-31</div></div></div>
+      <div style="display:flex;gap:10px;padding:13px 14px;background:oklch(0.985 0.004 280)"><span style="width:26px;flex-shrink:0;color:#3F30E9"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"></path><circle cx="12" cy="10" r="3"></circle></svg></span><div style="flex:1"><div style="font-size:11.5px;color:oklch(0.7 0.02 280)">장소</div><div style="font-size:13.5px;font-weight:600;margin-top:2px">내일스퀘어 3층 세미나실</div></div><span style="align-self:center;font-size:12.5px;font-weight:600;color:#3F30E9;flex-shrink:0">지도</span></div>
+      <div style="display:flex;gap:10px;padding:13px 14px;background:oklch(0.985 0.004 280)"><span style="width:26px;flex-shrink:0;color:#3F30E9"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></span><div><div style="font-size:11.5px;color:oklch(0.7 0.02 280)">대상</div><div style="font-size:13.5px;font-weight:600;margin-top:2px">경기도 거주 만 19~39세 청년</div></div></div>
+    </div>
+    <div style="margin-top:22px"><div style="font-size:16px;font-weight:700;margin-bottom:10px">프로그램 소개</div><div style="font-size:14px;line-height:1.75;color:oklch(0.35 0.03 280);text-wrap:pretty">이력서·자기소개서 작성부터 모의면접까지, 취업 준비 전 과정을 4주 동안 집중적으로 다룹니다. 현직 인사담당자의 1:1 피드백이 포함됩니다.</div></div>
+    <div style="margin-top:16px;display:flex;gap:9px;padding:13px 14px;border-radius:10px;background:#FEF3C7"><span style="color:#F59E0B;flex-shrink:0;font-weight:800">!</span><div style="font-size:12.5px;line-height:1.6;color:#92400E">신청 후 무단 불참 2회 시 6개월간 프로그램 신청이 제한됩니다.</div></div>
+  </div>
+  <div style="margin-top:26px;padding:20px 0 24px;background:oklch(0.985 0.004 280);border-top:1px solid oklch(0.95 0.007 280)">
+    <div style="font-size:16px;font-weight:700;padding:0 16px 12px">관련 프로그램</div>
+    <div class="nsb" style="display:flex;gap:12px;overflow-x:auto;padding:0 16px;scroll-snap-type:x mandatory">
+      <div style="width:180px;flex-shrink:0;background:#fff;border:1px solid oklch(0.95 0.007 280);border-radius:12px;overflow:hidden;scroll-snap-align:start"><div style="height:100px;background:#e5e7eb"><img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=400&amp;h=280&amp;fit=crop" alt="" style="width:100%;height:100%;object-fit:cover"></div><div style="padding:10px 12px 12px"><div style="font-size:13.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">자소서 첨삭 카페</div><div style="font-size:11.5px;color:oklch(0.55 0.034 280);margin-top:3px">내일스퀘어</div></div></div>
+      <div style="width:180px;flex-shrink:0;background:#fff;border:1px solid oklch(0.95 0.007 280);border-radius:12px;overflow:hidden;scroll-snap-align:start"><div style="height:100px;background:#e5e7eb"><img src="https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=400&amp;h=280&amp;fit=crop" alt="" style="width:100%;height:100%;object-fit:cover"></div><div style="padding:10px 12px 12px"><div style="font-size:13.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">AI 활용 실무 교육</div><div style="font-size:11.5px;color:oklch(0.55 0.034 280);margin-top:3px">비행지구</div></div></div>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px;padding:10px 16px 14px;background:#fff;border-top:1px solid oklch(0.9 0.014 280);box-shadow:0 -4px 16px rgba(20,16,60,.08)">
+    <div style="width:48px;height:48px;border:1px solid oklch(0.9 0.014 280);border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="#F59E0B" stroke-width="1.6" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg></div>
+    <div style="flex:1;height:48px;background:#3F30E9;border-radius:10px;display:flex;align-items:center;justify-content:center;gap:8px"><span style="color:#fff;font-size:15.5px;font-weight:700">신청하기</span><span style="padding:2px 8px;border-radius:20px;background:rgba(255,255,255,0.22);color:#fff;font-size:11.5px;font-weight:700">D-3</span></div>
+  </div>
+</div>
+<p class="note">.detail-hero 좌우 2컬럼 → 이미지(16:9) → 정보 세로 스택 · .detail-meta-grid 2열→1열 아이콘 리스트.
+.detail-sticky-cta 는 position:fixed 유지, inner padding 80→16px, 제목/상태 텍스트 숨기고 [즐겨찾기 48 정사각] + [신청 flex] + D-day 칩만.
+하단 탭바 없음 (하위 화면) → sticky CTA 와 충돌 방지. 관련 프로그램은 가로 스와이프.</p>
+</div>
+
+<div class="dv-opt" id="1e">
+<div class="dv-olabel"><a class="dv-oid" href="#1e">1e</a>신청 폼 <code style="font-family:ui-monospace,Menlo,monospace;font-size:11px;color:oklch(0.6 0.02 280)">/programs/{id}/apply</code> — 스텝 이동 동작</div>
+<div class="frame">
+  <div style="height:56px;display:flex;align-items:center;padding:0 6px;border-bottom:1px solid oklch(0.95 0.007 280);background:#fff">
+    <div style="width:44px;height:44px;display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="oklch(0.22 0.051 280)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"></path></svg></div>
+    <span style="flex:1;font-size:15px;font-weight:700;padding:0 4px">프로그램 신청</span>
+    <span style="font:600 11.5px ui-monospace,Menlo,monospace;color:#3F30E9;padding-right:12px">{{ stepLabel }}</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:6px;padding:14px 16px;background:#fff;border-bottom:1px solid oklch(0.95 0.007 280)">
+    <div style="display:flex;align-items:center;gap:6px"><div style="{{ s1 }}">1</div><span style="font-size:12.5px;font-weight:600;white-space:nowrap">신청자</span></div>
+    <div style="flex:1;height:1px;background:oklch(0.9 0.014 280)"></div>
+    <div style="display:flex;align-items:center;gap:6px"><div style="{{ s2 }}">2</div><span style="font-size:12.5px;font-weight:600;white-space:nowrap">지원 동기</span></div>
+    <div style="flex:1;height:1px;background:oklch(0.9 0.014 280)"></div>
+    <div style="display:flex;align-items:center;gap:6px"><div style="{{ s3 }}">3</div><span style="font-size:12.5px;font-weight:600;white-space:nowrap">동의</span></div>
+  </div>
+  <div style="padding:14px 16px 0;background:oklch(0.985 0.004 280)">
+    <div style="display:flex;gap:11px;padding:12px;background:#fff;border:1px solid oklch(0.95 0.007 280);border-radius:12px">
+      <div style="width:64px;height:64px;border-radius:8px;overflow:hidden;flex-shrink:0;background:#e5e7eb"><img src="https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=200&amp;h=200&amp;fit=crop" alt="" style="width:100%;height:100%;object-fit:cover"></div>
+      <div style="min-width:0"><span style="display:inline-flex;padding:2px 9px;border-radius:20px;background:#D1FAE5;color:#10B981;font-size:11px;font-weight:700">모집중</span><div style="font-size:14.5px;font-weight:700;margin-top:5px;line-height:1.35">취업역량 강화 워크숍</div><div style="font-size:12px;color:oklch(0.55 0.034 280);margin-top:3px">내일스퀘어 · 08-01~08-31</div></div>
+    </div>
+  </div>
+  <div style="padding:14px 16px 20px;background:oklch(0.985 0.004 280);min-height:290px">
+    <sc-if value="{{ isStep1 }}" hint-placeholder-val="{{ true }}">
+      <div style="background:#fff;border:1px solid oklch(0.95 0.007 280);border-radius:12px;padding:16px 14px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px"><span style="font-size:15px;font-weight:700">신청자 정보</span><span style="padding:2px 8px;border-radius:20px;background:oklch(0.93 0.0425 280);color:#3F30E9;font-size:11px;font-weight:700">자동 입력</span></div>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div><div style="font-size:12.5px;font-weight:600;color:oklch(0.55 0.034 280);margin-bottom:6px">이름</div><div style="height:44px;border-radius:10px;border:1px solid oklch(0.95 0.007 280);background:#F3F4F6;padding:0 14px;display:flex;align-items:center;font-size:14px;color:oklch(0.55 0.034 280)">박시현</div></div>
+          <div><div style="font-size:12.5px;font-weight:600;color:oklch(0.55 0.034 280);margin-bottom:6px">이메일</div><div style="height:44px;border-radius:10px;border:1px solid oklch(0.95 0.007 280);background:#F3F4F6;padding:0 14px;display:flex;align-items:center;font-size:14px;color:oklch(0.55 0.034 280)">sihyun@example.com</div></div>
+          <div><div style="font-size:12.5px;font-weight:600;color:oklch(0.55 0.034 280);margin-bottom:6px">휴대폰</div><div style="height:44px;border-radius:10px;border:1px solid oklch(0.95 0.007 280);background:#F3F4F6;padding:0 14px;display:flex;align-items:center;font-size:14px;color:oklch(0.55 0.034 280)">010-1234-5678</div></div>
+        </div>
+        <div style="font-size:12px;color:oklch(0.7 0.02 280);margin-top:12px;line-height:1.6">정보가 다르면 마이페이지 &gt; 개인 정보 수정에서 변경해주세요.</div>
+      </div>
+    </sc-if>
+    <sc-if value="{{ isStep2 }}" hint-placeholder-val="{{ false }}">
+      <div style="background:#fff;border:1px solid oklch(0.95 0.007 280);border-radius:12px;padding:16px 14px">
+        <div style="font-size:15px;font-weight:700;margin-bottom:12px">지원 동기</div>
+        <div style="border:1px solid #3F30E9;border-radius:10px;background:#fff;padding:12px 14px;min-height:140px;font-size:14px;line-height:1.7;color:oklch(0.35 0.03 280)">현재 취업 준비 중이며, 실제 인사담당자의 피드백을 받아 이력서를 보완하고 싶습니다.</div>
+        <div style="display:flex;justify-content:flex-end;font-size:11.5px;color:oklch(0.7 0.02 280);margin-top:6px">62 / 500</div>
+      </div>
+    </sc-if>
+    <sc-if value="{{ isStep3 }}" hint-placeholder-val="{{ false }}">
+      <div style="background:#fff;border:1px solid oklch(0.95 0.007 280);border-radius:12px;padding:16px 14px">
+        <div style="font-size:15px;font-weight:700;margin-bottom:12px">개인정보 수집·이용 동의</div>
+        <div style="border:1px solid oklch(0.95 0.007 280);background:oklch(0.985 0.004 280);border-radius:10px;padding:12px;max-height:160px;overflow-y:auto;font-size:12.5px;line-height:1.7;color:oklch(0.45 0.03 280)">수집 항목: 이름, 이메일, 휴대폰 번호, 지원 동기<br>수집 목적: 프로그램 신청 접수 및 참여자 관리<br>보유 기간: 프로그램 종료 후 1년<br>동의를 거부할 권리가 있으나, 거부 시 프로그램 신청이 제한됩니다.</div>
+        <div style="display:flex;align-items:center;gap:10px;margin-top:14px;min-height:44px"><span style="width:22px;height:22px;border-radius:6px;background:#3F30E9;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 6"></path></svg></span><span style="font-size:14px;font-weight:600">위 내용에 동의합니다 <span style="color:#EF4444">(필수)</span></span></div>
+      </div>
+    </sc-if>
+  </div>
+  <div style="display:flex;gap:9px;padding:10px 16px 14px;background:#fff;border-top:1px solid oklch(0.9 0.014 280);box-shadow:0 -4px 16px rgba(20,16,60,.08)">
+    <div onClick="{{ prev }}" style="width:104px;height:48px;border:1px solid oklch(0.9 0.014 280);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:14.5px;font-weight:600;color:oklch(0.55 0.034 280);cursor:pointer">이전</div>
+    <div onClick="{{ next }}" style="flex:1;height:48px;background:#3F30E9;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:15.5px;font-weight:700;color:#fff;cursor:pointer">{{ nextLabel }}</div>
+  </div>
+</div>
+<p class="note">.apply-stepper 3단 라벨 유지 + 원형 26px 축소, 연결선 flex:1 · 헤더 우측에 STEP n/3 텍스트 보조.
+readonly 필드는 세로 스택 (label 위) · 44px 높이로 통일 (데스크톱 42 → 모바일 44, 터치 타겟).
+.apply-nav 하단 고정: [이전 104px] + [다음 flex:2] — 데스크톱 220px 고정폭 대체.</p>
+</div>
+
+<div class="dv-opt" id="1f">
+<div class="dv-olabel"><a class="dv-oid" href="#1f">1f</a>신청 완료 <code style="font-family:ui-monospace,Menlo,monospace;font-size:11px;color:oklch(0.6 0.02 280)">/apply/complete</code></div>
+<div class="frame">
+  <div style="height:56px;display:flex;align-items:center;padding:0 16px;border-bottom:1px solid oklch(0.95 0.007 280);background:#fff"><div style="display:flex;align-items:center;gap:6px"><img src="assets/logo_symbol.png" alt="" style="height:26px;width:auto;display:block"><span style="font-weight:800;font-size:16px;color:#3F30E9">청년모아</span></div></div>
+  <div style="padding:40px 16px 28px;background:oklch(0.985 0.004 280);display:flex;flex-direction:column;align-items:center;text-align:center">
+    <span style="width:68px;height:68px;border-radius:50%;background:#D1FAE5;display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="#10B981" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 6"></path></svg></span>
+    <div style="font-size:22px;font-weight:800;margin-top:18px;letter-spacing:-0.4px">신청이 완료되었습니다</div>
+    <div style="font-size:13.5px;color:oklch(0.55 0.034 280);margin-top:8px;line-height:1.6">신청 결과는 카카오톡·이메일로<br>안내드립니다</div>
+    <div style="width:100%;margin-top:24px;background:#fff;border:1px solid oklch(0.95 0.007 280);border-radius:12px;padding:16px 14px;text-align:left">
+      <div style="display:flex;gap:11px"><div style="width:56px;height:56px;border-radius:8px;overflow:hidden;flex-shrink:0;background:#e5e7eb"><img src="https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=200&amp;h=200&amp;fit=crop" alt="" style="width:100%;height:100%;object-fit:cover"></div><div style="min-width:0"><span style="display:inline-flex;padding:2px 9px;border-radius:20px;background:#FEF3C7;color:#F59E0B;font-size:11px;font-weight:700">승인 대기</span><div style="font-size:14.5px;font-weight:700;margin-top:5px">취업역량 강화 워크숍</div></div></div>
+      <div style="height:1px;background:oklch(0.95 0.007 280);margin:14px 0"></div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:8px"><span style="color:oklch(0.55 0.034 280)">신청 번호</span><span style="font-weight:700;font-family:ui-monospace,Menlo,monospace">AP-20260820-0147</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:oklch(0.55 0.034 280)">신청 일시</span><span style="font-weight:600">2026-08-20 14:32</span></div>
+    </div>
+    <div style="width:100%;display:flex;flex-direction:column;gap:9px;margin-top:20px">
+      <div style="height:50px;background:#3F30E9;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:15.5px;font-weight:700;color:#fff">신청 내역 확인</div>
+      <div style="height:50px;border:1px solid oklch(0.9 0.014 280);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:600;color:oklch(0.35 0.03 280)">홈으로</div>
+    </div>
+    <div style="font-size:12.5px;color:oklch(0.7 0.02 280);margin-top:16px;text-decoration:underline">다른 프로그램 더 보기</div>
+  </div>
+</div>
+<p class="note">.apply-complete-card 100% 폭 · .apply-complete-actions 가로 2버튼 → 세로 스택(primary 위), 높이 50px.
+요약 정보는 label/value 좌우 정렬 유지 (2열 그리드 아님) — 375px 에서도 줄바꿈 없음.</p>
+</div>
+
+<div class="dv-opt" id="1g">
+<div class="dv-olabel"><a class="dv-oid" href="#1g">1g</a>청년센터 <code style="font-family:ui-monospace,Menlo,monospace;font-size:11px;color:oklch(0.6 0.02 280)">/centers</code> — 지도·리스트 전환 동작</div>
+<div class="frame">
+  <div style="height:56px;display:flex;align-items:center;padding:0 6px 0 16px;border-bottom:1px solid oklch(0.95 0.007 280);background:#fff">
+    <div style="display:flex;align-items:center;gap:6px;flex:1"><img src="assets/logo_symbol.png" alt="" style="height:26px;width:auto;display:block"><span style="font-weight:800;font-size:16px;color:#3F30E9">청년모아</span></div>
+    <div onClick="{{ openDrawer }}" style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;cursor:pointer"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"></path></svg></div>
+  </div>
+  <div style="padding:14px 16px 12px;background:#fff;border-bottom:1px solid oklch(0.9 0.014 280)">
+    <div style="display:flex;align-items:center;height:44px;border:1px solid oklch(0.9 0.014 280);border-radius:10px;background:#F7F8FA;padding:0 12px;gap:8px"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="#94A3B8" stroke-width="1.5"><circle cx="11" cy="11" r="8"></circle><path d="M21 21l-4.35-4.35" stroke-linecap="round"></path></svg><span style="font-size:14px;color:oklch(0.7 0.02 280)">센터명 · 지역 검색</span></div>
+    <div style="display:flex;align-items:center;gap:8px;margin-top:10px">
+      <div style="flex:1;height:40px;border:1px solid oklch(0.9 0.014 280);border-radius:10px;display:flex;align-items:center;justify-content:space-between;padding:0 12px"><span style="font-size:13.5px;font-weight:600;color:oklch(0.35 0.03 280)">부천시</span><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="oklch(0.55 0.034 280)" stroke-width="1.6" stroke-linecap="round"><path d="M6 9l6 6 6-6"></path></svg></div>
+      <div style="display:flex;align-items:center;gap:7px;height:40px;padding:0 4px"><span style="width:44px;height:26px;border-radius:13px;background:#3F30E9;position:relative;flex-shrink:0"><span style="position:absolute;top:3px;left:21px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,0.2)"></span></span><span style="font-size:13px;font-weight:600;white-space:nowrap">운영중</span></div>
+    </div>
+    <div style="display:flex;gap:4px;margin-top:12px;padding:3px;background:oklch(0.95 0.007 280);border-radius:10px">
+      <div onClick="{{ toMap }}" style="{{ segMap }}">지도</div>
+      <div onClick="{{ toList }}" style="{{ segList }}">리스트 12</div>
+    </div>
+  </div>
+  <div hidden="{{ mapHidden }}" style="position:relative;height:430px;background:oklch(0.985 0.004 280);background-image:linear-gradient(to right,oklch(0.95 0.007 280) 1px,transparent 1px),linear-gradient(to bottom,oklch(0.95 0.007 280) 1px,transparent 1px);background-size:40px 40px">
+    <div style="position:absolute;top:12px;left:50%;transform:translateX(-50%);height:36px;padding:0 14px;border-radius:20px;background:#fff;box-shadow:0 3px 12px rgba(20,16,60,.16);display:flex;align-items:center;gap:6px"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="#3F30E9" stroke-width="1.8" stroke-linecap="round"><path d="M21 12a9 9 0 11-6.2-8.56"></path><path d="M21 3v6h-6"></path></svg><span style="font-size:12.5px;font-weight:600;color:#3F30E9">이 지역 재검색</span></div>
+    <div style="position:absolute;top:150px;left:96px;display:flex;flex-direction:column;align-items:center"><span style="padding:5px 11px;border-radius:20px;background:#3F30E9;color:#fff;font-size:12px;font-weight:700;box-shadow:0 3px 10px rgba(63,48,233,.35)">내일스퀘어</span><span style="width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:6px solid #3F30E9"></span></div>
+    <div style="position:absolute;top:92px;left:236px;display:flex;flex-direction:column;align-items:center"><span style="width:30px;height:30px;border-radius:50%;background:#fff;border:2px solid #3F30E9;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#3F30E9">3</span></div>
+    <div style="position:absolute;top:236px;left:186px;display:flex;flex-direction:column;align-items:center"><span style="width:30px;height:30px;border-radius:50%;background:#fff;border:2px solid #3F30E9;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#3F30E9">5</span></div>
+    <div style="position:absolute;right:14px;bottom:158px;width:44px;height:44px;border-radius:50%;background:#fff;box-shadow:0 3px 12px rgba(20,16,60,.18);display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#3F30E9" stroke-width="1.6"><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3M12 19v3M2 12h3M19 12h3" stroke-linecap="round"></path></svg></div>
+    <div style="position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:16px 16px 0 0;box-shadow:0 -6px 20px rgba(20,16,60,.12);padding:10px 16px 16px">
+      <div style="display:flex;justify-content:center;margin-bottom:10px"><span style="width:36px;height:4px;border-radius:2px;background:oklch(0.9 0.014 280)"></span></div>
+      <div style="display:flex;gap:12px">
+        <div style="width:72px;height:72px;border-radius:10px;overflow:hidden;flex-shrink:0;background:#e5e7eb"><img src="https://images.unsplash.com/photo-1497366216548-37526070297c?w=200&amp;h=200&amp;fit=crop" alt="" style="width:100%;height:100%;object-fit:cover"></div>
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:6px"><span style="font-size:15.5px;font-weight:700">내일스퀘어</span><span style="padding:2px 8px;border-radius:20px;background:#D1FAE5;color:#10B981;font-size:11px;font-weight:700">운영중</span></div>
+          <div style="font-size:12.5px;color:oklch(0.55 0.034 280);margin-top:4px;line-height:1.5">부천시 길주로 210 3층</div>
+          <div style="font-size:12px;color:oklch(0.7 0.02 280);margin-top:3px">평일 09:00~18:00 · 진행 프로그램 4</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <div style="flex:1;height:44px;border:1px solid oklch(0.9 0.014 280);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;color:oklch(0.35 0.03 280)">길찾기</div>
+        <div style="flex:1;height:44px;background:#3F30E9;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff">센터 상세</div>
+      </div>
+    </div>
+  </div>
+  <div hidden="{{ listHidden }}" style="padding:14px 16px 20px;background:oklch(0.985 0.004 280);display:flex;flex-direction:column;gap:10px">
+    <div style="background:#fff;border:1px solid oklch(0.95 0.007 280);border-radius:12px;padding:14px">
+      <div style="display:flex;align-items:center;justify-content:space-between"><div style="display:flex;align-items:center;gap:6px"><span style="font-size:15.5px;font-weight:700">내일스퀘어</span><span style="padding:2px 8px;border-radius:20px;background:#D1FAE5;color:#10B981;font-size:11px;font-weight:700">운영중</span></div><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="oklch(0.7 0.02 280)" stroke-width="2" stroke-linecap="round"><path d="M9 18l6-6-6-6"></path></svg></div>
+      <div style="font-size:12.5px;color:oklch(0.55 0.034 280);margin-top:6px">부천시 길주로 210 3층</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1px solid oklch(0.95 0.007 280)"><span style="font-size:12.5px;color:oklch(0.7 0.02 280)">평일 09:00~18:00</span><span style="font-size:12.5px;font-weight:700;color:#3F30E9">프로그램 4</span></div>
+    </div>
+    <div style="background:#fff;border:1px solid oklch(0.95 0.007 280);border-radius:12px;padding:14px">
+      <div style="display:flex;align-items:center;justify-content:space-between"><div style="display:flex;align-items:center;gap:6px"><span style="font-size:15.5px;font-weight:700">원미청정구역</span><span style="padding:2px 8px;border-radius:20px;background:#D1FAE5;color:#10B981;font-size:11px;font-weight:700">운영중</span></div><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="oklch(0.7 0.02 280)" stroke-width="2" stroke-linecap="round"><path d="M9 18l6-6-6-6"></path></svg></div>
+      <div style="font-size:12.5px;color:oklch(0.55 0.034 280);margin-top:6px">부천시 원미로 105 2층</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1px solid oklch(0.95 0.007 280)"><span style="font-size:12.5px;color:oklch(0.7 0.02 280)">평일 10:00~19:00</span><span style="font-size:12.5px;font-weight:700;color:#3F30E9">프로그램 2</span></div>
+    </div>
+    <div style="background:#fff;border:1px solid oklch(0.95 0.007 280);border-radius:12px;padding:14px;opacity:.75">
+      <div style="display:flex;align-items:center;justify-content:space-between"><div style="display:flex;align-items:center;gap:6px"><span style="font-size:15.5px;font-weight:700">상상대로</span><span style="padding:2px 8px;border-radius:20px;background:oklch(0.95 0.007 280);color:oklch(0.7 0.02 280);font-size:11px;font-weight:700">휴관</span></div><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="oklch(0.7 0.02 280)" stroke-width="2" stroke-linecap="round"><path d="M9 18l6-6-6-6"></path></svg></div>
+      <div style="font-size:12.5px;color:oklch(0.55 0.034 280);margin-top:6px">수원시 인계로 178</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1px solid oklch(0.95 0.007 280)"><span style="font-size:12.5px;color:oklch(0.7 0.02 280)">8/1~8/15 휴관</span><span style="font-size:12.5px;font-weight:700;color:oklch(0.7 0.02 280)">프로그램 1</span></div>
+    </div>
+  </div>
+  <div style="display:flex;height:58px;border-top:1px solid oklch(0.9 0.014 280);background:#fff">
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:oklch(0.7 0.02 280)"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M3 10.5L12 4l9 6.5V20a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1z"></path></svg><span style="font-size:11px;font-weight:500">홈</span></div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:oklch(0.7 0.02 280)"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect><rect x="14" y="14" width="7" height="7" rx="1.5"></rect></svg><span style="font-size:11px;font-weight:500">프로그램</span></div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#3F30E9"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"></path><circle cx="12" cy="10" r="3"></circle></svg><span style="font-size:11px;font-weight:700">청년센터</span></div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:oklch(0.7 0.02 280)"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg><span style="font-size:11px;font-weight:500">마이</span></div>
+  </div>
+</div>
+<p class="note">.centers-layout 3분할(필터·지도·리스트) → 상단 검색·지역·운영중 + [지도|리스트] 세그먼트 전환.
+지도 모드: 지도 430px + 선택 센터 peek 시트(하단), 마커는 겹칠 때 숫자 클러스터. "운영 중만 보기" 라벨은 "운영중" 으로 축약 후 토글 옆 1줄 고정.
+리스트 모드: .center-card 세로 1열, 내부 스크롤 컨테이너(.centers-list-scroll) 해제 → 페이지 스크롤.</p>
+</div>
+
+<div class="dv-opt" id="1h">
+<div class="dv-olabel"><a class="dv-oid" href="#1h">1h</a>공지사항 목록 <code style="font-family:ui-monospace,Menlo,monospace;font-size:11px;color:oklch(0.6 0.02 280)">/notices</code> — 테이블 → 카드</div>
+<div class="frame">
+  <div style="height:56px;display:flex;align-items:center;padding:0 6px;border-bottom:1px solid oklch(0.95 0.007 280);background:#fff">
+    <div style="width:44px;height:44px;display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="oklch(0.22 0.051 280)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"></path></svg></div>
+    <span style="flex:1;font-size:15px;font-weight:700;padding:0 4px">공지사항</span>
+    <div style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:oklch(0.55 0.034 280)"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"></circle><path d="M21 21l-4.35-4.35" stroke-linecap="round"></path></svg></div>
+  </div>
+  <div class="nsb" style="display:flex;gap:7px;overflow-x:auto;padding:12px 16px;background:#fff;border-bottom:1px solid oklch(0.9 0.014 280)">
+    <div style="flex-shrink:0;height:36px;padding:0 15px;border-radius:20px;background:#3F30E9;color:#fff;font-size:13.5px;font-weight:600;display:flex;align-items:center">전체</div>
+    <div style="flex-shrink:0;height:36px;padding:0 15px;border-radius:20px;background:#fff;border:1px solid oklch(0.9 0.014 280);color:oklch(0.35 0.03 280);font-size:13.5px;display:flex;align-items:center">행사</div>
+    <div style="flex-shrink:0;height:36px;padding:0 15px;border-radius:20px;background:#fff;border:1px solid oklch(0.9 0.014 280);color:oklch(0.35 0.03 280);font-size:13.5px;display:flex;align-items:center">공지</div>
+    <div style="flex-shrink:0;height:36px;padding:0 15px;border-radius:20px;background:#fff;border:1px solid oklch(0.9 0.014 280);color:oklch(0.35 0.03 280);font-size:13.5px;display:flex;align-items:center">운영</div>
+    <div style="flex-shrink:0;height:36px;padding:0 15px;border-radius:20px;background:#fff;border:1px solid oklch(0.9 0.014 280);color:oklch(0.35 0.03 280);font-size:13.5px;display:flex;align-items:center">기타</div>
+  </div>
+  <div style="background:oklch(0.985 0.004 280);padding:12px 16px 20px;display:flex;flex-direction:column;gap:10px">
+    <div style="background:oklch(0.96 0.0255 280);border:1px solid oklch(0.93 0.0425 280);border-radius:12px;padding:14px">
+      <div style="display:flex;align-items:center;gap:7px;margin-bottom:8px"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#3F30E9" stroke-width="1.8"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"></path><circle cx="12" cy="10" r="3"></circle></svg><span style="padding:2px 9px;border-radius:20px;background:#FFEDD5;color:#F97316;font-size:11px;font-weight:700">행사</span></div>
+      <div style="font-size:15.5px;font-weight:700;line-height:1.45">제1회 청년의 날 축제 안내</div>
+      <div style="font-size:12px;color:oklch(0.55 0.034 280);margin-top:8px">2026.07.30 · 조회 756</div>
+    </div>
+    <div style="background:#fff;border:1px solid oklch(0.95 0.007 280);border-radius:12px;padding:14px">
+      <span style="display:inline-flex;padding:2px 9px;border-radius:20px;background:oklch(0.93 0.0425 280);color:#3F30E9;font-size:11px;font-weight:700">공지</span>
+      <div style="font-size:15px;font-weight:600;line-height:1.45;margin-top:8px">7월 청년센터 프로그램 일정 안내</div>
+      <div style="font-size:12px;color:oklch(0.7 0.02 280);margin-top:8px">2026.06.15 · 조회 7,178</div>
+    </div>
+    <div style="background:#fff;border:1px solid oklch(0.95 0.007 280);border-radius:12px;padding:14px">
+      <span style="display:inline-flex;padding:2px 9px;border-radius:20px;background:#D1FAE5;color:#10B981;font-size:11px;font-weight:700">운영</span>
+      <div style="font-size:15px;font-weight:600;line-height:1.45;margin-top:8px">7월 휴관 일정 안내</div>
+      <div style="font-size:12px;color:oklch(0.7 0.02 280);margin-top:8px">2026.06.15 · 조회 7,756</div>
+    </div>
+    <div style="background:#fff;border:1px solid oklch(0.95 0.007 280);border-radius:12px;padding:14px">
+      <span style="display:inline-flex;padding:2px 9px;border-radius:20px;background:oklch(0.95 0.007 280);color:oklch(0.7 0.02 280);font-size:11px;font-weight:700">기타</span>
+      <div style="font-size:15px;font-weight:600;line-height:1.45;margin-top:8px">[경기도] 2026 경기 사회적 경제 박람회</div>
+      <div style="font-size:12px;color:oklch(0.7 0.02 280);margin-top:8px">2026.05.15 · 조회 157</div>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:center;gap:6px;padding:10px 0 0">
+      <div style="width:36px;height:36px;border-radius:8px;border:1px solid oklch(0.9 0.014 280);display:flex;align-items:center;justify-content:center;color:oklch(0.7 0.02 280)"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 18l-6-6 6-6"></path></svg></div>
+      <div style="width:36px;height:36px;border-radius:8px;background:#3F30E9;color:#fff;display:flex;align-items:center;justify-content:center;font-size:13.5px;font-weight:700">1</div>
+      <div style="width:36px;height:36px;border-radius:8px;border:1px solid oklch(0.9 0.014 280);display:flex;align-items:center;justify-content:center;font-size:13.5px;color:oklch(0.35 0.03 280)">2</div>
+      <div style="width:36px;height:36px;border-radius:8px;border:1px solid oklch(0.9 0.014 280);display:flex;align-items:center;justify-content:center;color:oklch(0.35 0.03 280)"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 18l6-6-6-6"></path></svg></div>
+    </div>
+  </div>
+</div>
+<p class="note">5열 테이블(.notice-table) → 카드 리스트: No·조회수 컬럼은 접고 [구분 뱃지] / [제목 최대 2줄] / [작성일 · 조회] 3층 구성.
+.notice-thead 는 ≤767 에서 display:none · .notice-row 는 block 카드로 재정의 (마크업 유지, CSS 만 변경).
+고정 공지(.notice-row--pinned)는 primary-bg + 핀 아이콘으로 상단 유지 · 카테고리 pill 5개는 가로 스크롤.</p>
+</div>
+
+<div class="dv-opt" id="1i">
+<div class="dv-olabel"><a class="dv-oid" href="#1i">1i</a>공지 상세 <code style="font-family:ui-monospace,Menlo,monospace;font-size:11px;color:oklch(0.6 0.02 280)">/notices/{id}</code></div>
+<div class="frame">
+  <div style="height:56px;display:flex;align-items:center;padding:0 6px;border-bottom:1px solid oklch(0.95 0.007 280);background:#fff">
+    <div style="width:44px;height:44px;display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="oklch(0.22 0.051 280)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"></path></svg></div>
+    <span style="flex:1;font-size:15px;font-weight:700;padding:0 4px">공지사항</span>
+    <div style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:oklch(0.55 0.034 280)"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><path d="M8.59 13.51l6.83 3.98M15.41 6.51l-6.82 3.98"></path></svg></div>
+  </div>
+  <div style="padding:18px 16px 16px;border-bottom:1px solid oklch(0.95 0.007 280)">
+    <div style="display:flex;gap:6px;margin-bottom:10px"><span style="padding:3px 10px;border-radius:20px;background:#FFEDD5;color:#F97316;font-size:11.5px;font-weight:700">행사</span><span style="padding:3px 10px;border-radius:20px;background:oklch(0.93 0.0425 280);color:#3F30E9;font-size:11.5px;font-weight:700">고정</span></div>
+    <h1 style="font-size:19px;font-weight:800;line-height:1.45;margin:0;letter-spacing:-0.3px">제1회 청년의 날 축제 안내</h1>
+    <div style="font-size:12.5px;color:oklch(0.7 0.02 280);margin-top:10px">2026.07.30 · 조회 756</div>
+  </div>
+  <div style="padding:18px 16px 22px">
+    <div style="font-size:14.5px;line-height:1.85;color:oklch(0.3 0.03 280);text-wrap:pretty">경기도 청년의 날을 맞아 제1회 청년 축제를 개최합니다. 청년센터 프로그램 부스, 진로 상담존, 청년 밴드 공연이 준비되어 있습니다.<br><br>일시: 2026년 9월 12일(토) 11:00~18:00<br>장소: 부천시 청년광장<br>참여: 사전 신청 없이 현장 참여 가능</div>
+    <div style="margin-top:20px;display:flex;flex-direction:column;gap:8px">
+      <div style="display:flex;align-items:center;gap:10px;padding:13px 14px;border:1px solid oklch(0.9 0.014 280);border-radius:10px;min-height:44px"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#3F30E9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"></path></svg><span style="flex:1;font-size:13.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">청년의날_행사안내.pdf</span><span style="font-size:11.5px;color:oklch(0.7 0.02 280);flex-shrink:0">1.2MB</span></div>
+    </div>
+  </div>
+  <div style="border-top:1px solid oklch(0.95 0.007 280);background:oklch(0.985 0.004 280)">
+    <div style="display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid oklch(0.95 0.007 280)"><span style="font-size:11.5px;font-weight:700;color:oklch(0.7 0.02 280);width:34px;flex-shrink:0">이전</span><span style="flex:1;font-size:13.5px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">7월 청년센터 프로그램 일정 안내</span></div>
+    <div style="display:flex;align-items:center;gap:10px;padding:14px 16px"><span style="font-size:11.5px;font-weight:700;color:oklch(0.7 0.02 280);width:34px;flex-shrink:0">다음</span><span style="flex:1;font-size:13.5px;color:oklch(0.7 0.02 280)">다음 글이 없습니다</span></div>
+  </div>
+  <div style="padding:16px">
+    <div style="height:48px;border:1px solid oklch(0.9 0.014 280);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:14.5px;font-weight:600;color:oklch(0.35 0.03 280)">목록으로</div>
+  </div>
+</div>
+<p class="note">.notice-detail 폭 100% · padding 16px · 본문 14.5px/1.85 (모바일 가독성 하한 14px 준수).
+.notice-adjacent-row 는 [이전/다음 라벨 34px] + [제목 1줄 ellipsis] 로 좁혀 세로 2행 유지.
+첨부 파일 row 는 min-height 44px 터치 타겟.</p>
+</div>
+
+<div class="dv-opt" id="1j">
+<div class="dv-olabel"><a class="dv-oid" href="#1j">1j</a>로그인 <code style="font-family:ui-monospace,Menlo,monospace;font-size:11px;color:oklch(0.6 0.02 280)">/login</code></div>
+<div class="frame">
+  <div style="height:56px;display:flex;align-items:center;padding:0 6px;border-bottom:1px solid oklch(0.95 0.007 280)">
+    <div style="width:44px;height:44px;display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="oklch(0.55 0.034 280)" stroke-width="1.6" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"></path></svg></div>
+    <span style="flex:1"></span>
+  </div>
+  <div style="padding:36px 20px 40px;display:flex;flex-direction:column;align-items:center">
+    <img src="assets/logo_symbol.png" alt="" style="height:44px;width:auto;display:block">
+    <div style="font-size:20px;font-weight:800;margin-top:14px;letter-spacing:-0.4px">로그인</div>
+    <div style="font-size:13px;color:oklch(0.55 0.034 280);margin-top:6px">청년모아 계정으로 로그인하세요</div>
+    <div style="width:100%;display:flex;flex-direction:column;gap:10px;margin-top:26px">
+      <div style="height:48px;border-radius:10px;border:1px solid oklch(0.9 0.014 280);background:#F7F8FA;padding:0 14px;display:flex;align-items:center;font-size:14.5px;color:oklch(0.7 0.02 280)">이메일</div>
+      <div style="height:48px;border-radius:10px;border:1px solid #3F30E9;background:#fff;padding:0 14px;display:flex;align-items:center;justify-content:space-between"><span style="font-size:14.5px;letter-spacing:2px">••••••••</span><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="oklch(0.55 0.034 280)" stroke-width="1.5"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"></path><circle cx="12" cy="12" r="3"></circle></svg></div>
+    </div>
+    <div style="width:100%;display:flex;align-items:center;gap:9px;margin-top:14px;min-height:44px"><span style="width:20px;height:20px;border-radius:5px;border:1.5px solid oklch(0.9 0.014 280);flex-shrink:0"></span><span style="font-size:13.5px;color:oklch(0.35 0.03 280)">로그인 상태 유지</span></div>
+    <div style="width:100%;height:50px;background:#3F30E9;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#fff;margin-top:8px">로그인</div>
+    <div style="width:100%;height:50px;border:1px solid oklch(0.22 0.051 280);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:600;margin-top:10px">회원가입</div>
+    <div style="display:flex;align-items:center;gap:12px;margin-top:22px">
+      <span style="font-size:13px;color:oklch(0.55 0.034 280)">아이디 찾기</span>
+      <span style="width:1px;height:11px;background:oklch(0.9 0.014 280)"></span>
+      <span style="font-size:13px;color:oklch(0.55 0.034 280)">비밀번호 찾기</span>
+    </div>
+  </div>
+</div>
+<p class="note">.auth-screen-inner 400px 고정 → width:100%, 페이지 padding 20px · .auth-input 42→48px (모바일 입력 편의).
+헤더는 로고·nav 없는 close 헤더 (auth-page-body) · 하단 링크 3개 중 회원가입은 버튼으로 승격, 나머지 2개만 텍스트 링크 1행.</p>
+</div>
+
+<div class="dv-opt" id="1k">
+<div class="dv-olabel"><a class="dv-oid" href="#1k">1k</a>계정 찾기 <code style="font-family:ui-monospace,Menlo,monospace;font-size:11px;color:oklch(0.6 0.02 280)">/find-id · /find-password</code></div>
+<div class="frame">
+  <div style="height:56px;display:flex;align-items:center;padding:0 6px;border-bottom:1px solid oklch(0.95 0.007 280)">
+    <div style="width:44px;height:44px;display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="oklch(0.22 0.051 280)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"></path></svg></div>
+    <span style="flex:1;font-size:15px;font-weight:700;padding:0 4px">아이디 찾기</span>
+  </div>
+  <div style="padding:24px 20px 36px">
+    <div style="display:flex;align-items:center;gap:8px">
+      <div style="flex:1;display:flex;align-items:center;gap:7px"><span style="width:24px;height:24px;border-radius:50%;background:#3F30E9;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700">1</span><span style="font-size:13px;font-weight:700">본인 인증</span></div>
+      <div style="flex:1;display:flex;align-items:center;gap:7px"><span style="width:24px;height:24px;border-radius:50%;background:oklch(0.95 0.007 280);color:oklch(0.7 0.02 280);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700">2</span><span style="font-size:13px;font-weight:600;color:oklch(0.7 0.02 280)">결과 확인</span></div>
+    </div>
+    <div style="font-size:13.5px;color:oklch(0.55 0.034 280);line-height:1.6;margin-top:20px">가입 시 등록한 이름과 휴대폰 번호를 입력하면 가입된 이메일 일부를 알려드립니다.</div>
+    <div style="display:flex;flex-direction:column;gap:12px;margin-top:20px">
+      <div><div style="font-size:12.5px;font-weight:600;color:oklch(0.35 0.03 280);margin-bottom:6px">이름</div><div style="height:48px;border-radius:10px;border:1px solid oklch(0.9 0.014 280);background:#F7F8FA;padding:0 14px;display:flex;align-items:center;font-size:14.5px;color:oklch(0.7 0.02 280)">홍길동</div></div>
+      <div><div style="font-size:12.5px;font-weight:600;color:oklch(0.35 0.03 280);margin-bottom:6px">휴대폰 번호</div>
+        <div style="display:flex;gap:8px"><div style="flex:1;height:48px;border-radius:10px;border:1px solid oklch(0.9 0.014 280);background:#F7F8FA;padding:0 14px;display:flex;align-items:center;font-size:14.5px;color:oklch(0.7 0.02 280)">01012345678</div><div style="width:96px;height:48px;border:1px solid #3F30E9;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:13.5px;font-weight:700;color:#3F30E9">인증요청</div></div>
+      </div>
+      <div><div style="font-size:12.5px;font-weight:600;color:oklch(0.35 0.03 280);margin-bottom:6px">인증번호</div>
+        <div style="display:flex;gap:8px"><div style="flex:1;height:48px;border-radius:10px;border:1px solid #3F30E9;background:#fff;padding:0 14px;display:flex;align-items:center;justify-content:space-between"><span style="font-size:14.5px;letter-spacing:3px">4821</span><span style="font-size:12.5px;font-weight:700;color:#EF4444">02:41</span></div></div>
+      </div>
+    </div>
+    <div style="height:50px;background:#3F30E9;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#fff;margin-top:22px">확인</div>
+    <div style="text-align:center;font-size:13px;color:oklch(0.55 0.034 280);margin-top:16px">로그인으로 돌아가기</div>
+  </div>
+</div>
+<p class="note">2스텝 인디케이터는 라벨 포함 1행 유지 (원형 24px) · 인증요청 버튼은 96px 고정 + 입력 flex:1.
+CTA·입력 48/50px · .auth-help-links 는 중앙 1줄 텍스트 링크.</p>
+</div>
+
+<div class="dv-opt" id="1l">
+<div class="dv-olabel"><a class="dv-oid" href="#1l">1l</a>회원가입 <code style="font-family:ui-monospace,Menlo,monospace;font-size:11px;color:oklch(0.6 0.02 280)">/signup</code></div>
+<div class="frame">
+  <div style="height:56px;display:flex;align-items:center;padding:0 6px;border-bottom:1px solid oklch(0.95 0.007 280)">
+    <div style="width:44px;height:44px;display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="oklch(0.22 0.051 280)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"></path></svg></div>
+    <span style="flex:1;font-size:15px;font-weight:700;padding:0 4px">회원가입</span>
+  </div>
+  <div style="padding:20px 20px 16px">
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div><div style="font-size:12.5px;font-weight:600;margin-bottom:6px">이메일 <span style="color:#EF4444">*</span></div><div style="display:flex;gap:8px"><div style="flex:1;height:48px;border-radius:10px;border:1px solid #3F30E9;background:#fff;padding:0 14px;display:flex;align-items:center;font-size:14.5px">sihyun@example.com</div><div style="width:80px;height:48px;border:1px solid #3F30E9;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:13.5px;font-weight:700;color:#3F30E9">중복확인</div></div><div style="font-size:12px;color:#10B981;margin-top:5px">사용 가능한 이메일입니다</div></div>
+      <div><div style="font-size:12.5px;font-weight:600;margin-bottom:6px">비밀번호 <span style="color:#EF4444">*</span></div><div style="height:48px;border-radius:10px;border:1px solid oklch(0.9 0.014 280);background:#F7F8FA;padding:0 14px;display:flex;align-items:center;font-size:14.5px;color:oklch(0.7 0.02 280)">영문·숫자·특수문자 8자 이상</div></div>
+      <div><div style="font-size:12.5px;font-weight:600;margin-bottom:6px">비밀번호 확인 <span style="color:#EF4444">*</span></div><div style="height:48px;border-radius:10px;border:1px solid oklch(0.9 0.014 280);background:#F7F8FA;padding:0 14px;display:flex;align-items:center;font-size:14.5px;color:oklch(0.7 0.02 280)">비밀번호 재입력</div></div>
+      <div><div style="font-size:12.5px;font-weight:600;margin-bottom:6px">이름 <span style="color:#EF4444">*</span></div><div style="height:48px;border-radius:10px;border:1px solid oklch(0.9 0.014 280);background:#F7F8FA;padding:0 14px;display:flex;align-items:center;font-size:14.5px;color:oklch(0.7 0.02 280)">홍길동</div></div>
+      <div><div style="font-size:12.5px;font-weight:600;margin-bottom:6px">휴대폰 번호 <span style="color:#EF4444">*</span></div><div style="display:flex;gap:8px"><div style="flex:1;height:48px;border-radius:10px;border:1px solid oklch(0.9 0.014 280);background:#F7F8FA;padding:0 14px;display:flex;align-items:center;font-size:14.5px;color:oklch(0.7 0.02 280)">01012345678</div><div style="width:80px;height:48px;border:1px solid oklch(0.9 0.014 280);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:13.5px;font-weight:600;color:oklch(0.55 0.034 280)">인증</div></div></div>
+      <div><div style="font-size:12.5px;font-weight:600;margin-bottom:6px">성별</div><div style="display:flex;gap:8px"><div style="flex:1;height:44px;border-radius:10px;border:1px solid #3F30E9;background:oklch(0.96 0.0255 280);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;color:#3F30E9">남성</div><div style="flex:1;height:44px;border-radius:10px;border:1px solid oklch(0.9 0.014 280);display:flex;align-items:center;justify-content:center;font-size:14px;color:oklch(0.55 0.034 280)">여성</div><div style="flex:1;height:44px;border-radius:10px;border:1px solid oklch(0.9 0.014 280);display:flex;align-items:center;justify-content:center;font-size:14px;color:oklch(0.55 0.034 280)">선택안함</div></div></div>
+      <div><div style="font-size:12.5px;font-weight:600;margin-bottom:6px">생년월일</div><div style="height:48px;border-radius:10px;border:1px solid oklch(0.9 0.014 280);background:#F7F8FA;padding:0 14px;display:flex;align-items:center;justify-content:space-between"><span style="font-size:14.5px;color:oklch(0.7 0.02 280)">2000-01-01</span><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="oklch(0.55 0.034 280)" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"></rect><path d="M16 2v4M8 2v4M3 10h18" stroke-linecap="round"></path></svg></div></div>
+      <div><div style="font-size:12.5px;font-weight:600;margin-bottom:6px">주소</div>
+        <div style="display:flex;gap:8px"><div style="flex:1;height:48px;border-radius:10px;border:1px solid oklch(0.9 0.014 280);background:#F3F4F6;padding:0 14px;display:flex;align-items:center;font-size:14.5px;color:oklch(0.7 0.02 280)">14547</div><div style="width:104px;height:48px;background:#3F30E9;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:13.5px;font-weight:700;color:#fff">주소 검색</div></div>
+        <div style="height:48px;border-radius:10px;border:1px solid oklch(0.9 0.014 280);background:#F3F4F6;padding:0 14px;display:flex;align-items:center;font-size:14.5px;color:oklch(0.7 0.02 280);margin-top:8px">경기도 부천시 길주로 210</div>
+        <div style="height:48px;border-radius:10px;border:1px solid oklch(0.9 0.014 280);background:#F7F8FA;padding:0 14px;display:flex;align-items:center;font-size:14.5px;color:oklch(0.7 0.02 280);margin-top:8px">상세 주소 입력</div>
+      </div>
+    </div>
+    <div style="margin-top:20px;border:1px solid oklch(0.9 0.014 280);border-radius:12px;padding:14px">
+      <div style="display:flex;align-items:center;gap:10px;min-height:44px"><span style="width:22px;height:22px;border-radius:6px;background:#3F30E9;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 6"></path></svg></span><span style="font-size:14.5px;font-weight:700">전체 동의</span></div>
+      <div style="height:1px;background:oklch(0.95 0.007 280);margin:6px 0"></div>
+      <div style="display:flex;align-items:center;gap:10px;min-height:44px"><span style="width:20px;height:20px;border-radius:5px;background:#3F30E9;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 6"></path></svg></span><span style="flex:1;font-size:13.5px">이용약관 동의 <span style="color:#EF4444">(필수)</span></span><span style="font-size:12.5px;color:oklch(0.7 0.02 280);text-decoration:underline;flex-shrink:0">보기</span></div>
+      <div style="display:flex;align-items:center;gap:10px;min-height:44px"><span style="width:20px;height:20px;border-radius:5px;background:#3F30E9;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 6"></path></svg></span><span style="flex:1;font-size:13.5px">개인정보 수집·이용 <span style="color:#EF4444">(필수)</span></span><span style="font-size:12.5px;color:oklch(0.7 0.02 280);text-decoration:underline;flex-shrink:0">보기</span></div>
+      <div style="display:flex;align-items:center;gap:10px;min-height:44px"><span style="width:20px;height:20px;border-radius:5px;border:1.5px solid oklch(0.9 0.014 280);flex-shrink:0"></span><span style="flex:1;font-size:13.5px;color:oklch(0.35 0.03 280)">마케팅 정보 수신 (선택)</span></div>
+    </div>
+  </div>
+  <div style="padding:10px 16px 14px;background:#fff;border-top:1px solid oklch(0.9 0.014 280);box-shadow:0 -4px 16px rgba(20,16,60,.08)">
+    <div style="height:50px;background:#3F30E9;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#fff">가입 완료</div>
+  </div>
+</div>
+<p class="note">모든 필드 label 위 배치 1열 · 입력 48px · [입력 flex:1 + 부가버튼 80~104px] 조합만 side-by-side 유지.
+성별 pill 3개는 flex:1 균등 분할 (44px) · 약관은 전체동의 + 개별 3행, 각 행 min-height 44px, "보기" 는 우측 고정.
+가입 버튼은 하단 고정 (position:sticky bottom:0) — 긴 폼에서 CTA 도달 비용 제거. 주소 검색 모달은 바텀시트로 승격.</p>
+</div>
+
+<div class="dv-opt" id="1m">
+<div class="dv-olabel"><a class="dv-oid" href="#1m">1m</a>마이페이지 <code style="font-family:ui-monospace,Menlo,monospace;font-size:11px;color:oklch(0.6 0.02 280)">/mypage?tab=</code> — 4탭 동작</div>
+<div class="frame">
+  <div style="height:56px;display:flex;align-items:center;padding:0 6px 0 16px;border-bottom:1px solid oklch(0.95 0.007 280);background:#fff">
+    <span style="flex:1;font-size:16px;font-weight:800">마이페이지</span>
+    <div style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:oklch(0.55 0.034 280);position:relative"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 01-3.46 0"></path></svg><span style="position:absolute;top:11px;right:12px;width:7px;height:7px;border-radius:50%;background:#EF4444;border:1.5px solid #fff"></span></div>
+    <div onClick="{{ openDrawer }}" style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;cursor:pointer"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"></path></svg></div>
+  </div>
+  <div style="padding:18px 16px 16px;background:oklch(0.96 0.0255 280)">
+    <div style="display:flex;align-items:center;gap:12px">
+      <span style="width:52px;height:52px;border-radius:50%;background:#3F30E9;color:#fff;display:flex;align-items:center;justify-content:center;font-size:21px;font-weight:700;flex-shrink:0">박</span>
+      <div style="min-width:0"><div style="font-size:17px;font-weight:800">박시현님</div><div style="font-size:12.5px;color:oklch(0.55 0.034 280);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">sihyun@example.com</div></div>
+    </div>
+    <div style="margin-top:14px;background:#fff;border-radius:12px;padding:12px 14px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px"><span style="font-size:12px;font-weight:700;color:oklch(0.7 0.02 280)">관심 정보</span><span style="font-size:12px;font-weight:700;color:#3F30E9">수정</span></div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px"><span style="padding:4px 10px;border-radius:20px;background:oklch(0.96 0.0255 280);color:#3F30E9;font-size:12px;font-weight:600">부천시</span><span style="padding:4px 10px;border-radius:20px;background:oklch(0.96 0.0255 280);color:#3F30E9;font-size:12px;font-weight:600">수원시</span><span style="padding:4px 10px;border-radius:20px;background:oklch(0.95 0.007 280);color:oklch(0.55 0.034 280);font-size:12px;font-weight:600">취업·역량</span><span style="padding:4px 10px;border-radius:20px;background:oklch(0.95 0.007 280);color:oklch(0.55 0.034 280);font-size:12px;font-weight:600">창업</span></div>
+    </div>
+    <div style="display:flex;margin-top:10px;background:#fff;border-radius:12px;padding:14px 0">
+      <div style="flex:1;text-align:center"><div style="font-size:20px;font-weight:800;color:#3F30E9">3</div><div style="font-size:11.5px;color:oklch(0.55 0.034 280);margin-top:2px">신청</div></div>
+      <div style="width:1px;background:oklch(0.95 0.007 280)"></div>
+      <div style="flex:1;text-align:center"><div style="font-size:20px;font-weight:800;color:#3F30E9">1</div><div style="font-size:11.5px;color:oklch(0.55 0.034 280);margin-top:2px">참여중</div></div>
+      <div style="width:1px;background:oklch(0.95 0.007 280)"></div>
+      <div style="flex:1;text-align:center"><div style="font-size:20px;font-weight:800;color:#3F30E9">5</div><div style="font-size:11.5px;color:oklch(0.55 0.034 280);margin-top:2px">즐겨찾기</div></div>
+    </div>
+  </div>
+  <div class="nsb" style="display:flex;overflow-x:auto;background:#fff;border-bottom:1px solid oklch(0.9 0.014 280)">
+    <div onClick="{{ goHistory }}" style="{{ tHistory }}">신청 내역</div>
+    <div onClick="{{ goFav }}" style="{{ tFav }}">즐겨찾기</div>
+    <div onClick="{{ goNoti }}" style="{{ tNoti }}">알림 설정</div>
+    <div onClick="{{ goProfile }}" style="{{ tProfile }}">개인 정보</div>
+  </div>
+  <div style="background:oklch(0.985 0.004 280);padding:14px 16px 20px;min-height:320px">
+    <sc-if value="{{ isHistory }}" hint-placeholder-val="{{ true }}">
+      <div>
+        <div class="nsb" style="display:flex;gap:7px;overflow-x:auto;margin-bottom:12px">
+          <span style="flex-shrink:0;padding:7px 13px;border-radius:20px;background:#3F30E9;color:#fff;font-size:12.5px;font-weight:600">전체 3</span>
+          <span style="flex-shrink:0;padding:7px 13px;border-radius:20px;background:#fff;border:1px solid oklch(0.9 0.014 280);font-size:12.5px;color:oklch(0.35 0.03 280)">대기 1</span>
+          <span style="flex-shrink:0;padding:7px 13px;border-radius:20px;background:#fff;border:1px solid oklch(0.9 0.014 280);font-size:12.5px;color:oklch(0.35 0.03 280)">승인 1</span>
+          <span style="flex-shrink:0;padding:7px 13px;border-radius:20px;background:#fff;border:1px solid oklch(0.9 0.014 280);font-size:12.5px;color:oklch(0.35 0.03 280)">종료 1</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div style="background:#fff;border:1px solid oklch(0.95 0.007 280);border-radius:12px;padding:14px">
+            <div style="display:flex;align-items:center;justify-content:space-between"><span style="padding:2px 9px;border-radius:20px;background:#FEF3C7;color:#F59E0B;font-size:11px;font-weight:700">승인 대기</span><span style="font-size:11.5px;color:oklch(0.7 0.02 280);font-family:ui-monospace,Menlo,monospace">AP-0147</span></div>
+            <div style="font-size:15px;font-weight:700;margin-top:9px;line-height:1.4">취업역량 강화 워크숍</div>
+            <div style="font-size:12.5px;color:oklch(0.55 0.034 280);margin-top:4px">내일스퀘어 · 2026-08-01~08-31</div>
+            <div style="display:flex;gap:8px;margin-top:12px"><div style="flex:1;height:40px;border:1px solid oklch(0.9 0.014 280);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13.5px;font-weight:600;color:oklch(0.35 0.03 280)">상세 보기</div><div style="flex:1;height:40px;border:1px solid #EF4444;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13.5px;font-weight:600;color:#EF4444">신청 취소</div></div>
+          </div>
+          <div style="background:#fff;border:1px solid oklch(0.95 0.007 280);border-radius:12px;padding:14px">
+            <div style="display:flex;align-items:center;justify-content:space-between"><span style="padding:2px 9px;border-radius:20px;background:#D1FAE5;color:#10B981;font-size:11px;font-weight:700">승인</span><span style="font-size:11.5px;color:oklch(0.7 0.02 280);font-family:ui-monospace,Menlo,monospace">AP-0121</span></div>
+            <div style="font-size:15px;font-weight:700;margin-top:9px;line-height:1.4">마음건강 힐링 캠프</div>
+            <div style="font-size:12.5px;color:oklch(0.55 0.034 280);margin-top:4px">범계역 청년출구 · 2026-07-01~07-31</div>
+            <div style="display:flex;gap:8px;margin-top:12px"><div style="flex:1;height:40px;border:1px solid oklch(0.9 0.014 280);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13.5px;font-weight:600;color:oklch(0.35 0.03 280)">상세 보기</div></div>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+    <sc-if value="{{ isFav }}" hint-placeholder-val="{{ false }}">
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px">
+        <div style="background:#fff;border:1px solid oklch(0.95 0.007 280);border-radius:12px;overflow:hidden"><div style="height:88px;background:#e5e7eb;position:relative"><img src="https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=300&amp;h=200&amp;fit=crop" alt="" style="width:100%;height:100%;object-fit:cover"><span style="position:absolute;top:6px;right:6px;width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.92);display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" width="15" height="15" fill="#F59E0B" stroke="#F59E0B" stroke-width="1"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg></span></div><div style="padding:10px 11px 12px"><div style="font-size:13px;font-weight:700;line-height:1.35">취업역량 강화 워크숍</div><div style="font-size:11.5px;color:oklch(0.55 0.034 280);margin-top:3px">내일스퀘어</div></div></div>
+        <div style="background:#fff;border:1px solid oklch(0.95 0.007 280);border-radius:12px;overflow:hidden"><div style="height:88px;background:#e5e7eb;position:relative"><img src="https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=300&amp;h=200&amp;fit=crop" alt="" style="width:100%;height:100%;object-fit:cover"><span style="position:absolute;top:6px;right:6px;width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.92);display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" width="15" height="15" fill="#F59E0B" stroke="#F59E0B" stroke-width="1"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg></span></div><div style="padding:10px 11px 12px"><div style="font-size:13px;font-weight:700;line-height:1.35">디지털 마케팅 실전반</div><div style="font-size:11.5px;color:oklch(0.55 0.034 280);margin-top:3px">원미청정구역</div></div></div>
+        <div style="background:#fff;border:1px solid oklch(0.95 0.007 280);border-radius:12px;overflow:hidden"><div style="height:88px;background:#e5e7eb;position:relative"><img src="https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=300&amp;h=200&amp;fit=crop" alt="" style="width:100%;height:100%;object-fit:cover"><span style="position:absolute;top:6px;right:6px;width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.92);display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" width="15" height="15" fill="#F59E0B" stroke="#F59E0B" stroke-width="1"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg></span></div><div style="padding:10px 11px 12px"><div style="font-size:13px;font-weight:700;line-height:1.35">AI 활용 실무 교육</div><div style="font-size:11.5px;color:oklch(0.55 0.034 280);margin-top:3px">비행지구</div></div></div>
+      </div>
+    </sc-if>
+    <sc-if value="{{ isNoti }}" hint-placeholder-val="{{ false }}">
+      <div style="background:#fff;border:1px solid oklch(0.95 0.007 280);border-radius:12px;padding:4px 14px">
+        <div style="display:flex;align-items:center;justify-content:space-between;min-height:56px;border-bottom:1px solid oklch(0.95 0.007 280)"><div><div style="font-size:14px;font-weight:600">신청 결과 알림</div><div style="font-size:12px;color:oklch(0.7 0.02 280);margin-top:2px">승인·반려 시 즉시</div></div><span style="width:44px;height:26px;border-radius:13px;background:#3F30E9;position:relative;flex-shrink:0"><span style="position:absolute;top:3px;left:21px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,0.2)"></span></span></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;min-height:56px;border-bottom:1px solid oklch(0.95 0.007 280)"><div><div style="font-size:14px;font-weight:600">빈자리·오픈 알림</div><div style="font-size:12px;color:oklch(0.7 0.02 280);margin-top:2px">관심 프로그램 자리 발생 시</div></div><span style="width:44px;height:26px;border-radius:13px;background:#3F30E9;position:relative;flex-shrink:0"><span style="position:absolute;top:3px;left:21px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,0.2)"></span></span></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;min-height:56px"><div><div style="font-size:14px;font-weight:600">마케팅 정보 수신</div><div style="font-size:12px;color:oklch(0.7 0.02 280);margin-top:2px">이벤트·소식 안내</div></div><span style="width:44px;height:26px;border-radius:13px;background:oklch(0.9 0.014 280);position:relative;flex-shrink:0"><span style="position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,0.2)"></span></span></div>
+      </div>
+    </sc-if>
+    <sc-if value="{{ isProfile }}" hint-placeholder-val="{{ false }}">
+      <div style="background:#fff;border:1px solid oklch(0.95 0.007 280);border-radius:12px;padding:14px">
+        <div style="display:flex;justify-content:space-between;padding:9px 0;font-size:13.5px"><span style="color:oklch(0.55 0.034 280)">이름</span><span style="font-weight:600">박시현</span></div>
+        <div style="display:flex;justify-content:space-between;padding:9px 0;font-size:13.5px;border-top:1px solid oklch(0.95 0.007 280)"><span style="color:oklch(0.55 0.034 280)">이메일</span><span style="font-weight:600">sihyun@example.com</span></div>
+        <div style="display:flex;justify-content:space-between;padding:9px 0;font-size:13.5px;border-top:1px solid oklch(0.95 0.007 280)"><span style="color:oklch(0.55 0.034 280)">휴대폰</span><span style="font-weight:600">010-1234-5678</span></div>
+        <div style="display:flex;justify-content:space-between;padding:9px 0;font-size:13.5px;border-top:1px solid oklch(0.95 0.007 280)"><span style="color:oklch(0.55 0.034 280)">주소</span><span style="font-weight:600;text-align:right;max-width:200px">경기도 부천시 길주로 210</span></div>
+        <div style="height:46px;background:#3F30E9;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:14.5px;font-weight:700;color:#fff;margin-top:14px">정보 수정</div>
+        <div style="text-align:center;font-size:12.5px;color:oklch(0.7 0.02 280);margin-top:14px;text-decoration:underline">회원 탈퇴</div>
+      </div>
+    </sc-if>
+  </div>
+  <div style="display:flex;height:58px;border-top:1px solid oklch(0.9 0.014 280);background:#fff">
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:oklch(0.7 0.02 280)"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M3 10.5L12 4l9 6.5V20a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1z"></path></svg><span style="font-size:11px;font-weight:500">홈</span></div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:oklch(0.7 0.02 280)"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect><rect x="14" y="14" width="7" height="7" rx="1.5"></rect></svg><span style="font-size:11px;font-weight:500">프로그램</span></div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:oklch(0.7 0.02 280)"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"></path><circle cx="12" cy="10" r="3"></circle></svg><span style="font-size:11px;font-weight:500">청년센터</span></div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#3F30E9"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg><span style="font-size:11px;font-weight:700">마이</span></div>
+  </div>
+</div>
+<p class="note">.mypage-summary 는 [아바타+이름] → [관심 정보 카드] → [KPI 3분할] 3블록 세로 스택 (관심 칩 세로 쪼개짐 해소).
+.mypage-tabs 4개는 가로 스크롤 + 활성 탭 2px 밑줄 (드롭다운 아님 — 탭 4개는 스크롤로 충분).
+신청 내역 필터 pill 가로 스크롤 · 즐겨찾기 2열 그리드 · 알림 설정 row 56px · 개인 정보는 요약 + [정보 수정] 진입.</p>
+</div>
+
+<div class="dv-opt" id="1n">
+<div class="dv-olabel"><a class="dv-oid" href="#1n">1n</a>개인 정보 수정 <code style="font-family:ui-monospace,Menlo,monospace;font-size:11px;color:oklch(0.6 0.02 280)">/mypage/profile/edit</code></div>
+<div class="frame">
+  <div style="height:56px;display:flex;align-items:center;padding:0 6px;border-bottom:1px solid oklch(0.95 0.007 280)">
+    <div style="width:44px;height:44px;display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="oklch(0.22 0.051 280)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"></path></svg></div>
+    <span style="flex:1;font-size:15px;font-weight:700;padding:0 4px">개인 정보 수정</span>
+  </div>
+  <div style="padding:20px 16px 16px;display:flex;flex-direction:column;align-items:center">
+    <span style="width:76px;height:76px;border-radius:50%;background:#3F30E9;color:#fff;display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:700;position:relative">박<span style="position:absolute;right:-2px;bottom:-2px;width:28px;height:28px;border-radius:50%;background:#fff;border:1px solid oklch(0.9 0.014 280);display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#3F30E9" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M18.5 2.5a2.12 2.12 0 013 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></span></span>
+    <div style="font-size:12.5px;color:oklch(0.7 0.02 280);margin-top:10px">프로필 사진 변경</div>
+  </div>
+  <div style="padding:4px 16px 16px;display:flex;flex-direction:column;gap:14px">
+    <div><div style="font-size:12.5px;font-weight:600;margin-bottom:6px">이메일</div><div style="height:48px;border-radius:10px;border:1px solid oklch(0.95 0.007 280);background:#F3F4F6;padding:0 14px;display:flex;align-items:center;justify-content:space-between"><span style="font-size:14.5px;color:oklch(0.55 0.034 280)">sihyun@example.com</span><span style="font-size:11.5px;color:oklch(0.7 0.02 280)">변경 불가</span></div></div>
+    <div><div style="font-size:12.5px;font-weight:600;margin-bottom:6px">이름</div><div style="height:48px;border-radius:10px;border:1px solid #3F30E9;background:#fff;padding:0 14px;display:flex;align-items:center;font-size:14.5px">박시현</div></div>
+    <div><div style="font-size:12.5px;font-weight:600;margin-bottom:6px">휴대폰 번호</div><div style="display:flex;gap:8px"><div style="flex:1;height:48px;border-radius:10px;border:1px solid oklch(0.9 0.014 280);background:#F7F8FA;padding:0 14px;display:flex;align-items:center;font-size:14.5px">010-1234-5678</div><div style="width:80px;height:48px;border:1px solid oklch(0.9 0.014 280);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:13.5px;font-weight:600;color:oklch(0.55 0.034 280)">인증</div></div></div>
+    <div><div style="font-size:12.5px;font-weight:600;margin-bottom:6px">주소</div>
+      <div style="display:flex;gap:8px"><div style="flex:1;height:48px;border-radius:10px;border:1px solid oklch(0.9 0.014 280);background:#F3F4F6;padding:0 14px;display:flex;align-items:center;font-size:14.5px;color:oklch(0.55 0.034 280)">14547</div><div style="width:104px;height:48px;background:#3F30E9;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:13.5px;font-weight:700;color:#fff">주소 검색</div></div>
+      <div style="height:48px;border-radius:10px;border:1px solid oklch(0.9 0.014 280);background:#F3F4F6;padding:0 14px;display:flex;align-items:center;font-size:14.5px;color:oklch(0.55 0.034 280);margin-top:8px">경기도 부천시 길주로 210</div>
+      <div style="height:48px;border-radius:10px;border:1px solid #3F30E9;background:#fff;padding:0 14px;display:flex;align-items:center;font-size:14.5px;margin-top:8px">3층 301호</div>
+    </div>
+    <div><div style="font-size:12.5px;font-weight:600;margin-bottom:6px">비밀번호</div><div style="height:48px;border:1px solid oklch(0.9 0.014 280);border-radius:10px;display:flex;align-items:center;justify-content:space-between;padding:0 14px"><span style="font-size:14px;color:oklch(0.35 0.03 280)">비밀번호 변경</span><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="oklch(0.7 0.02 280)" stroke-width="2" stroke-linecap="round"><path d="M9 18l6-6-6-6"></path></svg></div></div>
+  </div>
+  <div style="display:flex;gap:9px;padding:10px 16px 14px;background:#fff;border-top:1px solid oklch(0.9 0.014 280);box-shadow:0 -4px 16px rgba(20,16,60,.08)">
+    <div style="width:104px;height:48px;border:1px solid oklch(0.9 0.014 280);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:14.5px;font-weight:600;color:oklch(0.55 0.034 280)">취소</div>
+    <div style="flex:1;height:48px;background:#3F30E9;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:15.5px;font-weight:700;color:#fff">저장</div>
+  </div>
+</div>
+<p class="note">필드 1열 세로 스택 · 변경 불가 필드는 회색 배경 + 우측 "변경 불가" 라벨.
+주소 검색(Daum postcode) 모달 → ≤767 에서 전체화면 시트 (height:100%, border-radius 0) 로 승격.
+저장 CTA sticky bottom · 취소는 104px 고정, 저장 flex:1.</p>
+</div>
+
+<div class="dv-opt" id="1o">
+<div class="dv-olabel"><a class="dv-oid" href="#1o">1o</a>알림 목록 <code style="font-family:ui-monospace,Menlo,monospace;font-size:11px;color:oklch(0.6 0.02 280)">/notifications</code></div>
+<div class="frame">
+  <div style="height:56px;display:flex;align-items:center;padding:0 6px;border-bottom:1px solid oklch(0.95 0.007 280)">
+    <div style="width:44px;height:44px;display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="oklch(0.22 0.051 280)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"></path></svg></div>
+    <span style="flex:1;font-size:15px;font-weight:700;padding:0 4px">알림</span>
+    <span style="font-size:12.5px;font-weight:600;color:#3F30E9;padding-right:12px">모두 읽음</span>
+  </div>
+  <div class="nsb" style="display:flex;gap:7px;overflow-x:auto;padding:12px 16px;border-bottom:1px solid oklch(0.9 0.014 280)">
+    <span style="flex-shrink:0;height:34px;padding:0 14px;border-radius:20px;background:#3F30E9;color:#fff;font-size:13px;font-weight:600;display:flex;align-items:center">전체 7</span>
+    <span style="flex-shrink:0;height:34px;padding:0 14px;border-radius:20px;border:1px solid oklch(0.9 0.014 280);font-size:13px;color:oklch(0.35 0.03 280);display:flex;align-items:center">안읽음 3</span>
+    <span style="flex-shrink:0;height:34px;padding:0 14px;border-radius:20px;border:1px solid oklch(0.9 0.014 280);font-size:13px;color:oklch(0.35 0.03 280);display:flex;align-items:center">신청</span>
+    <span style="flex-shrink:0;height:34px;padding:0 14px;border-radius:20px;border:1px solid oklch(0.9 0.014 280);font-size:13px;color:oklch(0.35 0.03 280);display:flex;align-items:center">프로그램</span>
+  </div>
+  <div style="background:oklch(0.985 0.004 280);padding:0 0 20px">
+    <div style="font:700 11.5px ui-monospace,Menlo,monospace;color:oklch(0.7 0.02 280);padding:14px 16px 8px">오늘</div>
+    <div style="background:oklch(0.96 0.0255 280);display:flex;gap:11px;padding:14px 16px;border-bottom:1px solid oklch(0.95 0.007 280)">
+      <span style="width:36px;height:36px;border-radius:11px;background:#D1FAE5;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#10B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 6"></path></svg></span>
+      <div style="flex:1;min-width:0"><div style="display:flex;align-items:center;gap:6px"><span style="font-size:14px;font-weight:700">신청 승인</span><span style="width:6px;height:6px;border-radius:50%;background:#3F30E9"></span></div><div style="font-size:13px;color:oklch(0.35 0.03 280);margin-top:3px;line-height:1.5">마음건강 힐링 캠프 신청이 승인되었습니다</div><div style="font-size:11.5px;color:oklch(0.7 0.02 280);margin-top:5px">2시간 전</div></div>
+    </div>
+    <div style="background:oklch(0.96 0.0255 280);display:flex;gap:11px;padding:14px 16px;border-bottom:1px solid oklch(0.95 0.007 280)">
+      <span style="width:36px;height:36px;border-radius:11px;background:#FFEDD5;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#F97316" stroke-width="1.6" stroke-linecap="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 01-3.46 0"></path></svg></span>
+      <div style="flex:1;min-width:0"><div style="display:flex;align-items:center;gap:6px"><span style="font-size:14px;font-weight:700">오픈 알림</span><span style="width:6px;height:6px;border-radius:50%;background:#3F30E9"></span></div><div style="font-size:13px;color:oklch(0.35 0.03 280);margin-top:3px;line-height:1.5">AI 활용 실무 교육 신청이 오늘 오픈됩니다</div><div style="font-size:11.5px;color:oklch(0.7 0.02 280);margin-top:5px">5시간 전</div></div>
+    </div>
+    <div style="font:700 11.5px ui-monospace,Menlo,monospace;color:oklch(0.7 0.02 280);padding:16px 16px 8px">이번 주</div>
+    <div style="background:#fff;display:flex;gap:11px;padding:14px 16px;border-bottom:1px solid oklch(0.95 0.007 280)">
+      <span style="width:36px;height:36px;border-radius:11px;background:#FEF3C7;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#F59E0B" stroke-width="1.6"><rect x="3" y="4" width="18" height="18" rx="2"></rect><path d="M16 2v4M8 2v4M3 10h18" stroke-linecap="round"></path></svg></span>
+      <div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:600">일정 안내</div><div style="font-size:13px;color:oklch(0.55 0.034 280);margin-top:3px;line-height:1.5">취업역량 강화 워크숍이 3일 후 시작됩니다</div><div style="font-size:11.5px;color:oklch(0.7 0.02 280);margin-top:5px">2일 전</div></div>
+    </div>
+    <div style="background:#fff;display:flex;gap:11px;padding:14px 16px">
+      <span style="width:36px;height:36px;border-radius:11px;background:oklch(0.95 0.007 280);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="oklch(0.55 0.034 280)" stroke-width="1.6" stroke-linecap="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 01-3.46 0"></path></svg></span>
+      <div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:600">공지사항</div><div style="font-size:13px;color:oklch(0.55 0.034 280);margin-top:3px;line-height:1.5">7월 휴관 일정 안내</div><div style="font-size:11.5px;color:oklch(0.7 0.02 280);margin-top:5px">5일 전</div></div>
+    </div>
+  </div>
+</div>
+<p class="note">헤더 드롭다운 패널(.notif-panel)은 ≤767 에서 전체 페이지로 이동 — 종 아이콘 탭 시 /notifications 직행(드롭다운 미표시).
+날짜 그룹 헤더 sticky · 안읽음 row 는 primary-bg + 파란 점 · row 전체가 44px 이상 터치 타겟.</p>
+</div>
+
+<div class="dv-opt" id="1p">
+<div class="dv-olabel"><a class="dv-oid" href="#1p">1p</a>통합 검색 <code style="font-family:ui-monospace,Menlo,monospace;font-size:11px;color:oklch(0.6 0.02 280)">/search</code></div>
+<div class="frame">
+  <div style="display:flex;align-items:center;gap:6px;padding:8px 10px 8px 6px;border-bottom:1px solid oklch(0.95 0.007 280)">
+    <div style="width:40px;height:44px;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="oklch(0.22 0.051 280)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"></path></svg></div>
+    <div style="flex:1;height:44px;border-radius:22px;background:#F7F8FA;border:1px solid #3F30E9;display:flex;align-items:center;gap:8px;padding:0 14px"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="#3F30E9" stroke-width="1.6"><circle cx="11" cy="11" r="8"></circle><path d="M21 21l-4.35-4.35" stroke-linecap="round"></path></svg><span style="flex:1;font-size:14.5px">취업</span><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="oklch(0.7 0.02 280)" stroke-width="1.8" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"></path></svg></div>
+  </div>
+  <div style="padding:16px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><span style="font-size:12.5px;font-weight:700;color:oklch(0.7 0.02 280)">최근 검색어</span><span style="font-size:12px;color:oklch(0.7 0.02 280)">전체 삭제</span></div>
+    <div style="display:flex;flex-wrap:wrap;gap:7px"><span style="padding:8px 13px;border-radius:20px;background:oklch(0.95 0.007 280);font-size:13px;color:oklch(0.35 0.03 280)">디지털 마케팅 ✕</span><span style="padding:8px 13px;border-radius:20px;background:oklch(0.95 0.007 280);font-size:13px;color:oklch(0.35 0.03 280)">창업 아카데미 ✕</span></div>
+    <div style="font-size:12.5px;font-weight:700;color:oklch(0.7 0.02 280);margin:20px 0 10px">인기 키워드</div>
+    <div style="display:flex;flex-wrap:wrap;gap:7px"><span style="padding:8px 13px;border-radius:20px;border:1px solid oklch(0.9 0.014 280);font-size:13px">취업</span><span style="padding:8px 13px;border-radius:20px;border:1px solid oklch(0.9 0.014 280);font-size:13px">창업</span><span style="padding:8px 13px;border-radius:20px;border:1px solid oklch(0.9 0.014 280);font-size:13px">면접</span><span style="padding:8px 13px;border-radius:20px;border:1px solid oklch(0.9 0.014 280);font-size:13px">자기소개서</span><span style="padding:8px 13px;border-radius:20px;border:1px solid oklch(0.9 0.014 280);font-size:13px">심리상담</span><span style="padding:8px 13px;border-radius:20px;border:1px solid oklch(0.9 0.014 280);font-size:13px">주거지원</span></div>
+  </div>
+  <div style="background:oklch(0.985 0.004 280);border-top:1px solid oklch(0.95 0.007 280);padding:16px 16px 20px">
+    <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:10px"><div style="font-size:15px;font-weight:700">프로그램 <span style="color:#3F30E9">4</span></div><span style="font-size:12.5px;font-weight:600;color:#3F30E9">더보기</span></div>
+    <div style="display:flex;flex-direction:column;gap:9px">
+      <div style="background:#fff;border:1px solid oklch(0.95 0.007 280);border-radius:12px;padding:11px;display:flex;gap:11px">
+        <div style="width:64px;height:64px;border-radius:8px;overflow:hidden;flex-shrink:0;background:#e5e7eb"><img src="https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=200&amp;h=200&amp;fit=crop" alt="" style="width:100%;height:100%;object-fit:cover"></div>
+        <div style="flex:1;min-width:0"><div style="display:flex;gap:5px;margin-bottom:4px"><span style="padding:2px 8px;border-radius:20px;background:#D1FAE5;color:#10B981;font-size:10.5px;font-weight:700">모집중</span><span style="padding:2px 8px;border-radius:20px;background:#EF4444;color:#fff;font-size:10.5px;font-weight:700">D-3</span></div><div style="font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><span style="background:#FEF3C7">취업</span>역량 강화 워크숍</div><div style="font-size:12px;color:oklch(0.55 0.034 280);margin-top:3px">내일스퀘어 · 부천시</div></div>
+      </div>
+      <div style="background:#fff;border:1px solid oklch(0.95 0.007 280);border-radius:12px;padding:11px;display:flex;gap:11px">
+        <div style="width:64px;height:64px;border-radius:8px;overflow:hidden;flex-shrink:0;background:#e5e7eb"><img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=200&amp;h=200&amp;fit=crop" alt="" style="width:100%;height:100%;object-fit:cover"></div>
+        <div style="flex:1;min-width:0"><div style="display:flex;gap:5px;margin-bottom:4px"><span style="padding:2px 8px;border-radius:20px;background:oklch(0.95 0.007 280);color:oklch(0.7 0.02 280);font-size:10.5px;font-weight:700">종료</span></div><div style="font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">자소서 첨삭 카페</div><div style="font-size:12px;color:oklch(0.55 0.034 280);margin-top:3px">내일스퀘어 · 부천시</div></div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:baseline;justify-content:space-between;margin:20px 0 10px"><div style="font-size:15px;font-weight:700">청년센터 <span style="color:#3F30E9">2</span></div><span style="font-size:12.5px;font-weight:600;color:#3F30E9">더보기</span></div>
+    <div style="background:#fff;border:1px solid oklch(0.95 0.007 280);border-radius:12px;padding:13px"><div style="display:flex;align-items:center;gap:6px"><span style="font-size:14.5px;font-weight:700">내일스퀘어</span><span style="padding:2px 8px;border-radius:20px;background:#D1FAE5;color:#10B981;font-size:10.5px;font-weight:700">운영중</span></div><div style="font-size:12.5px;color:oklch(0.55 0.034 280);margin-top:5px">부천시 길주로 210 · <span style="background:#FEF3C7">취업</span> 프로그램 3</div></div>
+    <div style="display:flex;align-items:baseline;justify-content:space-between;margin:20px 0 10px"><div style="font-size:15px;font-weight:700">공지사항 <span style="color:#3F30E9">1</span></div></div>
+    <div style="background:#fff;border:1px solid oklch(0.95 0.007 280);border-radius:12px;padding:13px"><span style="display:inline-flex;padding:2px 9px;border-radius:20px;background:oklch(0.93 0.0425 280);color:#3F30E9;font-size:10.5px;font-weight:700">공지</span><div style="font-size:14px;font-weight:600;margin-top:6px;line-height:1.45">7월 청년센터 프로그램 일정 안내</div><div style="font-size:11.5px;color:oklch(0.7 0.02 280);margin-top:5px">2026.06.15</div></div>
+  </div>
+</div>
+<p class="note">검색 헤더는 back + 입력 1행 (로고·아이콘 숨김) · 입력 44px, X 로 즉시 초기화.
+결과는 카테고리 섹션 3개 세로 스택, 각 섹션 상위 2건 + [더보기] · 프로그램 결과는 썸네일 64px 좌측 고정 리스트 카드.
+검색어 하이라이트(warning-light 배경) 유지.</p>
+</div>
+
+<p class="dv-next" style="width:100%;margin:26px 0 0;font:400 12.5px/1.7 'Pretendard',sans-serif;color:oklch(0.5 0.03 280)">다음 요청 예시 — "<a class="dv-oid" href="#1b">1b</a> 히어로를 더 낮게" · "<a class="dv-oid" href="#1c">1c</a> 필터를 상단 sticky 로" · "<a class="dv-oid" href="#1a">1a</a> 드로어를 좌측으로" · "탭바 없는 버전도 보여줘"</p>
+
+</div>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:&quot;100%&quot;,&quot;height&quot;:900}}">
+class Component extends DCLogic {
+  state = { drawer:false, sheet:false, step:1, centers:'map', tab:'history' };
+  seg(on){ return { flex:1, height:38, display:'flex', alignItems:'center', justifyContent:'center', fontSize:13, fontWeight:600, borderRadius:8, cursor:'pointer', background:on?'#fff':'transparent', color:on?'#3F30E9':'oklch(0.55 0.034 280)', boxShadow:on?'0 1px 3px rgba(63,48,233,0.12)':'none' }; }
+  step(n){ const cur=this.state.step; const done=n<cur, act=n===cur;
+    return { width:26, height:26, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:12, fontWeight:700, flexShrink:0,
+      background: done?'#10B981':act?'#3F30E9':'oklch(0.95 0.007 280)', color:(done||act)?'#fff':'oklch(0.7 0.02 280)' }; }
+  mtab(k){ const on=this.state.tab===k; return { flex:'none', padding:'0 14px', height:44, display:'flex', alignItems:'center', justifyContent:'center', fontSize:14, fontWeight:on?700:500, color:on?'#3F30E9':'oklch(0.55 0.034 280)', borderBottom:on?'2px solid #3F30E9':'2px solid transparent', cursor:'pointer', whiteSpace:'nowrap' }; }
+  renderVals(){
+    const s=this.state;
+    return {
+      drawerHidden:!s.drawer, sheetHidden:!s.sheet,
+      openDrawer:()=>this.setState({drawer:true}), closeDrawer:()=>this.setState({drawer:false}),
+      openSheet:()=>this.setState({sheet:true}), closeSheet:()=>this.setState({sheet:false}),
+      isStep1:s.step===1, isStep2:s.step===2, isStep3:s.step===3,
+      s1:this.step(1), s2:this.step(2), s3:this.step(3),
+      stepLabel:'STEP '+s.step+' / 3',
+      next:()=>this.setState({step:Math.min(3,s.step+1)}), prev:()=>this.setState({step:Math.max(1,s.step-1)}),
+      nextLabel:s.step===3?'신청 제출':'다음',
+      mapHidden:s.centers!=='map', listHidden:s.centers!=='list',
+      toMap:()=>this.setState({centers:'map'}), toList:()=>this.setState({centers:'list'}),
+      segMap:this.seg(s.centers==='map'), segList:this.seg(s.centers==='list'),
+      isHistory:s.tab==='history', isFav:s.tab==='fav', isNoti:s.tab==='noti', isProfile:s.tab==='profile',
+      tHistory:this.mtab('history'), tFav:this.mtab('fav'), tNoti:this.mtab('noti'), tProfile:this.mtab('profile'),
+      goHistory:()=>this.setState({tab:'history'}), goFav:()=>this.setState({tab:'fav'}), goNoti:()=>this.setState({tab:'noti'}), goProfile:()=>this.setState({tab:'profile'}),
+    };
+  }
+}
+</script>
+</body>
+</html>
