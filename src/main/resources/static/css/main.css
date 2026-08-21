@@ -6320,7 +6320,35 @@ button.gender-pill svg { flex-shrink: 0; }
 .policy-mobile-header { display: none; }
 .policy-mobile-related { display: none; }
 
-@media (max-width: 768px) {
+/* 260821 P0: 프로젝트 표준 모바일 경계값 = max-width:767px (768 은 태블릿 시작점).
+   L5401(기존 모달) · L6323(구 정책·헤더 768) 을 767 로 통일. mypage-favorites 900/600 은 P7 에서 정리.
+   D1~D4 데스크톱 계약 변경 flag 는 모두 이 미디어 블록 안에서만 발생 → 데스크톱 무영향. */
+@media (max-width: 767px) {
+  /* P0 모바일 토큰 오버라이드 — 헤더 56·컨텐트 padding 16·탭바 58 신설. */
+  :root {
+    --header-h: 56px;
+    --content-px: 16px;
+    --content-max: none;
+    --tabbar-h: 58px;
+  }
+  body { padding-bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom)); }
+  body.no-tabbar { padding-bottom: 0; }
+
+  /* P0 하단 고정 CTA 유틸 — 폼·상세 공용. sticky positioning 이라 fixed 시트와 겹치지 않음. */
+  .sticky-actions {
+    position: sticky;
+    bottom: 0;
+    z-index: 20;
+    display: flex;
+    gap: 9px;
+    padding: 10px 16px calc(14px + env(safe-area-inset-bottom));
+    background: var(--color-surface);
+    border-top: 1px solid var(--color-border);
+    box-shadow: 0 -4px 16px rgba(20, 16, 60, 0.08);
+  }
+  .sticky-actions > .btn-secondary { flex: 0 0 104px; }
+  .sticky-actions > .btn-primary { flex: 1; }
+
   .policy-layout {
     grid-template-columns: 1fr;
     gap: 0;

@@ -52,18 +52,19 @@ for (const [path, title] of [
  * 768 이하 → 모바일 layout, 769 이상 → 데스크톱 layout.
  * 표준값에 오타·off-by-one 방지 목적.
  */
-test('브레이크포인트 경계 — 767: 모바일 / 768: 모바일 / 769: 데스크톱', async ({ page }) => {
+test('브레이크포인트 경계 — 767: 모바일 / 768: 데스크톱 / 769: 데스크톱', async ({ page }) => {
+    // 260821 P0: 프로젝트 표준 경계값을 max-width:767px 로 통일 (이전 768 은 태블릿 오염 방지).
     // 767 → 모바일
     await page.setViewportSize({ width: 767, height: 900 });
     await page.goto('/privacy');
     await expect(page.locator('.policy-sidebar')).toBeHidden();
     await expect(page.locator('.policy-mobile-header')).toBeVisible();
 
-    // 768 (경계 포함) → 모바일
+    // 768 (경계 밖) → 데스크톱 (P0 통일 후 768 은 태블릿·데스크톱)
     await page.setViewportSize({ width: 768, height: 900 });
     await page.goto('/privacy');
-    await expect(page.locator('.policy-sidebar')).toBeHidden();
-    await expect(page.locator('.policy-mobile-header')).toBeVisible();
+    await expect(page.locator('.policy-sidebar')).toBeVisible();
+    await expect(page.locator('.policy-mobile-header')).toBeHidden();
 
     // 769 → 데스크톱
     await page.setViewportSize({ width: 769, height: 900 });
