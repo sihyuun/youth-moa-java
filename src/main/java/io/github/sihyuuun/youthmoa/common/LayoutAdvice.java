@@ -29,10 +29,13 @@ public class LayoutAdvice {
   public String currentTab(HttpServletRequest request) {
     String path = request.getRequestURI();
     if (path == null) return null;
+    // 260821: 탭바 렌더는 루트 4화면에만. 상세·폼·편집·완료 등 하위 페이지는 null 로 반환하여
+    // fragments/tabbar :: tabbar include 자체를 skip (footer.html th:if 조건).
     if (path.equals("/")) return "home";
-    if (path.startsWith("/programs") || path.startsWith("/apply")) return "programs";
-    if (path.startsWith("/centers")) return "centers";
-    if (path.startsWith("/mypage")) return "mypage";
+    if (path.equals("/programs")) return "programs";
+    if (path.equals("/centers")) return "centers";
+    // 마이페이지는 쿼리 파라미터 (?tab=X) 로 탭 전환하지만 여전히 루트. profile/edit 은 하위.
+    if (path.equals("/mypage")) return "mypage";
     return null;
   }
 }
