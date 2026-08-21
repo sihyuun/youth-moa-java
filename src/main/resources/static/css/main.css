@@ -6865,6 +6865,182 @@ button.gender-pill svg { flex-shrink: 0; }
   .pagination .page-num,
   .pagination a,
   .pagination button { width: 36px; height: 36px; font-size: 13px; }
+
+  /* ═══════ 260821 P4: 프로그램 상세 (가이드 §3.3) ═══════ */
+  .detail-hero {
+    display: block;
+    padding: 0;
+  }
+  .detail-image {
+    aspect-ratio: 16 / 9;
+    height: auto;
+    width: 100%;
+  }
+  .detail-body { padding: 16px; }
+  .detail-title { font-size: 20px; }
+  .detail-subtitle { font-size: 13px; }
+  .detail-meta-grid,
+  .detail-requirement-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  /* Sticky CTA — 모바일에서 meta 숨기고 즐겨찾기+CTA+D-day 만 */
+  .detail-sticky-cta {
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .detail-sticky-inner {
+    padding: 10px 16px 14px;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+  }
+  .detail-sticky-meta { display: none; }
+  .detail-sticky-bookmark {
+    width: 48px !important;
+    height: 48px !important;
+    flex-shrink: 0;
+  }
+  .detail-sticky-cta-btn {
+    flex: 1;
+    height: 48px;
+    font-size: 15px;
+  }
+
+  /* 관련 프로그램 · 지도 시트 (§2.8 재사용) */
+  .detail-related-row {
+    display: flex;
+    grid-template-columns: none;
+    gap: 12px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline-start: 16px;
+    padding: 0 16px 6px;
+    margin: 0 -16px;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    -webkit-mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 40px), transparent 100%);
+    mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 40px), transparent 100%);
+  }
+  .detail-related-row::-webkit-scrollbar { display: none; }
+  .detail-related-row.is-scroll-mid {
+    -webkit-mask-image: linear-gradient(to right, transparent 0, #000 40px, #000 calc(100% - 40px), transparent 100%);
+    mask-image: linear-gradient(to right, transparent 0, #000 40px, #000 calc(100% - 40px), transparent 100%);
+  }
+  .detail-related-row.is-scroll-end {
+    -webkit-mask-image: linear-gradient(to right, transparent 0, #000 40px, #000 100%);
+    mask-image: linear-gradient(to right, transparent 0, #000 40px, #000 100%);
+  }
+  .detail-related-row.is-scroll-single {
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+  .detail-related-card {
+    flex: 0 0 180px;
+    scroll-snap-align: start;
+  }
+
+  /* 지도 모달 → 바텀시트 */
+  .detail-map-dialog {
+    position: fixed !important;
+    inset: auto 0 0 0 !important;
+    width: 100vw !important;
+    max-width: 100vw !important;
+    max-height: 85vh;
+    border-radius: 16px 16px 0 0 !important;
+    box-shadow: 0 -6px 24px rgba(12, 8, 32, 0.18);
+    display: flex;
+    flex-direction: column;
+    transform: none !important;
+  }
+  .detail-map-dialog::before {
+    content: '';
+    display: block;
+    width: 36px;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--color-border);
+    margin: 12px auto 4px;
+    flex-shrink: 0;
+  }
+  .detail-map-canvas { height: 260px; }
+
+  /* 상세 페이지는 하단 sticky CTA 가 탭바 자리를 대체 → 탭바 자체는 렌더 안 되지만
+     body.no-tabbar 를 컨트롤러가 세팅하지 않더라도 sticky CTA 만큼 여백 확보 */
+  body.detail-has-sticky {
+    padding-bottom: calc(72px + env(safe-area-inset-bottom));
+  }
+
+  /* ═══════ 260821 P4: 신청 폼 · 완료 (가이드 §3.7) ═══════ */
+  .apply-screen { padding: 16px; }
+  .apply-stepper {
+    gap: 6px;
+    padding: 0 4px;
+  }
+  .apply-step-circle { width: 26px; height: 26px; font-size: 12px; }
+  .apply-step-label { font-size: 12.5px; }
+  .apply-step-connector { flex: 1; }
+
+  .apply-summary-card {
+    grid-template-columns: 64px 1fr;
+    gap: 12px;
+  }
+  .apply-summary-image,
+  .apply-summary-placeholder { width: 64px; height: 64px; }
+  .apply-summary-meta { min-width: 0; }
+  .apply-summary-sub { display: block; }
+
+  .apply-applicant-fields {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .apply-applicant-field input[readonly] { height: 44px; background: var(--color-bg); }
+  .apply-textarea {
+    min-height: 140px;
+    font-size: 14.5px;
+  }
+  .apply-privacy-box { max-height: 160px; overflow-y: auto; }
+
+  /* apply nav = sticky-actions 활용 */
+  .apply-nav {
+    position: sticky;
+    bottom: 0;
+    z-index: 20;
+    display: flex;
+    gap: 9px;
+    padding: 10px 16px calc(14px + env(safe-area-inset-bottom));
+    background: var(--color-surface);
+    border-top: 1px solid var(--color-border);
+    box-shadow: 0 -4px 16px rgba(20, 16, 60, 0.08);
+    margin: 0 -16px;
+  }
+  .apply-nav-prev {
+    flex: 0 0 104px;
+    height: 48px;
+  }
+  .apply-nav-next,
+  .apply-nav-submit {
+    flex: 1;
+    height: 48px;
+  }
+
+  /* 신청 완료 */
+  .apply-complete-card {
+    width: 100%;
+    padding: 24px 16px;
+  }
+  .apply-complete-icon,
+  .apply-complete-check { width: 68px; height: 68px; }
+  .apply-complete-actions {
+    flex-direction: column;
+    gap: 9px;
+  }
+  .apply-complete-actions > * {
+    width: 100%;
+    height: 50px;
+  }
 }
 
 /* ═══════ F-signup-terms-agreement: 약관보기 모달 ═══════ */
