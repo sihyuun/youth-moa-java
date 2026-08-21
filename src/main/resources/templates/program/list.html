@@ -35,7 +35,7 @@
             <div class="filter-bar">
                 <!-- 좌측 group: 상태 탭 + 지역/센터 팝오버 chip + 초기화 -->
                 <div class="filter-left">
-                    <div class="status-tabs">
+                    <div class="status-tabs" data-pill-row="status">
                         <a th:href="@{/programs(regions=${filterRegions},centers=${filterCenters},sort=${filterSort})}"
                            th:class="${#strings.isEmpty(filterStatus)} ? 'status-tab active' : 'status-tab'">전체</a>
                         <a th:href="@{/programs(status='active',regions=${filterRegions},centers=${filterCenters},sort=${filterSort})}"
