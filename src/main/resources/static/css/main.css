@@ -4051,6 +4051,9 @@ body:not(.is-scrolled) .site-header--transparent .header-chev {
   border-style: solid;
   border-width: 1.5px;
   border-color: var(--color-surface);
+  /* 260821 M6: 모바일에서 안읽음 개수 텍스트가 삽입됨. 데스크톱에서는 dot 만 보여야 하므로 텍스트 숨김. */
+  font-size: 0;
+  overflow: hidden;
 }
 .header-bell-dot--hidden { display: none; }
 
@@ -6320,6 +6323,12 @@ button.gender-pill svg { flex-shrink: 0; }
 .policy-mobile-header { display: none; }
 .policy-mobile-related { display: none; }
 
+/* 260821 P1: 모바일 전용 컴포넌트는 데스크톱에서 숨김. media block(아래) 안 규칙이 source-order 로
+   이기도록 반드시 media 위에 배치 (2026-08-18 CSS source-order 사고 재발 방지). */
+.header-menu-btn { display: none; }
+.site-drawer { display: none; }
+.site-tabbar { display: none; }
+
 /* 260821 P0: 프로젝트 표준 모바일 경계값 = max-width:767px (768 은 태블릿 시작점).
    L5401(기존 모달) · L6323(구 정책·헤더 768) 을 767 로 통일. mypage-favorites 900/600 은 P7 에서 정리.
    D1~D4 데스크톱 계약 변경 flag 는 모두 이 미디어 블록 안에서만 발생 → 데스크톱 무영향. */
@@ -6403,15 +6412,164 @@ button.gender-pill svg { flex-shrink: 0; }
   .policy-mobile-related-link:hover { background: var(--color-bg); }
 
   /* 260820: 사이트 헤더 모바일 대응 — 좁은 뷰포트에서 로고·nav·우측 액션이 겹치는 회귀 수정.
-     - 중앙 nav 3링크 (프로그램·청년센터·공지사항) 숨김. 향후 햄버거 확장 여지 남김.
-     - 로고 텍스트 줄바꿈 방지.
-     - 유저 메뉴 이름 텍스트 숨김 (아바타 + chevron 만 유지).
-     - inner padding 축소. */
-  .site-header .header-inner { padding: 0 16px; }
+     260821 P1: 햄버거·뱃지 숫자·유저 드롭다운 비활성 확장. */
+  .site-header .header-inner { padding: 0 6px 0 16px; }
   .site-header .header-logo-text { white-space: nowrap; }
+  .site-header .header-logo-img { height: 26px; }
   .site-header .header-nav { display: none; }
   .site-header .header-user-name { display: none; }
-  .site-header .header-right { gap: 10px; }
+  .site-header .header-right { gap: 0; }
+  .site-header .header-icon-btn,
+  .site-header .header-menu-btn { width: 44px; height: 44px; }
+  .header-bell-dropdown-wrap { display: none !important; }
+  .header-user-dropdown { display: none !important; }
+
+  /* F1 M6: 안읽음 숫자 뱃지 */
+  .header-bell-menu { position: relative; }
+  .header-bell-dot {
+    position: absolute; top: 7px; right: 6px;
+    min-width: 16px; height: 16px; padding: 0 4px; box-sizing: border-box;
+    border-radius: 8px;
+    background: var(--color-error);
+    border: 1.5px solid var(--color-surface);
+    color: #fff; font-size: 10px; font-weight: 700; line-height: 1;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .header-bell-dot--hidden { display: none; }
+
+  /* P1(M1): 햄버거 버튼 — 모바일에서만 노출 */
+  .header-menu-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    background: transparent; border: 0; padding: 0; cursor: pointer;
+    color: var(--color-text);
+  }
+
+  /* P1(M2): 드로어 */
+  .site-drawer { position: fixed; inset: 0; z-index: 1100; display: block; }
+  .site-drawer[hidden] { display: none; }
+  .site-drawer-backdrop {
+    position: absolute; inset: 0; background: rgba(12, 8, 32, 0.45);
+    opacity: 0; transition: opacity 180ms ease;
+  }
+  .site-drawer.is-open .site-drawer-backdrop { opacity: 1; }
+  .site-drawer-panel {
+    position: absolute; top: 0; right: 0; bottom: 0;
+    width: 300px; max-width: 84vw;
+    background: var(--color-surface);
+    box-shadow: -8px 0 30px rgba(12, 8, 32, 0.18);
+    display: flex; flex-direction: column;
+    transform: translateX(100%);
+    transition: transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .site-drawer.is-open .site-drawer-panel { transform: translateX(0); }
+  .site-drawer-head {
+    height: var(--header-h);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 6px 0 18px;
+    border-bottom: 1px solid var(--color-border-light);
+  }
+  .site-drawer-title { font-size: 15px; font-weight: 700; color: var(--color-text); }
+  .site-drawer-close {
+    width: 44px; height: 44px;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: transparent; border: 0; cursor: pointer; color: var(--color-text);
+  }
+  .site-drawer-user {
+    display: flex; align-items: center; gap: 10px;
+    padding: 16px 18px;
+    background: var(--color-primary-bg);
+    text-decoration: none; color: inherit;
+  }
+  .site-drawer-avatar {
+    width: 40px; height: 40px; border-radius: 50%;
+    background: var(--color-primary); color: #fff;
+    font-weight: 700; font-size: 15px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .site-drawer-user-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .site-drawer-user-name { font-size: 14.5px; font-weight: 700; color: var(--color-text); }
+  .site-drawer-user-email { font-size: 12px; color: var(--color-text-sec); overflow: hidden; text-overflow: ellipsis; }
+  .site-drawer-auth {
+    display: flex; gap: 8px;
+    padding: 16px 18px;
+    border-bottom: 1px solid var(--color-border-light);
+  }
+  .site-drawer-auth-btn { flex: 1; height: 44px; display: inline-flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; }
+  .site-drawer-nav { flex: 1; overflow-y: auto; padding: 6px 0; }
+  .site-drawer-link {
+    display: flex; align-items: center; justify-content: space-between;
+    height: 48px; padding: 0 18px;
+    font-size: 15px; font-weight: 600; color: var(--color-text);
+    text-decoration: none;
+  }
+  .site-drawer-link:hover { background: var(--color-bg); }
+  .site-drawer-divider {
+    margin: 6px 18px;
+    border-top: 1px solid var(--color-border-light);
+  }
+  .site-drawer-sub {
+    display: flex; align-items: center;
+    height: 44px; padding: 0 18px;
+    font-size: 14px; color: var(--color-text-sec);
+    text-decoration: none;
+  }
+  .site-drawer-sub:hover { background: var(--color-bg); color: var(--color-text); }
+  .site-drawer-foot {
+    padding: 14px 18px 18px;
+    border-top: 1px solid var(--color-border-light);
+  }
+  .site-drawer-logout { margin: 0; }
+  .site-drawer-logout-btn {
+    width: 100%; height: 44px;
+    background: transparent;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    font-size: 14px; font-weight: 600; color: var(--color-text-sec);
+    cursor: pointer;
+  }
+  .site-drawer-logout-btn:hover { background: var(--color-bg); color: var(--color-text); }
+
+  /* P1(M3): 하단 탭바 */
+  .site-tabbar {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 1000;
+    display: flex; height: var(--tabbar-h);
+    padding-bottom: env(safe-area-inset-bottom);
+    background: var(--color-surface);
+    border-top: 1px solid var(--color-border);
+  }
+  .site-tabbar-item {
+    flex: 1;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 3px; min-height: 44px;
+    font-size: 11px; font-weight: 500;
+    color: var(--color-text-tri);
+    text-decoration: none;
+  }
+  .site-tabbar-item.active {
+    color: var(--color-primary);
+    font-weight: 700;
+  }
+  .site-tabbar-item svg { width: 21px; height: 21px; }
+
+  /* P1: 푸터 세로 스택 */
+  .footer-inner {
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    padding: 22px 16px 20px;
+  }
+  .footer-center {
+    width: 100%;
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+  }
+  .footer-links {
+    flex-wrap: wrap; justify-content: center; gap: 8px 14px;
+  }
+  .footer-links > * { font-size: 12px; }
+  .footer-copy { text-align: center; font-size: 11.5px; line-height: 1.6; }
+  .footer-sns { gap: 14px; }
+  .footer-sns img { width: 26px; height: 26px; }
 }
 
 /* ═══════ F-signup-terms-agreement: 약관보기 모달 ═══════ */
