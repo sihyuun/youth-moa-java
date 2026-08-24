@@ -24,8 +24,12 @@
             </button>
         </div>
 
-        <!-- 인증 시 유저 카드 -->
-        <a sec:authorize="isAuthenticated()" th:href="@{/mypage}" class="site-drawer-user">
+        <!-- 인증 시 유저 카드
+             sec:authorize 통과해도 principal 이 UserPrincipal 이 아닌 경우 (테스트 @WithMockUser 등) SpEL 실패 방지.
+             class.simpleName check 로 안전하게 skip. -->
+        <a sec:authorize="isAuthenticated()"
+           th:if="${#authentication.principal.class.simpleName == 'UserPrincipal'}"
+           th:href="@{/mypage}" class="site-drawer-user">
             <span class="site-drawer-avatar" aria-hidden="true"
                   th:text="${#strings.substring(#authentication.principal.displayName, 0, 1)}">박</span>
             <span class="site-drawer-user-info">
