@@ -32,6 +32,127 @@
     <div class="programs-layout">
         <section class="programs-main">
 
+            <!-- 260824: 모바일 전용 통합 필터 UI (시안 1c). 데스크톱 filter-bar 는 그대로 유지, CSS 로 배타 노출. -->
+            <div class="filter-mobile">
+                <!-- 상태 pill 가로 스크롤 -->
+                <div class="filter-mobile-status" data-pill-row="status">
+                    <a th:href="@{/programs(regions=${filterRegions},centers=${filterCenters},sort=${filterSort})}"
+                       th:class="${#strings.isEmpty(filterStatus)} ? 'filter-mobile-pill is-active' : 'filter-mobile-pill'">전체</a>
+                    <a th:href="@{/programs(status='active',regions=${filterRegions},centers=${filterCenters},sort=${filterSort})}"
+                       th:class="${filterStatus == 'active'} ? 'filter-mobile-pill is-active' : 'filter-mobile-pill'">모집중</a>
+                    <a th:href="@{/programs(status='upcoming',regions=${filterRegions},centers=${filterCenters},sort=${filterSort})}"
+                       th:class="${filterStatus == 'upcoming'} ? 'filter-mobile-pill is-active' : 'filter-mobile-pill'">진행예정</a>
+                    <a th:href="@{/programs(status='ended',regions=${filterRegions},centers=${filterCenters},sort=${filterSort})}"
+                       th:class="${filterStatus == 'ended'} ? 'filter-mobile-pill is-active' : 'filter-mobile-pill'">종료</a>
+                </div>
+                <!-- 통합 필터 + 정렬 chip 2개 (시안 §3.2) -->
+                <div class="filter-mobile-actions">
+                    <button type="button" class="filter-mobile-btn"
+                            th:classappend="${(filterRegions != null and !filterRegions.isEmpty()) or (filterCenters != null and !filterCenters.isEmpty())} ? ' is-active'"
+                            onclick="openMobileFilterSheet()">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/>
+                            <circle cx="8" cy="6" r="2" fill="currentColor"/><circle cx="16" cy="12" r="2" fill="currentColor"/><circle cx="10" cy="18" r="2" fill="currentColor"/>
+                        </svg>
+                        <span>필터</span>
+                        <span class="filter-mobile-btn-count"
+                              th:if="${(filterRegions != null and !filterRegions.isEmpty()) or (filterCenters != null and !filterCenters.isEmpty())}"
+                              th:text="${(filterRegions != null ? filterRegions.size() : 0) + (filterCenters != null ? filterCenters.size() : 0)}">2</span>
+                    </button>
+                    <button type="button" class="filter-mobile-btn filter-mobile-btn--sort" onclick="openMobileSortSheet()">
+                        <span th:switch="${filterSort}">
+                            <span th:case="'newest'">최신순</span>
+                            <span th:case="'popular'">인기순</span>
+                            <span th:case="*">기본순</span>
+                        </span>
+                        <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="6 9 12 15 18 9"/>
+                        </svg>
+                    </button>
+                </div>
+                <!-- 적용 필터 chip (M5) -->
+                <div class="filter-mobile-chips"
+                     th:if="${(filterRegions != null and !filterRegions.isEmpty()) or (filterCenters != null and !filterCenters.isEmpty())}">
+                    <span th:each="r : ${filterRegions}" class="filter-mobile-chip">
+                        <span th:text="${r}">지역</span>
+                        <button type="button" class="filter-mobile-chip-remove" th:onclick="|removeFilter('regions', this.previousElementSibling.textContent)|" aria-label="제거">×</button>
+                    </span>
+                    <span th:each="c : ${filterCenters}" class="filter-mobile-chip">
+                        <span th:text="${c}">센터</span>
+                        <button type="button" class="filter-mobile-chip-remove" th:onclick="|removeFilter('centers', this.previousElementSibling.textContent)|" aria-label="제거">×</button>
+                    </span>
+                </div>
+                <!-- 결과 카운트 -->
+                <div class="filter-mobile-count">
+                    총 <strong th:text="${programs.totalElements}">0</strong>건
+                </div>
+            </div>
+
+            <!-- 모바일 통합 필터 시트 -->
+            <div class="filter-mobile-sheet" id="mobileFilterSheet" hidden>
+                <div class="filter-mobile-sheet-backdrop" data-sheet-close></div>
+                <div class="filter-mobile-sheet-panel bottom-sheet">
+                    <div class="filter-mobile-sheet-head bottom-sheet-head">
+                        <span class="filter-mobile-sheet-title">필터</span>
+                        <button type="button" class="filter-mobile-sheet-close" data-sheet-close aria-label="닫기">×</button>
+                    </div>
+                    <div class="filter-mobile-sheet-body bottom-sheet-body">
+                        <div class="filter-mobile-sheet-section">
+                            <div class="filter-mobile-sheet-section-title">지역</div>
+                            <div class="filter-mobile-sheet-options">
+                                <label th:each="opt : ${allRegions}">
+                                    <input type="checkbox" name="msRegions" th:value="${opt.name}"
+                                           th:checked="${filterRegions != null and filterRegions.contains(opt.name)}">
+                                    <span th:text="${opt.name}">옵션</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="filter-mobile-sheet-section">
+                            <div class="filter-mobile-sheet-section-title">청년센터</div>
+                            <div class="filter-mobile-sheet-options">
+                                <label th:each="opt : ${allCenters}">
+                                    <input type="checkbox" name="msCenters" th:value="${opt.name}"
+                                           th:checked="${filterCenters != null and filterCenters.contains(opt.name)}">
+                                    <span th:text="${opt.name}">옵션</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="filter-mobile-sheet-foot">
+                        <button type="button" class="filter-mobile-sheet-reset" onclick="resetMobileFilterSheet()">초기화</button>
+                        <button type="button" class="filter-mobile-sheet-apply btn-primary" onclick="applyMobileFilterSheet()">적용</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 모바일 정렬 시트 -->
+            <div class="filter-mobile-sheet" id="mobileSortSheet" hidden>
+                <div class="filter-mobile-sheet-backdrop" data-sheet-close></div>
+                <div class="filter-mobile-sheet-panel bottom-sheet">
+                    <div class="filter-mobile-sheet-head bottom-sheet-head">
+                        <span class="filter-mobile-sheet-title">정렬</span>
+                        <button type="button" class="filter-mobile-sheet-close" data-sheet-close aria-label="닫기">×</button>
+                    </div>
+                    <div class="filter-mobile-sheet-body bottom-sheet-body">
+                        <label class="filter-mobile-sort-row">
+                            <input type="radio" name="msSort" value="default" th:checked="${filterSort == 'default' or #strings.isEmpty(filterSort)}">
+                            <span>기본순</span>
+                        </label>
+                        <label class="filter-mobile-sort-row">
+                            <input type="radio" name="msSort" value="newest" th:checked="${filterSort == 'newest'}">
+                            <span>최신순</span>
+                        </label>
+                        <label class="filter-mobile-sort-row">
+                            <input type="radio" name="msSort" value="popular" th:checked="${filterSort == 'popular'}">
+                            <span>인기순</span>
+                        </label>
+                    </div>
+                    <div class="filter-mobile-sheet-foot">
+                        <button type="button" class="filter-mobile-sheet-apply btn-primary" onclick="applyMobileSortSheet()">적용</button>
+                    </div>
+                </div>
+            </div>
+
             <div class="filter-bar">
                 <!-- 좌측 group: 상태 탭 + 지역/센터 팝오버 chip + 초기화 -->
                 <div class="filter-left">
@@ -264,7 +385,70 @@
             l.style.display = (lower === '' || text.includes(lower)) ? '' : 'none';
         });
     }
-    // 팝오버 외부 클릭 시 닫기
+    // 260824: 모바일 통합 필터 시트 (지역+청년센터) — 지연 적용
+    function openMobileFilterSheet() {
+        const sheet = document.getElementById('mobileFilterSheet');
+        if (!sheet) return;
+        sheet.hidden = false;
+        document.body.style.overflow = 'hidden';
+        // 현재 URL 상태로 checkbox sync
+        const params = new URLSearchParams(window.location.search);
+        const regions = params.getAll('regions');
+        const centers = params.getAll('centers');
+        sheet.querySelectorAll('input[name="msRegions"]').forEach(el => el.checked = regions.includes(el.value));
+        sheet.querySelectorAll('input[name="msCenters"]').forEach(el => el.checked = centers.includes(el.value));
+    }
+    function closeMobileFilterSheet() {
+        const sheet = document.getElementById('mobileFilterSheet');
+        if (sheet) sheet.hidden = true;
+        document.body.style.overflow = '';
+    }
+    function resetMobileFilterSheet() {
+        const sheet = document.getElementById('mobileFilterSheet');
+        if (!sheet) return;
+        sheet.querySelectorAll('input[type="checkbox"]').forEach(el => el.checked = false);
+    }
+    function applyMobileFilterSheet() {
+        const sheet = document.getElementById('mobileFilterSheet');
+        if (!sheet) return;
+        const params = new URLSearchParams(window.location.search);
+        params.delete('regions'); params.delete('centers'); params.delete('page');
+        sheet.querySelectorAll('input[name="msRegions"]:checked').forEach(el => params.append('regions', el.value));
+        sheet.querySelectorAll('input[name="msCenters"]:checked').forEach(el => params.append('centers', el.value));
+        window.location.href = '/programs?' + params.toString();
+    }
+
+    // 모바일 정렬 시트
+    function openMobileSortSheet() {
+        const sheet = document.getElementById('mobileSortSheet');
+        if (!sheet) return;
+        sheet.hidden = false;
+        document.body.style.overflow = 'hidden';
+    }
+    function closeMobileSortSheet() {
+        const sheet = document.getElementById('mobileSortSheet');
+        if (sheet) sheet.hidden = true;
+        document.body.style.overflow = '';
+    }
+    function applyMobileSortSheet() {
+        const sheet = document.getElementById('mobileSortSheet');
+        if (!sheet) return;
+        const sort = sheet.querySelector('input[name="msSort"]:checked')?.value || 'default';
+        const params = new URLSearchParams(window.location.search);
+        params.set('sort', sort);
+        params.delete('page');
+        window.location.href = '/programs?' + params.toString();
+    }
+
+    // 시트 backdrop / close 버튼
+    document.addEventListener('click', function(e) {
+        if (e.target.matches('[data-sheet-close]')) {
+            closeMobileFilterSheet();
+            closeMobileSortSheet();
+        }
+    });
+
+    // 팝오버 외부 클릭 시 닫기 (데스크톱 기존 필터)
     document.addEventListener('click', function(e) {
         if (e.target.closest('.filter-pop-container')) return;
         document.querySelectorAll('.filter-popover').forEach(p => p.style.display = 'none');
