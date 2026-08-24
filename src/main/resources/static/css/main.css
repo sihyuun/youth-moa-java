@@ -6338,6 +6338,8 @@ button.gender-pill svg { flex-shrink: 0; }
 /* 260824 P3 refactor: 모바일 전용 통합 필터 UI 는 데스크톱에서 숨김 (마크업만 존재). */
 .filter-mobile { display: none; }
 .filter-mobile-sheet { display: none; }
+/* 260824 C1: 모바일 back/close 헤더 fragment 는 데스크톱에서 숨김. */
+.mobile-back-header { display: none; }
 
 /* 260821 P0: 프로젝트 표준 모바일 경계값 = max-width:767px (768 은 태블릿 시작점).
    L5401(기존 모달) · L6323(구 정책·헤더 768) 을 767 로 통일. mypage-favorites 900/600 은 P7 에서 정리.
@@ -6352,6 +6354,40 @@ button.gender-pill svg { flex-shrink: 0; }
   }
   body { padding-bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom)); }
   body.no-tabbar { padding-bottom: 0; }
+  /* 260824 C1: auth 페이지 (login/signup/find-*) 는 탭바 없음 + 루트 헤더 없음. mobile back 헤더 대체. */
+  body.auth-page-body { padding-bottom: 0; }
+
+  /* 모바일 back/close 헤더 — 시안 §3.6·§3.5·§3.3 하위 페이지 공용 */
+  .mobile-back-header {
+    display: flex;
+    align-items: center;
+    height: var(--header-h);
+    padding: 0 4px;
+    background: var(--color-surface);
+    border-bottom: 1px solid var(--color-border-light);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .mobile-back-btn,
+  .mobile-close-btn {
+    width: 44px;
+    height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: 0;
+    padding: 0;
+    color: var(--color-text);
+    cursor: pointer;
+  }
+  .mobile-back-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--color-text);
+    margin-left: 4px;
+  }
 
   /* P0 하단 고정 CTA 유틸 — 폼·상세 공용. sticky positioning 이라 fixed 시트와 겹치지 않음. */
   .sticky-actions {

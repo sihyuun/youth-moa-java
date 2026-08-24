@@ -13,6 +13,9 @@
 </head>
 <body class="auth-page-body">
 
+<!-- 260824: 모바일 close 헤더 (시안 1j). 데스크톱은 CSS 로 숨김. -->
+<div th:replace="~{fragments/mobile-back-header :: header('close', '로그인')}"></div>
+
 <!--
   prototype LoginScreen (line 1217~1254) + HANDOFF 5.5 기준:
   - 헤더 없음 / 푸터 있음

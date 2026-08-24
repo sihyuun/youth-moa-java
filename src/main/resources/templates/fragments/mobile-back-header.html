@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!--
+  260824: 모바일 하위 페이지 back/close 헤더 fragment.
+  - 데스크톱은 CSS 로 display:none · 모바일 (max-width:767px) 에서만 노출.
+  - 사용: `<div th:replace="~{fragments/mobile-back-header :: header('back', '아이디 찾기')}"></div>`
+  - mode: 'back' (←) or 'close' (X)
+  - back 은 history.back() (referrer 없으면 / 로 fallback), close 도 동일
+  - 시안 §3.6·§3.3·§3.5 auth·detail·notice-detail 페이지에서 재사용
+-->
+<header th:fragment="header(mode, title)" class="mobile-back-header">
+    <button type="button" th:if="${mode == 'back'}"
+            onclick="if(document.referrer &amp;&amp; document.referrer.startsWith(location.origin)) history.back(); else location.href='/';"
+            class="mobile-back-btn" aria-label="뒤로가기">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M15 18l-6-6 6-6"/>
+        </svg>
+    </button>
+    <button type="button" th:if="${mode == 'close'}"
+            onclick="location.href='/';"
+            class="mobile-close-btn" aria-label="닫기">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M6 6l12 12M18 6L6 18"/>
+        </svg>
+    </button>
+    <span class="mobile-back-title" th:text="${title}">타이틀</span>
+</header>
+
+</body>
+</html>
