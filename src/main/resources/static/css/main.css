@@ -147,6 +147,13 @@ body:not(.is-scrolled) .site-header--transparent .header-user-trigger {
 body:not(.is-scrolled) .site-header--transparent .header-chev {
   color: rgba(255, 255, 255, 0.8);
 }
+/* 260824: 홈 transparent 헤더에서 햄버거 아이콘도 흰색 (다른 header-icon-btn 과 동일) */
+body:not(.is-scrolled) .site-header--transparent .header-menu-btn {
+  color: rgba(255, 255, 255, 0.85);
+}
+body:not(.is-scrolled) .site-header--transparent .header-menu-btn:hover {
+  color: #fff;
+}
 /* 로고·아이콘 색상 전환에 300ms 부여 (드롭다운 패널은 백색 그대로 유지) */
 .site-header .header-logo-text,
 .site-header .nav-link,
@@ -6624,7 +6631,16 @@ button.gender-pill svg { flex-shrink: 0; }
     flex: 1;
     position: relative;
     padding: 0;
+    /* 260824: 시안 1b 세로 스택 + 중앙정렬 (아이콘 숨김 상태에서 숫자·라벨만) */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    text-align: center;
   }
+  .quick-stat-value { text-align: center; font-size: 19px; }
+  .quick-stat-label { text-align: center; }
   .quick-stat + .quick-stat::before {
     content: '';
     position: absolute;
