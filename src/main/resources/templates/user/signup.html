@@ -13,7 +13,10 @@
     <!-- Daum Postcode API — 무료·API 키 불필요·도메인 등록 불필요 -->
     <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
 </head>
-<body>
+<body class="auth-page-body">
+
+<!-- 260824: 모바일 back 헤더 (시안 1l). 데스크톱은 CSS 로 숨김. -->
+<div th:replace="~{fragments/mobile-back-header :: header('back', '회원가입')}"></div>
 
 <!--
   prototype.tsx SignupScreen (line 1414~1539) 기준. 2026-07-27 gap-batch1: prototype 정합을 위해 전역 헤더 제거 (prototype 은 noHeader — 로고+폼 only).
