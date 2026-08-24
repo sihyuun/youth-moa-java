@@ -39,9 +39,10 @@
 <!-- 260821 P0 모바일 유틸: 바텀시트 swipe-dismiss(F5) · pill 스크롤 위치 복원(F6) -->
 <script th:src="@{/js/bottom-sheet.js}" defer></script>
 <script th:src="@{/js/pill-scroll.js}" defer></script>
-<!-- 260821 P1 모바일 셸: 드로어(M2·F3) + 탭바(M3·M7·F2). 데스크톱은 CSS 로 display:none. -->
+<!-- 260821 P1 모바일 셸: 드로어(M2·F3) + 탭바(M3·M7·F2). 데스크톱은 CSS 로 display:none.
+     260824: `th:if` 는 fragment root(nav)에 두어 조건 처리. footer 에서는 단순 include. -->
 <div th:replace="~{fragments/drawer :: drawer}"></div>
-<div th:if="${currentTab != null}" th:replace="~{fragments/tabbar :: tabbar(${currentTab})}"></div>
+<div th:replace="~{fragments/tabbar :: tabbar(${currentTab})}"></div>
 <script th:src="@{/js/site-drawer.js}" defer></script>
 <!-- 260821 P2 캐러셀 페이드(F4) — 홈·상세 관련 프로그램 가로 스크롤 시각 힌트 -->
 <script th:src="@{/js/carousel-fade.js}" defer></script>

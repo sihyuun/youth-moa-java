@@ -8,7 +8,8 @@
   - 노출 범위: 루트 4화면 (/, /programs, /centers, /mypage). currentTab 이 null 이면 include 자체를 skip (M7).
   - active 판정: LayoutAdvice 가 URL prefix 매칭해 currentTab 세팅.
 -->
-<nav th:fragment="tabbar(active)" class="site-tabbar" aria-label="주요 화면 이동">
+<nav th:fragment="tabbar(active)" th:if="${active != null}"
+     class="site-tabbar" aria-label="주요 화면 이동">
     <a th:href="@{/}"
        th:classappend="${active == 'home'} ? ' active'"
        class="site-tabbar-item"
