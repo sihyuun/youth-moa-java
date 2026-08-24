@@ -7140,11 +7140,9 @@ button.gender-pill svg { flex-shrink: 0; }
     height: 50px;
   }
 
-  /* ═══════ 260824 P6: 인증 페이지 (로그인·회원가입·아이디/비번찾기 가이드 §3.6) ═══════ */
+  /* ═══════ 260824 P6: 인증 페이지 (가이드 §3.6, 실 마크업 정합) ═══════ */
   .auth-screen,
-  .auth-page {
-    padding: 20px;
-  }
+  .auth-page { padding: 20px; }
   .auth-screen-inner,
   .auth-screen-inner--wide {
     width: 100% !important;
@@ -7160,53 +7158,125 @@ button.gender-pill svg { flex-shrink: 0; }
     font-size: 15px;
     font-weight: 700;
   }
-  .auth-actions-column {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-  /* 아이디·비번 찾기 링크만 좌우 정렬, 회원가입은 별도 btn-auth 로 승격 (마크업 유지 · CSS 로만) */
-  .auth-help-links {
-    display: flex;
-    gap: 12px;
-    justify-content: center;
-    font-size: 13px;
-  }
-  .auth-help-links > * {
-    color: var(--color-text-sec);
-    text-decoration: none;
-  }
-  /* 회원가입 폼 필드 라벨 위 · 1열 · 부가버튼 side-by-side (M6-M8 정합) */
-  .signup-field { display: block; }
-  .signup-field-label { font-size: 12.5px; margin-bottom: 6px; }
-  .form-inline,
-  .signup-inline {
+  .auth-actions-column { display: flex; flex-direction: column; gap: 10px; }
+  .auth-help-links { display: flex; gap: 12px; justify-content: center; font-size: 13px; }
+  .auth-help-links > * { color: var(--color-text-sec); text-decoration: none; }
+
+  /* 회원가입: label 위 1열 (기존 signup-field-block 마크업 재사용) */
+  .signup-fields { display: flex; flex-direction: column; gap: 14px; }
+  .signup-field-block { display: block; }
+  .signup-field-label { font-size: 12.5px; margin-bottom: 6px; display: block; }
+
+  /* 필드 + 사이드 버튼 (아이디+중복확인, 휴대폰+인증요청, 우편번호+검색) */
+  .signup-field-row {
     display: flex;
     gap: 8px;
+    align-items: stretch;
   }
-  .form-inline > .auth-input,
-  .signup-inline > .auth-input {
+  .signup-field-row > .auth-input,
+  .signup-field-row > input {
     flex: 1;
     min-width: 0;
-  }
-  .form-inline > .btn-sub,
-  .signup-inline > .btn-sub {
-    flex: 0 0 80px;
     height: 48px;
   }
-  .form-inline > .btn-sub--wide,
-  .signup-inline > .btn-sub--wide { flex-basis: 104px; }
-  .signup-gender-group {
+  .signup-side-btn,
+  .btn-outline-sm.signup-side-btn {
+    flex: 0 0 92px;
+    height: 48px;
+    font-size: 13.5px;
+    padding: 0 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+  }
+
+  /* 인증번호 row · 주소 상세 등 code-row */
+  .signup-code-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+  }
+  .signup-code-row > input { flex: 1; min-width: 0; height: 48px; }
+  .signup-code-row > .btn-outline-sm { flex: 0 0 80px; height: 48px; }
+
+  /* 생년월일 + 성별 2컬럼 → 1열 세로 스택 */
+  .signup-field-row-2col {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .signup-field-row-2col > * { width: 100%; }
+
+  /* 성별 pill 그룹 flex:1 · 44px (M6 접근성) */
+  .signup-gender-pill-group {
     display: flex;
     gap: 8px;
   }
-  .signup-gender-group > * {
+  .signup-gender-pill {
     flex: 1;
     height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-size: 14px;
   }
-  /* 회원가입 stepper */
-  .auth-stepper .auth-step-circle { width: 24px; height: 24px; font-size: 12px; }
-  .auth-stepper .auth-step-label { font-size: 12px; }
+
+  /* 약관 동의 row 44px */
+  .signup-terms-all,
+  .signup-term-row {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 4px;
+    font-size: 14px;
+  }
+  .signup-term-view { margin-left: auto; font-size: 12.5px; }
+
+  /* 제출 CTA 100% 폭, sticky 스타일 (별도 sticky-actions 는 마크업 변경이라 이월; 지금은 100%/50 만) */
+  .signup-actions {
+    padding: 8px 0 20px;
+  }
+  .signup-actions .signup-submit-btn,
+  .signup-actions .btn-auth {
+    width: 100%;
+    height: 50px;
+    font-size: 15px;
+    font-weight: 700;
+  }
+
+  /* 약관 모달 → 전체화면 시트 (mobile 전용, 260819 signup 에서 이미 fullscreen fetch 하지만 스타일 재확인) */
+  .terms-modal[hidden] { display: none !important; }
+  .terms-modal .terms-modal-panel {
+    width: 100vw;
+    height: 100%;
+    max-width: 100vw;
+    max-height: 100%;
+    border-radius: 0;
+    margin: 0;
+    top: 0;
+    bottom: 0;
+  }
+
+  /* 우편번호 검색 모달 (daum postcode) — 전체화면 시트 */
+  .postcode-modal { position: fixed !important; inset: 0 !important; z-index: 1000; }
+  .postcode-modal .modal-card,
+  .postcode-modal-body {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    height: 100% !important;
+    max-height: 100% !important;
+    border-radius: 0 !important;
+  }
+
+  /* 계정찾기 (find-id / find-password) — 로그인과 동일 폭·입력·CTA */
+  .find-account,
+  .find-account-screen {
+    padding: 20px;
+  }
+  .find-account-tab { min-height: 44px; }
 
   /* ═══════ 260821 P5: 공지사항 목록·상세 (가이드 §3.5) ═══════ */
   .notice-container { padding: 0 16px; }
