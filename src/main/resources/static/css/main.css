@@ -6742,6 +6742,59 @@ button.gender-pill svg { flex-shrink: 0; }
     padding: 26px 16px;
   }
 
+  /* 260824: 홈 섹션 헤더 조정 — 전체보기 버튼은 텍스트 링크로 (시안 1b) */
+  .home-section .home-section-head {
+    align-items: flex-start;
+    margin-bottom: 12px;
+    gap: 8px;
+  }
+  .home-section .home-section-head .btn-outline-primary.btn-sm,
+  .home-section .home-section-head a.btn-outline-primary {
+    background: transparent;
+    border: 0;
+    padding: 0;
+    height: auto;
+    min-height: 0;
+    color: var(--color-text-tri);
+    font-size: 13px;
+    font-weight: 500;
+    box-shadow: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    flex-shrink: 0;
+    margin-top: 4px;
+  }
+  .home-section .home-section-head .btn-outline-primary.btn-sm::after,
+  .home-section .home-section-head a.btn-outline-primary::after {
+    content: '›';
+    font-size: 15px;
+    line-height: 1;
+    color: var(--color-text-tri);
+  }
+  .home-section .home-section-head .btn-outline-primary:hover {
+    color: var(--color-primary);
+  }
+  .home-section .home-section-head .btn-outline-primary:hover::after {
+    color: var(--color-primary);
+  }
+
+  /* 홈 프로그램 카드 내부 여백 정리 — 이미지 카드 top 에 딱 붙게 */
+  .home-program-card .program-card-body {
+    padding: 12px 14px 10px;
+  }
+  .home-program-card .program-card-title { font-size: 14.5px; line-height: 1.35; }
+  .home-program-card .program-card-org { font-size: 12.5px; margin-top: 4px; }
+  .home-program-card .program-card-date { font-size: 12px; color: var(--color-text-tri); margin-top: 4px; }
+  .home-program-card .program-card-cta { padding: 0 12px 12px; }
+  .home-program-card .program-card-cta .card-action-btn {
+    height: 40px;
+    font-size: 13.5px;
+    border-radius: 8px;
+  }
+  /* 카드 상단 이미지 딱 붙게 (radius 처리는 카드 overflow:hidden 이 담당) */
+  .home-program-card .program-card-image { height: 130px; }
+
   /* ═══════ 260821 P3: 프로그램 목록 (가이드 §3.2) ═══════
      260824 refactor: 데스크톱 filter-bar 는 모바일에서 숨기고 .filter-mobile 통합 UI 사용. */
   .programs-layout { display: block; }
