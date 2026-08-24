@@ -7041,6 +7041,169 @@ button.gender-pill svg { flex-shrink: 0; }
     width: 100%;
     height: 50px;
   }
+
+  /* ═══════ 260821 P5: 공지사항 목록·상세 (가이드 §3.5) ═══════ */
+  .notice-container { padding: 0 16px; }
+  .page-title-bar {
+    padding: 16px 16px 8px;
+  }
+  .page-title-bar h2 { font-size: 20px; margin: 0; }
+
+  /* pill 탭 가로 스크롤 (F6 data-pill-row="notice" 부착됨) */
+  .notice-tabs {
+    display: flex;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    gap: 6px;
+    padding: 4px 0 12px;
+  }
+  .notice-tabs::-webkit-scrollbar { display: none; }
+  .notice-tab {
+    flex: none;
+    height: 36px;
+    padding: 0 14px;
+    font-size: 13.5px;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  /* 테이블 → 카드 리스트 */
+  .notice-table {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background: transparent;
+    border: 0;
+    padding: 0;
+  }
+  .notice-thead { display: none; }
+  .notice-row {
+    display: block;
+    height: auto;
+    padding: 14px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-lg);
+    box-shadow: none;
+  }
+  /* 고정 공지 하이라이트 (마크업에 별도 클래스 없음 — pin-icon 존재로 판정) */
+  .notice-row:has(.notice-pin-icon) {
+    background: var(--color-primary-bg);
+    border-color: var(--color-primary-light);
+  }
+
+  /* 컬럼 접기 · 재배치 */
+  .notice-row .col-no { display: none; }
+  .notice-row .col-cat {
+    display: inline-block;
+    margin-bottom: 8px;
+  }
+  .notice-row .col-title {
+    display: block;
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.45;
+    color: var(--color-text);
+  }
+  .notice-row .notice-title-text {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .notice-row .col-date {
+    display: block;
+    margin-top: 8px;
+    font-size: 12px;
+    color: var(--color-text-tri);
+  }
+  .notice-row .col-date::after {
+    /* 조회수를 작성일 옆에 (조회수 라벨 없이 숫자만) */
+    margin-left: 8px;
+    color: var(--color-text-tri);
+  }
+  .notice-row .col-views {
+    display: inline;
+    font-size: 12px;
+    color: var(--color-text-tri);
+    margin-left: 6px;
+  }
+  .notice-row .col-views::before {
+    content: '· 조회 ';
+  }
+
+  /* 페이지네이션 (프로그램 목록과 동일 축소값) */
+  .notice-pagination { padding: 16px 0; }
+  .notice-pagination .page-btn { width: 36px; height: 36px; font-size: 13px; }
+
+  /* ─── 공지 상세 ─── */
+  .notice-detail {
+    padding: 18px 16px;
+  }
+  .notice-detail-title {
+    font-size: 19px;
+    line-height: 1.4;
+  }
+  .notice-detail-body {
+    font-size: 14.5px;
+    line-height: 1.85;
+  }
+
+  /* 이전글/다음글 — 라벨 34 + 제목 1줄 ellipsis */
+  .notice-adjacent-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 48px;
+    padding: 8px 12px;
+  }
+  .notice-adjacent-label {
+    flex: 0 0 34px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--color-text-tri);
+  }
+  .notice-adjacent-title {
+    flex: 1;
+    min-width: 0;
+    font-size: 14px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* 첨부 파일 */
+  .notice-attachment {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 8px 12px;
+  }
+  .notice-attachment-name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 14px;
+  }
+  .notice-attachment-size {
+    flex: 0 0 auto;
+    font-size: 12px;
+    color: var(--color-text-tri);
+  }
+
+  /* 하단 액션 — [목록으로] 1버튼 100%/48 */
+  .notice-detail-actions {
+    padding: 16px 0;
+  }
+  .notice-detail-actions > * {
+    width: 100%;
+    height: 48px;
+  }
 }
 
 /* ═══════ F-signup-terms-agreement: 약관보기 모달 ═══════ */
