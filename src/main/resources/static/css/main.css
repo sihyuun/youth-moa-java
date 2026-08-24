@@ -6340,6 +6340,8 @@ button.gender-pill svg { flex-shrink: 0; }
 .filter-mobile-sheet { display: none; }
 /* 260824 C1: 모바일 back/close 헤더 fragment 는 데스크톱에서 숨김. */
 .mobile-back-header { display: none; }
+/* 260824 D1: 로그인 서브 텍스트는 모바일 전용 (데스크톱은 auth-title 하나만 · 계약 회귀 방지) */
+.auth-subtitle { display: none; }
 
 /* 260821 P0: 프로젝트 표준 모바일 경계값 = max-width:767px (768 은 태블릿 시작점).
    L5401(기존 모달) · L6323(구 정책·헤더 768) 을 767 로 통일. mypage-favorites 900/600 은 P7 에서 정리.
@@ -7299,6 +7301,43 @@ button.gender-pill svg { flex-shrink: 0; }
   }
   .signup-agree-view,
   .signup-term-view { margin-left: auto; font-size: 12.5px; white-space: nowrap; }
+
+  /* 260824 D1: 로그인 서브 텍스트 (auth-subtitle) — 모바일에서만 노출. 시안 1j "청년모아 계정으로 로그인하세요" */
+  .auth-subtitle {
+    display: block;
+    text-align: center;
+    font-size: 13.5px;
+    color: var(--color-text-sec);
+    margin: 0 0 24px;
+  }
+
+  /* 260824 D3: signup 주소 검색 primary (시안 1l). 데스크톱은 outline 유지, 모바일만 primary. */
+  .signup-side-btn.signup-search-btn,
+  .btn-outline-sm.signup-side-btn.signup-search-btn {
+    background: var(--color-primary);
+    color: #fff;
+    border-color: var(--color-primary);
+    font-weight: 700;
+  }
+  .signup-side-btn.signup-search-btn:hover {
+    background: var(--color-primary-dark, var(--color-primary));
+    color: #fff;
+  }
+
+  /* 260824 D4: 로그인으로 돌아가기 텍스트 링크 (시안 1k). 큰 outline 버튼 → 텍스트 링크. */
+  .auth-back-to-login {
+    height: auto !important;
+    background: transparent !important;
+    border: 0 !important;
+    color: var(--color-text-tri) !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    padding: 12px 0 !important;
+    align-self: center;
+    text-decoration: none;
+    width: auto !important;
+  }
+  .auth-back-to-login:hover { color: var(--color-primary) !important; }
 
   /* 제출 CTA 100% 폭, sticky 스타일 (별도 sticky-actions 는 마크업 변경이라 이월; 지금은 100%/50 만) */
   .signup-actions {
