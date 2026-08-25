@@ -60,6 +60,7 @@ curl -H "Authorization: token $GITHUB_TOKEN" \
 
 ### 5. Notion 페이지 생성
 
+- `parent`: `{ "type": "page_id", "page_id": "38fc33520d0e80b0bdddc3b2a430fb94" }`
 - `title`: `MM-DD PR Health`
 - `icon`: `🚦`
 - `content`:

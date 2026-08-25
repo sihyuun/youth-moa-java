@@ -28,8 +28,8 @@ public interface NoticeRepository extends JpaRepository<Notice, Long> {
    * D4 통합 검색 — 제목 대소문자 무시 부분 일치.
    *
    * <p>260826 P9 fix: content 필드는 @Lob → CLOB 이라 Hibernate 6 이 UPPER(CLOB) 호출 시
-   * BadJpqlGrammarException 발생 → 검색 대상에서 제외. 본문 검색은 별도 fulltext 인덱스 ·
-   * Elasticsearch · varchar summary 필드 등 향후 트랙에서 도입.
+   * BadJpqlGrammarException 발생 → 검색 대상에서 제외. 본문 검색은 별도 fulltext 인덱스 · Elasticsearch · varchar
+   * summary 필드 등 향후 트랙에서 도입.
    */
   Page<Notice> findByTitleContainingIgnoreCase(String titleKeyword, Pageable pageable);
 }
