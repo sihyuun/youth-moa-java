@@ -831,5 +831,41 @@ export const mypageContract: ScreenContract = {
             states: ['auth'],
             severity: 'P1',
         },
+        // ── 260825 X-1 방어: mobile G5 hotfix (flex column min-height:320) 가
+        //    media query 조기 종료로 데스크톱까지 누출된 사고 재발 방지.
+        //    데스크톱 verify-form 은 원 flow (block · min-height 0 · flex-direction row) 유지되어야 함.
+        {
+            id: 'profile-verify.form.display',
+            desc: 'Step1 폼 데스크톱 display block (모바일 flex hotfix 누출 방지)',
+            selector: '.mypage-verify-form',
+            kind: 'css',
+            prop: 'display',
+            expected: 'block',
+            proto: 'tsx L1493 재확인 폼 — 데스크톱 원 flow',
+            states: ['auth'],
+            severity: 'P1',
+        },
+        {
+            id: 'profile-verify.form.min-height',
+            desc: 'Step1 폼 데스크톱 min-height 0 (모바일 320px hotfix 누출 방지)',
+            selector: '.mypage-verify-form',
+            kind: 'css',
+            prop: 'min-height',
+            expected: '0px',
+            proto: 'tsx L1493 — 데스크톱은 자연 높이',
+            states: ['auth'],
+            severity: 'P1',
+        },
+        {
+            id: 'profile-verify.form.flex-direction',
+            desc: 'Step1 폼 데스크톱 flex-direction row (모바일 column hotfix 누출 방지)',
+            selector: '.mypage-verify-form',
+            kind: 'css',
+            prop: 'flex-direction',
+            expected: 'row',
+            proto: 'tsx L1493 — flex 미사용 시 계산값 row',
+            states: ['auth'],
+            severity: 'P2',
+        },
     ],
 };
