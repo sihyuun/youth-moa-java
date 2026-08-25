@@ -7579,6 +7579,22 @@ button.gender-pill svg { flex-shrink: 0; }
   }
   .mypage-verify-label { padding-top: 2px; }
   .mypage-card { padding: 20px 18px; }
+
+  /* 260825 G5 hotfix: verify 화면은 콘텐츠가 짧아(총 ~1099) 초기 진입 시 CTA(bottom=772) 가
+     하단 fixed tabbar(top=754) 와 18px 겹침. body padding-bottom 은 문서 최하단 여백만 부여하므로
+     form 흐름 상 CTA 위치엔 영향 없음.
+     해결: form 을 flex column min-height 로 늘려 CTA 를 자연 흐름 상 뷰포트 밖으로 밀어냄.
+     sticky 승격 안(초안)은 원 자리 input 을 가리는 부작용이 있어 폐기.
+     ym-verify PR #178 refute 결과. */
+  .mypage-verify-form {
+    display: flex;
+    flex-direction: column;
+    min-height: 320px;
+  }
+  .mypage-verify-actions {
+    margin-top: auto;
+    padding-bottom: 20px;
+  }
 }
 
 /* ═══════ F-signup-terms-agreement: 약관보기 모달 ═══════ */
