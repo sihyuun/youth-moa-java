@@ -4610,6 +4610,9 @@ body:not(.is-scrolled) .site-header--transparent .header-menu-btn:hover {
   /* P2 layout.paddingTop: 컨테이너가 상단 여백 담당. tsx L2269 매칭. */
   padding-top: 0;
 }
+
+/* 260825 P8: 뷰 세그먼트는 모바일 전용. 데스크톱에서 hidden (계약 회귀 방지). */
+.centers-view-toggle-wrap { display: none; }
 .centers-list-col {
   width: 360px;
   flex-shrink: 0;
@@ -7579,6 +7582,101 @@ button.gender-pill svg { flex-shrink: 0; }
   }
   .mypage-verify-label { padding-top: 2px; }
   .mypage-card { padding: 20px 18px; }
+
+  /* ═══════ 260825 P8: 청년센터 뷰 세그먼트 · 필터바 세로 스택 · 상세 fullscreen ═══════ */
+
+  /* 필터바: 검색 + 지역 + 운영중토글 을 세로 스택 (기존 flex 가로 → 375 오버플로우) */
+  .centers-filter-inner { height: auto; padding: 12px 16px; }
+  .centers-filter-form {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+  .centers-filter-search-wrap { width: 100%; }
+  .centers-filter-search { width: 100%; }
+  .centers-filter-region-dropdown { width: 100%; }
+  .centers-filter-region-trigger {
+    width: 100%;
+    min-width: 0;
+    justify-content: space-between;
+  }
+  .centers-filter-region-panel { width: 100%; }
+  .centers-filter-spacer { display: none; }
+  .centers-filter-toggle-switch { align-self: flex-start; }
+
+  /* 뷰 세그먼트 (모바일 전용) */
+  .centers-view-toggle-wrap {
+    display: block;
+    background: var(--color-surface);
+    border-bottom: 1px solid var(--color-border-light);
+    padding: 10px 0;
+  }
+  .centers-view-toggle {
+    display: flex;
+    gap: 6px;
+    background: var(--color-bg);
+    border-radius: var(--radius-md);
+    padding: 4px;
+  }
+  .centers-view-toggle-btn {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    height: 36px;
+    border: 0;
+    background: transparent;
+    color: var(--color-text-sec);
+    font-size: 13.5px;
+    font-weight: 500;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  .centers-view-toggle-btn.is-active {
+    background: var(--color-surface);
+    color: var(--color-primary);
+    font-weight: 700;
+    box-shadow: var(--shadow-sm);
+  }
+
+  /* 3-column → 세로 배타 스택. default: 리스트 · body.centers-view-map: 지도 */
+  .centers-layout {
+    flex-direction: column;
+    gap: 0;
+  }
+  .centers-list-col,
+  .centers-list-col.has-detail {
+    width: 100%;
+  }
+  .centers-map-panel {
+    width: 100%;
+    height: calc(100vh - var(--header-h, 56px) - var(--tabbar-h) - 120px);
+    min-height: 320px;
+    border-radius: 0;
+  }
+
+  /* view=list 시 지도 숨김, view=map 시 리스트 숨김 */
+  body.centers-view-list .centers-map-panel { display: none; }
+  body.centers-view-map .centers-list-col { display: none; }
+  /* 뷰 토글 자체는 상세 열림 시에도 유지 */
+
+  /* 상세 컬럼: 모바일에서 fullscreen overlay (뷰포트 전체, 헤더 밑) */
+  .centers-detail-col {
+    position: fixed;
+    top: var(--header-h, 56px);
+    left: 0;
+    right: 0;
+    bottom: var(--tabbar-h);
+    width: 100%;
+    z-index: 100;
+    border-radius: 0;
+    border: 0;
+    box-shadow: none;
+    overflow-y: auto;
+  }
+  .centers-detail-col[hidden] { display: none; }
+}
 
   /* 260825 G5 hotfix: verify 화면은 콘텐츠가 짧아(총 ~1099) 초기 진입 시 CTA(bottom=772) 가
      하단 fixed tabbar(top=754) 와 18px 겹침. body padding-bottom 은 문서 최하단 여백만 부여하므로
