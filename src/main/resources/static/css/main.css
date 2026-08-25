@@ -7695,6 +7695,44 @@ button.gender-pill svg { flex-shrink: 0; }
     margin-top: auto;
     padding-bottom: 20px;
   }
+
+  /* ═══════ 260825 P9: 알림 sticky 그룹 헤더 · 검색 모바일 정합 ═══════ */
+
+  /* 알림: 시안 1o "sticky 그룹 헤더". "오늘"·"지난 7일"·"이전" 헤더가 스크롤 시 뷰포트 상단에 붙음. */
+  .notif-group-header {
+    position: sticky;
+    top: var(--header-h, 56px);
+    z-index: 5;
+    background: var(--color-bg);
+    padding: 10px 16px;
+    margin: 0 -16px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-text-sec);
+  }
+
+  /* 검색: 시안 1p — 컨테이너 padding 축소, 상단 검색바를 sticky 로 승격 */
+  .search-result-container { padding: 16px 16px 40px; max-width: 100%; }
+  .search-result-bar {
+    height: 48px;
+    padding: 0 6px 0 14px;
+    gap: 6px;
+    position: sticky;
+    top: var(--header-h, 56px);
+    z-index: 6;
+    margin-bottom: 20px;
+  }
+  .search-result-input { font-size: 15px; }
+  .search-result-btn { height: 34px; padding: 0 14px; font-size: 13.5px; }
+
+  /* 인기 검색어 chip: 좌측 정렬 (데스크톱 center → 모바일 flex-start 로 자연스럽게) */
+  .search-suggest-chips { justify-content: flex-start; gap: 6px; }
+  .search-suggest-chip { padding: 6px 12px; font-size: 12.5px; }
+
+  /* 탭 가로 스크롤 (데스크톱 flex 두 항목이 뷰포트 폭 안이라 문제 없지만 안전) */
+  .search-tabs { overflow-x: auto; scrollbar-width: none; }
+  .search-tabs::-webkit-scrollbar { display: none; }
+  .search-tab { flex: 0 0 auto; padding: 10px 14px; font-size: 13.5px; }
 }
 
 /* ═══════ F-signup-terms-agreement: 약관보기 모달 ═══════ */
@@ -7769,6 +7807,140 @@ button.gender-pill svg { flex-shrink: 0; }
   color: var(--color-text-sec);
   text-align: center;
   padding: 40px 0;
+  margin: 0;
+}
+
+/* ═══════ 260825 P9: 검색 결과 페이지 (데스크톱) ═══════ */
+.search-result-container {
+  max-width: 720px;
+  padding-top: 32px;
+  padding-bottom: 48px;
+}
+.search-result-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 54px;
+  border: 2px solid var(--color-primary);
+  border-radius: var(--radius-pill);
+  padding: 0 8px 0 20px;
+  background: var(--color-surface);
+  margin-bottom: 28px;
+}
+.search-result-input {
+  flex: 1;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  font-size: 16px;
+  color: var(--color-text);
+  font-family: inherit;
+  min-width: 0;
+}
+.search-result-btn {
+  height: 38px;
+  padding: 0 20px;
+  background: var(--color-primary);
+  color: #fff;
+  border: 0;
+  border-radius: var(--radius-pill);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.search-empty-initial,
+.search-empty-result {
+  padding: 48px 0;
+  text-align: center;
+}
+.search-empty-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0 0 8px;
+}
+.search-empty-sub {
+  font-size: 14px;
+  color: var(--color-text-sec);
+  margin: 0 0 20px;
+}
+.search-suggest-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+.search-suggest-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 14px;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  font-size: 13px;
+  color: var(--color-text-sec);
+  text-decoration: none;
+  transition: border-color .15s, color .15s;
+}
+.search-suggest-chip:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+.search-result-count-bar {
+  padding: 8px 0 20px;
+  border-bottom: 1px solid var(--color-border-light);
+  margin-bottom: 20px;
+}
+.search-result-count { font-size: 15px; color: var(--color-text-sec); }
+.search-result-count strong { color: var(--color-primary); font-weight: 700; }
+.search-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid var(--color-border-light);
+}
+.search-tab {
+  padding: 12px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text-sec);
+  text-decoration: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+.search-tab--active {
+  color: var(--color-primary);
+  font-weight: 700;
+  border-bottom-color: var(--color-primary);
+}
+.search-tab-count { margin-left: 4px; font-size: 13px; color: var(--color-text-tri); }
+.search-tab--active .search-tab-count { color: var(--color-primary); }
+.search-notice-list { list-style: none; margin: 0; padding: 0; }
+.search-notice-item { border-bottom: 1px solid var(--color-border-light); }
+.search-notice-link {
+  display: block;
+  padding: 16px 4px;
+  text-decoration: none;
+  color: inherit;
+}
+.search-notice-meta {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 6px;
+  font-size: 12px;
+  color: var(--color-text-tri);
+}
+.search-notice-cat {
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  background: var(--color-primary-bg);
+  color: var(--color-primary);
+  font-weight: 600;
+}
+.search-notice-title {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--color-text);
   margin: 0;
 }
 
