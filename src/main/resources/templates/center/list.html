@@ -21,6 +21,8 @@
     <!-- F0h-c2 개정(2026-07-09): 카드 클릭 시 client-state 로 상세 패널 open/close.
          history.pushState 로 URL 만 갱신, HTMX ajax 로 fragment innerHTML 주입. 풀 리로드 없음. -->
     <script th:src="@{/js/centers-detail.js}" defer></script>
+    <!-- 260825 P8: 모바일 뷰 세그먼트 (지도/리스트) 토글. 데스크톱은 body class 만 반영, CSS 무영향. -->
+    <script th:src="@{/js/centers-view-toggle.js}" defer></script>
 </head>
 <body>
 
@@ -90,6 +92,34 @@
                 <!-- hidden: sort 는 pill 이 조작 -->
                 <input type="hidden" name="sort" th:value="${filterSort}" data-sort-input>
             </form>
+        </div>
+    </div>
+
+    <!-- 260825 P8 뷰 세그먼트 (모바일 전용, 데스크톱은 CSS 로 hidden). 리스트/지도 토글 -->
+    <div class="centers-view-toggle-wrap">
+        <div class="container">
+            <div class="centers-view-toggle" role="tablist" aria-label="뷰 전환"
+                 data-centers-view-toggle>
+                <button type="button" class="centers-view-toggle-btn" role="tab"
+                        data-centers-view="list" aria-pressed="true">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/>
+                        <line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/>
+                        <line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
+                    </svg>
+                    <span>리스트</span>
+                </button>
+                <button type="button" class="centers-view-toggle-btn" role="tab"
+                        data-centers-view="map" aria-pressed="false">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                        <circle cx="12" cy="10" r="3"/>
+                    </svg>
+                    <span>지도</span>
+                </button>
+            </div>
         </div>
     </div>
 
