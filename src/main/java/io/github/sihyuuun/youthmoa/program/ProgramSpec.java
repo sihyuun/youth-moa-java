@@ -12,25 +12,22 @@ public class ProgramSpec {
   }
 
   /**
-   * 통합 검색 키워드 매칭 — title / organization / region 3개 컬럼 OR LIKE. 대소문자 무시. q 가 null/빈 문자열이면 조건
-   * 없음(cb.conjunction) 반환하여 다른 Specification 과 안전하게 결합.
+   * 통합 검색 키워드 매칭 — title / organization / region / content 4개 컬럼 OR LIKE. 대소문자 무시. q 가 null/빈 문자열이면
+   * 조건 없음(cb.conjunction) 반환하여 다른 Specification 과 안전하게 결합.
    *
-   * <p>260825 P9 fix: content 필드는 @Lob → CLOB 이라 Hibernate 6 이 lower(CLOB) 호출 시 "Parameter 1 of
-   * function 'lower()' has type 'STRING', but argument is of type 'CLOB'"
-   * InvalidDataAccessResourceUsageException 발생 → 검색 대상에서 제외. 본문 검색은 별도 fulltext 인덱스 · Elasticsearch
-   * · varchar summary 필드 등 향후 트랙에서 도입.
+   * <p>260826 chore/content-lob-to-text: content 를 @Lob 에서 @JdbcTypeCode(LONGVARCHAR) 로 이관 → PG
+   * text · H2 VARCHAR(MAX). Hibernate 6 SQM 이 STRING 타입으로 확정해 lower() 정상 사용 가능. 별도 summary 필드 우회는
+   * 폐기.
    */
   public static Specification<Program> withKeyword(String q) {
     return (root, query, cb) -> {
       if (q == null || q.isBlank()) return cb.conjunction();
       String pattern = "%" + q.toLowerCase() + "%";
-      // 260826 P9 후속: summary(VARCHAR 300) 를 검색 대상에 추가.
-      // null 은 coalesce("") 로 회피 → LIKE 매칭 시 조건 무효화.
       return cb.or(
           cb.like(cb.lower(root.get("title")), pattern),
           cb.like(cb.lower(root.get("organization")), pattern),
           cb.like(cb.lower(root.get("region")), pattern),
-          cb.like(cb.lower(cb.coalesce(root.get("summary"), "")), pattern));
+          cb.like(cb.lower(root.get("content")), pattern));
     };
   }
 

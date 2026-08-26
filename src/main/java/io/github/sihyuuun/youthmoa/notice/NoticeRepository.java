@@ -25,18 +25,11 @@ public interface NoticeRepository extends JpaRepository<Notice, Long> {
   Optional<Notice> findFirstByIdGreaterThanOrderByIdAsc(Long id);
 
   /**
-   * D4 통합 검색 — 제목 대소문자 무시 부분 일치.
-   *
-   * <p>260826 P9 fix: content 필드는 @Lob → CLOB 이라 Hibernate 6 이 UPPER(CLOB) 호출 시
-   * BadJpqlGrammarException 발생 → 검색 대상에서 제외. 본문 검색은 별도 fulltext 인덱스 · Elasticsearch · varchar
-   * summary 필드 등 향후 트랙에서 도입.
+   * D4 통합 검색 — 제목 + 본문 OR LIKE 대소문자 무시. 260826 chore/content-lob-to-text: content
+   * 를 @JdbcTypeCode(LONGVARCHAR) 매핑으로 이관 → PG text · H2 VARCHAR(MAX). Hibernate 6 SQM STRING 확정.
+   * 이전 CLOB grammar 우회로 도입했던 findByTitleContainingIgnoreCase (title 만) ·
+   * findByTitleContainingIgnoreCaseOrSummaryContainingIgnoreCase 두 메서드는 폐기 · 원 메서드 복원.
    */
-  Page<Notice> findByTitleContainingIgnoreCase(String titleKeyword, Pageable pageable);
-
-  /**
-   * 260826 P9 후속: 제목 + 요약(VARCHAR 300) OR LIKE. content 는 여전히 검색 대상 아님(@Lob CLOB 문제). summary 는
-   * DataInitializer 에서 content 앞 300자로 자동 파생.
-   */
-  Page<Notice> findByTitleContainingIgnoreCaseOrSummaryContainingIgnoreCase(
-      String titleKeyword, String summaryKeyword, Pageable pageable);
+  Page<Notice> findByTitleContainingIgnoreCaseOrContentContainingIgnoreCase(
+      String titleKeyword, String contentKeyword, Pageable pageable);
 }

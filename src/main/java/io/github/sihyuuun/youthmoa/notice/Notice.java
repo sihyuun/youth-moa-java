@@ -8,14 +8,13 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Lob;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Getter
 @Entity
@@ -30,7 +29,11 @@ public class Notice extends BaseTimeEntity {
   @Column(nullable = false, length = 255)
   private String title;
 
-  @Lob
+  /**
+   * 260826 chore: @Lob → @JdbcTypeCode(LONGVARCHAR). Program 과 동일 이유. content 원문 검색 매칭 재개.
+   * LONG32VARCHAR 는 실측 시 lower/upper 실패 → LONGVARCHAR 사용.
+   */
+  @JdbcTypeCode(SqlTypes.LONGVARCHAR)
   @Column(nullable = false)
   private String content;
 
@@ -47,24 +50,11 @@ public class Notice extends BaseTimeEntity {
   @Column(length = 500)
   private String imageUrl;
 
-  /**
-   * 260826 P9 후속: 통합 검색 대상용 요약 텍스트. content 는 @Lob → CLOB 이라 upper(CLOB) 불가. VARCHAR(300) summary 를
-   * 별도 관리해 검색 매칭에만 사용 (화면 노출 X). NULL 허용.
-   */
-  @Column(length = 300)
-  private String summary;
-
   @Builder
   private Notice(
-      String title,
-      String content,
-      String summary,
-      NoticeCategory category,
-      Boolean isPinned,
-      String imageUrl) {
+      String title, String content, NoticeCategory category, Boolean isPinned, String imageUrl) {
     this.title = title;
     this.content = content;
-    this.summary = summary;
     this.category = category != null ? category : NoticeCategory.NOTICE;
     this.isPinned = isPinned != null ? isPinned : false;
     this.viewCount = 0;
@@ -72,15 +62,9 @@ public class Notice extends BaseTimeEntity {
   }
 
   public void update(
-      String title,
-      String content,
-      String summary,
-      NoticeCategory category,
-      boolean isPinned,
-      String imageUrl) {
+      String title, String content, NoticeCategory category, boolean isPinned, String imageUrl) {
     this.title = title;
     this.content = content;
-    this.summary = summary;
     this.category = category;
     this.isPinned = isPinned;
     this.imageUrl = imageUrl;
@@ -88,23 +72,6 @@ public class Notice extends BaseTimeEntity {
 
   public void increaseViewCount() {
     this.viewCount++;
-  }
-
-  /**
-   * 260826 P9 후속: summary 가 명시되지 않았으면 content 앞 300자로 자동 파생. DataInitializer 시드 · admin CRUD
-   * 공용. @PrePersist / @PreUpdate 훅에서 자동 호출. 명시적 summary 값 우선.
-   */
-  public void deriveSummaryFromContentIfMissing() {
-    if (this.summary == null && this.content != null) {
-      this.summary = this.content.length() > 300 ? this.content.substring(0, 300) : this.content;
-    }
-  }
-
-  /** 260826 P9 후속: 저장/갱신 시점 summary 자동 파생. DataInitializer 명시적 forEach 는 훅과 함께 두 층 안전망. */
-  @PrePersist
-  @PreUpdate
-  private void prePersistOrUpdate() {
-    deriveSummaryFromContentIfMissing();
   }
 
   /** 홈 카드 등 legacy 템플릿의 ${n.tag} 참조 호환용. */
