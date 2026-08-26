@@ -67,6 +67,16 @@ public class UserService implements UserDetailsService {
       user.changePassword(passwordEncoder.encode(pw));
     }
 
+    // 260826 A#2: phone 변경 시 phoneVerified 리셋으로 데이터 무결성 유지.
+    // F-signup-01 은 signup 흐름에서만 phoneVerified 관리했음. 마이페이지에서 phone 만 바뀌면 이전 인증 상태가
+    // 남아 다른 번호로 인증한 상태처럼 노출되던 취약점 해소. updateProfile 자체 호출 전에 비교해야 이후 setter 순서와 무관.
+    String requestedPhone = request.getPhone();
+    if (requestedPhone != null
+        && user.getPhone() != null
+        && !requestedPhone.equals(user.getPhone())) {
+      user.resetPhoneVerified();
+    }
+
     // 2026-08-18: 프로필 저장 폼에는 interests 필드가 없다 (관심 편집은 /mypage/interests 별도 endpoint).
     // ProfileUpdateRequest 기본값이 empty Set 이라 그대로 전달하면 관심 정보가 초기화되는 버그가 있었음.
     // 현재 값 그대로 전달해 profile 저장이 interests 를 건드리지 않도록 보장.
