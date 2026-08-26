@@ -275,5 +275,18 @@
 
 <script th:src="@{/js/hero-rotator.js}" defer></script>
 <script th:src="@{/js/header-scroll.js}" defer></script>
+
+<!--
+  260826 A#4: WelcomeController 가 flash attribute 로 저장한 welcomeToast 를 홈에서 window.Toast 로 렌더.
+  Flash attribute 는 Spring 이 후속 요청 model 에 자동 주입 → th:if 로 존재 여부 확인.
+  U-COMMON-01 인프라 (common-ui.js 의 window.Toast) 활용.
+-->
+<script th:if="${welcomeToast}" th:inline="javascript" defer>
+    document.addEventListener('DOMContentLoaded', function () {
+        if (window.Toast) {
+            window.Toast.show(/*[[${welcomeToast}]]*/ '', 'success', 2800);
+        }
+    });
+</script>
 </body>
 </html>
