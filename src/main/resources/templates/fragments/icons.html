@@ -157,5 +157,24 @@
     <path d="M9 12l2 2 4-4" th:attr="stroke=${color}"/>
 </svg>
 
+<!-- 260826 P10: 홈 탭바용 지붕형 집 아이콘. tabbar.html 인라인 SVG 이식. -->
+<svg th:fragment="home(size, color)"
+     th:attr="width=${size},height=${size}"
+     viewBox="0 0 24 24" fill="none"
+     stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"
+     th:attrappend="style='flex-shrink:0;'">
+    <path d="M3 10.5L12 4l9 6.5V20a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1z" th:attr="stroke=${color}"/>
+</svg>
+
+<!-- 260826 P10: 지도 내 위치용 crosshair 아이콘 (원 + 4방향 tick). center/list.html 인라인 이식. -->
+<svg th:fragment="crosshair(size, color)"
+     th:attr="width=${size},height=${size}"
+     viewBox="0 0 24 24" fill="none"
+     stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+     th:attrappend="style='flex-shrink:0;'">
+    <circle cx="12" cy="12" r="3" th:attr="stroke=${color}"/>
+    <path d="M12 2v3M12 19v3M2 12h3M19 12h3" th:attr="stroke=${color}"/>
+</svg>
+
 </body>
 </html>

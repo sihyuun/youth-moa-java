@@ -5739,12 +5739,8 @@ body:not(.is-scrolled) .site-header--transparent .header-menu-btn:hover {
     gap: 20px;
 }
 .mypage-favorites-card { position: relative; }
-@media (max-width: 900px) {
-    .mypage-favorites-list { grid-template-columns: repeat(2, 1fr); }
-}
-@media (max-width: 600px) {
-    .mypage-favorites-list { grid-template-columns: 1fr; }
-}
+/* 260826 P10: 900/600 잔여 media 삭제 (mobile-responsive-guide L67).
+   767px↓ 2열 규칙은 파일 끝 P7 섹션에서 !important 로 처리 · 태블릿(768~1023) 은 데스크톱과 동일 3열 정책 (guide L47). */
 
 /* ── D5 알림 설정 탭 (prototype L1555~1580) ─────────────────────────── */
 /* 2026-08-18: 알림 카드는 다른 mypage 카드(history/favorites)와 폭 일치, profile 탭과 정렬 통일.
