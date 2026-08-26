@@ -157,6 +157,14 @@ public class User extends BaseTimeEntity {
     this.phoneVerified = true;
   }
 
+  /**
+   * 260826 A#2: 마이페이지 프로필 편집에서 phone 이 변경되면 phoneVerified 를 리셋하여 데이터 무결성 유지. 재인증 흐름은 admin 트랙 이후
+   * 사용자 프로필 편집 UX 로 확장 예정. 현재는 리셋만 수행 (사용자 안내 UX 는 후속).
+   */
+  public void resetPhoneVerified() {
+    this.phoneVerified = false;
+  }
+
   /** D1b: 알림 수신 채널 갱신 (마이페이지 설정용). @Setter 금지 → 도메인 메서드. */
   public void updateNotificationChannels(boolean kakao, boolean sms, boolean email) {
     this.notifyKakao = kakao;
