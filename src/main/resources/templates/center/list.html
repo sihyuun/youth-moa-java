@@ -169,10 +169,12 @@
             <div class="centers-map-panel">
                 <div id="center-map" class="center-map-container"></div>
 
-                <!-- "이 지역에서 검색" floating (초기 hidden) — 260826 P10: refresh fragment 재사용 -->
+                <!-- "이 지역에서 검색" floating (초기 hidden) —
+                     260826 P10 hotfix: refreshCw fragment (원본 도안 복원) 로 교체.
+                     기존 refresh 는 다른 도안이라 이관 시 시각 회귀 발생 (ym-verify PR #186 refute). -->
                 <button type="button" class="centers-map-search-here" data-search-here hidden>
                     <span class="centers-map-search-here-icon">
-                        <svg th:replace="~{fragments/icons :: refresh(14, 'currentColor')}"></svg>
+                        <svg th:replace="~{fragments/icons :: refreshCw(14, 'currentColor')}"></svg>
                     </span>
                     <span>이 지역에서 검색</span>
                 </button>
