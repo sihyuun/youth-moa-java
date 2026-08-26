@@ -196,8 +196,13 @@ public class User extends BaseTimeEntity {
     if (gender != null) {
       this.gender = gender;
     }
-    this.interestRegions = interestRegions != null ? interestRegions : new HashSet<>();
-    this.interestCategories = interestCategories != null ? interestCategories : new HashSet<>();
+    // 260826 fix: @ElementCollection 재할당 → mutate 패턴 (F-signup-01 ym-verify PR #95 refute 후속).
+    // Hibernate PersistentSet 은 인스턴스 재할당 시 트래킹이 끊겨 UPDATE 가 flush 되지 않음.
+    // updateInterests() 와 동일하게 clear + addAll 로 통일.
+    this.interestRegions.clear();
+    if (interestRegions != null) this.interestRegions.addAll(interestRegions);
+    this.interestCategories.clear();
+    if (interestCategories != null) this.interestCategories.addAll(interestCategories);
   }
 
   /**
