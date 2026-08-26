@@ -24,10 +24,13 @@ public class ProgramSpec {
     return (root, query, cb) -> {
       if (q == null || q.isBlank()) return cb.conjunction();
       String pattern = "%" + q.toLowerCase() + "%";
+      // 260826 P9 후속: summary(VARCHAR 300) 를 검색 대상에 추가.
+      // null 은 coalesce("") 로 회피 → LIKE 매칭 시 조건 무효화.
       return cb.or(
           cb.like(cb.lower(root.get("title")), pattern),
           cb.like(cb.lower(root.get("organization")), pattern),
-          cb.like(cb.lower(root.get("region")), pattern));
+          cb.like(cb.lower(root.get("region")), pattern),
+          cb.like(cb.lower(cb.coalesce(root.get("summary"), "")), pattern));
     };
   }
 
