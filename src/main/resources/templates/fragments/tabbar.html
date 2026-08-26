@@ -14,10 +14,7 @@
        th:classappend="${active == 'home'} ? ' active'"
        class="site-tabbar-item"
        th:attr="aria-current=${active == 'home'} ? 'page' : null">
-        <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor"
-             stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M3 10.5L12 4l9 6.5V20a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1z"/>
-        </svg>
+        <svg th:replace="~{fragments/icons :: home(21, 'currentColor')}"></svg>
         <span>홈</span>
     </a>
     <a th:href="@{/programs}"
