@@ -387,6 +387,8 @@ public class DataInitializer implements ApplicationRunner {
                 .content(bodyGeneric)
                 .category(NoticeCategory.ETC)
                 .build());
+    // 260826 P9 후속: summary 자동 파생 (content 는 @Lob CLOB 이라 검색 불가 → summary 로 매칭)
+    notices.forEach(Notice::deriveSummaryFromContentIfMissing);
     noticeRepository.saveAll(notices);
     log.info(
         "Seeded {} notices ({} pinned)",
@@ -979,6 +981,8 @@ public class DataInitializer implements ApplicationRunner {
                 .capacity(18)
                 .build());
 
+    // 260826 P9 후속: summary 자동 파생 (content 는 @Lob CLOB 이라 검색 불가 → summary 로 매칭)
+    seeds.forEach(Program::deriveSummaryFromContentIfMissing);
     programRepository.saveAll(seeds);
     log.info("Seeded {} programs", seeds.size());
   }

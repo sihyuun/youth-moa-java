@@ -54,9 +54,10 @@ public class SearchService {
                 PROGRAM_PAGE_SIZE,
                 Sort.by(Sort.Direction.DESC, "createdAt")));
 
-    // 260826 P9 fix: content 는 @Lob CLOB 라 UPPER(CLOB) 이 Hibernate 6 에서 grammar 에러 → title 만 검색
+    // 260826 P9 후속: title + summary(VARCHAR 300) 검색. content 는 여전히 CLOB 이라 제외.
     Page<Notice> notices =
-        noticeRepository.findByTitleContainingIgnoreCase(
+        noticeRepository.findByTitleContainingIgnoreCaseOrSummaryContainingIgnoreCase(
+            q,
             q,
             PageRequest.of(
                 Math.max(noticePage, 0),

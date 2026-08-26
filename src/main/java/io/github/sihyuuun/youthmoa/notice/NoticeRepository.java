@@ -32,4 +32,11 @@ public interface NoticeRepository extends JpaRepository<Notice, Long> {
    * summary 필드 등 향후 트랙에서 도입.
    */
   Page<Notice> findByTitleContainingIgnoreCase(String titleKeyword, Pageable pageable);
+
+  /**
+   * 260826 P9 후속: 제목 + 요약(VARCHAR 300) OR LIKE. content 는 여전히 검색 대상 아님(@Lob CLOB 문제). summary 는
+   * DataInitializer 에서 content 앞 300자로 자동 파생.
+   */
+  Page<Notice> findByTitleContainingIgnoreCaseOrSummaryContainingIgnoreCase(
+      String titleKeyword, String summaryKeyword, Pageable pageable);
 }

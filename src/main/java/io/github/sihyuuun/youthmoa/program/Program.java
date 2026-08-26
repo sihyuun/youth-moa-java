@@ -48,6 +48,13 @@ public class Program extends BaseTimeEntity {
   private String content;
 
   /**
+   * 260826 P9 후속: 통합 검색 대상용 요약 텍스트. content 는 @Lob → CLOB 이라 lower(CLOB) 불가. VARCHAR(300) summary 를
+   * 별도 관리해 검색 매칭에만 사용 (화면 노출 X). NULL 허용. admin 트랙 도입 후 pre-persist 훅으로 content 자동 절단 예정.
+   */
+  @Column(length = 300)
+  private String summary;
+
+  /**
    * 자격요건 (연령/거주지/기타). F4 spec 에서 기존 @Lob requirements 를 @Embeddable 로 재편.
    *
    * <p>컬럼: eligibility_age / eligibility_region / eligibility_etc (모두 nullable — 결정 Q3-B, 화면에서 기본
@@ -75,6 +82,7 @@ public class Program extends BaseTimeEntity {
       String region,
       String imageUrl,
       String content,
+      String summary,
       ProgramEligibility eligibility,
       LocalDate startDate,
       LocalDate endDate,
@@ -87,6 +95,7 @@ public class Program extends BaseTimeEntity {
     this.region = region;
     this.imageUrl = imageUrl;
     this.content = content;
+    this.summary = summary;
     this.eligibility = eligibility;
     this.startDate = startDate;
     this.endDate = endDate;
@@ -102,6 +111,7 @@ public class Program extends BaseTimeEntity {
       String region,
       String imageUrl,
       String content,
+      String summary,
       ProgramEligibility eligibility,
       LocalDate startDate,
       LocalDate endDate,
@@ -113,6 +123,7 @@ public class Program extends BaseTimeEntity {
     this.region = region;
     this.imageUrl = imageUrl;
     this.content = content;
+    this.summary = summary;
     this.eligibility = eligibility;
     this.startDate = startDate;
     this.endDate = endDate;
@@ -126,6 +137,16 @@ public class Program extends BaseTimeEntity {
 
   public void deactivate() {
     this.isActive = false;
+  }
+
+  /**
+   * 260826 P9 후속: summary 가 명시되지 않았으면 content 앞 300자로 자동 파생. DataInitializer 시드 편의 목적. admin 트랙 도입
+   * 후 pre-persist 훅으로 이동 예정.
+   */
+  public void deriveSummaryFromContentIfMissing() {
+    if (this.summary == null && this.content != null) {
+      this.summary = this.content.length() > 300 ? this.content.substring(0, 300) : this.content;
+    }
   }
 
   public boolean hasCapacityLimit() {
