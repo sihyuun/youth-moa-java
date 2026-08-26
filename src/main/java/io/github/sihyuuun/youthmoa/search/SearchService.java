@@ -54,9 +54,9 @@ public class SearchService {
                 PROGRAM_PAGE_SIZE,
                 Sort.by(Sort.Direction.DESC, "createdAt")));
 
-    // 260826 P9 후속: title + summary(VARCHAR 300) 검색. content 는 여전히 CLOB 이라 제외.
+    // 260826 chore/content-lob-to-text: content 는 이제 text 매핑이라 원문 검색 가능. summary 우회 폐기.
     Page<Notice> notices =
-        noticeRepository.findByTitleContainingIgnoreCaseOrSummaryContainingIgnoreCase(
+        noticeRepository.findByTitleContainingIgnoreCaseOrContentContainingIgnoreCase(
             q,
             q,
             PageRequest.of(

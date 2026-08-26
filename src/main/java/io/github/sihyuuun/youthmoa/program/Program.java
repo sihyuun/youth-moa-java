@@ -7,9 +7,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Lob;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
@@ -17,6 +14,8 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Getter
 @Entity
@@ -45,16 +44,14 @@ public class Program extends BaseTimeEntity {
   @Column(length = 500)
   private String imageUrl;
 
-  @Lob
+  /**
+   * 260826 chore: @Lob → @JdbcTypeCode(LONGVARCHAR). PG 는 text · H2 는 VARCHAR(MAX) 매핑으로 Hibernate 6
+   * SQM 이 STRING 확정 → lower/upper/substring 표준 문자열 함수 사용 가능. LONG32VARCHAR 는 SQM 이 STRING 아닌 별도
+   * 타입으로 취급해 lower(LONG32VARCHAR) 실패 (실측). LONGVARCHAR 는 String 계열.
+   */
+  @JdbcTypeCode(SqlTypes.LONGVARCHAR)
   @Column(nullable = false)
   private String content;
-
-  /**
-   * 260826 P9 후속: 통합 검색 대상용 요약 텍스트. content 는 @Lob → CLOB 이라 lower(CLOB) 불가. VARCHAR(300) summary 를
-   * 별도 관리해 검색 매칭에만 사용 (화면 노출 X). NULL 허용. admin 트랙 도입 후 pre-persist 훅으로 content 자동 절단 예정.
-   */
-  @Column(length = 300)
-  private String summary;
 
   /**
    * 자격요건 (연령/거주지/기타). F4 spec 에서 기존 @Lob requirements 를 @Embeddable 로 재편.
@@ -84,7 +81,6 @@ public class Program extends BaseTimeEntity {
       String region,
       String imageUrl,
       String content,
-      String summary,
       ProgramEligibility eligibility,
       LocalDate startDate,
       LocalDate endDate,
@@ -97,7 +93,6 @@ public class Program extends BaseTimeEntity {
     this.region = region;
     this.imageUrl = imageUrl;
     this.content = content;
-    this.summary = summary;
     this.eligibility = eligibility;
     this.startDate = startDate;
     this.endDate = endDate;
@@ -113,7 +108,6 @@ public class Program extends BaseTimeEntity {
       String region,
       String imageUrl,
       String content,
-      String summary,
       ProgramEligibility eligibility,
       LocalDate startDate,
       LocalDate endDate,
@@ -125,7 +119,6 @@ public class Program extends BaseTimeEntity {
     this.region = region;
     this.imageUrl = imageUrl;
     this.content = content;
-    this.summary = summary;
     this.eligibility = eligibility;
     this.startDate = startDate;
     this.endDate = endDate;
@@ -139,26 +132,6 @@ public class Program extends BaseTimeEntity {
 
   public void deactivate() {
     this.isActive = false;
-  }
-
-  /**
-   * 260826 P9 후속: summary 가 명시되지 않았으면 content 앞 300자로 자동 파생. DataInitializer 시드 · admin CRUD
-   * 공용. @PrePersist / @PreUpdate 훅에서 자동 호출된다. 명시적 summary 값이 있으면 그 값 우선.
-   */
-  public void deriveSummaryFromContentIfMissing() {
-    if (this.summary == null && this.content != null) {
-      this.summary = this.content.length() > 300 ? this.content.substring(0, 300) : this.content;
-    }
-  }
-
-  /**
-   * 260826 P9 후속: 저장/갱신 시점에 summary 를 자동 파생. admin CRUD 든 시드든 이 훅으로 일관 처리. DataInitializer 의 명시적
-   * forEach 는 훅이 있어도 안전 (idempotent). 두 층 안전망.
-   */
-  @PrePersist
-  @PreUpdate
-  private void prePersistOrUpdate() {
-    deriveSummaryFromContentIfMissing();
   }
 
   public boolean hasCapacityLimit() {
