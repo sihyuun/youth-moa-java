@@ -102,9 +102,10 @@ public class ProgramController {
     return chips;
   }
 
-  // ym-verify (2026-07-09 전체화면 검증 FAIL #2): open-in-view: false + @Lob 조합에서
-  // Program.content 가 auto-commit 오류로 렌더 시 실패할 잠재 위험 → 컨트롤러 트랜잭션 부착으로 안전 확보.
-  // Hibernate 6+ 기본은 @Lob String 이 TEXT 매핑이라 대개 즉시 로드되지만, PG oid 매핑 케이스 방어.
+  // ym-verify (2026-07-09 전체화면 검증 FAIL #2): open-in-view: false 환경에서 Program.content 접근이
+  // auto-commit 오류로 렌더 실패할 잠재 위험 → 컨트롤러 트랜잭션 부착으로 안전 확보.
+  // 260826 chore/content-lob-to-text: content 는 이제 @JdbcTypeCode(LONGVARCHAR) 매핑 (PG text · H2
+  // VARCHAR(MAX)) 이라 @Lob oid 스트리밍 케이스는 사라졌지만 lazy 관계·다른 fetch 사고 방어 목적으로 readOnly 트랜잭션 유지.
   @GetMapping("/programs/{id}")
   @Transactional(readOnly = true)
   public String detail(

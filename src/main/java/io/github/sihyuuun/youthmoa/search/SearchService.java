@@ -19,8 +19,9 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * <p>q 가 null/blank 이면 빈 결과 반환. q 100자 초과 시 앞 100자만 사용(UX 안전장치).
  *
- * <p>@Transactional(readOnly=true) — Program.content @Lob 접근을 위한 트랜잭션 확보. 실제로는 카드 렌더에서 content 를
- * 노출하지 않지만, Specification LIKE 가 서버 side 에서 처리되므로 문제없음. 그래도 lazy 관계 확장을 대비해 readOnly 트랜잭션 명시.
+ * <p>@Transactional(readOnly=true) — lazy 관계 확장 대비 readOnly 트랜잭션 명시. 260826
+ * chore/content-lob-to-text: content 는 이제 @JdbcTypeCode(LONGVARCHAR) 매핑이라 @Lob 스트리밍 트랜잭션 요구는 사라졌지만
+ * 다른 fetch 사고 방어 목적으로 유지.
  */
 @Service
 @RequiredArgsConstructor

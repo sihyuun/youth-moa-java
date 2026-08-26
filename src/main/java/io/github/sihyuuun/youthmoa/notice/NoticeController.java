@@ -65,8 +65,11 @@ public class NoticeController {
   }
 
   /**
-   * 공지 상세. @Lob content 접근 및 viewCount++ 를 위해 Service 에서 @Transactional 처리. 이전/다음글은 전체 기준 (카테고리 필터
-   * 무시, 명세 Q3-a).
+   * 공지 상세. content 접근 및 viewCount++ 를 위해 Service 에서 @Transactional 처리. 이전/다음글은 전체 기준 (카테고리 필터 무시,
+   * 명세 Q3-a).
+   *
+   * <p>260826 chore/content-lob-to-text: content 는 이제 @JdbcTypeCode(LONGVARCHAR) 매핑이라 @Lob oid 스트리밍
+   * 이슈 없음. 그래도 @Transactional 은 viewCount++ · 동시성 관점에서 유지.
    */
   @GetMapping("/notices/{id}")
   public String detail(@PathVariable Long id, Model model) {
