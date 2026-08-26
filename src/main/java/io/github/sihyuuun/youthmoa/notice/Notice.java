@@ -9,6 +9,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Lob;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -88,11 +90,21 @@ public class Notice extends BaseTimeEntity {
     this.viewCount++;
   }
 
-  /** 260826 P9 후속: summary 가 명시되지 않았으면 content 앞 300자로 자동 파생. DataInitializer 시드 편의 목적. */
+  /**
+   * 260826 P9 후속: summary 가 명시되지 않았으면 content 앞 300자로 자동 파생. DataInitializer 시드 · admin CRUD
+   * 공용. @PrePersist / @PreUpdate 훅에서 자동 호출. 명시적 summary 값 우선.
+   */
   public void deriveSummaryFromContentIfMissing() {
     if (this.summary == null && this.content != null) {
       this.summary = this.content.length() > 300 ? this.content.substring(0, 300) : this.content;
     }
+  }
+
+  /** 260826 P9 후속: 저장/갱신 시점 summary 자동 파생. DataInitializer 명시적 forEach 는 훅과 함께 두 층 안전망. */
+  @PrePersist
+  @PreUpdate
+  private void prePersistOrUpdate() {
+    deriveSummaryFromContentIfMissing();
   }
 
   /** 홈 카드 등 legacy 템플릿의 ${n.tag} 참조 호환용. */

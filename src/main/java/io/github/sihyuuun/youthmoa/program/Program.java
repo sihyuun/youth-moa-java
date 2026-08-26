@@ -8,6 +8,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Lob;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
@@ -140,13 +142,23 @@ public class Program extends BaseTimeEntity {
   }
 
   /**
-   * 260826 P9 후속: summary 가 명시되지 않았으면 content 앞 300자로 자동 파생. DataInitializer 시드 편의 목적. admin 트랙 도입
-   * 후 pre-persist 훅으로 이동 예정.
+   * 260826 P9 후속: summary 가 명시되지 않았으면 content 앞 300자로 자동 파생. DataInitializer 시드 · admin CRUD
+   * 공용. @PrePersist / @PreUpdate 훅에서 자동 호출된다. 명시적 summary 값이 있으면 그 값 우선.
    */
   public void deriveSummaryFromContentIfMissing() {
     if (this.summary == null && this.content != null) {
       this.summary = this.content.length() > 300 ? this.content.substring(0, 300) : this.content;
     }
+  }
+
+  /**
+   * 260826 P9 후속: 저장/갱신 시점에 summary 를 자동 파생. admin CRUD 든 시드든 이 훅으로 일관 처리. DataInitializer 의 명시적
+   * forEach 는 훅이 있어도 안전 (idempotent). 두 층 안전망.
+   */
+  @PrePersist
+  @PreUpdate
+  private void prePersistOrUpdate() {
+    deriveSummaryFromContentIfMissing();
   }
 
   public boolean hasCapacityLimit() {
