@@ -47,7 +47,10 @@ public class NoticeService {
     return noticeRepository.findAllByCategory(category, pageable);
   }
 
-  /** 상세 조회 + viewCount++ (매 진입). @Lob content 접근을 위해 트랜잭션 필수. */
+  /**
+   * 상세 조회 + viewCount++ (매 진입). 트랜잭션은 viewCount 갱신 · 동시성 위함. 260826 chore/content-lob-to-text:
+   * content 는 이제 @JdbcTypeCode(LONGVARCHAR) 매핑이라 @Lob 스트리밍 트랜잭션 요구는 사라졌지만 write 트랜잭션은 유지.
+   */
   @Transactional
   public Notice detailAndIncreaseView(Long id) {
     Notice notice =

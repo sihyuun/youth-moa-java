@@ -35,9 +35,11 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
  * <p>탭 4종을 URL 쿼리 파라미터 ({@code ?tab=history|favorites|noti|profile}) 로 분기한다. HTMX 부분 전환은 D5b 후속에서
  * 도입 예정.
  *
- * <p><b>@Transactional(readOnly=true) 부착 이유</b>: OSIV=false 환경에서 Program.content 등 {@code @Lob} 필드나
- * 지연 로딩 관계를 템플릿이 접근할 때 트랜잭션이 없으면 예외 발생. Repository EntityGraph 로 program 은 즉시 로딩되지만, 안전망으로 readOnly
- * 트랜잭션을 열어 둔다.
+ * <p><b>@Transactional(readOnly=true) 부착 이유</b>: OSIV=false 환경에서 지연 로딩 관계를 템플릿이 접근할 때 트랜잭션이 없으면 예외
+ * 발생. Repository EntityGraph 로 program 은 즉시 로딩되지만, 안전망으로 readOnly 트랜잭션을 열어 둔다.
+ *
+ * <p>260826 chore/content-lob-to-text: 이전에는 Program.content 가 @Lob (PG oid) 라 스트리밍 트랜잭션이 필수였음.
+ * 이제 @JdbcTypeCode(LONGVARCHAR) 매핑으로 즉시 로딩되지만, lazy 관계 방어 목적으로 트랜잭션은 유지.
  *
  * <p><b>{@code @SessionAttribute} 개념</b>: Spring MVC 가 HTTP 세션의 특정 키를 컨트롤러 파라미터로 주입해 주는 어노테이션. 여기서는
  * 세션 flag 조회에 {@code HttpSession} 을 직접 주입해 명시적으로 다룬다 (TTL 계산·초기화 로직이 있어 더 유연).
