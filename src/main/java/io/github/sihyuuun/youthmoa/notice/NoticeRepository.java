@@ -26,8 +26,8 @@ public interface NoticeRepository extends JpaRepository<Notice, Long> {
 
   /**
    * D4 통합 검색 — 제목 + 본문 OR LIKE 대소문자 무시. 260826 chore/content-lob-to-text: content
-   * 를 @JdbcTypeCode(LONGVARCHAR) 매핑으로 이관 → PG text · H2 VARCHAR(MAX). Hibernate 6 SQM STRING 확정.
-   * 이전 CLOB grammar 우회로 도입했던 findByTitleContainingIgnoreCase (title 만) ·
+   * 를 @JdbcTypeCode(LONGVARCHAR) 매핑으로 이관 → PG text · H2 VARCHAR(MAX). Hibernate 6 SQM STRING 확정. 이전
+   * CLOB grammar 우회로 도입했던 findByTitleContainingIgnoreCase (title 만) ·
    * findByTitleContainingIgnoreCaseOrSummaryContainingIgnoreCase 두 메서드는 폐기 · 원 메서드 복원.
    */
   Page<Notice> findByTitleContainingIgnoreCaseOrContentContainingIgnoreCase(
