@@ -508,15 +508,21 @@
             hidden.value = 'false';
         });
 
+        // 260827 A#3: alert → window.Toast.show (U-COMMON-01 인프라). 실패 시 alert fallback.
+        function toast(msg, variant) {
+            if (window.Toast) window.Toast.show(msg, variant || 'success');
+            else alert(msg);
+        }
+
         btn.addEventListener('click', async () => {
             const email = emailInput.value.trim();
             if (!email) {
-                alert('이메일을 먼저 입력해주세요.');
+                toast('이메일을 먼저 입력해주세요.', 'error');
                 return;
             }
             // 형식 1차 체크 (서버 부담 줄이기)
             if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-                alert('올바른 이메일 형식이 아닙니다.');
+                toast('올바른 이메일 형식이 아닙니다.', 'error');
                 return;
             }
             try {
@@ -524,14 +530,14 @@
                 if (!res.ok) throw new Error('HTTP ' + res.status);
                 const data = await res.json();
                 if (data.available) {
-                    alert('사용 가능한 아이디입니다.');
+                    toast('사용 가능한 아이디입니다.', 'success');
                     hidden.value = 'true';
                 } else {
-                    alert('이미 사용 중인 이메일입니다.');
+                    toast('이미 사용 중인 이메일입니다.', 'error');
                     hidden.value = 'false';
                 }
             } catch (e) {
-                alert('중복확인 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+                toast('중복확인 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.', 'error');
                 hidden.value = 'false';
             }
         });
@@ -563,7 +569,9 @@
 
         btn.addEventListener('click', function () {
             if (typeof daum === 'undefined' || !daum.Postcode) {
-                alert('우편번호 서비스를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.');
+                // 260827 A#3: alert → Toast (U-COMMON-01)
+                if (window.Toast) window.Toast.show('우편번호 서비스를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.', 'error');
+                else alert('우편번호 서비스를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.');
                 return;
             }
             new daum.Postcode({

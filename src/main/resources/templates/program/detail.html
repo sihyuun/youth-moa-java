@@ -336,7 +336,7 @@
                     주소 복사
                 </button>
                 <button type="button" class="detail-map-btn-primary"
-                        onclick="alert('길찾기 — 추후 카카오/네이버 지도 SDK 연동')">
+                        onclick="window.Toast ? window.Toast.show('길찾기 — 추후 카카오/네이버 지도 SDK 연동', 'info') : alert('길찾기 — 추후 카카오/네이버 지도 SDK 연동')">
                     <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#fff"
                          stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/>
@@ -352,14 +352,20 @@
 <div th:replace="~{fragments/footer :: footer}"></div>
 
 <script>
+    // 260827 A#3: alert → window.Toast (U-COMMON-01). Toast 미로드 시 alert fallback.
+    function detailToast(msg, variant) {
+        if (window.Toast) window.Toast.show(msg, variant || 'success');
+        else alert(msg);
+    }
+
     // 공유 버튼 — URL 클립보드 복사
     document.querySelectorAll('[data-share-btn]').forEach(btn => {
         btn.addEventListener('click', async () => {
             try {
                 await navigator.clipboard.writeText(window.location.href);
-                alert('URL이 클립보드에 복사되었습니다.');
+                detailToast('URL이 클립보드에 복사되었습니다.', 'success');
             } catch (e) {
-                alert('URL 복사에 실패했습니다.');
+                detailToast('URL 복사에 실패했습니다.', 'error');
             }
         });
     });
@@ -383,9 +389,9 @@
             const addr = b.getAttribute('data-address');
             try {
                 await navigator.clipboard.writeText(addr);
-                alert('주소가 복사되었습니다.');
+                detailToast('주소가 복사되었습니다.', 'success');
             } catch (e) {
-                alert('주소 복사에 실패했습니다.');
+                detailToast('주소 복사에 실패했습니다.', 'error');
             }
         });
     });
