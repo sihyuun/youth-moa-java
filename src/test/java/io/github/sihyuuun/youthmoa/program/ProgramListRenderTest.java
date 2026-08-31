@@ -16,8 +16,8 @@ import org.springframework.test.web.servlet.MockMvc;
 /**
  * F0f — 프로그램 목록 및 캘린더 뷰 렌더 검증.
  *
- * <p>view 파라미터 분기 (grid ↔ calendar) 가 실제로 다른 fragment 를 include 하는지, Thymeleaf 표현식이 리터럴로 남지 않는지
- * 확인. 캘린더 뷰의 시각적 세부는 e2e Playwright 가 담당.
+ * <p>view 파라미터 분기 (grid ↔ calendar) 가 실제로 다른 fragment 를 include 하는지, Thymeleaf 표현식이 리터럴로 남지 않는지 확인.
+ * 캘린더 뷰의 시각적 세부는 e2e Playwright 가 담당.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -64,7 +64,8 @@ class ProgramListRenderTest {
   @Test
   void 캘린더_년월_파라미터_반영() throws Exception {
     mockMvc
-        .perform(get("/programs").param("view", "calendar").param("year", "2026").param("month", "9"))
+        .perform(
+            get("/programs").param("view", "calendar").param("year", "2026").param("month", "9"))
         .andExpect(status().isOk())
         // 툴바에 지정한 년월 표시
         .andExpect(content().string(containsString("2026년 9월")));

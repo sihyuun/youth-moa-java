@@ -10,7 +10,6 @@ import io.github.sihyuuun.youthmoa.user.User;
 import io.github.sihyuuun.youthmoa.user.UserRepository;
 import io.github.sihyuuun.youthmoa.user.UserRole;
 import java.time.LocalDate;
-import java.time.YearMonth;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -145,15 +144,13 @@ class ProgramCalendarServiceTest {
 
     // 전 달·이 달·다음 달 아무거나로 셋팅. 서비스 필터 spec 은 종료 배제 → ended 케이스는
     // pillColorKind() 유닛으로 직접 검증.
-    Program upcoming =
-        saveProgram("upcoming", today.plusDays(10), today.plusDays(30), 100);
+    Program upcoming = saveProgram("upcoming", today.plusDays(10), today.plusDays(30), 100);
     Program open = saveProgram("open", today.minusDays(5), today.plusDays(5), 100);
     Program ended = saveProgram("ended", today.minusDays(30), today.minusDays(5), 100);
 
     assertThat(ProgramCalendarService.pillColorKind(new ProgramCardDto(upcoming, 0)))
         .isEqualTo("upcoming");
-    assertThat(ProgramCalendarService.pillColorKind(new ProgramCardDto(open, 0)))
-        .isEqualTo("open");
+    assertThat(ProgramCalendarService.pillColorKind(new ProgramCardDto(open, 0))).isEqualTo("open");
     assertThat(ProgramCalendarService.pillColorKind(new ProgramCardDto(ended, 0)))
         .isEqualTo("ended");
   }
@@ -167,8 +164,7 @@ class ProgramCalendarServiceTest {
     User u2 = saveUser("u2@t.com");
     apply(u1, p);
     apply(u2, p);
-    assertThat(ProgramCalendarService.pillColorKind(new ProgramCardDto(p, 2)))
-        .isEqualTo("ended");
+    assertThat(ProgramCalendarService.pillColorKind(new ProgramCardDto(p, 2))).isEqualTo("ended");
   }
 
   // ─────────── nearestMonth ───────────

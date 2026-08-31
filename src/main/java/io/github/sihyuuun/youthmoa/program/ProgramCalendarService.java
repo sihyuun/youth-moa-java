@@ -1,5 +1,7 @@
 package io.github.sihyuuun.youthmoa.program;
 
+import io.github.sihyuuun.youthmoa.application.ApplicationRepository;
+import io.github.sihyuuun.youthmoa.application.ApplicationStatus;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.ArrayList;
@@ -7,16 +9,12 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.TreeMap;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import io.github.sihyuuun.youthmoa.application.ApplicationRepository;
-import io.github.sihyuuun.youthmoa.application.ApplicationStatus;
 
 /**
  * 프로그램 캘린더 뷰 (`?view=calendar`) 서버 렌더 서비스. dc.html §1a/§5a/§6a/§7a 정본 반영.
@@ -176,9 +174,7 @@ public class ProgramCalendarService {
                     })
                 .min(
                     Comparator.<Program>comparingLong(
-                            p ->
-                                Math.abs(
-                                    monthsBetween(YearMonth.from(p.getStartDate()), pivot)))
+                            p -> Math.abs(monthsBetween(YearMonth.from(p.getStartDate()), pivot)))
                         .thenComparingInt(
                             p ->
                                 monthsBetween(YearMonth.from(p.getStartDate()), pivot) >= 0

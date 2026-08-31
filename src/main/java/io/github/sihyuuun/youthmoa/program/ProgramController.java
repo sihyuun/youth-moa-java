@@ -84,10 +84,10 @@ public class ProgramController {
     // 캘린더 뷰 (F0f) — view=calendar 이면 CalendarViewDto 세팅
     model.addAttribute("view", isCalendarView ? "calendar" : "list");
     if (isCalendarView) {
-      YearMonth ym =
-          (year != null && month != null) ? YearMonth.of(year, month) : YearMonth.now();
+      YearMonth ym = (year != null && month != null) ? YearMonth.of(year, month) : YearMonth.now();
       CalendarViewDto calendarView =
-          programCalendarService.calendar(status, safeRegions, safeCenters, ym.getYear(), ym.getMonthValue());
+          programCalendarService.calendar(
+              status, safeRegions, safeCenters, ym.getYear(), ym.getMonthValue());
       model.addAttribute("calendarView", calendarView);
       // 빈 달 배너 문구용 탭 라벨 (dc.html §7a "{현재월}에는 {탭 이름} 프로그램이 없어요")
       model.addAttribute("calendarEmptyTabLabel", emptyTabLabel(status));

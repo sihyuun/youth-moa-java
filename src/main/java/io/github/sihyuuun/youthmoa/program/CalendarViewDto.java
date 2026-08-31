@@ -46,14 +46,19 @@ public class CalendarViewDto {
   public static class CalendarCell {
     /** 셀에 표시할 일. 다른 달 (앞·뒤) 공백 셀이면 null */
     private final Integer day;
+
     /** 요일 (0=일, 6=토) */
     private final int dow;
+
     /** 이번 달 셀 여부 */
     private final boolean inMonth;
+
     /** 오늘 셀 여부 */
     private final boolean today;
+
     /** 최대 2건 pill */
     private final List<ProgramPill> pills;
+
     /** 초과 개수 (pills 2건 이후) */
     private final int moreCount;
   }
@@ -63,6 +68,7 @@ public class CalendarViewDto {
   public static class ProgramPill {
     private final Long id;
     private final String title;
+
     /** upcoming | open | ended (dc.html §5a 확정 3색) */
     private final String colorKind;
   }
