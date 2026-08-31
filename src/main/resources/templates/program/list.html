@@ -15,6 +15,8 @@
     <script th:src="@{/js/htmx-csrf.js}" defer></script>
     <!-- F0f-fix-1: 카드 CTA 오픈알림 / 빈자리알림 modal 트리거 (common-ui.js Modal/Toast 재사용) -->
     <script th:src="@{/js/program-list-alerts.js}" defer></script>
+    <!-- F0f (2026-08-27): 캘린더 뷰 client-side 상호작용 (셀 클릭, × 닫기, 오늘) -->
+    <script th:if="${view == 'calendar'}" th:src="@{/js/program-calendar.js}" defer></script>
 </head>
 <body>
 
@@ -35,14 +37,14 @@
             <!-- 260824: 모바일 전용 통합 필터 UI (시안 1c). 데스크톱 filter-bar 는 그대로 유지, CSS 로 배타 노출. -->
             <div class="filter-mobile">
                 <!-- 상태 pill 가로 스크롤 -->
-                <div class="filter-mobile-status" data-pill-row="status">
-                    <a th:href="@{/programs(regions=${filterRegions},centers=${filterCenters},sort=${filterSort})}"
+                <div class="filter-mobile-status" data-pill-row="status" th:with="viewParam=${view == 'calendar' ? 'calendar' : null}">
+                    <a th:href="@{/programs(view=${viewParam},regions=${filterRegions},centers=${filterCenters},sort=${filterSort})}"
                        th:class="${#strings.isEmpty(filterStatus)} ? 'filter-mobile-pill is-active' : 'filter-mobile-pill'">전체</a>
-                    <a th:href="@{/programs(status='active',regions=${filterRegions},centers=${filterCenters},sort=${filterSort})}"
+                    <a th:href="@{/programs(view=${viewParam},status='active',regions=${filterRegions},centers=${filterCenters},sort=${filterSort})}"
                        th:class="${filterStatus == 'active'} ? 'filter-mobile-pill is-active' : 'filter-mobile-pill'">모집중</a>
-                    <a th:href="@{/programs(status='upcoming',regions=${filterRegions},centers=${filterCenters},sort=${filterSort})}"
+                    <a th:href="@{/programs(view=${viewParam},status='upcoming',regions=${filterRegions},centers=${filterCenters},sort=${filterSort})}"
                        th:class="${filterStatus == 'upcoming'} ? 'filter-mobile-pill is-active' : 'filter-mobile-pill'">진행예정</a>
-                    <a th:href="@{/programs(status='ended',regions=${filterRegions},centers=${filterCenters},sort=${filterSort})}"
+                    <a th:href="@{/programs(view=${viewParam},status='ended',regions=${filterRegions},centers=${filterCenters},sort=${filterSort})}"
                        th:class="${filterStatus == 'ended'} ? 'filter-mobile-pill is-active' : 'filter-mobile-pill'">종료</a>
                 </div>
                 <!-- 통합 필터 + 정렬 chip 2개 (시안 §3.2) -->
@@ -156,14 +158,14 @@
             <div class="filter-bar">
                 <!-- 좌측 group: 상태 탭 + 지역/센터 팝오버 chip + 초기화 -->
                 <div class="filter-left">
-                    <div class="status-tabs" data-pill-row="status">
-                        <a th:href="@{/programs(regions=${filterRegions},centers=${filterCenters},sort=${filterSort})}"
+                    <div class="status-tabs" data-pill-row="status" th:with="viewParam=${view == 'calendar' ? 'calendar' : null}">
+                        <a th:href="@{/programs(view=${viewParam},regions=${filterRegions},centers=${filterCenters},sort=${filterSort})}"
                            th:class="${#strings.isEmpty(filterStatus)} ? 'status-tab active' : 'status-tab'">전체</a>
-                        <a th:href="@{/programs(status='active',regions=${filterRegions},centers=${filterCenters},sort=${filterSort})}"
+                        <a th:href="@{/programs(view=${viewParam},status='active',regions=${filterRegions},centers=${filterCenters},sort=${filterSort})}"
                            th:class="${filterStatus == 'active'} ? 'status-tab active' : 'status-tab'">모집중</a>
-                        <a th:href="@{/programs(status='upcoming',regions=${filterRegions},centers=${filterCenters},sort=${filterSort})}"
+                        <a th:href="@{/programs(view=${viewParam},status='upcoming',regions=${filterRegions},centers=${filterCenters},sort=${filterSort})}"
                            th:class="${filterStatus == 'upcoming'} ? 'status-tab active' : 'status-tab'">진행예정</a>
-                        <a th:href="@{/programs(status='ended',regions=${filterRegions},centers=${filterCenters},sort=${filterSort})}"
+                        <a th:href="@{/programs(view=${viewParam},status='ended',regions=${filterRegions},centers=${filterCenters},sort=${filterSort})}"
                            th:class="${filterStatus == 'ended'} ? 'status-tab active' : 'status-tab'">종료</a>
                     </div>
 
@@ -235,7 +237,7 @@
                     <span class="result-count" id="result-count-el">
                         전체 <strong th:text="${programs.totalElements}">0</strong>건
                     </span>
-                    <div class="sort-options">
+                    <div class="sort-options" th:if="${view != 'calendar'}">
                         <a th:href="@{/programs(status=${filterStatus},regions=${filterRegions},centers=${filterCenters},sort='default')}"
                            th:class="${filterSort == 'default' or #strings.isEmpty(filterSort)} ? 'sort-link active' : 'sort-link'">기본순</a>
                         <span class="sort-sep">·</span>
@@ -247,23 +249,31 @@
                     </div>
 
                     <div class="view-toggle">
-                        <button type="button" class="view-toggle-btn active" aria-pressed="true">
+                        <a th:href="@{/programs(status=${filterStatus},regions=${filterRegions},centers=${filterCenters},sort=${filterSort})}"
+                           th:class="${view == 'calendar'} ? 'view-toggle-btn' : 'view-toggle-btn active'"
+                           th:attr="aria-pressed=${view != 'calendar'}">
                             <svg th:replace="~{fragments/icons :: grid(14, 'currentColor')}"></svg>
                             <span>목록</span>
-                        </button>
-                        <button type="button" class="view-toggle-btn view-toggle-btn--disabled"
-                                title="캘린더 보기는 곧 제공돼요"
-                                disabled>
+                        </a>
+                        <a th:href="@{/programs(view='calendar',status=${filterStatus},regions=${filterRegions},centers=${filterCenters},sort=${filterSort})}"
+                           th:class="${view == 'calendar'} ? 'view-toggle-btn active' : 'view-toggle-btn'"
+                           th:attr="aria-pressed=${view == 'calendar'}">
                             <svg th:replace="~{fragments/icons :: calendar(14, 'currentColor')}"></svg>
                             <span>캘린더</span>
-                        </button>
+                        </a>
                     </div>
                 </div>
             </div>
 
             <!-- 부분 갱신 대상 영역 -->
+            <!-- CLAUDE.md HTMX/Thymeleaf 함정: th:if + th:replace 같은 요소에 병치 금지 (th:if 무시됨). th:block 으로 감싸서 분기 -->
             <div id="program-list-region">
-                <div th:replace="~{program/_list-fragment :: list-region}"></div>
+                <th:block th:if="${view == 'calendar'}">
+                    <div th:replace="~{program/_calendar-fragment :: calendar-region}"></div>
+                </th:block>
+                <th:block th:if="${view != 'calendar'}">
+                    <div th:replace="~{program/_list-fragment :: list-region}"></div>
+                </th:block>
             </div>
         </section>
     </div>

@@ -42,7 +42,7 @@ ProgramCalendar({ filtered, year, month, today })
 ├─ 서버 파생: nearestMonth (필터 결과 있는 가장 가까운 달, 없으면 null) — 빈 달 배너용
 └─ 렌더:
     ┌─ 좌측 메인 (flex:1)
-    │  ├─ 상단 툴바: [오늘] · ‹ YYYY년 M월 › · "시작일 기준" (우측 고정, dc.html L723)
+    │  ├─ 상단 툴바: [오늘] · ‹ YYYY년 M월 › (grid 1fr auto 1fr 로 nav 정중앙 정렬. 2026-08-31 사용자 시각 fix 로 "시작일 기준" 라벨 제거)
     │  ├─ (조건) 빈 달 배너 — 격자 위·월 네비 아래 (dc.html §7a)
     │  ├─ 요일 헤더 (일=error, 토=primary)
     │  └─ 7×6=42 셀 grid (셀 높이 104px)
@@ -83,7 +83,7 @@ ProgramCalendar({ filtered, year, month, today })
 | 반응형 <767px | 미규정 | 정사각 · 점 최대 3 · 하단 시트 (§7b) | **PR-2 이월** (Q5) |
 | 월 이동 방식 | UI only | URL query 재렌더 | Q3 URL query 채택 |
 | 셀 클릭 우측 패널 | client state | client JS toggle | Q4 client only 채택 |
-| 툴바 우측 "시작일 기준" 라벨 | 없음 | 있음 (§1a L723) | 채택 |
+| 툴바 우측 "시작일 기준" 라벨 | 없음 | 있음 (§1a L723) | **초회 채택 → 2026-08-31 사용자 시각 fix 로 제거**. 툴바는 grid `1fr auto 1fr` 로 [오늘] 좌·nav 정중앙 정렬 |
 | calendarSource | filtered prop | filtered (`activeFilters`: status·regions·centers 재사용) | 채택 |
 
 ---
@@ -96,9 +96,23 @@ ProgramCalendar({ filtered, year, month, today })
    - 진행예정 `secondary` `#F97316` — UPCOMING = `today < startDate`
    - 모집중 `primary` `#3F30E9` — OPEN = `startDate ≤ today ≤ endDate` **AND** `!isFull`
    - 종료 `textTri` — ENDED = `endDate < today` **OR** (OPEN AND `applied ≥ capacity`)
-2. **"시작일 기준" 라벨** — 툴바 우측에 항상 표시 (§1a L723)
+2. ~~**"시작일 기준" 라벨** — 툴바 우측에 항상 표시 (§1a L723)~~ **2026-08-31 사용자 시각 fix 로 제거**. 툴바는 grid `1fr auto 1fr` 로 [오늘] 좌측 · nav 정중앙 정렬
 3. **오픈 표시** — 진행예정은 D-N 만들지 않고 "M/D 오픈" 날짜 텍스트. `ProgramCardDto.secondaryLabel` 재사용 (§4a #2, §5a)
 4. **정원 마감(`isFull`) → 종료 회색 편입** — 사유는 우측 패널 `DdayChip` ("마감" / "종료") 로만 노출 (§5a)
+
+#### 4-A. 우측 패널 카드 chip 4종 매핑 표 (dc.html §5a `chipOf()` 원본 반영, 2026-08-31 verify 6차 후 명문화)
+
+| 상태 조건 | chip modifier | 텍스트 | 배경 | 구현 위치 |
+|---|---|---|---|---|
+| UPCOMING | `--upcoming` | `"M/D 오픈"` (예: `8/28 오픈`, padding 없음) | `--color-secondary` `#F97316` (오렌지) | `ProgramCardDto.getCalendarChipKind` = `upcoming` |
+| OPEN + `days > 3` | `--open` | `"D-N"` (예: `D-12`) | `rgba(0, 0, 0, 0.55)` (dark 반투명) | `ProgramCardDto.getCalendarChipKind` = `open` |
+| OPEN + `0 ≤ days ≤ 3` (D-DAY 포함) | `--urgent` | `"D-N"` / `"D-DAY"` | `--color-error` (빨강) | `ProgramCardDto.getCalendarChipKind` = `urgent` |
+| OPEN + `isFull` (`applied ≥ capacity`) | `--ended` | `"마감"` | `rgba(120, 124, 130, 0.85)` (회색) | `ProgramCardDto.getCalendarChipLabel` 하드코딩 |
+| ENDED | `--ended` | `"종료"` | 동일 (회색) | `ProgramCardDto.getCalendarChipLabel` 하드코딩 |
+| SUSPENDED | 캘린더 미도달 | — | — | `ProgramService.search()` L44 `isActive()` 필터 |
+
+**정본 근거**: `docs/00_assets/Program Calendar.dc.html` `chipOf()` (L953-960) + §5a 매핑 표 (L241-280).
+
 5. **SUSPENDED** — `ProgramService.search()` L44 `isActive()` 필터로 캘린더 미도달. 매핑 불필요 (§4a #6)
 6. **캘린더 임계값 만들지 않음** — 셀 색은 `getStatus()` + `isFull` 만 사용. 70/90% · D-3 · D-14 는 캘린더 밖에서만 (§5a 각주, §4a)
 7. **마감임박 셀 색 제외** — 시급성은 우측 패널 `DdayChip` (D-3 빨강) + `CapacityBar` (≥90% error) 담당 (§3a 채택, §4a #3)
@@ -108,7 +122,7 @@ ProgramCalendar({ filtered, year, month, today })
    - null 케이스 (`nearestMonth = null`): 문구만 "조건에 맞는 프로그램이 없어요.", 버튼 없음
    - 이동 시 필터는 그대로 유지, 표시 월만 변경. 이동 후 배너 사라짐
    - 격자는 배너가 떠도 그대로 렌더 (빈 달이라도 날짜 표시)
-9. **서버 신규 조회** — 필터 조건으로 결과 있는 가장 가까운 달 `max(startDate)` 1개 조회 (빈 달 배너용). `ProgramCalendarService` 에 신설
+9. **서버 신규 조회** — 필터 조건으로 결과가 있는 **가장 가까운 달** (표시 월 기준 절대 거리 최소) 1개 조회 (빈 달 배너용). `ProgramCalendarService` 에 신설. 동거리 tie-break 은 **미래 우선** (예: 8월 기준 6월/10월 각 1건 → 10월 선택)
 10. **calendarSource = filtered** — 목록 뷰의 `activeFilters` (status·regions·centers) 그대로 재사용. view 만 스위치
 
 ---
@@ -153,12 +167,12 @@ ProgramCalendar({ filtered, year, month, today })
   - 월 단위 grouping (`Map<Integer, List<ProgramCardDto>>`, key = `startDate.getDayOfMonth()`)
   - 42셀 배열 산출 (6행 고정, 선행 공백 + 다음 달 채우기)
   - prev/next 월 파라미터
-  - **nearestMonth 조회** — 필터 적용 결과의 `max(startDate)` 가 속한 달 1개 (빈 달 배너용, 결과 없으면 null)
+  - **nearestMonth 조회** — 필터 적용 결과에서 표시 월과 절대 거리 최소인 달 1개 (빈 달 배너용, 결과 없으면 null). 동거리 tie-break 은 미래 우선 (§3-A #9)
 - [ ] `templates/program/list.html`
   - view toggle 활성화 (`disabled` 제거, `?view=calendar&...` link)
   - 조건부 renderer 분기 (view=calendar → fragment include)
 - [ ] `templates/program/_calendar-fragment.html` (신규)
-  - 툴바 · "시작일 기준" 라벨 · 빈 달 배너 · 42셀 grid · 우측 패널 (hidden 데이터 포함)
+  - 툴바 (grid `1fr auto 1fr`, nav 정중앙) · 빈 달 배너 · 42셀 grid · 우측 패널 (hidden 데이터 포함)
 - [ ] `templates/program/_calendar-day-panel-fragment.html` (선택) — 우측 패널 카드 리스트를 셀별로 pre-render 후 hidden 처리
 - [ ] `static/css/main.css` — 캘린더 grid · 셀 · pill · 우측 패널 · 빈 달 배너 (dc.html 인라인 style → CSS 변수 기반)
 - [ ] `static/js/program-calendar.js` (신규) — 셀 클릭 · × 닫기 · [오늘] 이동 · hidden 카드 데이터 렌더
@@ -208,7 +222,7 @@ ProgramCalendar({ filtered, year, month, today })
 
 ### 시각 (사용자)
 - 3색 셀 렌더 · 오늘 원형 primary 배경 · 선택 셀 primary 테두리 + primaryBg 배경
-- 툴바 우측 "시작일 기준" 라벨
+- 툴바 grid 정렬: [오늘] 좌측 · `‹ YYYY년 M월 ›` 정중앙 (`1fr auto 1fr`)
 - 빈 달 배너 문구·버튼 규격 (dc.html §7a)
 
 ### write→read 왕복
@@ -238,6 +252,6 @@ ProgramCalendar({ filtered, year, month, today })
 - **6행 고정 필수** — 5행 하드코딩 시 특정 월 (2026-08 등) 잘림. Q1 결정 이유가 이것
 - **calendarSource = filtered** — 목록 뷰의 필터 파이프라인 재사용. 캘린더 전용 별도 쿼리 만들지 말 것
 - **client JS 우측 패널** — HTMX 왕복 금지 (Q4 결정). 셀별 카드 데이터를 초기 렌더에 hidden 으로 포함해 JS 로 display toggle
-- **nearestMonth 조회 성능** — 필터 걸린 결과에서 `max(startDate)` 1개만. 별도 인덱스 검토 불요 (기존 인덱스로 충분)
+- **nearestMonth 조회 성능** — 현재 구현은 필터 결과 전체를 메모리 로드 후 stream `.min()`. 시드 규모(<100건)에서 무영향. 프로덕션 대량 데이터 시 SQL 집계 (`GROUP BY date_trunc('month', start_date) ORDER BY ABS(...) LIMIT 1`) 로 최적화 여지 있음 (백로그, 별도 인덱스 검토 불요)
 - **admin 이월** — `applyStartDate` / `applyEndDate` 컬럼 도입 시 D-day 기준일·`getStatus()` 파생 규칙 재검토 (ADMIN-00 §3-1)
 - **계약 문서 갱신** — PR-3 로 분리. `docs/design-contracts/programs.md` 3색 체계 반영 및 "신청 마감 = 진행 종료" 현재 정책 명시 (§4a #7)

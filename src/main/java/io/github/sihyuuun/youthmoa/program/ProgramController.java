@@ -4,6 +4,7 @@ import io.github.sihyuuun.youthmoa.application.ApplicationRepository;
 import io.github.sihyuuun.youthmoa.application.ApplicationStatus;
 import io.github.sihyuuun.youthmoa.bookmark.BookmarkService;
 import io.github.sihyuuun.youthmoa.center.CenterRepository;
+import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -27,6 +28,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 public class ProgramController {
 
   private final ProgramService programService;
+  private final ProgramCalendarService programCalendarService;
   private final BookmarkService bookmarkService;
   private final ApplicationRepository applicationRepository;
   private final CenterRepository centerRepository;
@@ -38,12 +40,16 @@ public class ProgramController {
       @RequestParam(name = "centers", required = false) List<String> centers,
       @RequestParam(required = false, defaultValue = "default") String sort,
       @RequestParam(required = false, defaultValue = "0") int page,
+      @RequestParam(required = false) String view,
+      @RequestParam(required = false) Integer year,
+      @RequestParam(required = false) Integer month,
       @RequestHeader(name = "HX-Request", required = false) String hxRequest,
       @AuthenticationPrincipal UserDetails principal,
       Model model) {
 
     List<String> safeRegions = regions == null ? Collections.emptyList() : regions;
     List<String> safeCenters = centers == null ? Collections.emptyList() : centers;
+    boolean isCalendarView = "calendar".equals(view);
 
     // 즐겨찾기 IDs 를 먼저 계산 — 기본 정렬순(default) 로직과 카드 렌더 N+1 회피 모두에 사용
     Set<Long> bookmarkedIds =
@@ -75,11 +81,36 @@ public class ProgramController {
     // CapacityBar용 DTO (IN 쿼리 1회, N+1 방지)
     model.addAttribute("cardDtos", programService.toCardDtos(programs.getContent()));
 
-    // htmx 부분 갱신
+    // 캘린더 뷰 (F0f) — view=calendar 이면 CalendarViewDto 세팅
+    model.addAttribute("view", isCalendarView ? "calendar" : "list");
+    if (isCalendarView) {
+      YearMonth ym =
+          (year != null && month != null) ? YearMonth.of(year, month) : YearMonth.now();
+      CalendarViewDto calendarView =
+          programCalendarService.calendar(status, safeRegions, safeCenters, ym.getYear(), ym.getMonthValue());
+      model.addAttribute("calendarView", calendarView);
+      // 빈 달 배너 문구용 탭 라벨 (dc.html §7a "{현재월}에는 {탭 이름} 프로그램이 없어요")
+      model.addAttribute("calendarEmptyTabLabel", emptyTabLabel(status));
+    }
+
+    // htmx 부분 갱신 — view=calendar 상태에서는 캘린더 fragment 반환 (ym-verify N2-2)
     if (hxRequest != null && !hxRequest.isBlank()) {
-      return "program/_list-fragment :: list-region";
+      return isCalendarView
+          ? "program/_calendar-fragment :: calendar-region"
+          : "program/_list-fragment :: list-region";
     }
     return "program/list";
+  }
+
+  /** F0f 캘린더 빈 달 배너 문구용 탭 라벨. dc.html §7a "8월에는 종료된 프로그램이 없어요" 패턴. */
+  private static String emptyTabLabel(String status) {
+    if (status == null) return "";
+    return switch (status) {
+      case "upcoming" -> "진행예정된";
+      case "active" -> "모집중인";
+      case "ended" -> "종료된";
+      default -> "";
+    };
   }
 
   private List<Map<String, String>> buildActiveFilters(
