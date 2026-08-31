@@ -90,11 +90,11 @@ test('인기순 정렬 클릭 시 URL 에 sort=popular 가 들어간다', async 
     await expect(page).toHaveURL(/sort=popular/);
 });
 
-test('캘린더 토글 버튼은 disabled 이고 tooltip 이 있다', async ({ page }) => {
-    const cal = page.locator('.view-toggle-btn--disabled');
+test('캘린더 토글 버튼은 링크로 활성화되고 view=calendar 파라미터로 이동한다', async ({ page }) => {
+    // F0f 캘린더뷰 PR-1 (2026-08-27) 이후: disabled placeholder 제거, view=calendar 링크로 전환
+    const cal = page.locator('.view-toggle a.view-toggle-btn', { hasText: '캘린더' });
     await expect(cal).toBeVisible();
-    await expect(cal).toBeDisabled();
-    await expect(cal).toHaveAttribute('title', /캘린더/);
+    await expect(cal).toHaveAttribute('href', /view=calendar/);
 });
 
 test('불가능한 region 조합은 rich 빈 상태 카피 + 2 버튼을 노출한다', async ({ page }) => {

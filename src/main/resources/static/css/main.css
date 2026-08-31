@@ -3091,16 +3091,15 @@ body:not(.is-scrolled) .site-header--transparent .header-menu-btn:hover {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  text-decoration: none;
+}
+.view-toggle-btn:hover {
+  text-decoration: none;
 }
 .view-toggle-btn.active {
   background: var(--color-primary);
   color: #fff;
   font-weight: 600;
-}
-.view-toggle-btn--disabled {
-  cursor: not-allowed;
-  color: var(--color-text-tri);
-  background: var(--color-border-light);
 }
 
 /* 빈 상태 (rich) */
@@ -7938,5 +7937,434 @@ button.gender-pill svg { flex-shrink: 0; }
   font-weight: 500;
   color: var(--color-text);
   margin: 0;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   F0f 프로그램 캘린더 뷰 (2026-08-27, dc.html §1a / §5a / §7a 정본 반영)
+   ═══════════════════════════════════════════════════════════════════════ */
+.program-calendar-layout {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+.program-calendar-main {
+  flex: 1;
+  min-width: 0;
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border-light);
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+}
+.program-calendar-toolbar {
+  /* 3-column grid: [오늘] 왼쪽 · nav 정중앙 · 우측 여백 (dc.html 원본 62px placeholder 대체) */
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  margin-bottom: 16px;
+  gap: 12px;
+}
+.program-calendar-toolbar > .program-calendar-today-btn {
+  justify-self: start;
+}
+.program-calendar-toolbar > .program-calendar-nav {
+  justify-self: center;
+}
+.program-calendar-today-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-light);
+  background: var(--color-surface);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--color-text-sec);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.program-calendar-today-btn:hover {
+  background: var(--color-primary-bg);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+.program-calendar-nav {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+.program-calendar-nav-arrow {
+  font-size: 16px;
+  color: var(--color-text-tri);
+  text-decoration: none;
+  padding: 2px 6px;
+  border-radius: var(--radius-md);
+}
+.program-calendar-nav-arrow:hover {
+  background: var(--color-primary-bg);
+  color: var(--color-primary);
+}
+.program-calendar-nav-title {
+  font-size: 18px;
+  font-weight: 700;
+  white-space: nowrap;
+  color: var(--color-text);
+}
+.program-calendar-dow {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  margin-bottom: 4px;
+}
+.program-calendar-dow-cell {
+  text-align: center;
+  padding: 8px 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-sec);
+}
+.program-calendar-dow-cell--sun { color: var(--color-error); }
+.program-calendar-dow-cell--sat { color: var(--color-primary); }
+.program-calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+.program-calendar-cell {
+  height: 104px;
+  box-sizing: border-box;
+  border-radius: var(--radius-md);
+  padding: 6px;
+  overflow: hidden;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-light);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.program-calendar-cell:hover {
+  background: var(--color-primary-bg);
+}
+.program-calendar-cell--outside {
+  background: transparent;
+  border: none;
+  cursor: default;
+}
+.program-calendar-cell--outside:hover {
+  background: transparent;
+}
+.program-calendar-cell--today {
+  border-color: var(--color-primary);
+}
+.program-calendar-cell--selected {
+  border-color: var(--color-primary);
+  background: var(--color-primary-bg);
+}
+.program-calendar-cell-head {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 4px;
+  height: 22px;
+}
+.program-calendar-cell-num {
+  font-size: 13px;
+  color: var(--color-text);
+}
+.program-calendar-cell-num--sun { color: var(--color-error); }
+.program-calendar-cell-num--sat { color: var(--color-primary); }
+.program-calendar-cell-num--today {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: #fff;
+  font-weight: 600;
+}
+.program-calendar-cell-today-badge {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--color-primary);
+}
+.program-calendar-cell-body {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.program-calendar-pill {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 5px;
+  border-radius: 4px;
+  box-sizing: border-box;
+  text-decoration: none;
+  cursor: pointer;
+}
+.program-calendar-pill-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.program-calendar-pill-title {
+  font-size: 10.5px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.program-calendar-pill--upcoming {
+  background: rgba(249, 115, 22, 0.10);
+}
+.program-calendar-pill--upcoming .program-calendar-pill-dot { background: var(--color-secondary); }
+.program-calendar-pill--upcoming .program-calendar-pill-title { color: var(--color-secondary); }
+.program-calendar-pill--open {
+  background: var(--color-primary-bg);
+}
+.program-calendar-pill--open .program-calendar-pill-dot { background: var(--color-primary); }
+.program-calendar-pill--open .program-calendar-pill-title { color: var(--color-primary); }
+.program-calendar-pill--ended {
+  background: var(--color-border-light);
+}
+.program-calendar-pill--ended .program-calendar-pill-dot { background: var(--color-text-tri); }
+.program-calendar-pill--ended .program-calendar-pill-title { color: var(--color-text-tri); }
+.program-calendar-cell-more {
+  font-size: 10px;
+  color: var(--color-text-tri);
+  padding-left: 5px;
+}
+.program-calendar-legend {
+  display: flex;
+  gap: 14px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.program-calendar-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--color-text-sec);
+}
+.program-calendar-legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.program-calendar-legend-dot--upcoming { background: var(--color-secondary); }
+.program-calendar-legend-dot--open { background: var(--color-primary); }
+.program-calendar-legend-dot--ended { background: var(--color-text-tri); }
+.program-calendar-empty-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  background: var(--color-primary-bg);
+  border: 1px solid var(--color-primary);
+  margin-bottom: 14px;
+}
+.program-calendar-empty-banner-text {
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--color-primary-dark, var(--color-primary));
+}
+.program-calendar-empty-banner-text strong {
+  font-weight: 700;
+  margin-left: 4px;
+}
+.program-calendar-empty-banner-btn {
+  flex-shrink: 0;
+  padding: 7px 13px;
+  border-radius: var(--radius-md);
+  background: var(--color-primary);
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+  white-space: nowrap;
+  text-decoration: none;
+}
+.program-calendar-empty-banner-btn:hover {
+  background: var(--color-primary-dark, var(--color-primary));
+}
+.program-calendar-panel {
+  width: 320px;
+  flex-shrink: 0;
+  /* 프로그램이 많을 경우 우측 패널 내부에서만 스크롤 (전체 페이지 늘어남 방지) */
+  position: sticky;
+  top: 20px;
+  max-height: calc(100vh - 40px);
+  flex-direction: column;
+}
+.program-calendar-panel:not([hidden]) {
+  display: flex;
+}
+.program-calendar-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.program-calendar-panel-title {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.program-calendar-panel-title strong {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+.program-calendar-panel-count {
+  font-size: 13px;
+  color: var(--color-text-sec);
+}
+.program-calendar-panel-close {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-tri);
+  cursor: pointer;
+}
+.program-calendar-panel-close:hover {
+  background: var(--color-border-light);
+  color: var(--color-text);
+}
+.program-calendar-panel-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  /* 카드가 많을 때 내부 스크롤 */
+  flex: 1 1 auto;
+  overflow-y: auto;
+  min-height: 0;
+  padding-right: 4px;
+}
+.program-calendar-panel-group {
+  flex-direction: column;
+  gap: 12px;
+}
+.program-calendar-panel-group:not([hidden]) {
+  display: flex;
+}
+.program-calendar-panel-card {
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-light);
+  box-shadow: var(--shadow-sm);
+  text-decoration: none;
+  color: inherit;
+}
+.program-calendar-panel-card:hover {
+  border-color: var(--color-primary);
+}
+.program-calendar-panel-card-thumb {
+  width: 60px;
+  height: 60px;
+  border-radius: var(--radius-md);
+  flex-shrink: 0;
+  overflow: hidden;
+  background: var(--color-border-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  color: var(--color-text-tri);
+}
+.program-calendar-panel-card-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.program-calendar-panel-card-body {
+  flex: 1;
+  min-width: 0;
+}
+.program-calendar-panel-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 3px;
+}
+.program-calendar-panel-card-org {
+  font-size: 11px;
+  color: var(--color-text-sec);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* 캘린더 우측 패널 카드 chip (dc.html §5a 4종 매핑) */
+.program-calendar-panel-card-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 9px;
+  border-radius: var(--radius-pill);
+  background: rgba(0, 0, 0, 0.55); /* open 기본 = dark 반투명 */
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.program-calendar-panel-card-chip--open {
+  background: rgba(0, 0, 0, 0.55);
+}
+/* 진행예정 (UPCOMING) — "M/D 오픈" secondary color */
+.program-calendar-panel-card-chip--upcoming {
+  background: var(--color-secondary);
+}
+/* 마감임박 (OPEN + D-3 이하) — error red */
+.program-calendar-panel-card-chip--urgent {
+  background: var(--color-error);
+}
+/* 종료·마감 (ENDED / OPEN + isFull) — 회색 */
+.program-calendar-panel-card-chip--ended {
+  background: rgba(120, 124, 130, 0.85);
+}
+.program-calendar-panel-card-title {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--color-text);
+}
+.program-calendar-panel-card-bar {
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--color-border-light);
+  overflow: hidden;
+}
+.program-calendar-panel-card-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+}
+.program-calendar-panel-card-bar-fill--primary { background: var(--color-primary); }
+.program-calendar-panel-card-bar-fill--secondary { background: var(--color-secondary); }
+.program-calendar-panel-card-bar-fill--warning { background: var(--color-warning); }
+.program-calendar-panel-card-bar-fill--error { background: var(--color-error); }
+.program-calendar-panel-card-bar-fill--muted { background: var(--color-text-tri); }
+.program-calendar-panel-empty {
+  padding: 40px 0;
+  text-align: center;
+  color: var(--color-text-tri);
+  font-size: 13px;
+  border: 1px dashed var(--color-border-light);
+  border-radius: var(--radius-lg);
 }
 

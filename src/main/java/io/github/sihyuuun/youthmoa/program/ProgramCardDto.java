@@ -27,7 +27,8 @@ import lombok.Getter;
 @Getter
 public class ProgramCardDto {
 
-  private static final DateTimeFormatter OPEN_DATE_FORMAT = DateTimeFormatter.ofPattern("MM/dd");
+  // dc.html §5a · spec §3-A #3: "M/D 오픈" — 0-padding 없음 (예: 8/28 오픈)
+  private static final DateTimeFormatter OPEN_DATE_FORMAT = DateTimeFormatter.ofPattern("M/d");
 
   private final Program program;
   private final long applicantCount;
@@ -261,6 +262,46 @@ public class ProgramCardDto {
 
   public long getDaysUntilDeadline() {
     return program.getDaysUntilDeadline();
+  }
+
+  /**
+   * 캘린더 우측 패널 카드 chip 텍스트 (dc.html §5a 매핑).
+   *
+   * <ul>
+   *   <li>UPCOMING → secondaryLabel ("M/D 오픈")
+   *   <li>ENDED → "종료"
+   *   <li>OPEN + isFull → "마감"
+   *   <li>OPEN 그 외 → ddayLabel ("D-N" / "D-DAY")
+   * </ul>
+   */
+  public String getCalendarChipLabel() {
+    ProgramStatus status = program.getStatus();
+    if (status == ProgramStatus.UPCOMING) return secondaryLabel;
+    if (status == ProgramStatus.ENDED) return "종료";
+    Integer capacity = program.getCapacity();
+    if (capacity != null && capacity > 0 && applicantCount >= capacity) return "마감";
+    return program.getDdayLabel();
+  }
+
+  /**
+   * 캘린더 우측 패널 카드 chip 색상 modifier (dc.html §5a 매핑).
+   *
+   * <ul>
+   *   <li>upcoming — UPCOMING (orange, secondary)
+   *   <li>urgent — OPEN + D-3 이하 (error red)
+   *   <li>ended — OPEN + isFull, ENDED (grey)
+   *   <li>open (default) — OPEN 그 외 (dark)
+   * </ul>
+   */
+  public String getCalendarChipKind() {
+    ProgramStatus status = program.getStatus();
+    if (status == ProgramStatus.UPCOMING) return "upcoming";
+    if (status == ProgramStatus.ENDED) return "ended";
+    Integer capacity = program.getCapacity();
+    if (capacity != null && capacity > 0 && applicantCount >= capacity) return "ended";
+    long days = program.getDaysUntilDeadline();
+    if (days >= 0 && days <= 3) return "urgent";
+    return "open";
   }
 
   public java.time.LocalDate getStartDate() {

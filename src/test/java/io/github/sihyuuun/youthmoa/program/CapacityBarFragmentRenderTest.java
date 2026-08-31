@@ -146,10 +146,11 @@ class CapacityBarFragmentRenderTest {
   // ─── UPCOMING + 오픈일 ───
 
   @Test
-  @DisplayName("UPCOMING → 신청 오픈 예정 + MM/dd 오픈 (secondary color)")
+  @DisplayName("UPCOMING → 신청 오픈 예정 + M/D 오픈 (secondary color, dc.html §5a padding 없음)")
   void render_upcoming_showsOpenDate() {
     LocalDate future = LocalDate.now().plusDays(7);
-    String expected = future.format(java.time.format.DateTimeFormatter.ofPattern("MM/dd")) + " 오픈";
+    // 2026-08-31 dc.html §5a chip 4종 매핑 반영: OPEN_DATE_FORMAT 을 "MM/dd" → "M/d" (padding 없음) 로 변경
+    String expected = future.format(java.time.format.DateTimeFormatter.ofPattern("M/d")) + " 오픈";
     String html = renderFragment(new ProgramCardDto(upcomingProgram(future), 0));
     assertThat(html).contains("신청 오픈 예정");
     assertThat(html).contains(expected);
