@@ -393,3 +393,131 @@ export const programsCalendarEmptyContract: ScreenContract = {
         },
     ],
 };
+
+/**
+ * F0f PR-2 (2026-09-01) 모바일 캘린더 계약 (viewport 375×667).
+ *
+ * dc.html §7b · programs.md §5-B/§5-F (모바일 규격).
+ * 데스크톱과 다른 규격:
+ *   - 셀 정사각 (aspect-ratio: 1) · pill 텍스트 hide · dot 만 (최대 2 + more indicator ≤3)
+ *   - 우측 320px 패널 → 하단 시트 (display:none 으로 데스크톱 패널 숨김)
+ *   - 빈 달 배너 세로 스택 + [N월 보기] full-width 44px
+ *   - view-toggle 노출 (모바일 진입점 열림)
+ */
+export const programsCalendarMobileContract: ScreenContract = {
+    screen: 'programs-calendar-mobile',
+    path: '/programs?view=calendar',
+    source: 'dc.html §7b + spec F0f, 2026-09-01 PR-2',
+    viewport: { width: 375, height: 667 },
+    checks: [
+        {
+            id: 'mobile.viewToggle.visible',
+            desc: '모바일 view-toggle 노출 (진입점 열림 · display:none 아님)',
+            selector: '.view-toggle',
+            kind: 'css',
+            prop: 'display',
+            expected: 'flex',
+            proto: 'main.css:6956 (F0f PR-2) · Chromium 정규화 inline-flex → flex',
+            severity: 'P0',
+        },
+        {
+            id: 'mobile.desktopPanel.hidden',
+            desc: '모바일에서 데스크톱 우측 패널 숨김 (하단 시트가 대체)',
+            selector: '.program-calendar-panel',
+            kind: 'css',
+            prop: 'display',
+            expected: 'none',
+            proto: 'main.css F0f PR-2 · dc.html §7b',
+            severity: 'P0',
+        },
+        {
+            id: 'mobile.cell.aspectSquare',
+            desc: '셀 정사각화 (aspect-ratio: 1)',
+            selector: '.program-calendar-cell',
+            kind: 'css',
+            prop: 'aspect-ratio',
+            expected: '1 / 1',
+            proto: 'dc.html §7b "aspect-ratio:1 정사각형"',
+            severity: 'P1',
+        },
+        {
+            id: 'mobile.pillTitle.hidden',
+            desc: 'pill 텍스트 숨김 (dot 만 노출)',
+            selector: '.program-calendar-pill-title',
+            kind: 'css',
+            prop: 'display',
+            expected: 'none',
+            proto: 'dc.html §7b "pill 이 안 들어가므로 상태는 날짜 아래 점"',
+            severity: 'P1',
+        },
+        {
+            id: 'mobile.emptyBanner.btnFullWidth',
+            desc: '(현재 URL 은 non-empty · 검증 skip) — 빈 달 배너 계약은 empty 시나리오에서 별도',
+            selector: '.program-calendar-empty-banner',
+            kind: 'count',
+            expected: 0,
+            proto: '기본 URL 은 프로그램 있음 → 배너 미노출',
+            severity: 'P2',
+        },
+        {
+            id: 'mobile.sheet.initialHidden',
+            desc: '하단 시트 초기 hidden (셀 탭 전)',
+            selector: '#program-calendar-mobile-sheet[hidden]',
+            kind: 'count',
+            expected: 1,
+            proto: 'dc.html §7b "셀 탭 → 하단 시트" · JS toggle',
+            severity: 'P0',
+        },
+        {
+            id: 'mobile.sheet.structure',
+            desc: '하단 시트 구조 (backdrop + panel + head + body)',
+            selector: '#program-calendar-mobile-sheet .program-calendar-mobile-sheet-panel .program-calendar-mobile-sheet-body',
+            kind: 'count',
+            expected: 1,
+            proto: 'dc.html §7b filter-mobile-sheet 재활용 패턴',
+            severity: 'P1',
+        },
+    ],
+};
+
+/**
+ * 모바일 빈 달 배너 시나리오 (viewport 375×667, path=빈 달).
+ * dc.html §7b: 세로 스택 · [N월 보기] full-width 44px.
+ */
+export const programsCalendarMobileEmptyContract: ScreenContract = {
+    screen: 'programs-calendar-mobile-empty',
+    path: '/programs?view=calendar&year=2030&month=6',
+    source: 'dc.html §7b 빈 달 배너 모바일 규격',
+    viewport: { width: 375, height: 667 },
+    checks: [
+        {
+            id: 'mobile.emptyBanner.exists',
+            desc: '빈 달 배너 존재 (모바일 뷰포트에서도)',
+            selector: '.program-calendar-empty-banner',
+            kind: 'count',
+            expected: 1,
+            proto: 'dc.html §7b',
+            severity: 'P0',
+        },
+        {
+            id: 'mobile.emptyBanner.verticalStack',
+            desc: '배너 세로 스택 (flex-direction: column)',
+            selector: '.program-calendar-empty-banner',
+            kind: 'css',
+            prop: 'flex-direction',
+            expected: 'column',
+            proto: 'dc.html §7b "레이아웃만 세로로 쌓고"',
+            severity: 'P1',
+        },
+        {
+            id: 'mobile.emptyBanner.btn.44px',
+            desc: '[N월 보기] 버튼 높이 44px (dc.html §7b 명시)',
+            selector: '.program-calendar-empty-banner-btn',
+            kind: 'css',
+            prop: 'height',
+            expected: '44px',
+            proto: 'dc.html §7b "버튼 full-width · 44px"',
+            severity: 'P1',
+        },
+    ],
+};

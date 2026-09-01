@@ -264,4 +264,42 @@ test.describe('프로그램 캘린더뷰 인터랙션', () => {
         const navCenter = navBox!.x + navBox!.width / 2;
         expect(Math.abs(toolbarCenter - navCenter)).toBeLessThanOrEqual(2);
     });
+
+    // F0f PR-2 (2026-09-01) 모바일 인터랙션
+    test.describe('모바일 (375×667) - dc.html §7b', () => {
+        test.use({ viewport: { width: 375, height: 667 } });
+
+        test('모바일 셀 클릭 시 하단 시트 open, backdrop 클릭 close', async ({ page }) => {
+            await gotoCalendar(page);
+            const sheet = page.locator('#program-calendar-mobile-sheet');
+            await expect(sheet).toBeHidden();
+            // pill 있는 셀 찾기
+            const pillCell = page.locator('.program-calendar-cell[data-in-month="true"]:has(.program-calendar-pill)').first();
+            const cnt = await pillCell.count();
+            test.skip(cnt === 0, '현재 달 pill 있는 셀 없음');
+            await pillCell.click();
+            await expect(sheet).toBeVisible();
+            // 시트 body 에 최소 1개 카드가 클론됨
+            await expect(page.locator('#program-calendar-mobile-sheet-body .program-calendar-panel-card').first()).toBeVisible();
+            // backdrop 클릭 → 닫힘
+            await page.locator('.program-calendar-mobile-sheet-backdrop').click();
+            await expect(sheet).toBeHidden();
+        });
+
+        test('모바일에서 데스크톱 우측 패널 노출 안 됨', async ({ page }) => {
+            await gotoCalendar(page);
+            const panel = page.locator('.program-calendar-panel');
+            const display = await panel.evaluate((el) => window.getComputedStyle(el).display);
+            expect(display).toBe('none');
+        });
+
+        test('모바일 셀은 정사각 aspect-ratio 1', async ({ page }) => {
+            await gotoCalendar(page);
+            const cell = page.locator('.program-calendar-cell').first();
+            const box = await cell.boundingBox();
+            expect(box).not.toBeNull();
+            // aspect-ratio 1 → 약간의 정수 반올림 허용 (±2px)
+            expect(Math.abs(box!.width - box!.height)).toBeLessThanOrEqual(2);
+        });
+    });
 });
