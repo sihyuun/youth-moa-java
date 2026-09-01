@@ -16,6 +16,8 @@ import { test } from '@playwright/test';
 import {
     programsCalendarContract,
     programsCalendarEmptyContract,
+    programsCalendarMobileContract,
+    programsCalendarMobileEmptyContract,
 } from '../contracts/programs-calendar';
 import { runContract, writeGapReport, type CheckResult } from '../contracts/runner';
 import { abortExternal } from '../helpers';
@@ -44,4 +46,30 @@ test('프로그램 캘린더 뷰 — 빈 달 배너 (§5-E)', async ({ page }) =
     byState.anon = await runContract(page, programsCalendarEmptyContract, 'anon');
 
     console.log('\n' + writeGapReport(programsCalendarEmptyContract, byState));
+});
+
+test('프로그램 캘린더 뷰 — 모바일 (§7b, 375×667)', async ({ page }) => {
+    await abortExternal(page);
+    await page.setViewportSize(programsCalendarMobileContract.viewport);
+
+    const byState: Record<string, CheckResult[]> = { anon: [] };
+
+    await page.goto(programsCalendarMobileContract.path);
+    await page.waitForLoadState('domcontentloaded');
+    byState.anon = await runContract(page, programsCalendarMobileContract, 'anon');
+
+    console.log('\n' + writeGapReport(programsCalendarMobileContract, byState));
+});
+
+test('프로그램 캘린더 뷰 — 모바일 빈 달 배너 (§7b)', async ({ page }) => {
+    await abortExternal(page);
+    await page.setViewportSize(programsCalendarMobileEmptyContract.viewport);
+
+    const byState: Record<string, CheckResult[]> = { anon: [] };
+
+    await page.goto(programsCalendarMobileEmptyContract.path);
+    await page.waitForLoadState('domcontentloaded');
+    byState.anon = await runContract(page, programsCalendarMobileEmptyContract, 'anon');
+
+    console.log('\n' + writeGapReport(programsCalendarMobileEmptyContract, byState));
 });

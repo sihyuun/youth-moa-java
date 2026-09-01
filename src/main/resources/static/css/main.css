@@ -6950,7 +6950,12 @@ button.gender-pill svg { flex-shrink: 0; }
   }
   .result-count { font-size: 13px; }
   .sort-options { font-size: 12.5px; gap: 4px; }
-  .view-toggle { display: none; }
+  /* F0f PR-2 모바일 캘린더 진입점 (2026-09-01):
+     이전에는 767px 이하에서 view-toggle 을 숨겨 캘린더뷰 진입 불가.
+     모바일 캘린더 구현 완료로 토글 노출. 좁은 폭에 맞춰 패딩·폰트만 축소. */
+  .view-toggle { display: inline-flex; }
+  .view-toggle-btn { padding: 6px 10px; font-size: 12px; gap: 4px; }
+  .view-toggle-btn svg { width: 12px; height: 12px; }
 
   /* 필터 팝오버를 바텀시트로 승격 */
   .filter-popover {
@@ -8366,5 +8371,159 @@ button.gender-pill svg { flex-shrink: 0; }
   font-size: 13px;
   border: 1px dashed var(--color-border-light);
   border-radius: var(--radius-lg);
+}
+
+/* ============================================================
+   F0f PR-2 모바일 캘린더 (dc.html §7b · 2026-09-01)
+   375px 기준:
+   - 셀 정사각화 (aspect-ratio: 1)
+   - pill 텍스트 숨기고 dot 만 노출 (최대 2 + more indicator ≤3 시각 요소)
+   - 우측 320px 패널 → 하단 시트 (filter-mobile-sheet 재활용)
+   - 빈 달 배너 세로 스택 + [N월 보기] full-width 44px
+   ============================================================ */
+@media (max-width: 767px) {
+  /* 레이아웃: 우측 패널 숨김 (하단 시트가 대체) · main 단독 */
+  .program-calendar-layout { gap: 0; }
+  .program-calendar-panel { display: none !important; }
+
+  /* 툴바 축소 */
+  .program-calendar-toolbar { padding: 6px 0 10px; }
+  .program-calendar-nav-title { font-size: 15px; }
+  .program-calendar-today-btn { padding: 5px 10px; font-size: 12px; }
+  .program-calendar-nav-arrow { font-size: 20px; padding: 0 6px; }
+
+  /* 요일 헤더 축소 */
+  .program-calendar-dow-cell { font-size: 11px; padding: 5px 0; }
+
+  /* 셀 정사각화 (dc.html §7b) */
+  .program-calendar-grid { gap: 2px; }
+  .program-calendar-cell {
+    height: auto;
+    aspect-ratio: 1;
+    padding: 4px;
+    border-radius: 5px;
+  }
+  .program-calendar-cell-num { font-size: 11px; }
+  .program-calendar-cell-num--today {
+    width: 18px; height: 18px; font-size: 10.5px;
+  }
+  .program-calendar-cell-today-badge { display: none; }
+
+  /* pill → dot 변환 (dc.html §7b "pill 이 안 들어가므로 상태는 날짜 아래 점 최대 3개") */
+  .program-calendar-cell-body {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 2px;
+    margin-top: 2px;
+    justify-content: center;
+    align-items: center;
+  }
+  .program-calendar-pill {
+    padding: 0;
+    background: transparent !important;
+    gap: 0;
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    overflow: hidden;
+  }
+  .program-calendar-pill-title { display: none; }
+  .program-calendar-pill-dot { width: 5px; height: 5px; }
+  .program-calendar-pill--upcoming { background: var(--color-secondary) !important; }
+  .program-calendar-pill--open { background: var(--color-primary) !important; }
+  .program-calendar-pill--ended { background: var(--color-text-tri) !important; }
+  /* 3번째 이상 pill 숨김 (backend MAX_PILLS=2 이지만 안전 스코핑) */
+  .program-calendar-pill:nth-child(n+3) { display: none; }
+
+  /* "+N건 더" 텍스트 → 회색 mini dot ("+" 인디케이터) */
+  .program-calendar-cell-more {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--color-text-tri);
+    font-size: 0;
+    color: transparent;
+    padding: 0;
+    margin: 0;
+  }
+
+  /* 범례 축소 */
+  .program-calendar-legend {
+    gap: 12px;
+    padding: 12px 0;
+    font-size: 11px;
+    justify-content: center;
+  }
+
+  /* 빈 달 배너 세로 스택 (dc.html §7b) */
+  .program-calendar-empty-banner {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    padding: 14px;
+    margin-bottom: 14px;
+  }
+  .program-calendar-empty-banner-text { font-size: 13px; line-height: 1.6; }
+  .program-calendar-empty-banner-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 44px;
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  /* 하단 시트 (셀 상세) — filter-mobile-sheet 스타일 재활용, 별도 id 스코프 */
+  .program-calendar-mobile-sheet { position: fixed; inset: 0; z-index: 1050; display: block; }
+  .program-calendar-mobile-sheet[hidden] { display: none; }
+  .program-calendar-mobile-sheet-backdrop {
+    position: absolute; inset: 0;
+    background: rgba(12, 8, 32, 0.45);
+  }
+  .program-calendar-mobile-sheet-panel {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    max-height: 78vh;
+    background: var(--color-surface);
+    border-radius: 16px 16px 0 0;
+    box-shadow: 0 -6px 24px rgba(12, 8, 32, 0.18);
+    display: flex;
+    flex-direction: column;
+  }
+  .program-calendar-mobile-sheet-panel::before {
+    content: '';
+    display: block;
+    width: 36px; height: 4px;
+    border-radius: 2px;
+    background: var(--color-border);
+    margin: 12px auto 4px;
+    flex-shrink: 0;
+  }
+  .program-calendar-mobile-sheet-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 6px 18px 10px;
+    flex-shrink: 0;
+  }
+  .program-calendar-mobile-sheet-title { font-size: 16px; font-weight: 700; }
+  .program-calendar-mobile-sheet-count { font-size: 13px; color: var(--color-text-sec); }
+  .program-calendar-mobile-sheet-close {
+    width: 32px; height: 32px;
+    background: transparent; border: 0;
+    font-size: 22px; cursor: pointer;
+  }
+  .program-calendar-mobile-sheet-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 4px 18px calc(18px + env(safe-area-inset-bottom));
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .program-calendar-mobile-sheet-empty {
+    padding: 40px 0;
+    text-align: center;
+    color: var(--color-text-tri);
+    font-size: 13px;
+    border: 1px dashed var(--color-border-light);
+    border-radius: var(--radius-lg);
+  }
 }
 

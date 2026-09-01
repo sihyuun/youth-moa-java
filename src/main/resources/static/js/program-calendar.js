@@ -30,6 +30,11 @@
           .forEach(function (el) { el.classList.remove('program-calendar-cell--selected'); });
   }
 
+  // F0f PR-2 (2026-09-01): 모바일 뷰포트 감지 — 하단 시트 사용 여부 판단
+  function isMobile() {
+    return window.matchMedia && window.matchMedia('(max-width: 767px)').matches;
+  }
+
   function selectDay(layout, day) {
     if (!day) return;
     var panel = document.getElementById('program-calendar-panel');
@@ -43,29 +48,71 @@
     var cell = layout.querySelector('.program-calendar-cell[data-day="' + day + '"][data-in-month="true"]');
     if (cell) cell.classList.add('program-calendar-cell--selected');
 
-    // 패널 헤더 갱신
-    if (panelDate) panelDate.textContent = viewMonth + '월 ' + day + '일';
-
-    // 그룹 표시
+    // 그룹 표시 (데스크톱 패널 + 모바일 시트 공통 데이터 소스)
+    var selectedGroup = null;
     var visible = 0;
     groups.forEach(function (g) {
       var gd = parseInt(g.getAttribute('data-panel-day'), 10);
       if (gd === day) {
         g.hidden = false;
+        selectedGroup = g;
         visible = g.querySelectorAll('.program-calendar-panel-card').length;
       } else {
         g.hidden = true;
       }
     });
+
+    // 데스크톱 우측 패널 헤더 갱신
+    if (panelDate) panelDate.textContent = viewMonth + '월 ' + day + '일';
     if (panelCount) panelCount.textContent = '시작 ' + visible + '건';
     if (panelEmpty) panelEmpty.hidden = visible !== 0;
     if (panel) panel.hidden = false;
+
+    // 모바일 하단 시트 open + 카드 클론
+    if (isMobile()) {
+      openMobileSheet(viewMonth, day, visible, selectedGroup);
+    }
+  }
+
+  function openMobileSheet(viewMonth, day, visible, selectedGroup) {
+    var sheet = document.getElementById('program-calendar-mobile-sheet');
+    var title = document.getElementById('program-calendar-mobile-sheet-title');
+    var count = document.getElementById('program-calendar-mobile-sheet-count');
+    var body = document.getElementById('program-calendar-mobile-sheet-body');
+    if (!sheet || !body) return;
+
+    if (title) title.textContent = viewMonth + '월 ' + day + '일';
+    if (count) count.textContent = '시작 ' + visible + '건';
+
+    // 시트 body 초기화 후 선택 그룹의 카드 노드를 클론해서 삽입
+    body.innerHTML = '';
+    if (selectedGroup && visible > 0) {
+      selectedGroup.querySelectorAll('.program-calendar-panel-card').forEach(function (card) {
+        body.appendChild(card.cloneNode(true));
+      });
+    } else {
+      var empty = document.createElement('div');
+      empty.className = 'program-calendar-mobile-sheet-empty';
+      empty.textContent = '이 날에는 프로그램이 없어요.';
+      body.appendChild(empty);
+    }
+    sheet.hidden = false;
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeMobileSheet() {
+    var sheet = document.getElementById('program-calendar-mobile-sheet');
+    if (sheet) sheet.hidden = true;
+    document.body.style.overflow = '';
+    var layout = getLayout();
+    if (layout) clearSelected(layout);
   }
 
   function closePanel(layout) {
     var panel = document.getElementById('program-calendar-panel');
     clearSelected(layout);
     if (panel) panel.hidden = true;
+    closeMobileSheet();
   }
 
   ready(function () {
@@ -82,9 +129,13 @@
         e.stopPropagation();
         return;
       }
-      // 닫기
+      // 닫기 (데스크톱 패널 · 모바일 시트 backdrop/× 통합)
       if (e.target.closest('[data-calendar-close]')) {
         closePanel(layout);
+        return;
+      }
+      if (e.target.closest('[data-calendar-sheet-close]')) {
+        closeMobileSheet();
         return;
       }
       // 오늘 버튼

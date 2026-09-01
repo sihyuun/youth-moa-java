@@ -185,6 +185,32 @@
         이 날에는 프로그램이 없어요.
       </div>
     </aside>
+
+    <!-- 모바일 하단 시트 (dc.html §7b) — 셀 탭 시 JS 가 open + panel-group 내용을 클론.
+         데스크톱에선 CSS 로 display:none, 우측 패널이 담당. -->
+    <div id="program-calendar-mobile-sheet"
+         class="program-calendar-mobile-sheet"
+         hidden
+         role="dialog"
+         aria-labelledby="program-calendar-mobile-sheet-title">
+      <div class="program-calendar-mobile-sheet-backdrop" data-calendar-sheet-close></div>
+      <div class="program-calendar-mobile-sheet-panel">
+        <div class="program-calendar-mobile-sheet-head">
+          <div>
+            <strong id="program-calendar-mobile-sheet-title"
+                    class="program-calendar-mobile-sheet-title">-월 -일</strong>
+            <span id="program-calendar-mobile-sheet-count"
+                  class="program-calendar-mobile-sheet-count">시작 0건</span>
+          </div>
+          <button type="button"
+                  class="program-calendar-mobile-sheet-close"
+                  data-calendar-sheet-close
+                  aria-label="닫기">×</button>
+        </div>
+        <div id="program-calendar-mobile-sheet-body"
+             class="program-calendar-mobile-sheet-body"></div>
+      </div>
+    </div>
   </div>
 
 </th:block>
