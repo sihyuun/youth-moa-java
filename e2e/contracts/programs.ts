@@ -382,14 +382,12 @@ export const programsContract: ScreenContract = {
         },
         {
             id: 'viewtoggle.enabled',
-            desc: '두 뷰 모두 전환 가능 — 비활성 버튼이 없어야 함 (캘린더 뷰 미구현 감지)',
+            desc: '두 뷰 모두 전환 가능 — 비활성 버튼이 없어야 함',
             selector: '.view-toggle-btn[disabled]',
             kind: 'count',
             expected: 0,
             proto: 'tsx L872 (onClick={()=>setView(v)} — 두 항목 모두 활성)',
             severity: 'P1',
-            deferred:
-                '캘린더 뷰 미구현 — docs/specs/F0f-calendar-view.md 로 별도 진행. 그때까지 토글은 disabled 유지',
         },
         {
             id: 'viewtoggle.icon',

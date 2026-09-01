@@ -70,18 +70,66 @@
 
 ## 5. 뷰 전환 — 목록 / 캘린더
 
-두 뷰 모두 즉시 전환 가능한 동등한 축이다 (L871~876). 캘린더(`ProgramCalendar` L728~814) 구조는 다음과 같다.
+두 뷰 모두 즉시 전환 가능한 동등한 축이다. **PR-1 (2026-08-31 · #195)** 로 캘린더 뷰가 구현되며 정본 결정 사항은 `docs/00_assets/Program Calendar.dc.html` (7 섹션 · 1183 라인) 및 `docs/specs/F0f-calendar-view.md` 에 있다. 아래는 계약 요약.
 
-- 좌측 카드: `flex:1`, surface + radius 12 + padding 20
-  - 헤더 — `오늘` 버튼 / `‹ 2026년 8월 ›` / 우측 62px 스페이서 (좌우 대칭용)
-  - 요일 행 7칸 (일=error 빨강, 토=primary)
-  - 날짜 셀 7×5=35칸, 셀 높이 **104**, gap 4, radius 8. 선택 셀은 primary 테두리 + `primaryBg`
-  - 셀 안에는 프로그램을 **최대 2건**만 점(상태색)+제목으로 표시하고, 초과분은 `+N건 더`
-  - 하단 범례 4종: 모집중(primary) · 마감임박(error) · 마감(textTri) · 종료(border)
-- 우측 패널: **날짜를 클릭했을 때만** 등장하는 폭 320 고정 컬럼. `8월 N일 / 시작 N건` + 닫기(×). 프로그램이 없으면 점선 박스로 `이 날 시작하는 / 프로그램이 없어요`
-- 패널 카드: 60x60 썸네일 + 상태 점 + 센터명 + `DdayChip` + 제목 + `CapacityBar showLabel={false}`
+### 5-A. 툴바 (dc.html §1a)
+- grid `1fr auto 1fr` 로 [오늘] 좌측 · `‹ YYYY년 M월 ›` 정중앙 (E2E ±2px 정량 assert)
+- "시작일 기준" 라벨 없음 (초회 설계에서 제외 확정, 2026-08-31)
+- prev/next 링크에 status·regions·centers·sort 파라미터 전 보존
 
-**현재 구현 갭**: 캘린더 뷰 전체가 미구현이며 토글 버튼이 `disabled` 로 막혀 있다 (`캘린더 보기는 곧 제공돼요`). 기계 계약은 `viewtoggle.enabled` (비활성 버튼 0개) 로만 이 사실을 감지한다.
+### 5-B. 요일·격자 (dc.html §1a)
+- 요일 행 7칸 (일=error 빨강, 토=primary)
+- **6행 42칸 고정** (Q1). 2026-08 등 첫 요일이 토·일일 때 5행이면 마지막 날짜 잘림 (`docs/00_assets/Program Calendar.dc.html:799` 각주)
+- 셀 높이 104, gap 4, radius 8. 선택 셀은 primary 테두리 + `primaryBg`
+- 셀당 프로그램 pill 최대 2건 (점+제목), 초과 시 `+N건 더`
+- 오늘 셀 원형 primary 배경 + "오늘" 뱃지
+
+### 5-C. 셀 pill 3색 (dc.html §5a) — **셀에는 임계값 없음**
+- 진행예정 (UPCOMING) — secondary `#F97316`
+- 모집중 (OPEN, `!isFull`) — primary `#3F30E9`
+- 종료 (ENDED, `endDate < today`) **또는** OPEN + isFull (`applied ≥ capacity`) — textTri
+- 마감임박 (D-3↓ · ≥90%) 은 셀 색에 반영하지 않음. 시급성은 우측 패널 chip 이 담당
+
+### 5-D. 하단 범례 3종
+- 진행예정 · 모집중 · 종료 (셀 pill 색과 1:1)
+
+### 5-E. 빈 달 배너 (dc.html §7a)
+- 위치: 격자 위, 월 네비게이션 아래
+- 문구: `"{현재월}에는 {탭 이름} 프로그램이 없어요. **{nearestMonth}월**에 N건 있어요."` + `[N월 보기]` 버튼
+- `nearestMonth == null` 케이스: `"조건에 맞는 프로그램이 없어요."`, 버튼 없음
+- 배너 있어도 격자는 그대로 렌더 (빈 달이라도 날짜 표시)
+- **nearestMonth 조회**: 필터 조건으로 절대 거리 최소인 달. 동거리 tie-break 은 **미래 우선** (스펙 §3-A #9)
+
+### 5-F. 우측 패널 (dc.html §1a)
+- 폭 **320px** 고정 (`.program-calendar-panel`)
+- 초기 hidden 속성 (`display: none` — CSS `:not([hidden])` 로 방어)
+- 날짜 클릭 시 slide-in. 헤더 `M월 D일` + `시작 N건` + 닫기(×)
+- 프로그램 없는 날짜 클릭 시: `#program-calendar-panel-empty` 노출 (`이 날에는 프로그램이 없어요`)
+- **`.program-calendar-panel-group`** 는 초기 `hidden`, JS 로 선택 날짜만 노출 (CSS `:not([hidden])` 로 `display: flex` 스코핑 — 2026-08-31 사고 방지)
+
+### 5-G. 우측 패널 카드 chip 4종 매핑 (dc.html §5a `chipOf()`)
+
+| 상태 조건 | chip modifier | 텍스트 | 배경 |
+|---|---|---|---|
+| UPCOMING | `--upcoming` | `"M/D 오픈"` (예: `8/28 오픈`, padding 없음) | secondary `#F97316` (오렌지) |
+| OPEN + `days > 3` | `--open` | `"D-N"` (예: `D-12`) | `rgba(0, 0, 0, 0.55)` (dark) |
+| OPEN + `0 ≤ days ≤ 3` (D-DAY 포함) | `--urgent` | `"D-N"` / `"D-DAY"` | `--color-error` (빨강) |
+| OPEN + `isFull` | `--ended` | `"마감"` | `rgba(120, 124, 130, 0.85)` (grey) |
+| ENDED | `--ended` | `"종료"` | 동일 (grey) |
+| SUSPENDED | 캘린더 미도달 | — | — |
+
+구현 위치: `ProgramCardDto.getCalendarChipLabel/Kind()`, fragment `_calendar-fragment.html`, CSS `main.css` `.program-calendar-panel-card-chip--*`.
+
+### 5-H. 인터랙션 (dc.html §1a + client JS)
+- 셀 클릭 → 선택 셀 하이라이트 + 우측 패널 표시
+- pill 클릭 → `event.stopPropagation()` + `/programs/{id}` 이동 (셀 선택 안 됨)
+- × 클릭 → 우측 패널 hidden
+- [오늘] 클릭 → 현재 월이면 오늘 셀 선택, 다른 월이면 오늘 월로 이동 (필터 유지)
+- **HTMX innerHTML swap 후에도 리스너 유지** — `document.body` 레벨 이벤트 위임 (`program-calendar.js`)
+
+### 5-I. HTMX 라우팅 (2026-08-31 verify N2-2)
+- `HX-Request` + `view=calendar` 요청 시 컨트롤러가 `_calendar-fragment :: calendar-region` 반환 (list fragment 아님)
+- 필터 팝오버 적용 시 `applyFiltersFromPopovers()` → `window.location.search` 로 view=calendar 자동 유지
 
 ## 6. 카드 CTA 5분기
 
@@ -117,7 +165,7 @@
 자동 검사 대상이 아니므로 화면 작업 시 **사람이 확인**한다.
 
 - **로딩 스켈레톤** — 700ms 동안 `ProgramCardSkeleton` 6장 (L118, L883~884). SSR 구현에는 개념 자체가 없다
-- **D-day 칩 상태별 배경** — 종료 `rgba(120,124,130,0.85)` / 중단·마감 `rgba(0,0,0,0.55)` / 진행예정 `secondary` + `오픈 D-N` / 임박(D-3 이하) `error` (L250~257). 구현은 임박(`--urgent`) 외 분기 클래스가 없어 셀렉터로 특정할 수 없다
+- **목록·홈·마이페이지 D-day 칩 상태별 배경** — 종료 `rgba(120,124,130,0.85)` / 중단·마감 `rgba(0,0,0,0.55)` / 진행예정 `secondary` + `오픈 D-N` / 임박(D-3 이하) `error` (L250~257). 목록 뷰 구현은 임박(`--urgent`) 외 분기 클래스가 없어 셀렉터로 특정할 수 없다. **캘린더 우측 패널 카드는 별도** — §5-G chip 4종 매핑 참조 (기계 검사 가능)
 - **카드 이미지 필터** — 종료 `grayscale(1) brightness(0.82)` / 마감 `grayscale(0.5)` (L895)
 - 카드 hover `translateY(-2px)` + shadow 상승 (`card-hover`)
 - 드롭다운 열림 시 `position:fixed inset:0` 백드롭으로 외부 클릭 감지 (L707) + `dropdown-enter` 애니메이션
