@@ -821,8 +821,10 @@ public class DataInitializer implements ApplicationRunner {
                         .region("이천시")
                         .etc("초보 환영")
                         .build())
-                .startDate(today.plusDays(3))
-                .endDate(today.plusDays(3))
+                // seed-fix (2026-09-01): startDate=today 로 앵커 → 현재 월 view 에 OPEN 상태로 나타남
+                // (ProgramListRenderTest.OPEN_/programs-calendar.spec.ts:129 OPEN chip 회귀 방지)
+                .startDate(today.plusDays(0))
+                .endDate(today.plusDays(10))
                 .capacity(12)
                 .build(),
             Program.builder()
@@ -974,7 +976,9 @@ public class DataInitializer implements ApplicationRunner {
                         .region("하남시")
                         .etc("환경 관심자")
                         .build())
-                .startDate(today.plusDays(21))
+                // seed-fix (2026-09-01): startDate=today+35 로 앵커 → 다음 월 view 에 UPCOMING 상태로 나타남
+                // (ProgramListRenderTest.UPCOMING_ 회귀 방지 · Oct 이후 view 커버리지)
+                .startDate(today.plusDays(35))
                 .endDate(today.plusDays(105))
                 .capacity(18)
                 .build());

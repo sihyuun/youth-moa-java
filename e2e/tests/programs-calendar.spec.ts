@@ -80,10 +80,13 @@ test.describe('프로그램 캘린더뷰 인터랙션', () => {
         // 첫 옵션 체크 → onchange 이벤트로 applyFiltersFromPopovers() 호출됨
         const firstCheckbox = pop.locator('input[type="checkbox"]').first();
         await firstCheckbox.check();
-        // HTMX swap 대기 (URL 변경)
+        // HTMX swap 대기 (URL 변경 + swap 완료)
         await page.waitForURL(/regions=/);
+        await page.waitForLoadState('networkidle');
         // swap 후에도 캘린더 그리드 렌더 유지
         await expect(page.locator('.program-calendar-grid')).toBeVisible();
+        // 팝오버가 셀을 덮고 있을 수 있어 명시적으로 닫음 (chip 재클릭 = 토글)
+        await page.locator('.filter-pop-chip', { hasText: '지역' }).click();
         // swap 후 셀 클릭 → 우측 패널 열려야 함 (listener 유실됐으면 실패)
         const firstInMonth = page.locator('.program-calendar-cell[data-in-month="true"]').first();
         await firstInMonth.click();

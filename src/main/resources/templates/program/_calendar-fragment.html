@@ -23,13 +23,23 @@
           <span>오늘</span>
         </button>
         <div class="program-calendar-nav">
+          <!-- HTMX 부분 스왑: nav 화살표 클릭 시 .program-calendar-layout 만 교체 (전체 페이지 리로드 회피).
+               hx-push-url 로 브라우저 URL 도 갱신. 계약·JS 리스너는 body 위임이라 유실 없음. -->
           <a class="program-calendar-nav-arrow"
              th:href="@{/programs(view='calendar',year=${cv.prevYear},month=${cv.prevMonth},status=${filterStatus},regions=${filterRegions},centers=${filterCenters},sort=${filterSort})}"
+             th:hx-get="@{/programs(view='calendar',year=${cv.prevYear},month=${cv.prevMonth},status=${filterStatus},regions=${filterRegions},centers=${filterCenters},sort=${filterSort})}"
+             hx-target=".program-calendar-layout"
+             hx-swap="outerHTML"
+             hx-push-url="true"
              aria-label="이전 달">‹</a>
           <span class="program-calendar-nav-title"
                 th:text="${cv.year} + '년 ' + ${cv.month} + '월'">2026년 8월</span>
           <a class="program-calendar-nav-arrow"
              th:href="@{/programs(view='calendar',year=${cv.nextYear},month=${cv.nextMonth},status=${filterStatus},regions=${filterRegions},centers=${filterCenters},sort=${filterSort})}"
+             th:hx-get="@{/programs(view='calendar',year=${cv.nextYear},month=${cv.nextMonth},status=${filterStatus},regions=${filterRegions},centers=${filterCenters},sort=${filterSort})}"
+             hx-target=".program-calendar-layout"
+             hx-swap="outerHTML"
+             hx-push-url="true"
              aria-label="다음 달">›</a>
         </div>
       </div>
@@ -49,7 +59,11 @@
         </span>
         <a th:if="${cv.nearestMonth != null}"
            class="program-calendar-empty-banner-btn"
-           th:href="@{/programs(view='calendar',year=${cv.nearestYear},month=${cv.nearestMonth},status=${filterStatus},regions=${filterRegions},centers=${filterCenters})}"
+           th:href="@{/programs(view='calendar',year=${cv.nearestYear},month=${cv.nearestMonth},status=${filterStatus},regions=${filterRegions},centers=${filterCenters},sort=${filterSort})}"
+           th:hx-get="@{/programs(view='calendar',year=${cv.nearestYear},month=${cv.nearestMonth},status=${filterStatus},regions=${filterRegions},centers=${filterCenters},sort=${filterSort})}"
+           hx-target=".program-calendar-layout"
+           hx-swap="outerHTML"
+           hx-push-url="true"
            th:text="${cv.nearestMonth} + '월 보기'">9월 보기</a>
       </div>
 
@@ -138,7 +152,8 @@
              class="program-calendar-panel-card">
             <div class="program-calendar-panel-card-thumb">
               <img th:if="${card.imageUrl != null and !#strings.isEmpty(card.imageUrl)}"
-                   th:src="${card.imageUrl}" th:alt="${card.title}"/>
+                   th:src="${card.imageUrl}" th:alt="${card.title}"
+                   loading="lazy" decoding="async" width="60" height="60"/>
               <span th:unless="${card.imageUrl != null and !#strings.isEmpty(card.imageUrl)}">IMG</span>
             </div>
             <div class="program-calendar-panel-card-body">
