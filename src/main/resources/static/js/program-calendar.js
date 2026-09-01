@@ -116,6 +116,16 @@
   }
 
   ready(function () {
+    // ym-verify N3 fix (2026-09-01): 브레이크포인트 전환 시 stale 상태 정리.
+    // 데스크톱→모바일 전환 시 우측 패널의 --selected 잔존, 반대는 시트가 데스크톱에 튀어나옴 +
+    // body{overflow:hidden} 스크롤 락 지속. 전환 이벤트에서 강제 close 로 회귀 방지.
+    if (window.matchMedia) {
+      window.matchMedia('(max-width: 767px)').addEventListener('change', function () {
+        var layout = getLayout();
+        if (layout) closePanel(layout);
+      });
+    }
+
     // body 레벨 이벤트 위임. HTMX innerHTML swap 후에도 재바인딩 불필요.
     document.body.addEventListener('click', function (e) {
       var layout = getLayout();
