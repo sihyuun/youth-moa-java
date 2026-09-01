@@ -192,7 +192,7 @@ ProgramCalendar({ filtered, year, month, today })
 
 - **PR-1 (본 스코프)** — 데스크톱 · view toggle 활성화 · 서버 rendering 캘린더 grid (6행 42셀) · 우측 패널 (client JS) · 월 이동 URL query · 빈 달 배너
 - **PR-2 (선택 · 별도)** — 모바일 정사각 + 하단 시트 + `view-toggle` 진입점 정리 (dc.html §7b)
-- **PR-3 (선택)** — 계약 문서 `docs/design-contracts/programs.md` 갱신 (3색 체계 · "신청 마감 = 진행 종료" 명시)
+- **PR-3 (선택)** — 계약 문서 `docs/design-contracts/programs.md` 갱신 (3색 체계 · "신청 마감 = 진행 종료" 명시). **완료 (2026-09-01, programs.md §5-C 반영)**
 
 ---
 
