@@ -29,7 +29,7 @@ test('신청 제출 후 완료 페이지가 렌더된다 (성공 아이콘·요�
     await login(page, seedEmail(freshSeedIdx));
 
     // 신청 폼 (3단계 위저드, PR #75 F0c) → 성공 제출
-    await page.goto(`/programs/${FRESH_PROGRAM_ID}/apply`, { waitUntil: 'commit' });
+    await page.goto(`/programs/${FRESH_PROGRAM_ID}/apply`, { waitUntil: 'domcontentloaded' });
     await applyNextStep(page, 2);
     await page.locator('#applyReason').fill('E2E 완료 페이지 검증용 지원 동기 문장입니다.');
     await applyNextStep(page, 3);
