@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { abortExternal, applyNextStep, login, seedEmail } from '../helpers';
+import { abortExternal, applyNextStep, login, resetApplications, seedEmail } from '../helpers';
 
 /**
  * D1b: 신청 완료 페이지 (/apply/complete?applicationId=...)
@@ -14,19 +14,23 @@ import { abortExternal, applyNextStep, login, seedEmail } from '../helpers';
  * 여기서는 E2E 관점의 사용자 여정 (실 폼 제출 → 실 redirect → 실 페이지 렌더) 을 검증한다.
  */
 
-// seed 39~48 rotation pool (2026-08-12): DataInitializer 50 유저 확장 + 초 단위 rotation.
-// visual-apply-complete.spec.ts 는 seed29~38 을 사용해 pool 분리 → 두 spec 이 같은 초에 실행돼도 collision 없음.
 // program 7 = 청년 문화예술 스쿨 (today-7 ~ today+30, ACTIVE, capacity 40, 시드 신청 없음).
 // program 4 는 endDate=today-5 로 CLOSED 라 신청 자체가 거부됨 → 리다이렉트 안 됨.
+//
+// seed self-pollution 해소 (fix-e2e-seed-pollution, 2026-09-02):
+// 이전에는 seed 39~48 second-rotation. `--repeat-each` 반복 실행 시 같은 초에 여러 iteration 이 같은 seed 를 잡아
+// B형 flaky 재발. 이제는 test-only endpoint 로 beforeEach 에서 clean state 보장 → 고정 seed 사용.
+// visual-apply-complete.spec.ts 와 다른 seed(39 vs 29)를 유지해 로컬에서 병렬 실행 시에도 유저 상태 간섭 최소화.
 const FRESH_PROGRAM_ID = 7;
+const SEED_USER = seedEmail(39);
 
 test.beforeEach(async ({ page }) => {
     await abortExternal(page);
+    await resetApplications(page, { userEmail: SEED_USER, programId: FRESH_PROGRAM_ID });
 });
 
 test('신청 제출 후 완료 페이지가 렌더된다 (성공 아이콘·요약 카드·CTA)', async ({ page }) => {
-    const freshSeedIdx = 39 + (Math.floor(Date.now() / 1000) % 10);
-    await login(page, seedEmail(freshSeedIdx));
+    await login(page, SEED_USER);
 
     // 신청 폼 (3단계 위저드, PR #75 F0c) → 성공 제출
     await page.goto(`/programs/${FRESH_PROGRAM_ID}/apply`, { waitUntil: 'domcontentloaded' });

@@ -4,6 +4,7 @@ import javax.sql.DataSource;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -52,15 +53,23 @@ public class SecurityConfig {
   public SecurityFilterChain securityFilterChain(
       HttpSecurity http,
       PersistentTokenRepository persistentTokenRepository,
+      Environment environment,
       @Value("${security.remember-me.key}") String rememberMeKey)
       throws Exception {
+    // fix-e2e-seed-pollution: e2e 프로파일에서만 test-only fixture endpoint 공개.
+    // TestFixtureController 자체가 @Profile("e2e") 이라 다른 프로파일에서는 Bean 미등록.
+    // Security 매처만 항상 등록하되, 실제 endpoint 존재는 프로파일이 통제 → 이중 안전장치.
+    boolean e2eProfile = environment.matchesProfiles("e2e");
     http.authorizeHttpRequests(
-            auth ->
-                auth
-                    // 인증 페이지는 우선 permit (Spring Security 7 매처 동작 이슈 회피용 단독 명시)
-                    .requestMatchers(
-                        "/login",
-                        "/signup",
+            auth -> {
+              if (e2eProfile) {
+                auth.requestMatchers("/__test__/**").permitAll();
+              }
+              auth
+                  // 인증 페이지는 우선 permit (Spring Security 7 매처 동작 이슈 회피용 단독 명시)
+                  .requestMatchers(
+                      "/login",
+                      "/signup",
                         "/api/users/check-email",
                         // F-signup-01: 휴대폰 인증 API (비인증 signup 화면에서 호출).
                         // CSRF 는 유지 — signup.html 이 meta 태그로 토큰 제공.
@@ -117,7 +126,8 @@ public class SecurityConfig {
                         "/favicon.ico")
                     .permitAll()
                     .anyRequest()
-                    .authenticated())
+                    .authenticated();
+            })
         .formLogin(
             form ->
                 form.loginPage("/login")
@@ -145,6 +155,11 @@ public class SecurityConfig {
                     // DB 의 persistent_logins row 는 Spring 의 RememberMeServices.logout() 이 자동 제거
                     .deleteCookies("JSESSIONID", "remember-me")
                     .permitAll());
+    if (e2eProfile) {
+      // fix-e2e-seed-pollution: Playwright request.post 는 세션 CSRF 토큰을 자동 부착하지 않으므로
+      // e2e 프로파일에서만 /__test__/** 경로를 CSRF 대상에서 제외.
+      http.csrf(csrf -> csrf.ignoringRequestMatchers("/__test__/**"));
+    }
     // P0-2: CSRF 활성. Spring Security 7 기본 = 세션 저장 CsrfTokenRepository
     // (HttpSessionCsrfTokenRepository).
     //   - Thymeleaf 는 ${_csrf.token} / ${_csrf.headerName} 로 접근

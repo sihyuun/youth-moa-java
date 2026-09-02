@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { applyCompleteContract } from '../contracts/apply-complete';
 import { runContract, writeGapReport } from '../contracts/runner';
-import { abortExternal, applyNextStep, login, seedEmail } from '../helpers';
+import { abortExternal, applyNextStep, login, resetApplications, seedEmail } from '../helpers';
 
 /**
  * 신청 완료 화면 디자인 계약 실행.
@@ -18,22 +18,27 @@ import { abortExternal, applyNextStep, login, seedEmail } from '../helpers';
  * program 7 = 청년 문화예술 스쿨 (today-7 ~ today+30, ACTIVE, capacity 40, 시드 신청 없음)
  * program 4 는 CLOSED 라 신청 거부 → 다른 program 사용 불가.
  *
- * seed rotation (2026-08-12): 로컬 반복 실행 시 seed29 가 이미 신청 상태라 실패하던 이슈 해소.
- * DataInitializer 50 유저 확장 + 초(second) 단위 rotation.
- * pool 분리: 이 spec 은 seed29~38, `apply-complete.spec.ts` (기능 E2E) 는 seed39~48 사용.
- * 두 spec 이 같은 초에 실행돼도 pool 이 달라 collision 없음.
- * CI 는 매번 fresh H2 라 어차피 신선하지만, 로컬 다중 실행·CI 내 순차 실행 모두 방어.
+ * seed self-pollution 해소 (fix-e2e-seed-pollution, 2026-09-02):
+ * 이전에는 seed 29~38 second-rotation 으로 collision 을 피했지만 `--repeat-each` 반복 실행 시 여전히
+ * 같은 초에 여러 iteration 이 같은 seed 를 잡아 B형 flaky (`이미 신청한 프로그램입니다.`) 재발했음.
+ * 이제는 test-only endpoint `resetApplications` 로 beforeEach 에서 신청 row 를 지우고 시작하므로
+ * rotation 없이 고정 seed 를 사용해도 안전하다.
  */
-test('신청 완료 화면 디자인 계약 — 신청 제출 후 실 URL 에서 검증', async ({ page }) => {
+const SEED_USER = seedEmail(29);
+
+test.beforeEach(async ({ page }) => {
     await abortExternal(page);
+    // /__test__/reset-applications 는 인증 없이 호출 가능 (e2e 프로파일 SecurityConfig).
+    await resetApplications(page, { userEmail: SEED_USER, programId: 7 });
+});
+
+test('신청 완료 화면 디자인 계약 — 신청 제출 후 실 URL 에서 검증', async ({ page }) => {
     await page.setViewportSize({
         width: applyCompleteContract.viewport.width,
         height: applyCompleteContract.viewport.height,
     });
 
-    // 로그인 + 신청 폼 제출로 실 applicationId 확보 (seed 29~38 second-rotation)
-    const seedIdx = 29 + (Math.floor(Date.now() / 1000) % 10);
-    await login(page, seedEmail(seedIdx));
+    await login(page, SEED_USER);
     await page.goto('/programs/7/apply', { waitUntil: 'domcontentloaded' });
     await applyNextStep(page, 2);
     await page.locator('#applyReason').fill('디자인 계약 실행용 지원 동기.');
