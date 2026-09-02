@@ -85,6 +85,9 @@
 - 오늘 셀 원형 primary 배경 + "오늘" 뱃지
 
 ### 5-C. 셀 pill 3색 (dc.html §5a) — **셀에는 임계값 없음**
+
+> **정책 명제**: "신청 마감 = 진행 종료". OPEN 상태여도 정원이 찬 프로그램(`applied ≥ capacity`)은 종료(textTri) 로 취급한다. (spec F0f §7 PR-3, 2026-08-27 확정)
+
 - 진행예정 (UPCOMING) — secondary `#F97316`
 - 모집중 (OPEN, `!isFull`) — primary `#3F30E9`
 - 종료 (ENDED, `endDate < today`) **또는** OPEN + isFull (`applied ≥ capacity`) — textTri

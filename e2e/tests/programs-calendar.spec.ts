@@ -265,6 +265,44 @@ test.describe('프로그램 캘린더뷰 인터랙션', () => {
         expect(Math.abs(toolbarCenter - navCenter)).toBeLessThanOrEqual(2);
     });
 
+    // ym-verify U-1 (2026-09-01): N3 브레이크포인트 전환 회귀 방어
+    // program-calendar.js:122-127 의 matchMedia change 리스너가 데스크톱↔모바일 전환 시
+    // stale --selected · body overflow 락 · 시트 잔존을 clear 하는지 실측.
+    test.describe('N3: 브레이크포인트 전환 회귀', () => {
+        test('N3: 데스크톱→모바일 전환 시 선택 상태·패널 클리어', async ({ page }) => {
+            await page.setViewportSize({ width: 1440, height: 900 });
+            await gotoCalendar(page);
+            const firstInMonth = page.locator('.program-calendar-cell[data-in-month="true"]').first();
+            await firstInMonth.click();
+            await expect(page.locator('.program-calendar-cell--selected')).toHaveCount(1);
+            await expect(page.locator('#program-calendar-panel')).toBeVisible();
+            // 모바일 브레이크포인트로 전환 → matchMedia change 리스너가 closePanel 실행
+            await page.setViewportSize({ width: 375, height: 667 });
+            await expect(page.locator('.program-calendar-cell--selected')).toHaveCount(0);
+            await expect(page.locator('#program-calendar-panel')).toBeHidden();
+        });
+
+        test('N3: 모바일→데스크톱 전환 시 시트·overflow 락 해제', async ({ page }) => {
+            await page.setViewportSize({ width: 375, height: 667 });
+            await gotoCalendar(page);
+            const pillCell = page.locator('.program-calendar-cell[data-in-month="true"]:has(.program-calendar-pill)').first();
+            const cnt = await pillCell.count();
+            test.skip(cnt === 0, '현재 달 pill 있는 셀 없음');
+            await pillCell.click();
+            const sheet = page.locator('#program-calendar-mobile-sheet');
+            await expect(sheet).toBeVisible();
+            // 모바일 시트 open 시 openMobileSheet 이 body overflow=hidden 설정
+            const lockedOverflow = await page.evaluate(() => document.body.style.overflow);
+            expect(lockedOverflow).toBe('hidden');
+            // 데스크톱 브레이크포인트로 전환 → matchMedia change → closePanel → closeMobileSheet
+            await page.setViewportSize({ width: 1440, height: 900 });
+            await expect(sheet).toBeHidden();
+            const overflow = await page.evaluate(() => document.body.style.overflow);
+            expect(overflow).toBe('');
+            await expect(page.locator('.program-calendar-cell--selected')).toHaveCount(0);
+        });
+    });
+
     // F0f PR-2 (2026-09-01) 모바일 인터랙션
     test.describe('모바일 (375×667) - dc.html §7b', () => {
         test.use({ viewport: { width: 375, height: 667 } });
