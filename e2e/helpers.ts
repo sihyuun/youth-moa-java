@@ -63,6 +63,11 @@ export async function login(
  * step 3: 개인정보 동의 + 제출 버튼 #applyNavSubmit
  */
 export async function applyNextStep(page: Page, expectStep: 2 | 3): Promise<void> {
+    // A형 flaky 방지: apply.html 인라인 IIFE 가 nextBtn.addEventListener('click', ...) 등록을
+    // 완료했음을 보장. IIFE 마지막에 window.__applyReady = true 세팅.
+    // (waitUntil:'domcontentloaded' 만으로는 CI 환경 script 실행 지연 시 부족)
+    await page.locator('#applyNavNext').waitFor({ state: 'attached' });
+    await page.waitForFunction(() => (window as unknown as { __applyReady?: boolean }).__applyReady === true);
     await page.locator('#applyNavNext').click();
     await expect(page.locator(`[data-step-card="${expectStep}"]`)).toBeVisible();
 }

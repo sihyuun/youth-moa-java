@@ -34,7 +34,7 @@ test('신청 완료 화면 디자인 계약 — 신청 제출 후 실 URL 에서
     // 로그인 + 신청 폼 제출로 실 applicationId 확보 (seed 29~38 second-rotation)
     const seedIdx = 29 + (Math.floor(Date.now() / 1000) % 10);
     await login(page, seedEmail(seedIdx));
-    await page.goto('/programs/7/apply', { waitUntil: 'commit' });
+    await page.goto('/programs/7/apply', { waitUntil: 'domcontentloaded' });
     await applyNextStep(page, 2);
     await page.locator('#applyReason').fill('디자인 계약 실행용 지원 동기.');
     await applyNextStep(page, 3);
