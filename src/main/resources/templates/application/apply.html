@@ -234,6 +234,11 @@
     }
 
     render();
+
+    // E2E 리스너 부착 완료 시그널 (helpers.ts applyNextStep 이 대기).
+    // 인라인 script 라 defer 가 없어 CI 환경에서 script 실행 지연 시
+    // Playwright 클릭이 addEventListener 등록 전에 발사될 수 있는 A형 flaky 방지.
+    window.__applyReady = true;
 })();
 </script>
 
