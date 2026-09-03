@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<!--
+  A1 admin Auth Header (prototype.html L60~64).
+  64px · white bg · border-bottom #E3E1E8 · padding 0 40px.
+  로고(primary, 32px) + ADMIN 뱃지 (#3F30E9 bg, white text).
+-->
+<header th:fragment="authHeader" class="admin-auth-header">
+    <a th:href="@{/admin/login}" class="admin-auth-header-logo-link">
+        <img th:src="@{/images/logo_primary.png}" alt="청년모아" class="admin-auth-header-logo">
+    </a>
+    <span class="admin-auth-header-badge">ADMIN</span>
+</header>
+</body>
+</html>

@@ -55,6 +55,30 @@ export async function login(
 }
 
 /**
+ * A1 관리자 시드 계정. DataInitializer.seedAdmins() 로 부팅 시 idempotent 시드.
+ * email 은 고정 (Qn-4 B), 비밀번호는 env override 가능하지만 e2e 기본값을 사용.
+ */
+export const ADMIN_SYSTEM_EMAIL = 'sysadmin@youth-moa.test';
+export const ADMIN_CENTER1_EMAIL = 'center1@youth-moa.test';
+export const ADMIN_SEED_PASS = 'Admin!234';
+
+/**
+ * 관리자 계정으로 로그인 후 `/admin` 도달까지 대기.
+ * SecurityConfig 는 별도 admin filter chain 을 사용하므로 /admin/login form 을 통과해야 한다.
+ */
+export async function loginAdmin(
+    page: Page,
+    email: string = ADMIN_SYSTEM_EMAIL,
+    password: string = ADMIN_SEED_PASS,
+): Promise<void> {
+    await page.goto('/admin/login', { waitUntil: 'domcontentloaded' });
+    await page.locator('input[name="username"]').fill(email);
+    await page.locator('input[name="password"]').fill(password);
+    await page.locator('#adminLoginForm button[type="submit"]').click();
+    await page.waitForURL('**/admin');
+}
+
+/**
  * 신청 폼 3단계 위저드 (PR #75 F0c) 의 "다음" 버튼으로 스텝을 전환한다.
  * 비활성 스텝 카드는 display:none (.apply-step-card.is-active 만 노출) 이므로
  * 입력 전에 대상 스텝 카드가 실제로 표시될 때까지 명시적으로 대기한다.

@@ -4,6 +4,8 @@ import javax.sql.DataSource;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.core.env.Environment;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -15,12 +17,34 @@ import org.springframework.security.web.authentication.rememberme.PersistentToke
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.context.SecurityContextRepository;
 
+/**
+ * A1-admin-shell (Qn-1 A안): 관리자 트랙과 사용자 트랙의 SecurityFilterChain 을 완전히 분리.
+ *
+ * <ul>
+ *   <li>Order 1 — {@link #adminSecurityFilterChain} : {@code securityMatcher("/admin/**")} 로 관리자
+ *       요청만 처리. 자체 formLogin(/admin/login), logout, hasAnyRole("CENTER_ADMIN","SYSTEM_ADMIN"),
+ *       remember-me 미적용 (Qn-3 B).
+ *   <li>Order 2 — {@link #userSecurityFilterChain} : 나머지 요청. 기존 사용자 formLogin·remember-me 그대로.
+ * </ul>
+ *
+ * Spring Security 7 은 {@code securityMatcher()} 로 매칭되지 않은 요청은 자동으로 다음 chain 으로 넘어가므로 두 chain 이 충돌
+ * 없이 공존한다. ({@code UnreachableFilterChainException} 방지 위해 admin chain 은 명시적 matcher 지정 필수.)
+ */
 @Configuration
 public class SecurityConfig {
 
-  /** 로그인 실패 시 username 을 세션에 보존해 로그인 폼 재표시 시 채워둠. */
+  /** 사용자 로그인 실패 시 username 을 세션에 보존해 로그인 폼 재표시 시 채워둠. */
   private static SimpleUrlAuthenticationFailureHandler loginFailureHandler() {
-    return new SimpleUrlAuthenticationFailureHandler("/login?error") {
+    return failureHandler("/login?error");
+  }
+
+  /** 관리자 로그인 실패 시 username 을 세션에 보존해 /admin/login?error 로 리다이렉트. */
+  private static SimpleUrlAuthenticationFailureHandler adminLoginFailureHandler() {
+    return failureHandler("/admin/login?error");
+  }
+
+  private static SimpleUrlAuthenticationFailureHandler failureHandler(String defaultFailureUrl) {
+    return new SimpleUrlAuthenticationFailureHandler(defaultFailureUrl) {
       @Override
       public void onAuthenticationFailure(
           jakarta.servlet.http.HttpServletRequest request,
@@ -49,8 +73,56 @@ public class SecurityConfig {
     return repo;
   }
 
+  /**
+   * A1 (Qn-1 A · Qn-2 A · Qn-3 B): 관리자 전용 SecurityFilterChain.
+   *
+   * <ul>
+   *   <li>매처: {@code /admin/**} — 이 chain 이 처리하지 않는 URL 은 자동으로 order 2 로 넘어감
+   *   <li>인가: {@code /admin/login} permit, 그 외 CENTER_ADMIN 또는 SYSTEM_ADMIN 필요
+   *   <li>formLogin: {@code /admin/login} 페이지·프로세싱 URL, 성공 시 {@code /admin}, 실패 시 {@code
+   *       /admin/login?error} + savedUsername 세션 보존
+   *   <li>logout: {@code POST /admin/logout} → {@code /admin/login?logout} (Qn-2 A)
+   *   <li>remember-me: 미적용 (Qn-3 B) — 관리자 권한은 세션 유출 위험이 크므로 편의보다 안전 우선
+   *   <li>CSRF: 활성 (기본값)
+   * </ul>
+   */
   @Bean
-  public SecurityFilterChain securityFilterChain(
+  @Order(1)
+  public SecurityFilterChain adminSecurityFilterChain(HttpSecurity http) throws Exception {
+    http.securityMatcher("/admin/**")
+        .authorizeHttpRequests(
+            auth ->
+                auth.requestMatchers("/admin/login")
+                    .permitAll()
+                    .anyRequest()
+                    .hasAnyRole("CENTER_ADMIN", "SYSTEM_ADMIN"))
+        .formLogin(
+            form ->
+                form.loginPage("/admin/login")
+                    .loginProcessingUrl("/admin/login")
+                    .defaultSuccessUrl("/admin", true)
+                    .failureUrl("/admin/login?error")
+                    .failureHandler(adminLoginFailureHandler())
+                    .permitAll())
+        .logout(
+            logout ->
+                logout
+                    .logoutUrl("/admin/logout")
+                    .logoutSuccessUrl("/admin/login?logout")
+                    .deleteCookies("JSESSIONID"));
+    // remember-me 미적용 (Qn-3 B). CSRF 는 Spring Security 기본 활성 유지.
+    return http.build();
+  }
+
+  /**
+   * A1 (Qn-1 A): 사용자 트랙 SecurityFilterChain. Order 2 — admin chain 이 처리하지 않은 요청만 도달.
+   *
+   * <p>기존 P0-2 매처의 {@code /admin/**} hasAnyRole 및 {@code /admin/login} permit 는 A1 에서 admin chain
+   * 으로 이동 → 여기서 제거. 나머지 로직은 이전과 동일.
+   */
+  @Bean
+  @Order(Ordered.LOWEST_PRECEDENCE)
+  public SecurityFilterChain userSecurityFilterChain(
       HttpSecurity http,
       PersistentTokenRepository persistentTokenRepository,
       Environment environment,
@@ -77,15 +149,8 @@ public class SecurityConfig {
                       "/api/phone/verify-code",
                       "/find-id",
                       "/find-password",
-                      "/find-password/**",
-                      // P0-2 A1 이월: /admin/login 페이지·성공 리다이렉트는 후속 티켓.
-                      // 지금은 매처만 등록해 후속에서 formLogin 재설정 시 곧바로 permit 되도록 준비.
-                      "/admin/login")
+                      "/find-password/**")
                   .permitAll()
-                  // P0-2: 관리자 영역 전체 hasAnyRole 매처. anyRequest() 앞에 삽입하여
-                  // "/admin/**" 하위 URL 은 CENTER_ADMIN / SYSTEM_ADMIN 만 접근 가능.
-                  .requestMatchers("/admin/**")
-                  .hasAnyRole("CENTER_ADMIN", "SYSTEM_ADMIN")
                   // 인증 필요 (먼저 매칭되어 permitAll 보다 우선)
                   .requestMatchers(
                       "/programs/*/apply",
@@ -115,9 +180,6 @@ public class SecurityConfig {
                       // 비인증 URL 에서 404 등을 던질 때 /error 가 다시 로그인 리다이렉트 되지 않도록 허용.
                       "/error",
                       // chore-observability (2026-07-23): Actuator 는 별도 포트 9091 로 노출됨.
-                      // 8080 공개 포트엔 /actuator/** 라우팅 자체가 없어 permit 여부 무관하나,
-                      // Boot 4 auto-config 가 management 컨텍스트에도 동일 SecurityFilterChain 을 참조하므로
-                      // 매처를 추가해두면 9091 접근 시 인증 없이 통과. 무방비 노출 위험은 포트 분리로 차단.
                       "/actuator/**",
                       "/css/**",
                       "/js/**",
@@ -164,7 +226,6 @@ public class SecurityConfig {
     // (HttpSessionCsrfTokenRepository).
     //   - Thymeleaf 는 ${_csrf.token} / ${_csrf.headerName} 로 접근
     //   - HTMX 는 static/js/htmx-csrf.js 가 meta 태그 값을 configRequest 에서 헤더로 부착
-    //   - 기존 .csrf(csrf -> csrf.disable()) 삭제 (직접 disable 하지 않음, 기본 활성 유지)
     return http.build();
   }
 
