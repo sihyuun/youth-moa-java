@@ -70,63 +70,63 @@ public class SecurityConfig {
                   .requestMatchers(
                       "/login",
                       "/signup",
-                        "/api/users/check-email",
-                        // F-signup-01: 휴대폰 인증 API (비인증 signup 화면에서 호출).
-                        // CSRF 는 유지 — signup.html 이 meta 태그로 토큰 제공.
-                        "/api/phone/send-code",
-                        "/api/phone/verify-code",
-                        "/find-id",
-                        "/find-password",
-                        "/find-password/**",
-                        // P0-2 A1 이월: /admin/login 페이지·성공 리다이렉트는 후속 티켓.
-                        // 지금은 매처만 등록해 후속에서 formLogin 재설정 시 곧바로 permit 되도록 준비.
-                        "/admin/login")
-                    .permitAll()
-                    // P0-2: 관리자 영역 전체 hasAnyRole 매처. anyRequest() 앞에 삽입하여
-                    // "/admin/**" 하위 URL 은 CENTER_ADMIN / SYSTEM_ADMIN 만 접근 가능.
-                    .requestMatchers("/admin/**")
-                    .hasAnyRole("CENTER_ADMIN", "SYSTEM_ADMIN")
-                    // 인증 필요 (먼저 매칭되어 permitAll 보다 우선)
-                    .requestMatchers(
-                        "/programs/*/apply",
-                        "/bookmarks/**",
-                        "/notifications/**",
-                        "/mypage",
-                        "/mypage/**",
-                        // F-signup-03: 온보딩 화면 — signup 자동 로그인 후 진입.
-                        "/welcome",
-                        "/welcome/**")
-                    .authenticated()
-                    // 그 외 비인증 허용
-                    .requestMatchers(
-                        "/",
-                        "/api/ping",
-                        "/programs",
-                        "/programs/**",
-                        "/notices",
-                        "/notices/**",
-                        "/centers",
-                        "/centers/**",
-                        // 이용약관·개인정보처리방침·이메일 무단 수집거부 정적 페이지 (푸터/회원가입에서 링크)
-                        "/terms",
-                        "/privacy",
-                        "/email-policy",
-                        // Spring 이 ResponseStatusException 등을 내부 forward → /error 로 dispatch.
-                        // 비인증 URL 에서 404 등을 던질 때 /error 가 다시 로그인 리다이렉트 되지 않도록 허용.
-                        "/error",
-                        // chore-observability (2026-07-23): Actuator 는 별도 포트 9091 로 노출됨.
-                        // 8080 공개 포트엔 /actuator/** 라우팅 자체가 없어 permit 여부 무관하나,
-                        // Boot 4 auto-config 가 management 컨텍스트에도 동일 SecurityFilterChain 을 참조하므로
-                        // 매처를 추가해두면 9091 접근 시 인증 없이 통과. 무방비 노출 위험은 포트 분리로 차단.
-                        "/actuator/**",
-                        "/css/**",
-                        "/js/**",
-                        "/images/**",
-                        "/webjars/**",
-                        "/favicon.ico")
-                    .permitAll()
-                    .anyRequest()
-                    .authenticated();
+                      "/api/users/check-email",
+                      // F-signup-01: 휴대폰 인증 API (비인증 signup 화면에서 호출).
+                      // CSRF 는 유지 — signup.html 이 meta 태그로 토큰 제공.
+                      "/api/phone/send-code",
+                      "/api/phone/verify-code",
+                      "/find-id",
+                      "/find-password",
+                      "/find-password/**",
+                      // P0-2 A1 이월: /admin/login 페이지·성공 리다이렉트는 후속 티켓.
+                      // 지금은 매처만 등록해 후속에서 formLogin 재설정 시 곧바로 permit 되도록 준비.
+                      "/admin/login")
+                  .permitAll()
+                  // P0-2: 관리자 영역 전체 hasAnyRole 매처. anyRequest() 앞에 삽입하여
+                  // "/admin/**" 하위 URL 은 CENTER_ADMIN / SYSTEM_ADMIN 만 접근 가능.
+                  .requestMatchers("/admin/**")
+                  .hasAnyRole("CENTER_ADMIN", "SYSTEM_ADMIN")
+                  // 인증 필요 (먼저 매칭되어 permitAll 보다 우선)
+                  .requestMatchers(
+                      "/programs/*/apply",
+                      "/bookmarks/**",
+                      "/notifications/**",
+                      "/mypage",
+                      "/mypage/**",
+                      // F-signup-03: 온보딩 화면 — signup 자동 로그인 후 진입.
+                      "/welcome",
+                      "/welcome/**")
+                  .authenticated()
+                  // 그 외 비인증 허용
+                  .requestMatchers(
+                      "/",
+                      "/api/ping",
+                      "/programs",
+                      "/programs/**",
+                      "/notices",
+                      "/notices/**",
+                      "/centers",
+                      "/centers/**",
+                      // 이용약관·개인정보처리방침·이메일 무단 수집거부 정적 페이지 (푸터/회원가입에서 링크)
+                      "/terms",
+                      "/privacy",
+                      "/email-policy",
+                      // Spring 이 ResponseStatusException 등을 내부 forward → /error 로 dispatch.
+                      // 비인증 URL 에서 404 등을 던질 때 /error 가 다시 로그인 리다이렉트 되지 않도록 허용.
+                      "/error",
+                      // chore-observability (2026-07-23): Actuator 는 별도 포트 9091 로 노출됨.
+                      // 8080 공개 포트엔 /actuator/** 라우팅 자체가 없어 permit 여부 무관하나,
+                      // Boot 4 auto-config 가 management 컨텍스트에도 동일 SecurityFilterChain 을 참조하므로
+                      // 매처를 추가해두면 9091 접근 시 인증 없이 통과. 무방비 노출 위험은 포트 분리로 차단.
+                      "/actuator/**",
+                      "/css/**",
+                      "/js/**",
+                      "/images/**",
+                      "/webjars/**",
+                      "/favicon.ico")
+                  .permitAll()
+                  .anyRequest()
+                  .authenticated();
             })
         .formLogin(
             form ->

@@ -17,8 +17,8 @@ import org.springframework.test.context.ActiveProfiles;
  * local·prod 계열) 로 컨텍스트를 로드했을 때 이 Bean 이 등록되지 않음을 보장한다. 프로덕션 빌드로 유출되면 인증 없이 신청 데이터를 삭제할 수 있는
  * endpoint 가 노출되기 때문.
  *
- * <p>SecurityConfig 는 {@code environment.matchesProfiles("e2e")} 로 매처 등록 여부를 통제하므로, Bean 자체 미등록
- * 이중 안전장치로 동작한다.
+ * <p>SecurityConfig 는 {@code environment.matchesProfiles("e2e")} 로 매처 등록 여부를 통제하므로, Bean 자체 미등록 이중
+ * 안전장치로 동작한다.
  *
  * <p>구현 노트: 실 프로덕션 프로파일(local)은 Supabase 접속을 요구하므로 CI 에서 로드 불가. e2e 프로파일과 동일한 H2 설정을 property 로 직접
  * 주입하되 {@code @ActiveProfiles} 는 "test-guard" (존재하지 않는 임의 프로파일) 로 지정해 e2e 프로파일 activation 을 회피한다.

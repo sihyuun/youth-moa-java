@@ -28,11 +28,11 @@ import org.springframework.test.context.ActiveProfiles;
  * <p>인증·CSRF 우회: 프로덕션 {@link io.github.sihyuuun.youthmoa.common.config.SecurityConfig} 는 e2e 가 아닌
  * 프로파일에서 {@code /__test__/**} 를 authenticated() 로 판정해 로그인 페이지로 302 redirect 시킨다. 이 상태로는 "라우팅 미등록"
  * 신호가 Security 필터에 가려진다. 그래서 {@link TestSecurityAllPermit} 를 통해 test-guard 프로파일에서만 anyRequest 를
- * permitAll 로 만든 SecurityFilterChain 을 {@code @Order(1)} 로 앞에 삽입한다. 프로덕션 chain 은 그대로 두고, 테스트
- * 컨텍스트에만 우선순위가 더 높은 chain 을 얹어 순수 MVC 라우팅 결과(=404)만 남긴다.
+ * permitAll 로 만든 SecurityFilterChain 을 {@code @Order(1)} 로 앞에 삽입한다. 프로덕션 chain 은 그대로 두고, 테스트 컨텍스트에만
+ * 우선순위가 더 높은 chain 을 얹어 순수 MVC 라우팅 결과(=404)만 남긴다.
  *
- * <p>이 테스트가 실패한다는 것은 곧 {@link TestFixtureController} 가 프로덕션(non-e2e) 프로파일에서도 라우팅되고 있다는 뜻이며,
- * 인증 없이 신청 데이터를 삭제할 수 있는 endpoint 가 실서비스에 노출되는 심각한 회귀다.
+ * <p>이 테스트가 실패한다는 것은 곧 {@link TestFixtureController} 가 프로덕션(non-e2e) 프로파일에서도 라우팅되고 있다는 뜻이며, 인증 없이
+ * 신청 데이터를 삭제할 수 있는 endpoint 가 실서비스에 노출되는 심각한 회귀다.
  */
 @SpringBootTest(
     webEnvironment = WebEnvironment.RANDOM_PORT,
