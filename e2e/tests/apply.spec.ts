@@ -28,7 +28,7 @@ test.beforeEach(async ({ page }) => {
 
 test('로그인 후 신청 폼 진입 시 신청자 정보(이름·이메일)가 자동 채워진다', async ({ page }) => {
     await login(page, FRESH_USER);
-    await page.goto(`/programs/${FRESH_PROGRAM_ID}/apply`, { waitUntil: 'commit' });
+    await page.goto(`/programs/${FRESH_PROGRAM_ID}/apply`, { waitUntil: 'domcontentloaded' });
     await expect(page).toHaveTitle(/신청/);
 
     // apply.html: 이름/이메일 은 <div class="apply-applicant-value"> 로 readonly 렌더 (step 1)
@@ -39,7 +39,7 @@ test('로그인 후 신청 폼 진입 시 신청자 정보(이름·이메일)가
 
 test('개인정보 동의 미체크 시 제출 버튼 비활성 + 서버 @AssertTrue 방어가 동작한다', async ({ page }) => {
     await login(page, FRESH_USER);
-    await page.goto(`/programs/${FRESH_PROGRAM_ID}/apply`, { waitUntil: 'commit' });
+    await page.goto(`/programs/${FRESH_PROGRAM_ID}/apply`, { waitUntil: 'domcontentloaded' });
 
     await applyNextStep(page, 2);
     await page.locator('#applyReason').fill('진로 탐색을 위해 참여하고 싶어요.');
@@ -59,7 +59,7 @@ test('개인정보 동의 미체크 시 제출 버튼 비활성 + 서버 @Assert
 
 test('지원 동기 1000자 초과 제출 시 @Size(max) 메시지가 노출된다', async ({ page }) => {
     await login(page, FRESH_USER);
-    await page.goto(`/programs/${FRESH_PROGRAM_ID}/apply`, { waitUntil: 'commit' });
+    await page.goto(`/programs/${FRESH_PROGRAM_ID}/apply`, { waitUntil: 'domcontentloaded' });
 
     await applyNextStep(page, 2);
     await page.locator('#applyReason').fill('가'.repeat(1001));   // @Size(max=1000) 위반
@@ -75,7 +75,7 @@ test('지원 동기 1000자 초과 제출 시 @Size(max) 메시지가 노출된�
 
 test('이미 신청한 프로그램에 재신청 시 "이미 신청한 프로그램입니다." 에러 alert', async ({ page }) => {
     await login(page, DUPLICATE_USER);
-    await page.goto(`/programs/${DUP_PROGRAM_ID}/apply`, { waitUntil: 'commit' });
+    await page.goto(`/programs/${DUP_PROGRAM_ID}/apply`, { waitUntil: 'domcontentloaded' });
 
     await applyNextStep(page, 2);
     await page.locator('#applyReason').fill('중복 신청 테스트용 지원 동기 문장입니다.');
