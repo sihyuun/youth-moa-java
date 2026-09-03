@@ -1,6 +1,6 @@
 # F-notice-attachment — 공지사항 첨부파일 다운로드 (사용자 사이드)
 
-> 상태: `spec_confirmed`
+> 상태: `impl_done` (2026-09-03 갱신 — 사용자 사이드 다운로드 PR #130. admin 업로드 UI 는 후속 티켓)
 > 브랜치 후보: `feature/notice-attachment`
 > 산출: 2026-07-31 (ym-spec)
 > 선행: 없음 (V3 다음 V4 신설)
