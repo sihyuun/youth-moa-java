@@ -5,7 +5,7 @@ type: project
 originSessionId: 51da8e75-f7a2-4b05-b2b6-963ce41efb6a
 ---
 
-> **마지막 갱신**: 2026-09-03 (**E2E flaky 3층 청산 세션** — A형/B형/backdrop 3중 원인 삼각측량 + `@Profile("e2e")` test-only 컴포넌트 최초 도입 + spec 큐 감사. 남은: Observability PR-3 dashboard + 오버레이 감사 + admin 트랙 착수).
+> **마지막 갱신**: 2026-09-03 (**E2E flaky 3층 청산 세션** — A형/B형/backdrop 3중 원인 삼각측량 + `@Profile("e2e")` test-only 컴포넌트 최초 도입 + spec 큐 감사. 남은: 오버레이 감사 + admin 트랙 착수. **Observability PR-3 는 이미 PR #113 (2026-07-27) 로 완료된 것으로 확인됨** — 이전 STATE 의 "미완결" 표기는 outdated 였음).
 
 ## 🟢 2026-09-01 ~ 2026-09-03 세션 — E2E flaky 3층 청산 (5 PR 연속 머지)
 
@@ -46,10 +46,13 @@ originSessionId: 51da8e75-f7a2-4b05-b2b6-963ce41efb6a
 
 ### 다음 세션 우선순위
 
-1. **Observability PR-3 대시보드** — Grafana JSON + Prometheus scrape + README (PR-1/2 완료 후 유일 미완결 인프라 항목)
-2. **오버레이 감사** — `position:absolute;inset:0` backdrop + center click 패턴 spec 전수 검사 (이번 backdrop hotfix 파생)
-3. **admin 트랙 착수 결정** — 사용자 트랙 spec 큐 = 0 도래. PM Review (ym-pm) 로 로드맵 확정 필요
-4. **`contracts` CI blocking 승격** — 안정화 확인 후
+1. **오버레이 감사** — `position:absolute;inset:0` backdrop + center click 패턴 spec 전수 검사 (이번 backdrop hotfix 파생)
+2. **admin 트랙 착수 결정** — 사용자 트랙 spec 큐 = 0 도래. PM Review (ym-pm) 로 로드맵 확정 필요
+3. **`contracts` CI blocking 승격** — 안정화 확인 후
+
+> Observability PR-3 대시보드는 이미 PR #113 (`a6be7ae` 2026-07-27) 로 완료됨.
+> `docs/observability/grafana/youthmoa-dashboard.json` + provisioning + docker-compose 존재.
+> 이전 STATE 의 "미완결" 표기는 outdated 였음.
 
 ### 이월 (변동 없음)
 
