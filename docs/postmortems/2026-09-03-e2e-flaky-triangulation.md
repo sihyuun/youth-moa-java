@@ -50,6 +50,21 @@ CI `contracts` non-blocking + 1회 실행 시 우연히 PASS 되는 특성 때�
    재발 방지 (#199 → #200 사이클에서 확인된 패턴)
 3. **`--repeat-each=10` 을 표준 검증 절차에 포함** — flaky spec 판단 시 최소 반복 실행
 
+## 오버레이 감사 결과 (2026-09-03)
+
+`position:absolute;inset:0` backdrop + 하단 panel 조합은 CSS 상 4곳 존재:
+- `.program-calendar-mobile-sheet-backdrop` (오늘 hotfix 완료)
+- `.filter-mobile-sheet-backdrop` — 프로그램 목록 필터 시트
+- `.site-drawer-backdrop` — 사이트 드로어
+- `.postcode-modal` — 다음 우편번호 검색 모달
+
+E2E 에서 **클릭 대상은 오직 `program-calendar-mobile-sheet-backdrop` 1건이며 이미 fix 완료**.
+나머지 3건은 현재 spec 에서 클릭되지 않음. 향후 새 spec 추가 시 아래 규칙 준수:
+
+**규칙**: `position:absolute;inset:0` backdrop 을 click 할 때는 반드시
+`click({ position: { x: 10, y: 10 } })` 로 panel 미점유 영역을 명시. `.click()` (center)
+사용 시 하단 panel 에 intercept 될 수 있음.
+
 ## 관련 PR
 
 - #198 F0f UNVERIFIED U-1/U-2 청산 (N3 회귀 + 정책 명제)
@@ -57,3 +72,4 @@ CI `contracts` non-blocking + 1회 실행 시 우연히 PASS 되는 특성 때�
 - #200 B형 fix (cleanup endpoint) + backdrop hotfix
 - #201 apply.spec.ts waitUntil 통일
 - #202 spec 큐 감사 정리
+- #203 세션 회고 · STATE 미러 · 오버레이 감사 결과 반영
