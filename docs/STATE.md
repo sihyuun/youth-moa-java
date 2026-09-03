@@ -5,7 +5,58 @@ type: project
 originSessionId: 51da8e75-f7a2-4b05-b2b6-963ce41efb6a
 ---
 
-> **마지막 갱신**: 2026-07-24 (**5개 PR 연속 머지 완료** — 시각 갭 fix + Flyway 활성화 + Observability PR-1/2 + E2E 12건 청산. 남은: Observability PR-3 dashboard + 포트폴리오 큐).
+> **마지막 갱신**: 2026-09-03 (**E2E flaky 3층 청산 세션** — A형/B형/backdrop 3중 원인 삼각측량 + `@Profile("e2e")` test-only 컴포넌트 최초 도입 + spec 큐 감사. 남은: Observability PR-3 dashboard + 오버레이 감사 + admin 트랙 착수).
+
+## 🟢 2026-09-01 ~ 2026-09-03 세션 — E2E flaky 3층 청산 (5 PR 연속 머지)
+
+### 머지 완료 (main 순서)
+
+| PR | 커밋 | 스코프 |
+|---|---|---|
+| **#198** | `542dd33` | F0f UNVERIFIED U-1/U-2 청산 (N3 브레이크포인트 회귀 테스트 2건 + `programs.md §5-C` "신청 마감 = 진행 종료" 정책 명제 + `F0f §7 PR-3` 완료 표기) |
+| **#199** | `24cb532` | **A형 flaky 해소** — `apply.html` IIFE 최하단 `window.__applyReady=true` + `helpers.applyNextStep()` 이 `waitFor(attached) + waitForFunction(__applyReady)` 이중 방어. `waitUntil:'commit'` → `'domcontentloaded'` |
+| **#200** | `1c093b7` | **B형 flaky 해소 + backdrop hotfix** — `TestFixtureController @Profile("e2e") POST /__test__/reset-applications` (3중 프로파일 가드). backdrop click intercept 사전 결함 hotfix (`click({position:{x:10,y:10}})`) |
+| **#201** | `a70ae21` | `apply.spec.ts` 4곳 `waitUntil` 통일 (A형 리스크 예방) |
+| **#202** | `8a3309d` | spec 큐 감사 정리 — F0f · F-notice-attachment · F0h-c4 impl_done 갱신, README 표 확장 |
+
+### 이번 세션 주요 학습·정착
+
+1. **E2E flaky 삼각측량 절차 확립**
+   - `--repeat-each=5/10` 로 재현률 정량화 → 스냅샷 `error-context.md` 를 grep 으로 유형 분리 → 부모 커밋 재현 여부로 이번 변경 인과 배제 → 반증 실험 (fresh 서버 재부팅)
+   - 상세: [`docs/postmortems/2026-09-03-e2e-flaky-triangulation.md`](postmortems/2026-09-03-e2e-flaky-triangulation.md)
+
+2. **`@Profile("e2e")` test-only 컴포넌트 최초 도입 (PR #200)**
+   - 프로덕션 코드에 test 전용 endpoint 를 추가하는 최초 사례. 3중 프로파일 가드:
+     - `@Profile("e2e")` — Bean 자체 미등록
+     - `SecurityConfig.matchesProfiles("e2e")` — 매처·CSRF 도 e2e 에서만
+     - `TestFixtureProfileGuardTest` (컨텍스트) + `TestFixtureHttpGuardTest` (실 HTTP 404) 회귀 방지
+
+3. **ym-verify 사이클 실효성 확인**
+   - 5회 이상 팩트체크·반박 시도로 커밋 메시지 정확도 향상 (예: "24/24" 요약 → 실측 raw 출력 그대로 인용). PR #199 → PR #200 → PR #200 재검증에서 반박 실패 항목만 통과 처리하는 3단 판정 (PASS/FAIL/UNVERIFIED) 정착
+
+4. **`contracts` 프로젝트 CI non-blocking 이 실패 신호 소실의 근본 원인** 이라는 진단 도출
+   - 다음 세션 후속으로 blocking 승격 검토 (안정화 확인 후)
+
+### 왜 이 flaky 가 오래 이어졌는가
+
+1. **`contracts` non-blocking** — 실패해도 파이프라인 통과 → 신호 어디에도 남지 않음
+2. **1회 실행 우연 PASS** — solo 재현률 60% 라 스팟체크로 놓침
+3. **fresh 서버 우회** — `webServer.reuseExistingServer:true` 라 로컬 재부팅 후엔 B형 미발동
+4. **팩트체크 없이 요약 수치 인용** — "실은 23/24" 사실 소실
+
+### 다음 세션 우선순위
+
+1. **Observability PR-3 대시보드** — Grafana JSON + Prometheus scrape + README (PR-1/2 완료 후 유일 미완결 인프라 항목)
+2. **오버레이 감사** — `position:absolute;inset:0` backdrop + center click 패턴 spec 전수 검사 (이번 backdrop hotfix 파생)
+3. **admin 트랙 착수 결정** — 사용자 트랙 spec 큐 = 0 도래. PM Review (ym-pm) 로 로드맵 확정 필요
+4. **`contracts` CI blocking 승격** — 안정화 확인 후
+
+### 이월 (변동 없음)
+
+- **D5 Q1**: Program 신청기간 분리 (recruitStart/End vs runStart/End) — admin 트랙 재활성화 시
+- **D5 Q3**: CapacityBar `showLabel` 미니 모드 — admin 트랙 재활성화 시
+
+---
 
 ## 🟢 2026-07-22 ~ 2026-07-24 세션 — 5개 PR 연속 머지 (인프라 대전환)
 
