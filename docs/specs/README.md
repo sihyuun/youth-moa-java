@@ -10,9 +10,9 @@ ym-spec 이 산출하고 사용자가 결정까지 마친 명세 모음. **`spec
 | `spec_confirmed` | 결정 반영 완료 — ym-impl 인계 가능 |
 | `impl_done` | 구현 PR 머지 완료 — 파일 상단에 PR 번호 기록 후 보관 |
 
-## 현재 큐 (2026-07-31 갱신 — 모두 완료)
+## 현재 큐 (2026-09-03 갱신 — 큐 비어있음)
 
-**큐 비어있음.** 아래는 2026-07-07 등록 후 이미 구현된 이력을 감사·정리 (2026-07-31).
+**큐 비어있음.** 아래는 2026-07-07 등록 후 이미 구현된 이력을 감사·정리 (2026-07-31 최초, 2026-09-03 F0f/F0h-c4/chore-flyway 반영).
 
 | 명세 | 구현 PR | 상태 |
 |---|---|---|
@@ -31,6 +31,9 @@ ym-spec 이 산출하고 사용자가 결정까지 마친 명세 모음. **`spec
 | [F-signup-terms-agreement](F-signup-terms-agreement.md) | #125 | ✅ impl_done |
 | [F-notice-attachment](F-notice-attachment.md) | #130 | ✅ impl_done |
 | [F-home-30-pagination](F-home-30-pagination.md) | #129 | ⛔ spec_declined (wireframe 이탈 결정) |
+| [chore-flyway-activation](chore-flyway-activation.md) | #109 | ✅ impl_done (2026-07-22 활성화, 2026-09-03 README 반영) |
+| [F0f-calendar-view](F0f-calendar-view.md) | #195/#196/#197/#198/#200 | ✅ impl_done (2026-09-03 반영 — 데스크톱 · 계약+HTMX hotfix · 모바일 §7b · N3 회귀 · seed pollution 파생) |
+| [F0h-c4-map-interactions](F0h-c4-map-interactions.md) | 다수 (PR 번호 재감사 필요) | ✅ impl_done (2026-09-03 반영 — CustomEvent 채널·인포윈도우 CTA 코드 존재) |
 
 ## 구현 세션 표준 절차
 

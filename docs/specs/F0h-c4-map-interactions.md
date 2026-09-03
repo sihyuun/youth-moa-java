@@ -1,6 +1,6 @@
 # 작업 명세: F0h-c4 — 청년센터 지도 인터랙션 고도화
 
-> 상태: `spec_confirmed`
+> 상태: `impl_done` (2026-09-03 갱신 — CustomEvent 채널 3종 · centers-detail.js · center-map.js 다수 PR 에 걸쳐 구현 완료. `docs/specs/README.md` 재감사 시 PR 번호 세부 특정 예정)
 > 실행 순서: **F0h-c2 (좌측 리스트 필터/정렬) 머지 후 착수**. bounds 필터가 c2 필터 파이프라인과 연동됨
 > 브랜치명: `feature/F0h-c4-map-interactions`
 >

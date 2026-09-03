@@ -1,7 +1,6 @@
 # F0f — 프로그램 목록 캘린더 뷰
 
-- 상태: `spec_confirmed`
-- 우선순위: 1 (미구현 3건 중 최우선)
+- 상태: `impl_done` (2026-09-03 갱신 — PR #195 데스크톱 · #196 계약 + 성능 hotfix · #197 모바일 §7b · #198 N3 회귀 · #200 seed pollution 파생 정리)
 - 브랜치 후보: `feature/F0f-calendar-view`
 - 작성일: 2026-07-28
 - 확정일: 2026-08-27 (Q1~Q8 사용자 컨펌 + `docs/00_assets/Program Calendar.dc.html` 정본 반영)
