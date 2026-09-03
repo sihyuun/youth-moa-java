@@ -21,9 +21,9 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * A1 대시보드 데이터 소스. 스탯 카드 4개 + 승인 대기 + 최근 프로그램 + 마감 임박.
  *
- * <p>{@link ProgramStatus} 는 파생값 (isActive · start/endDate + today 로 계산) 이라 Repository 에서 status 로 필터
- * 쿼리가 불가능하다. A1 은 학습 단계라 findAll() 로드 후 Java 스트림으로 필터한다. 프로그램 규모가 커지면 A2/A6 에서 상태 컬럼 도입·인덱스
- * 최적화 필요 (deferred).
+ * <p>{@link ProgramStatus} 는 파생값 (isActive · start/endDate + today 로 계산) 이라 Repository 에서 status 로
+ * 필터 쿼리가 불가능하다. A1 은 학습 단계라 findAll() 로드 후 Java 스트림으로 필터한다. 프로그램 규모가 커지면 A2/A6 에서 상태 컬럼 도입·인덱스 최적화
+ * 필요 (deferred).
  *
  * <p>센터 격리는 {@code Program.organization = Center.name} 문자열 매칭 (Q7 근사). scope==null 이면 전체.
  */
@@ -46,7 +46,8 @@ public class AdminDashboardService {
     long totalUsers;
     if (scopeCenterName == null) {
       // SYSTEM_ADMIN: 전체 USER 수
-      totalUsers = userRepository.findAll().stream().filter(u -> u.getRole() == UserRole.USER).count();
+      totalUsers =
+          userRepository.findAll().stream().filter(u -> u.getRole() == UserRole.USER).count();
     } else {
       // CENTER_ADMIN: 자기 센터 소속 USER 만 (Q8 근사 — User.center.name 매칭).
       final String cn = scopeCenterName;
@@ -61,7 +62,9 @@ public class AdminDashboardService {
 
     List<Program> recent =
         scoped.stream()
-            .sorted(Comparator.comparing(Program::getCreatedAt, Comparator.nullsLast(Comparator.reverseOrder())))
+            .sorted(
+                Comparator.comparing(
+                    Program::getCreatedAt, Comparator.nullsLast(Comparator.reverseOrder())))
             .limit(5)
             .toList();
 

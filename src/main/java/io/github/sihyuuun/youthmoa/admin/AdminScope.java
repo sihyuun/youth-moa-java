@@ -21,8 +21,8 @@ import org.springframework.transaction.annotation.Transactional;
  *   <li>그 외 → {@code null} (컨트롤러/필터에서 이미 접근 제어됐다는 전제)
  * </ul>
  *
- * <p>Program 은 Center FK 를 가지지 않으므로 {@code Program.organization = Center.name} 문자열 매칭으로 근사한다.
- * A9 (센터 CRUD) 착수 시 FK 관계로 승격 예정.
+ * <p>Program 은 Center FK 를 가지지 않으므로 {@code Program.organization = Center.name} 문자열 매칭으로 근사한다. A9
+ * (센터 CRUD) 착수 시 FK 관계로 승격 예정.
  */
 @Component
 @RequiredArgsConstructor

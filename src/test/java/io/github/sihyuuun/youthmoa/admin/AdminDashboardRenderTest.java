@@ -10,7 +10,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import io.github.sihyuuun.youthmoa.user.User;
 import io.github.sihyuuun.youthmoa.user.UserPrincipal;
 import io.github.sihyuuun.youthmoa.user.UserRepository;
-import io.github.sihyuuun.youthmoa.user.UserRole;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -22,8 +21,8 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * A1: /admin 대시보드 실 렌더 회귀 방어.
  *
- * <p>SYSTEM_ADMIN / CENTER_ADMIN 두 조건 각각 200 + 필수 마크업. principal 은 실제 시드된 User 를 조회해 감싼 UserPrincipal
- * 을 주입한다 (AdminScope 가 DB 조회로 center 를 확인하므로).
+ * <p>SYSTEM_ADMIN / CENTER_ADMIN 두 조건 각각 200 + 필수 마크업. principal 은 실제 시드된 User 를 조회해 감싼
+ * UserPrincipal 을 주입한다 (AdminScope 가 DB 조회로 center 를 확인하므로).
  */
 @SpringBootTest
 @AutoConfigureMockMvc

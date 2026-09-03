@@ -27,8 +27,8 @@ import org.springframework.security.web.context.SecurityContextRepository;
  *   <li>Order 2 — {@link #userSecurityFilterChain} : 나머지 요청. 기존 사용자 formLogin·remember-me 그대로.
  * </ul>
  *
- * Spring Security 7 은 {@code securityMatcher()} 로 매칭되지 않은 요청은 자동으로 다음 chain 으로 넘어가므로 두 chain 이
- * 충돌 없이 공존한다. ({@code UnreachableFilterChainException} 방지 위해 admin chain 은 명시적 matcher 지정 필수.)
+ * Spring Security 7 은 {@code securityMatcher()} 로 매칭되지 않은 요청은 자동으로 다음 chain 으로 넘어가므로 두 chain 이 충돌
+ * 없이 공존한다. ({@code UnreachableFilterChainException} 방지 위해 admin chain 은 명시적 matcher 지정 필수.)
  */
 @Configuration
 public class SecurityConfig {
@@ -117,8 +117,8 @@ public class SecurityConfig {
   /**
    * A1 (Qn-1 A): 사용자 트랙 SecurityFilterChain. Order 2 — admin chain 이 처리하지 않은 요청만 도달.
    *
-   * <p>기존 P0-2 매처의 {@code /admin/**} hasAnyRole 및 {@code /admin/login} permit 는 A1 에서 admin chain 으로 이동
-   * → 여기서 제거. 나머지 로직은 이전과 동일.
+   * <p>기존 P0-2 매처의 {@code /admin/**} hasAnyRole 및 {@code /admin/login} permit 는 A1 에서 admin chain
+   * 으로 이동 → 여기서 제거. 나머지 로직은 이전과 동일.
    */
   @Bean
   @Order(Ordered.LOWEST_PRECEDENCE)
