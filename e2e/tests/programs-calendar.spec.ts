@@ -320,7 +320,9 @@ test.describe('프로그램 캘린더뷰 인터랙션', () => {
             // 시트 body 에 최소 1개 카드가 클론됨
             await expect(page.locator('#program-calendar-mobile-sheet-body .program-calendar-panel-card').first()).toBeVisible();
             // backdrop 클릭 → 닫힘
-            await page.locator('.program-calendar-mobile-sheet-backdrop').click();
+            // 260903: backdrop inset:0 이라 center 클릭이 panel(bottom:0;max-height:78vh)에 가려짐.
+            // panel 위쪽 여백을 명시적으로 클릭 (오늘 seed 롤오버로 CI 노출된 사전 결함).
+            await page.locator('.program-calendar-mobile-sheet-backdrop').click({ position: { x: 10, y: 10 } });
             await expect(sheet).toBeHidden();
         });
 

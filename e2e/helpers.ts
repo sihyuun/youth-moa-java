@@ -89,3 +89,32 @@ export async function waitForHtmx(page: Page, timeoutMs: number = 10_000): Promi
 export async function expectTitle(page: Page, pattern: RegExp): Promise<void> {
     await expect(page).toHaveTitle(pattern);
 }
+
+/**
+ * fix-e2e-seed-pollution: 테스트 전용 신청 정리 endpoint 호출.
+ *
+ * 배경: `--repeat-each=N` 반복 실행 또는 `webServer.reuseExistingServer=true` 로 상태가 남는 로컬 환경에서
+ * 같은 seed 유저가 같은 프로그램을 재신청하면 `ApplicationService` 가 `IllegalStateException("이미 신청한 프로그램입니다.")`
+ * 로 실패 → B형 flaky.
+ *
+ * 호출: e2e 프로파일 (bootrun-e2e.cmd 로 기동) 에서만 활성화된 `TestFixtureController` 로
+ * POST /__test__/reset-applications. programId 를 지정하면 해당 프로그램 신청만, 생략하면 유저 전체 신청 삭제.
+ *
+ * @param page Playwright Page (request context 재사용)
+ * @param opts.userEmail 필수 (seed유저 이메일)
+ * @param opts.programId optional (지정 시 해당 프로그램 신청만 삭제)
+ */
+export async function resetApplications(
+    page: Page,
+    opts: { userEmail: string; programId?: number },
+): Promise<void> {
+    const response = await page.request.post('/__test__/reset-applications', {
+        data: { userEmail: opts.userEmail, programId: opts.programId ?? null },
+    });
+    // 204 No Content 기대. 실패 시 스펙 실패로 즉시 노출 (조용히 continue 하지 않음).
+    if (response.status() !== 204) {
+        throw new Error(
+            `resetApplications failed: status=${response.status()} body=${await response.text()}`,
+        );
+    }
+}
