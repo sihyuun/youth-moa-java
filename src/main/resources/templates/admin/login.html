@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>관리자 로그인 — 청년모아</title>
+    <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"
+          rel="stylesheet">
+    <link rel="icon" type="image/png" th:href="@{/images/logo_symbol.png}">
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
+    <meta name="_csrf" th:content="${_csrf?.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf?.headerName}"/>
+</head>
+<body class="admin-auth-body">
+
+<!--
+  A1 관리자 로그인 (prototype.html L60~96).
+  - Auth Header 64px + 본문 중앙 정렬 (420px 카드)
+  - h1 "관리자 로그인" (26/700) + 서브 카피
+  - card: white / radius 16 / padding 32 / shadow / border 1px #F0EFF3
+  - 인풋 2개 (padding 11/14 · border 1px #E3E1E8 · radius 8)
+  - 에러 alert (?error / ?logout 파라미터 대응)
+  - primary 로그인 버튼 (#3F30E9 · padding 13 · radius 10 · 15/700)
+  - 회원가입 버튼은 prototype 에 있으나 A1 은 제거 (관리자 signup 미구현 · deviation)
+  - 하단: 아이디/비밀번호 찾기 (사용자 페이지 재사용)
+-->
+
+<div th:replace="~{admin/fragments/auth-header :: authHeader}"></div>
+
+<main class="admin-auth-main">
+    <div class="admin-auth-inner">
+        <h1 class="admin-auth-title">관리자 로그인</h1>
+        <p class="admin-auth-subtitle">청년모아 관리자 페이지에 오신 것을 환영합니다</p>
+
+        <div class="admin-auth-card">
+            <form id="adminLoginForm" th:action="@{/admin/login}" method="post" novalidate>
+                <div class="admin-auth-field">
+                    <label for="adminUsername" class="admin-auth-label">아이디</label>
+                    <input type="email" id="adminUsername" name="username"
+                           th:value="${savedUsername}"
+                           placeholder="아이디를 입력해주세요"
+                           autocomplete="email"
+                           class="admin-auth-input">
+                    <div id="adminUsernameError" class="admin-auth-field-error" hidden></div>
+                </div>
+
+                <div class="admin-auth-field">
+                    <label for="adminPassword" class="admin-auth-label">비밀번호</label>
+                    <input type="password" id="adminPassword" name="password"
+                           placeholder="비밀번호를 입력해주세요"
+                           autocomplete="current-password"
+                           class="admin-auth-input">
+                    <div id="adminPasswordError" class="admin-auth-field-error" hidden></div>
+                </div>
+
+                <!-- ?error / ?logout / 서버 errorMsg alert -->
+                <div th:if="${param.error}" class="admin-auth-alert admin-auth-alert--error"
+                     role="alert">아이디 또는 비밀번호가 올바르지 않습니다.</div>
+                <div th:if="${param.logout}" class="admin-auth-alert admin-auth-alert--success"
+                     role="status">로그아웃되었습니다.</div>
+
+                <button type="submit" class="admin-auth-submit">로그인</button>
+            </form>
+        </div>
+
+        <div class="admin-auth-help">
+            <a th:href="@{/find-id}" class="admin-auth-help-link">아이디 찾기</a>
+            <span class="admin-auth-help-sep" aria-hidden="true">|</span>
+            <a th:href="@{/find-password}" class="admin-auth-help-link">비밀번호 찾기</a>
+        </div>
+    </div>
+</main>
+
+<script th:inline="javascript">
+    // 사용자 login.html 과 동일 패턴 — 서버 제출 전 클라이언트 빈 값 검증.
+    (function () {
+        var form = document.getElementById('adminLoginForm');
+        if (!form) return;
+        var idInput = document.getElementById('adminUsername');
+        var pwInput = document.getElementById('adminPassword');
+        var idErr = document.getElementById('adminUsernameError');
+        var pwErr = document.getElementById('adminPasswordError');
+
+        function showError(el, msg) {
+            el.textContent = msg;
+            el.hidden = false;
+        }
+        function clearError(el) { el.textContent = ''; el.hidden = true; }
+
+        idInput.addEventListener('input', function () { clearError(idErr); });
+        pwInput.addEventListener('input', function () { clearError(pwErr); });
+
+        form.addEventListener('submit', function (ev) {
+            var ok = true;
+            if (!idInput.value.trim()) { showError(idErr, '아이디를 입력해주세요.'); ok = false; }
+            if (!pwInput.value.trim()) { showError(pwErr, '비밀번호를 입력해주세요.'); ok = false; }
+            if (!ok) ev.preventDefault();
+        });
+    })();
+</script>
+</body>
+</html>

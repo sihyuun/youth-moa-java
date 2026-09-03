@@ -105,6 +105,19 @@
                   hidden 속성 초기 세팅. window.Dropdown 이 클릭 시 removeAttribute('hidden') + .is-open + .dropdown-enter.
                 -->
                 <div id="header-user-dropdown" class="header-user-dropdown" role="menu" hidden>
+                    <!--
+                      A1 admin-shell (2026-09-03): 관리자 계정에게만 "관리자 페이지" 링크 노출.
+                      sec:authorize 로 USER 계정은 마크업 자체가 렌더되지 않음.
+                    -->
+                    <a sec:authorize="hasAnyRole('CENTER_ADMIN','SYSTEM_ADMIN')"
+                       th:href="@{/admin}" class="header-dropdown-item" role="menuitem">
+                        <svg class="header-dropdown-item-icon" viewBox="0 0 24 24" width="17" height="17"
+                             fill="none" stroke="currentColor" stroke-width="1.5"
+                             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M12 2l3 6 6 .9-4.5 4.3 1 6.3L12 16l-5.5 3.5 1-6.3L3 8.9 9 8z"/>
+                        </svg>
+                        <span>관리자 페이지</span>
+                    </a>
                     <a th:href="@{/mypage}" class="header-dropdown-profile" role="menuitem">
                         <span class="header-dropdown-profile-avatar" aria-hidden="true"
                               th:text="${#strings.substring(#authentication.principal.displayName, 0, 1)}">박</span>

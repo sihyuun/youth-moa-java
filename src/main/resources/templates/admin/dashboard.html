@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>관리자 대시보드 — 청년모아</title>
+    <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"
+          rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" th:href="@{/images/logo_symbol.png}">
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
+    <meta name="_csrf" th:content="${_csrf?.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf?.headerName}"/>
+</head>
+<body class="admin-shell-body">
+
+<!-- 다크 헤더 -->
+<div th:replace="~{admin/fragments/header :: header('dashboard', ${centerScopeLabel}, ${isSystemAdmin})}"></div>
+
+<!--
+  A1 대시보드 (prototype.html L602~788).
+  - Welcome: "반가워요, {이름}님 👋" + 서브 카피
+  - Stat cards (grid repeat(4,1fr), gap 14) — 진행중/마감/진행예정/전체회원
+    각 카드: 라벨 + 아이콘 + 수치(32/700 Inter) + 증감 문구 (하드코딩, deferred:A6)
+  - Body row (grid 1fr 268px, gap 16)
+    - 최근 프로그램 테이블 5행
+    - 우측: 빠른 메뉴 (자리만) + 승인 대기 카드
+  - 마감 임박 프로그램 (mt 16, D-7 이내 배지)
+-->
+<main class="admin-shell-main">
+    <div class="admin-dashboard">
+
+        <!-- Welcome -->
+        <section class="admin-dashboard-welcome">
+            <h2 class="admin-dashboard-welcome-title"
+                th:text="|반가워요, ${#authentication.principal.displayName}님 👋|">반가워요, 관리자님 👋</h2>
+            <p class="admin-dashboard-welcome-sub">오늘도 청년모아 프로그램 운영을 함께합니다.</p>
+        </section>
+
+        <!-- Stat cards -->
+        <section class="admin-stat-grid" aria-label="핵심 지표">
+
+            <div class="admin-stat-card">
+                <div class="admin-stat-card-head">
+                    <span class="admin-stat-card-label">진행중 프로그램</span>
+                    <div class="admin-stat-card-icon admin-stat-card-icon--green" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none"
+                             stroke="currentColor" stroke-width="2">
+                            <polyline points="9 11 12 14 22 4"/>
+                            <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="admin-stat-card-value" th:text="${dashboard.activeCount}">0</div>
+                <div class="admin-stat-card-trend">
+                    <span class="admin-stat-card-trend-delta admin-stat-card-trend-delta--up">↑ 2건</span>
+                    <span class="admin-stat-card-trend-caption">지난달보다 증가</span>
+                </div>
+            </div>
+
+            <div class="admin-stat-card">
+                <div class="admin-stat-card-head">
+                    <span class="admin-stat-card-label">마감 프로그램</span>
+                    <div class="admin-stat-card-icon admin-stat-card-icon--gray" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none"
+                             stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="8" y1="12" x2="16" y2="12"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="admin-stat-card-value" th:text="${dashboard.closedCount}">0</div>
+                <div class="admin-stat-card-trend">
+                    <span class="admin-stat-card-trend-delta admin-stat-card-trend-delta--flat">→ 동일</span>
+                    <span class="admin-stat-card-trend-caption">지난달과 같음</span>
+                </div>
+            </div>
+
+            <div class="admin-stat-card">
+                <div class="admin-stat-card-head">
+                    <span class="admin-stat-card-label">진행 예정</span>
+                    <div class="admin-stat-card-icon admin-stat-card-icon--orange" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none"
+                             stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <polyline points="12 6 12 12 16 14"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="admin-stat-card-value" th:text="${dashboard.upcomingCount}">0</div>
+                <div class="admin-stat-card-trend">
+                    <span class="admin-stat-card-trend-delta admin-stat-card-trend-delta--up-orange">↑ 1건</span>
+                    <span class="admin-stat-card-trend-caption">지난달보다 증가</span>
+                </div>
+            </div>
+
+            <div class="admin-stat-card">
+                <div class="admin-stat-card-head">
+                    <span class="admin-stat-card-label">전체 회원</span>
+                    <div class="admin-stat-card-icon admin-stat-card-icon--purple" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none"
+                             stroke="currentColor" stroke-width="2">
+                            <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
+                            <circle cx="9" cy="7" r="4"/>
+                            <path d="M23 21v-2a4 4 0 00-3-3.87"/>
+                            <path d="M16 3.13a4 4 0 010 7.75"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="admin-stat-card-value" th:text="${dashboard.totalUsers}">0</div>
+                <div class="admin-stat-card-trend">
+                    <span class="admin-stat-card-trend-delta admin-stat-card-trend-delta--up-purple">↑ 5명</span>
+                    <span class="admin-stat-card-trend-caption">지난달보다 증가</span>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- Body row -->
+        <section class="admin-dashboard-body">
+
+            <!-- 최근 프로그램 -->
+            <div class="admin-recent-programs">
+                <div class="admin-card-head">
+                    <h3 class="admin-card-title">최근 프로그램 현황</h3>
+                    <span class="admin-card-more admin-card-more--disabled" aria-label="전체보기 (A2 도입 예정)">전체보기 →</span>
+                </div>
+                <div class="admin-recent-programs-row admin-recent-programs-row--head">
+                    <span>프로그램명</span>
+                    <span>청년센터</span>
+                    <span>신청현황</span>
+                    <span>상태</span>
+                </div>
+                <div th:if="${#lists.isEmpty(dashboard.recentPrograms)}"
+                     class="admin-recent-programs-empty">등록된 프로그램이 없습니다.</div>
+                <div th:each="rp : ${dashboard.recentPrograms}"
+                     class="admin-recent-programs-row">
+                    <span class="admin-recent-programs-name" th:text="${rp.title}">프로그램명</span>
+                    <span class="admin-recent-programs-center" th:text="${rp.organization}">청년센터</span>
+                    <span class="admin-recent-programs-applied"
+                          th:text="${rp.capacity != null ? rp.capacity + '명' : '-'}">-</span>
+                    <div class="admin-recent-programs-status-wrap">
+                        <span class="admin-status-badge"
+                              th:classappend="${'admin-status-badge--' + rp.status.name().toLowerCase()}"
+                              th:text="${rp.status.label}">모집중</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right column -->
+            <div class="admin-dashboard-side">
+
+                <!-- Quick links — A2/A5/A6 미구현 → A1 은 자리만 (disabled) -->
+                <div class="admin-quick-links">
+                    <h3 class="admin-quick-links-title">빠른 메뉴</h3>
+                    <div class="admin-quick-links-list">
+                        <button type="button" class="admin-quick-link" disabled aria-label="프로그램 등록 (A2 도입 예정)">
+                            <span class="admin-quick-link-icon admin-quick-link-icon--primary" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" width="11" height="11" fill="none"
+                                     stroke="currentColor" stroke-width="2.5">
+                                    <line x1="12" y1="5" x2="12" y2="19"/>
+                                    <line x1="5" y1="12" x2="19" y2="12"/>
+                                </svg>
+                            </span>
+                            <span>프로그램 등록</span>
+                        </button>
+                        <button type="button" class="admin-quick-link" disabled aria-label="통계 보기 (A6 도입 예정)">
+                            <span class="admin-quick-link-icon admin-quick-link-icon--green" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" width="11" height="11" fill="none"
+                                     stroke="currentColor" stroke-width="2.5">
+                                    <line x1="18" y1="20" x2="18" y2="10"/>
+                                    <line x1="12" y1="20" x2="12" y2="4"/>
+                                    <line x1="6" y1="20" x2="6" y2="14"/>
+                                </svg>
+                            </span>
+                            <span>통계 보기</span>
+                        </button>
+                        <button type="button" class="admin-quick-link" disabled aria-label="사용자 관리 (A5 도입 예정)">
+                            <span class="admin-quick-link-icon admin-quick-link-icon--purple" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" width="11" height="11" fill="none"
+                                     stroke="currentColor" stroke-width="2.5">
+                                    <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
+                                    <circle cx="9" cy="7" r="4"/>
+                                </svg>
+                            </span>
+                            <span>사용자 관리</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Pending approval -->
+                <div class="admin-pending-card">
+                    <div class="admin-pending-card-head">
+                        <span class="admin-pending-card-label">
+                            <span class="admin-pending-card-dot" aria-hidden="true"></span>승인 대기
+                        </span>
+                        <div class="admin-pending-card-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none"
+                                 stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <polyline points="12 6 12 12 16 14"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="admin-pending-card-value-row">
+                        <span class="admin-pending-card-value" th:text="${dashboard.pendingCount}">0</span>
+                        <span class="admin-pending-card-unit">건 처리 대기</span>
+                    </div>
+                    <div class="admin-pending-card-cta">
+                        <span class="admin-pending-card-cta-link">바로 처리하기 →</span>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- 마감 임박 프로그램 -->
+        <section class="admin-urgent-programs">
+            <div class="admin-card-head">
+                <div class="admin-urgent-title-wrap">
+                    <span class="admin-urgent-dot" aria-hidden="true"></span>
+                    <h3 class="admin-card-title">마감 임박 프로그램</h3>
+                    <span class="admin-urgent-pill">D-7 이내</span>
+                </div>
+                <span class="admin-card-more admin-card-more--disabled" aria-label="전체보기 (A2 도입 예정)">전체보기 →</span>
+            </div>
+            <div class="admin-urgent-programs-row admin-urgent-programs-row--head">
+                <span>프로그램명</span>
+                <span>청년센터</span>
+                <span>신청현황</span>
+                <span>D-day</span>
+                <span>상태</span>
+            </div>
+            <div th:if="${#lists.isEmpty(dashboard.urgentPrograms)}"
+                 class="admin-urgent-programs-empty">마감 임박 프로그램이 없습니다.</div>
+            <div th:each="up : ${dashboard.urgentPrograms}"
+                 class="admin-urgent-programs-row">
+                <div class="admin-urgent-programs-name-wrap">
+                    <div class="admin-urgent-programs-name" th:text="${up.title}">프로그램명</div>
+                    <div class="admin-urgent-programs-deadline"
+                         th:text="${up.endDate != null ? #temporals.format(up.endDate, 'yyyy-MM-dd') + ' 마감' : ''}">
+                        2026-01-01 마감
+                    </div>
+                </div>
+                <span class="admin-urgent-programs-center" th:text="${up.organization}">청년센터</span>
+                <span class="admin-urgent-programs-applied"
+                      th:text="${up.capacity != null ? up.capacity + '명' : '-'}">-</span>
+                <div>
+                    <span class="admin-urgent-programs-dday" th:text="${up.ddayLabel}">D-3</span>
+                </div>
+                <div>
+                    <span class="admin-status-badge"
+                          th:classappend="${'admin-status-badge--' + up.status.name().toLowerCase()}"
+                          th:text="${up.status.label}">모집중</span>
+                </div>
+            </div>
+        </section>
+
+    </div>
+</main>
+
+<script th:inline="javascript">
+    // 유저 드롭다운 토글 (main.css window.Dropdown 이 존재하면 사용, 없으면 fallback).
+    (function () {
+        var trigger = document.querySelector('.admin-header-user-trigger');
+        var menu = document.getElementById('admin-user-dropdown');
+        if (!trigger || !menu) return;
+        function close() { menu.hidden = true; trigger.setAttribute('aria-expanded', 'false'); }
+        function open() { menu.hidden = false; trigger.setAttribute('aria-expanded', 'true'); }
+        trigger.addEventListener('click', function (ev) {
+            ev.stopPropagation();
+            if (menu.hidden) open(); else close();
+        });
+        document.addEventListener('click', function (ev) {
+            if (!menu.hidden && !menu.contains(ev.target)) close();
+        });
+    })();
+</script>
+</body>
+</html>

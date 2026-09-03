@@ -43,6 +43,10 @@
 
 미착수: `/login` · `/signup` · `/programs/{id}/apply` · `/apply/complete` · `/notices` · `/notices/{id}` · `/mypage` (4탭) · `/mypage/profile/edit` · `/notifications`
 
+### admin 계약 (2026-09-03 A1 신설)
+
+관리자 트랙(A1~A9) 계약은 [`admin/README.md`](admin/README.md) 참조. `admin-login` · `admin-shell` · `admin-dashboard` 세 계약.
+
 ## 실행
 
 ```bash
