@@ -41,6 +41,8 @@
     <nav class="admin-header-nav" aria-label="관리자 메뉴">
         <a th:href="@{/admin}"
            th:class="${currentPage == 'dashboard'} ? 'admin-nav-link active' : 'admin-nav-link'">대시보드</a>
+        <a th:href="@{/admin/notices}"
+           th:class="${currentPage == 'notices'} ? 'admin-nav-link active' : 'admin-nav-link'">공지 관리</a>
     </nav>
 
     <div class="admin-header-right">

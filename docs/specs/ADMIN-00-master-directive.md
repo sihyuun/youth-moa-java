@@ -186,11 +186,12 @@
 - 관리자 시드: `SYSTEM_ADMIN` 1 + `CENTER_ADMIN` 2 (센터 상이 — 격리 테스트용). 비밀번호는 환경변수 주입, 하드코딩 금지
 - 로그인 실패 잠금·비밀번호 정책은 기존 사용자 규칙 재사용
 
-### P0-3 `chore/file-upload` — 파일 업로드 인프라
+### P0-3 `chore/file-upload` — 파일 업로드 인프라 ✅ **impl_done (2026-09-03, A-admin-notice-attachment 로 완결)**
 
 - 현황: `spring.servlet.multipart` 설정 없음, NoticeAttachment 는 메타데이터 stub
 - 지시: multipart 설정(max 10MB 등) + `FileStorageService` 인터페이스 → **Q4 결정** (로컬 디스크 vs Supabase Storage). Fly.io 디스크는 ephemeral 이므로 프로덕션은 Supabase Storage(S3 호환) 권장 — 기존 Supabase 프로젝트 재사용
 - 적용 대상: 프로그램 썸네일, 첨부파일, (기존) NoticeAttachment 실파일 승격
+- **완결**: `A-admin-notice-attachment` (feature/admin-notice-attachment 브랜치, 2026-09-03) 에서 `FileStorage` 인터페이스 + `LocalFileStorage` (non-prod) + `SupabaseFileStorage` (prod, REST + OkHttp) 신설. `spring.servlet.multipart` 5MB / 6MB 설정 적용. 프로그램 썸네일·첨부는 A3 착수 시 동일 인프라 재사용.
 
 ### P0-4 `chore/actuator` — Actuator 도입 (소형)
 

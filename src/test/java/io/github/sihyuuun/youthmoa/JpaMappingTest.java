@@ -114,6 +114,7 @@ class JpaMappingTest {
                 .content("본문")
                 .category(io.github.sihyuuun.youthmoa.notice.NoticeCategory.NOTICE)
                 .isPinned(true)
+                .createdBy(admin)
                 .build());
 
     notificationRepository.save(

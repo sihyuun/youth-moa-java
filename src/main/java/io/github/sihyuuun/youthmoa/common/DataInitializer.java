@@ -83,11 +83,13 @@ public class DataInitializer implements ApplicationRunner {
     seedRegionsAndCenters();
     seedPrograms();
     seedSiteImages();
+    // A-admin-notice-attachment (2026-09-03 · Qn-8 Custom): Notice.createdBy 가 NOT NULL 이므로
+    // sysadmin 시드가 반드시 seedNotices 보다 먼저 실행되어야 한다. seedAdmins 를 seedNotices 앞으로 이동.
+    seedAdmins();
     seedNotices();
     seedApplications();
     seedBookmarks();
     seedNotifications();
-    seedAdmins();
     seedTerms();
   }
 
@@ -303,6 +305,14 @@ public class DataInitializer implements ApplicationRunner {
       return;
     }
 
+    // A-admin-notice-attachment: 작성자 기반 RBAC 를 위해 sysadmin 을 createdBy 로 부착.
+    // seedAdmins 가 seedNotices 앞에서 실행되므로 여기서 조회 가능.
+    User sysadmin =
+        userRepository
+            .findByEmail("sysadmin@youth-moa.test")
+            .orElseThrow(
+                () -> new IllegalStateException("sysadmin seed must exist before seedNotices"));
+
     // 본문은 HTML 저장 (F0g Q3: 상세 이미지 인라인). prototype §5.14 참조 마크업 재구성.
     String bodyEvent =
         "<p>안녕하세요, 경기도 청년모아입니다.</p>"
@@ -328,6 +338,7 @@ public class DataInitializer implements ApplicationRunner {
                 .isPinned(true)
                 .imageUrl(
                     "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=360&h=220&fit=crop")
+                .createdBy(sysadmin)
                 .build(),
             Notice.builder()
                 .title("2026년 상반기 청년센터 운영 방침")
@@ -336,56 +347,67 @@ public class DataInitializer implements ApplicationRunner {
                 .isPinned(true)
                 .imageUrl(
                     "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=360&h=220&fit=crop")
+                .createdBy(sysadmin)
                 .build(),
             Notice.builder()
                 .title("7월 청년센터 프로그램 일정 안내")
                 .content(bodyGeneric)
                 .category(NoticeCategory.NOTICE)
+                .createdBy(sysadmin)
                 .build(),
             Notice.builder()
                 .title("7월 휴관 일정 안내")
                 .content(bodyGeneric)
                 .category(NoticeCategory.OPERATION)
+                .createdBy(sysadmin)
                 .build(),
             Notice.builder()
                 .title("[경기도] 2026 경기 사회적 경제 박람회")
                 .content(bodyEvent)
                 .category(NoticeCategory.EVENT)
+                .createdBy(sysadmin)
                 .build(),
             Notice.builder()
                 .title("청년 창업 아카데미 오픈 안내")
                 .content(bodyGeneric)
                 .category(NoticeCategory.EVENT)
+                .createdBy(sysadmin)
                 .build(),
             Notice.builder()
                 .title("시설 점검에 따른 임시 휴관 안내")
                 .content(bodyGeneric)
                 .category(NoticeCategory.OPERATION)
+                .createdBy(sysadmin)
                 .build(),
             Notice.builder()
                 .title("청년모아 회원가입 이벤트 진행")
                 .content(bodyGeneric)
                 .category(NoticeCategory.ETC)
+                .createdBy(sysadmin)
                 .build(),
             Notice.builder()
                 .title("2026 경기청년 정책 설문조사 참여 요청")
                 .content(bodyGeneric)
                 .category(NoticeCategory.NOTICE)
+                .createdBy(sysadmin)
                 .build(),
             Notice.builder()
                 .title("청년센터 이용 규정 개정 안내")
                 .content(bodyGeneric)
                 .category(NoticeCategory.OPERATION)
+                .createdBy(sysadmin)
                 .build(),
             Notice.builder()
                 .title("AI 활용 특강 참가자 모집")
                 .content(bodyEvent)
                 .category(NoticeCategory.EVENT)
+                .createdBy(sysadmin)
                 .build(),
             Notice.builder()
                 .title("개인정보 처리방침 개정 안내")
                 .content(bodyGeneric)
                 .category(NoticeCategory.ETC)
+                .createdBy(sysadmin)
                 .build());
     noticeRepository.saveAll(notices);
     log.info(

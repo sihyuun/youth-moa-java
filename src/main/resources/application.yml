@@ -39,6 +39,15 @@ spring:
     suffix: .html
     enabled: true
 
+  # A-admin-notice-attachment (2026-09-03 · Qn-2 A):
+  # - max-file-size = 5MB (NoticeService.MAX_ATTACHMENT_SIZE_BYTES 와 일치, Servlet-level rejection 이 우선)
+  # - max-request-size = 6MB (파일 5MB + 폼 필드 여유)
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 5MB
+      max-request-size: 6MB
+
   # 정적 리소스 매핑 = Spring Boot 기본값 (classpath:/static/ → /**)
   # /css/**, /images/**, /webjars/** 등이 SecurityConfig 의 permitAll 매처와 일치하도록 root 매핑 유지.
   # ❌ static-path-pattern: /static/** 로 좁히면 /css/main.css 등이 매핑 안 되어
@@ -85,6 +94,18 @@ security:
 youthmoa:
   kakao:
     map-app-key: ${KAKAO_MAP_APP_KEY:}
+  # A-admin-notice-attachment (2026-09-03 · Qn-1 C):
+  # - storage.backend=local (기본): ./storage/{bucket}/{path} 로 로컬 저장 (dev/e2e/local/test-guard)
+  # - storage.backend=supabase: Supabase Storage REST + OkHttp (prod). @Profile("prod") 로 자동 선택.
+  # - SUPABASE_URL 은 기존 재활용. SUPABASE_SERVICE_ROLE_KEY 는 prod secret (배포 세션에서 등록).
+  storage:
+    backend: ${YOUTHMOA_STORAGE_BACKEND:local}
+    local:
+      root-dir: ${YOUTHMOA_STORAGE_LOCAL_DIR:./storage}
+    supabase:
+      url: ${SUPABASE_URL:}
+      service-role-key: ${SUPABASE_SERVICE_ROLE_KEY:}
+      notice-bucket: ${SUPABASE_NOTICE_BUCKET:notice-attachments}
   # F-signup-01: CoolSMS 휴대폰 인증
   # - enabled=false 이면 MockSmsSender 가 활성화되어 실 발송 없이 로그만 남김 (개발/e2e 기본).
   # - mock 모드에서는 항상 mock-fixed-code(=123456) 로 검증되도록 서비스가 코드 생성 대체.

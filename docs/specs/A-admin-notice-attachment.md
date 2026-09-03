@@ -2,7 +2,7 @@
 
 | 메타 | 값 |
 |---|---|
-| 상태 | `spec_confirmed` (2026-09-03 사용자 결정: Qn-1 **C** · Qn-2 A · Qn-3 A · Qn-4 A · Qn-5 **A** · Qn-6 **B** · Qn-7 A · Qn-8 **Custom (작성자 기반, 아래 §8-후속)** · Qn-9 A) |
+| 상태 | `impl_done` (2026-09-03 · brancn feature/admin-notice-attachment · Qn-1 **C** · Qn-2 A · Qn-3 A · Qn-4 A · Qn-5 **A** · Qn-6 **B** · Qn-7 A · Qn-8 **Custom (작성자 기반, 아래 §8-후속)** · Qn-9 A) |
 | 브랜치 후보 | `feature/admin-notice-attachment` |
 | 착수 조건 | **A1 admin-shell (PR #205) 머지 후**. AdminScope · admin 헤더 fragment · `/admin/**` SecurityFilterChain · SYSTEM_ADMIN/CENTER_ADMIN 시드가 A1 산출물이며 이 티켓의 필수 인프라 |
 | 관련 문서 | `docs/specs/F-notice-attachment.md` (사용자 다운로드 완료 · PR #130) · `docs/specs/ADMIN-00-master-directive.md` §P0-3/§Q4 · `docs/adr/admin-track-roadmap-2026-09.md` §Q5 |
@@ -311,3 +311,57 @@ Qn-1=C + Qn-5=A + Qn-8=Custom 조합으로 원래 예상보다 대폭 확대. �
 ## 11. 인계
 
 Qn-1~9 결정 후 `ym-impl` 인계. 브랜치 `feature/admin-notice-attachment`.
+
+---
+
+## 12. 구현 매핑 (2026-09-03 · ym-impl)
+
+### 명세 §6 변경 범위 → 파일
+
+| 명세 항목 | 구현 파일 |
+|---|---|
+| Notice.createdBy 신설 | `src/main/java/.../notice/Notice.java` (필드 + Builder) |
+| V9 마이그레이션 (3단계 백필) | `src/main/resources/db/migration/V9__add_notice_created_by.sql` |
+| DataInitializer 시드 순서 (admins → notices) + createdBy 부착 | `src/main/java/.../common/DataInitializer.java` |
+| `FileStorage` 인터페이스 | `src/main/java/.../common/storage/FileStorage.java` |
+| `StoredFile` record | `src/main/java/.../common/storage/StoredFile.java` |
+| `LocalFileStorage` (@Profile !prod) | `src/main/java/.../common/storage/LocalFileStorage.java` |
+| `SupabaseFileStorage` (@Profile prod, REST + OkHttp) | `src/main/java/.../common/storage/SupabaseFileStorage.java` |
+| multipart 5MB / 6MB 설정 | `src/main/resources/application.yml:36-42` |
+| storage backend 설정 | 동일 파일 `youthmoa.storage.*` |
+| OkHttp 의존성 | `build.gradle.kts` (com.squareup.okhttp3:okhttp:4.12.0) |
+| `AdminNoticeService` (RBAC + CRUD + 업로드 검증) | `src/main/java/.../admin/AdminNoticeService.java` |
+| `AdminNoticeController` (7 endpoint) | `src/main/java/.../admin/AdminNoticeController.java` |
+| 목록 화면 | `src/main/resources/templates/admin/notice/list.html` |
+| 신규/편집 폼 (mode 분기) | `src/main/resources/templates/admin/notice/form.html` |
+| 첨부 fragment (HTMX target) | `src/main/resources/templates/admin/notice/_attachments-fragment.html` |
+| GNB "공지 관리" 링크 | `src/main/resources/templates/admin/fragments/header.html:44-45` |
+| CSS (버튼 · 폼 · 첨부 · 모달) | `src/main/resources/static/css/admin.css` (append) |
+| 계약 문서 | `docs/design-contracts/admin/notice-management.md` |
+| 계약 스펙 (list/form/edit) | `e2e/contracts/admin-notice.ts` |
+
+### 테스트
+
+| 대상 | 위치 | 통과 |
+|---|---|---|
+| `AdminNoticeServiceTest` (RBAC 5 + 업로드 검증 8) | `src/test/java/.../admin/AdminNoticeServiceTest.java` | ✅ |
+| `LocalFileStorageTest` (round-trip 5) | `src/test/java/.../common/storage/LocalFileStorageTest.java` | ✅ |
+| 기존 `NoticeAttachmentRepositoryTest` (createdBy 추가 반영) | 갱신 후 ✅ | ✅ |
+| 기존 `JpaMappingTest` (createdBy 반영) | 갱신 후 ✅ | ✅ |
+| 기존 `HomeServiceTest` (createdBy 반영) | 갱신 후 ✅ | ✅ |
+
+### RBAC 매트릭스 (§8-후속) 이행
+
+| 액션 | SYSTEM_ADMIN | CENTER_ADMIN 본인 | CENTER_ADMIN 타인 | 구현 |
+|---|---|---|---|---|
+| Create | ✅ | ✅ | ✅ | Controller `create()` |
+| Read (목록·편집 폼) | ✅ | ✅ | ✅ | `list()`, `editForm()` |
+| Update | ✅ | ✅ | ❌ 403 | Service `assertCanEdit()` |
+| Delete | ✅ | ✅ | ❌ 403 | 동일 |
+| 첨부 업로드/삭제 | ✅ | ✅ | ❌ 403 | 동일 |
+
+### 미완 / 후속
+
+- **동적 검증**: bootRun 8091 curl round-trip · 계약 스캔 (`--project=contracts admin-notice-*`) · 기능 E2E (`admin-notice-*.spec.ts` 신설) 는 ym-qa 세션에서 진행
+- **prod SUPABASE_SERVICE_ROLE_KEY**: fly.toml secret 등록은 배포 세션에서
+- **A3 프로그램 첨부·썸네일** 은 동일 `FileStorage` 인터페이스 재활용 예정

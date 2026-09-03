@@ -717,3 +717,299 @@ body.admin-shell-body {
     font-weight: 700;
     font-family: 'Inter', sans-serif;
 }
+
+/* ========== A-admin-notice-attachment (2026-09-03) 공지 관리 CRUD ========== */
+
+.admin-notice-page,
+.admin-notice-form-page {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 24px 24px 60px;
+}
+
+.admin-notice-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.admin-notice-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--color-text, #111827);
+    margin: 0 0 4px;
+}
+
+.admin-notice-sub {
+    font-size: 13px;
+    color: var(--color-text-sec, #6b7280);
+    margin: 0;
+}
+
+/* 버튼 공통 */
+.admin-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    border: 1px solid transparent;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background .15s, border-color .15s;
+    background: #fff;
+    color: #111827;
+    line-height: 1.2;
+}
+.admin-btn--sm { padding: 6px 12px; font-size: 12px; }
+.admin-btn--primary { background: #3F30E9; color: #fff; }
+.admin-btn--primary:hover { background: #2c1fc7; }
+.admin-btn--outline { border-color: #d1d5db; color: #374151; }
+.admin-btn--outline:hover { background: #f9fafb; }
+.admin-btn--danger { background: #dc2626; color: #fff; border-color: #dc2626; }
+.admin-btn--danger:hover { background: #b91c1c; }
+.admin-btn--danger-outline { border-color: #fca5a5; color: #dc2626; background: #fff; }
+.admin-btn--danger-outline:hover { background: #fef2f2; }
+
+/* 목록 카드 */
+.admin-notice-list-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    overflow: hidden;
+}
+.admin-notice-row {
+    display: grid;
+    grid-template-columns: 60px 96px 1fr 120px 120px 100px;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 20px;
+    border-bottom: 1px solid #f3f4f6;
+    font-size: 14px;
+}
+.admin-notice-row--head {
+    background: #f9fafb;
+    font-weight: 600;
+    color: #6b7280;
+    font-size: 12px;
+}
+.admin-notice-empty {
+    padding: 40px 20px;
+    text-align: center;
+    color: #9ca3af;
+    font-size: 14px;
+}
+.admin-notice-title-link {
+    color: #111827;
+    text-decoration: none;
+    font-weight: 500;
+}
+.admin-notice-title-link:hover { color: #3F30E9; text-decoration: underline; }
+.admin-notice-cat-pill {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    background: #eef2ff;
+    color: #4338ca;
+}
+.admin-notice-cat-pill--event { background: #fef3c7; color: #92400e; }
+.admin-notice-cat-pill--operation { background: #dbeafe; color: #1e40af; }
+.admin-notice-cat-pill--etc { background: #f3f4f6; color: #4b5563; }
+.admin-notice-pinned { margin-left: 4px; font-size: 12px; }
+
+/* 페이징 */
+.admin-notice-paging {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 20px;
+}
+.admin-page-btn {
+    min-width: 36px;
+    height: 36px;
+    padding: 0 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    background: #fff;
+    color: #374151;
+    text-decoration: none;
+    font-size: 13px;
+}
+.admin-page-btn--active { background: #3F30E9; color: #fff; border-color: #3F30E9; }
+.admin-page-btn--disabled { opacity: .4; pointer-events: none; }
+
+/* 폼 */
+.admin-notice-form {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 24px;
+}
+.admin-notice-form-row { margin-bottom: 18px; }
+.admin-notice-form-row-split {
+    display: grid;
+    grid-template-columns: 1fr 200px;
+    gap: 16px;
+}
+.admin-notice-form-row--checkbox { display: flex; align-items: flex-end; }
+.admin-notice-form-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 6px;
+}
+.admin-notice-form-required { color: #dc2626; }
+.admin-notice-form-input,
+.admin-notice-form-select,
+.admin-notice-form-textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: inherit;
+    background: #fff;
+    box-sizing: border-box;
+}
+.admin-notice-form-textarea { resize: vertical; min-height: 220px; font-family: monospace; font-size: 13px; }
+.admin-notice-form-actions {
+    display: flex;
+    gap: 10px;
+    padding-top: 8px;
+    border-top: 1px solid #f3f4f6;
+    margin-top: 12px;
+}
+
+/* 첨부 */
+.admin-notice-attachments-wrapper { margin-top: 24px; }
+.admin-notice-attachments-section {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 20px 24px;
+}
+.admin-notice-form-section-title {
+    font-size: 16px;
+    font-weight: 700;
+    margin: 0 0 12px;
+    color: #111827;
+}
+.admin-notice-attachments-empty {
+    padding: 12px 0;
+    color: #9ca3af;
+    font-size: 13px;
+}
+.admin-notice-attachments-list {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 16px;
+}
+.admin-notice-attachment-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    margin-bottom: 6px;
+    background: #f9fafb;
+}
+.admin-notice-attachment-name {
+    flex: 1;
+    color: #111827;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.admin-notice-attachment-name:hover { color: #3F30E9; text-decoration: underline; }
+.admin-notice-attachment-size { font-size: 12px; color: #6b7280; }
+.admin-notice-upload-form {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-top: 14px;
+    border-top: 1px solid #f3f4f6;
+    flex-wrap: wrap;
+}
+.admin-notice-upload-input {
+    flex: 1;
+    padding: 8px;
+    border: 1px dashed #d1d5db;
+    border-radius: 8px;
+    font-size: 13px;
+    background: #fafafa;
+    min-width: 240px;
+}
+.admin-notice-upload-hint {
+    width: 100%;
+    font-size: 12px;
+    color: #9ca3af;
+    margin: 0;
+}
+
+/* RBAC banner */
+.admin-notice-forbidden-banner {
+    padding: 12px 16px;
+    background: #fef3c7;
+    border: 1px solid #fbbf24;
+    border-radius: 8px;
+    color: #92400e;
+    font-size: 13px;
+    margin-bottom: 16px;
+}
+
+/* Confirm 모달 (Qn-9 A) */
+.admin-confirm-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.admin-confirm-modal[hidden] { display: none; }
+.admin-confirm-modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(17, 24, 39, .5);
+}
+.admin-confirm-modal-body {
+    position: relative;
+    background: #fff;
+    border-radius: 12px;
+    padding: 24px 28px;
+    width: 420px;
+    max-width: 92vw;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, .2);
+}
+.admin-confirm-modal-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #111827;
+    margin: 0 0 8px;
+}
+.admin-confirm-modal-desc {
+    font-size: 14px;
+    color: #6b7280;
+    margin: 0 0 20px;
+    line-height: 1.5;
+}
+.admin-confirm-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}

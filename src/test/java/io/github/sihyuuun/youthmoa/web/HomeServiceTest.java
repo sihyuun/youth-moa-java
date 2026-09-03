@@ -43,8 +43,19 @@ class HomeServiceTest {
   @Autowired SiteImageRepository siteImageRepository;
   @Autowired UserRepository userRepository;
 
+  private User noticeAuthor;
+
   @BeforeEach
   void setUp() {
+    // A-admin-notice-attachment: Notice.createdBy 필수화 → 시드 author 준비.
+    noticeAuthor =
+        userRepository.save(
+            User.builder()
+                .email("hs-notice-author@test.local")
+                .password("x")
+                .name("작성자")
+                .role(UserRole.SYSTEM_ADMIN)
+                .build());
     // 사이트 이미지 4 slot
     siteImageRepository.saveAll(
         List.of(
@@ -80,24 +91,28 @@ class HomeServiceTest {
                 .content("본문")
                 .category(io.github.sihyuuun.youthmoa.notice.NoticeCategory.EVENT)
                 .isPinned(true)
+                .createdBy(noticeAuthor)
                 .build(),
             Notice.builder()
                 .title("서브 1")
                 .content("본문")
                 .category(io.github.sihyuuun.youthmoa.notice.NoticeCategory.NOTICE)
                 .isPinned(false)
+                .createdBy(noticeAuthor)
                 .build(),
             Notice.builder()
                 .title("서브 2")
                 .content("본문")
                 .category(io.github.sihyuuun.youthmoa.notice.NoticeCategory.OPERATION)
                 .isPinned(false)
+                .createdBy(noticeAuthor)
                 .build(),
             Notice.builder()
                 .title("서브 3")
                 .content("본문")
                 .category(io.github.sihyuuun.youthmoa.notice.NoticeCategory.ETC)
                 .isPinned(false)
+                .createdBy(noticeAuthor)
                 .build()));
     // Center
     centerRepository.save(

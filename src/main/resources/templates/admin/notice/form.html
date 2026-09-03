@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${mode == 'new'} ? '공지 등록 — 청년모아 관리자' : '공지 편집 — 청년모아 관리자'">공지 편집</title>
+    <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"
+          rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" th:href="@{/images/logo_symbol.png}">
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
+    <meta name="_csrf" th:content="${_csrf?.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf?.headerName}"/>
+    <script th:src="@{/webjars/htmx.org/dist/htmx.min.js}"></script>
+</head>
+<body class="admin-shell-body">
+
+<div th:replace="~{admin/fragments/header :: header('notices', ${centerScopeLabel}, ${isSystemAdmin})}"></div>
+
+<main class="admin-shell-main">
+    <div class="admin-notice-form-page">
+
+        <section class="admin-notice-header">
+            <div>
+                <h2 class="admin-notice-title"
+                    th:text="${mode == 'new'} ? '공지 등록' : '공지 편집'">공지 편집</h2>
+                <p class="admin-notice-sub"
+                   th:text="${mode == 'new'} ? '새 공지를 등록합니다.' : '기존 공지 내용을 수정하거나 첨부파일을 관리합니다.'">
+                    공지 편집</p>
+            </div>
+            <a th:href="@{/admin/notices}" class="admin-btn admin-btn--outline">← 목록으로</a>
+        </section>
+
+        <!-- RBAC 안내: 편집 불가한 경우 배너 -->
+        <div th:if="${mode == 'edit' and !canEdit}" class="admin-notice-forbidden-banner">
+            이 공지는 다른 관리자가 작성한 항목이라 편집·삭제할 수 없어요.
+            (수정은 시스템관리자 또는 최초 작성자만 가능)
+        </div>
+
+        <!-- 본문 폼 -->
+        <form class="admin-notice-form"
+              th:action="${mode == 'new'} ? @{/admin/notices} : @{/admin/notices/{id}(id=${notice.id})}"
+              method="post">
+            <fieldset th:disabled="${mode == 'edit' and !canEdit}" style="border:0;padding:0;margin:0;">
+
+                <div class="admin-notice-form-row">
+                    <label class="admin-notice-form-label" for="title">제목 <span
+                            class="admin-notice-form-required">*</span></label>
+                    <input type="text" id="title" name="title" required maxlength="255"
+                           class="admin-notice-form-input"
+                           th:value="${notice != null ? notice.title : ''}"
+                           placeholder="공지 제목을 입력해주세요.">
+                </div>
+
+                <div class="admin-notice-form-row-split">
+                    <div class="admin-notice-form-row">
+                        <label class="admin-notice-form-label" for="category">분류</label>
+                        <select id="category" name="category" class="admin-notice-form-select">
+                            <option th:each="c : ${categories}"
+                                    th:value="${c.name()}"
+                                    th:text="${c.label}"
+                                    th:selected="${notice != null and notice.category == c}">공지</option>
+                        </select>
+                    </div>
+                    <div class="admin-notice-form-row admin-notice-form-row--checkbox">
+                        <label class="admin-notice-form-label" for="isPinned">
+                            <input type="checkbox" id="isPinned" name="isPinned" value="true"
+                                   th:checked="${notice != null and notice.isPinned}">
+                            상단 고정
+                        </label>
+                    </div>
+                </div>
+
+                <div class="admin-notice-form-row">
+                    <label class="admin-notice-form-label" for="imageUrl">대표 이미지 URL</label>
+                    <input type="text" id="imageUrl" name="imageUrl" maxlength="500"
+                           class="admin-notice-form-input"
+                           th:value="${notice != null ? notice.imageUrl : ''}"
+                           placeholder="https://... (선택)">
+                </div>
+
+                <div class="admin-notice-form-row">
+                    <label class="admin-notice-form-label" for="content">내용 <span
+                            class="admin-notice-form-required">*</span></label>
+                    <textarea id="content" name="content" required rows="14"
+                              class="admin-notice-form-textarea"
+                              placeholder="공지 내용을 입력해주세요. HTML 태그 사용 가능."
+                              th:text="${notice != null ? notice.content : ''}"></textarea>
+                </div>
+
+                <div class="admin-notice-form-actions">
+                    <button type="submit" class="admin-btn admin-btn--primary"
+                            th:text="${mode == 'new'} ? '등록' : '수정 저장'">저장</button>
+
+                    <!-- 삭제 (편집 모드 · canEdit true 만 노출) -->
+                    <button th:if="${mode == 'edit' and canEdit}"
+                            type="button"
+                            class="admin-btn admin-btn--danger"
+                            data-delete-trigger="notice-delete-modal">삭제</button>
+                </div>
+
+            </fieldset>
+        </form>
+
+        <!-- 첨부 fragment — 편집 모드에서만 노출 (신규 등록 시 id 가 아직 없음) -->
+        <div th:if="${mode == 'edit'}" class="admin-notice-attachments-wrapper">
+            <div th:replace="~{admin/notice/_attachments-fragment :: attachments}"></div>
+        </div>
+
+        <!-- 삭제 confirm 모달 (Qn-9 A: 커스텀 모달) -->
+        <div th:if="${mode == 'edit' and canEdit}"
+             id="notice-delete-modal" class="admin-confirm-modal" hidden aria-hidden="true"
+             role="dialog" aria-labelledby="notice-delete-modal-title" aria-modal="true">
+            <div class="admin-confirm-modal-backdrop" data-modal-close></div>
+            <div class="admin-confirm-modal-body">
+                <h3 id="notice-delete-modal-title" class="admin-confirm-modal-title">공지를 삭제할까요?</h3>
+                <p class="admin-confirm-modal-desc">
+                    삭제한 공지는 되돌릴 수 없어요. 첨부파일도 함께 삭제됩니다.
+                </p>
+                <div class="admin-confirm-modal-actions">
+                    <button type="button" class="admin-btn admin-btn--outline"
+                            data-modal-close>취소</button>
+                    <form th:action="@{/admin/notices/{id}/delete(id=${notice.id})}"
+                          method="post" style="display:inline;">
+                        <button type="submit" class="admin-btn admin-btn--danger">삭제</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</main>
+
+<script th:inline="javascript">
+    // 유저 드롭다운
+    (function () {
+        var trigger = document.querySelector('.admin-header-user-trigger');
+        var menu = document.getElementById('admin-user-dropdown');
+        if (trigger && menu) {
+            trigger.addEventListener('click', function (ev) {
+                ev.stopPropagation();
+                menu.hidden = !menu.hidden;
+                trigger.setAttribute('aria-expanded', String(!menu.hidden));
+            });
+            document.addEventListener('click', function (ev) {
+                if (!menu.hidden && !menu.contains(ev.target)) {
+                    menu.hidden = true;
+                    trigger.setAttribute('aria-expanded', 'false');
+                }
+            });
+        }
+    })();
+
+    // 커스텀 confirm 모달 (Qn-9 A)
+    (function () {
+        var triggers = document.querySelectorAll('[data-delete-trigger]');
+        triggers.forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var id = btn.getAttribute('data-delete-trigger');
+                var modal = document.getElementById(id);
+                if (!modal) return;
+                modal.hidden = false;
+                modal.setAttribute('aria-hidden', 'false');
+            });
+        });
+        document.querySelectorAll('[data-modal-close]').forEach(function (el) {
+            el.addEventListener('click', function () {
+                var modal = el.closest('.admin-confirm-modal');
+                if (modal) {
+                    modal.hidden = true;
+                    modal.setAttribute('aria-hidden', 'true');
+                }
+            });
+        });
+    })();
+
+    // HTMX CSRF 토큰 부착
+    (function () {
+        var token = document.querySelector('meta[name="_csrf"]');
+        var header = document.querySelector('meta[name="_csrf_header"]');
+        if (token && header && window.htmx) {
+            document.body.addEventListener('htmx:configRequest', function (evt) {
+                evt.detail.headers[header.getAttribute('content')] = token.getAttribute('content');
+            });
+        }
+    })();
+</script>
+</body>
+</html>
