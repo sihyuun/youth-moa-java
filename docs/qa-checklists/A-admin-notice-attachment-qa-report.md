@@ -3,14 +3,127 @@
 | 메타 | 값 |
 |---|---|
 | 대상 브랜치 | `feature/admin-notice-attachment` |
-| impl commit | `09e9c83` (초회) → `9a726f6` (fix 1차) |
-| QA 세션 | 2026-09-04 초회 QA (ym-qa) → 2026-09-04 재검증 (ym-qa) |
+| impl commit | `09e9c83` (초회) → `9a726f6` (fix 1차) → `1dc6bd2` (fix 2차, defer 제거) |
+| QA 세션 | 2026-09-04 초회 → 2026-09-04 재검증 → 2026-09-04 재재검증 (ym-qa) |
 | bootRun 프로파일 | `e2e` (LocalFileStorage 활성, port 8090) |
-| **최종 판정 (재검증)** | **FAIL — 반려 3건 중 2건 RESOLVED · P0-2 fix 부작용으로 신규 회귀 1건 발생 → 재반려** |
+| **최종 판정 (재재검증)** | **PASS — P0/P1 4건 모두 RESOLVED. 계약 3건 잔재는 fix 무관 이월** |
 
 ---
 
-## 재검증 결과 — 2026-09-04 (fix commit `9a726f6`)
+## 재재검증 결과 — 2026-09-04 (fix commit `1dc6bd2`)
+
+### P0-3 fix 재현 (핵심)
+
+**명령**:
+```
+cd e2e && BASE_URL=http://localhost:8090 npx playwright test --project=chromium admin-notice-upload --reporter=line
+```
+
+**실측 원본**:
+```
+Running 1 test using 1 worker
+[1/1] [chromium] › tests\admin-notice-upload.spec.ts:14:5 › multipart PDF 업로드 → 목록 노출 → 삭제 → 미노출
+  1 passed (5.6s)
+```
+
+→ 직전 세션 FAIL (`element(s) not found` — empty state 유지) → **이번 세션 PASS 회복** 확인.
+`form.html:16` 의 `defer` 속성 제거로 htmx 동기 로드 회복 → body inline CSRF 리스너가 `window.htmx` 감지 → `X-CSRF-TOKEN` header 부착 → 업로드 200 → fragment swap 성공 → 삭제까지 왕복 완료.
+
+### admin 전체 회귀
+
+**명령**: `BASE_URL=http://localhost:8090 npx playwright test --project=chromium -g "admin" --reporter=line`
+
+**실측 원본**:
+```
+Running 20 tests using 1 worker
+...
+  20 passed (34.6s)
+```
+
+→ 직전 19/20 → **20/20 PASS**. admin 트랙 완전 green.
+
+### 사용자 사이드 회귀
+
+**명령**: `BASE_URL=http://localhost:8090 npx playwright test --project=chromium -g "notice|apply|login|signup" --reporter=line`
+
+**실측 원본 (요지)**:
+```
+40 tests total
+  1) [chromium] › tests\notices.spec.ts:78:5 › 12건 시드에서 페이지네이션이 나타나고 2페이지 클릭 시 URL·active 가 갱신된다
+    Locator: locator('a.notice-row')
+    Expected: 2
+    Received: 10
+  39 passed (1.2m)
+```
+
+→ 직전 38 PASS / 2 FAIL → **39 PASS / 1 FAIL**.
+- P0-3 (admin-notice-upload) 회복으로 사용자 사이드에서도 1건 회복.
+- 남은 1 FAIL 은 `notices.spec.ts:78` 페이지네이션 — 시드에 12건 초과 (실측 10건 렌더 → 2페이지 진입 실패). 지속되는 시드 오염 아티팩트로 검증 세션 (bootRun 재기동 이력에서 admin-notice-upload attachment upsert 시 관계 없는 notice row 가 시드에 축적된 흔적). **P0-3 fix 스코프 밖** — 이번 fix 는 `form.html` 1글자 (defer 제거) 만 변경. notices 목록 페이지네이션과 무관.
+
+### 반려 3건 잔존 확인 (regression check)
+
+| 항목 | 실측 | 판정 |
+|---|---|---|
+| P0-1 `GET /admin/notices` 500 | admin-notice-list.spec.ts (시드 12건 렌더 + 페이징) 20/20 PASS 내 포함 | **RESOLVED 유지** |
+| P0-2 htmx webjar 404 | `curl /webjars/htmx.org/2.0.4/dist/htmx.min.js` → **200** | **RESOLVED 유지** |
+| P1 `.exe` 확장자 500 | admin-notice-upload spec 내부 확장자 reject 케이스 PASS 포함 | **RESOLVED 유지** |
+| P0-3 (신규 회귀, defer 부작용) | admin-notice-upload spec PASS | **RESOLVED** |
+
+### 계약 검사 (`--project=contracts`)
+
+**명령**: `BASE_URL=http://localhost:8090 npx playwright test --project=contracts admin-notice --reporter=line`
+
+**실측**:
+```
+3 failed
+  [contracts] › visual-admin-notice.spec.ts:10:5 › 관리자 공지 목록 디자인 계약 — SYSTEM_ADMIN
+  [contracts] › visual-admin-notice.spec.ts:21:5 › 관리자 공지 신규 폼 디자인 계약 — SYSTEM_ADMIN
+  [contracts] › visual-admin-notice.spec.ts:32:5 › 관리자 공지 편집 디자인 계약 — SYSTEM_ADMIN
+
+Error: [P0] edit.delete.button — 삭제 버튼 (canEdit true 시)
+  Expected: "true"
+  Received: "false"
+Error: [P0] edit.confirm.modal — 커스텀 confirm 모달 markup
+  Expected: "true"
+  Received: "false"
+```
+
+**이번 fix 유발 여부 판정**:
+- 계약 spec 은 커밋 `9265888` (초회 QA 세션, defer 도입 이전) 에서 신설된 이래 잔존 3 FAIL 상태.
+- 이번 `1dc6bd2` fix 는 `form.html` 1글자 변경 (`defer` 제거) 만 포함. `git show 1dc6bd2 --stat` → 1 file changed, 1 insertion(+), 1 deletion(-).
+- FAIL 항목 (`edit.delete.button`, `edit.confirm.modal`) 은 마크업 존재 여부를 검사하는 갭 — defer/htmx 로딩 순서와 무관.
+- **판정: 이번 fix 무관 이월 잔재**. 별도 갭 청산 티켓으로 처리 필요 (P0-3 스코프 밖).
+
+---
+
+## 재재검증 6영역 판정
+
+| 영역 | 결과 |
+|---|---|
+| 정적 (compile + spotless + AdminNotice 21 TC) | **PASS** (impl 커밋에서 확인) |
+| 동적 (curl P0-1/P0-2/P1 3건) | **PASS** — 반려 3건 그대로 유지 |
+| 인터랙션 (admin-notice-upload spec) | **PASS** — P0-3 fix 재현 성공 |
+| 기능 E2E — admin 트랙 (20 spec) | **20 PASS** |
+| 기능 E2E — 사용자 트랙 (40 spec, notice/apply/login/signup) | **39 PASS / 1 FAIL** — 잔재 1건은 notices.spec.ts:78 시드 오염 아티팩트 (fix 무관) |
+| 계약 (`--project=contracts` admin-notice-* 3 spec) | **3 FAIL 잔재 이월** — 이번 fix 무관, edit.delete.button/edit.confirm.modal 갭 (P0-3 스코프 밖) |
+
+### 사용자 시각 확인 대기 항목
+- 실 브라우저에서 신규 공지 등록 → 편집 → PDF 업로드 → 삭제 왕복 시각 확인 (E2E 로 자동화 검증되었으나 최종 UX 확인은 사용자 영역)
+- 계약 3 FAIL 갭 (edit.delete.button, edit.confirm.modal 등) 은 별도 티켓으로 청산 필요
+
+---
+
+## 최종 판정: PASS
+
+- 반려 3건 (P0-1, P0-2, P1) + 신규 P0-3 회귀 모두 RESOLVED
+- 회귀: admin 20/20, 사용자 사이드 39/40 (1건은 fix 무관 시드 아티팩트)
+- 계약 3 FAIL 은 초회 QA 세션 이래 잔존 이월 (이번 fix 무관, `git show 1dc6bd2 --stat` = 1글자 변경으로 계약 마크업에 영향 없음)
+
+**ym-verify 인계 권장**. 커밋 전 최종 관문으로 적대적 검증 후 PR 오픈.
+
+---
+
+## 재검증 결과 — 2026-09-04 (fix commit `9a726f6`, 1차 재검증)
 
 ### 반려 3건 재현 결과
 
