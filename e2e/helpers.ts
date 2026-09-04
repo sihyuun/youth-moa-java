@@ -142,3 +142,23 @@ export async function resetApplications(
         );
     }
 }
+
+/**
+ * A-admin-notice-attachment seed-pollution 해소: 관리자 계정으로 생성된 임시 공지를 정리한다.
+ *
+ * 배경: admin-notice-form / admin-notice-upload / admin-notice-rbac spec 이 POST /admin/notices 로
+ * 임시 공지를 생성하고 정리 없이 종료 → notices.spec.ts:78 페이지네이션 테스트가 오염된 12+N 상태로 실행되어
+ * page 2 에 2건이 아니라 N+2건이 나오는 회귀 발생.
+ *
+ * 정책: TestFixtureController.resetNotices() 가 createdBy != sysadmin 인 공지만 삭제. 시드 12건은 보존.
+ *
+ * @param page Playwright Page (request context 재사용)
+ */
+export async function resetNotices(page: Page): Promise<void> {
+    const response = await page.request.post('/__test__/reset-notices');
+    if (response.status() !== 204) {
+        throw new Error(
+            `resetNotices failed: status=${response.status()} body=${await response.text()}`,
+        );
+    }
+}

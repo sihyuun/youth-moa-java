@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<!--
+  A-admin-notice-attachment (Qn-7 A): HTMX outerHTML swap 대상 fragment.
+  업로드/삭제 성공 시 서버가 이 fragment 를 반환 → hx-target 요소를 outerHTML 로 교체.
+  fragment root id 는 target 과 다르게 두어 중복 ID 사고 방지.
+-->
+<section th:fragment="attachments"
+         id="admin-notice-attachments"
+         class="admin-notice-attachments-section">
+
+    <h3 class="admin-notice-form-section-title">첨부파일</h3>
+
+    <div th:if="${attachments == null or attachments.isEmpty()}"
+         class="admin-notice-attachments-empty">
+        등록된 첨부파일이 없어요.
+    </div>
+
+    <ul th:if="${attachments != null and !attachments.isEmpty()}"
+        class="admin-notice-attachments-list">
+        <li th:each="a : ${attachments}" class="admin-notice-attachment-item">
+            <span class="admin-notice-attachment-icon" aria-hidden="true">📎</span>
+            <a class="admin-notice-attachment-name"
+               th:href="@{/notices/{noticeId}/attachments/{attachmentId}/download(noticeId=${notice.id},attachmentId=${a.id})}"
+               th:text="${a.fileName}">파일명.pdf</a>
+            <span class="admin-notice-attachment-size" th:text="${a.humanFileSize}">1.2MB</span>
+            <button th:if="${canEdit}" type="button"
+                    class="admin-btn admin-btn--sm admin-btn--danger-outline"
+                    th:hx-delete="@{/admin/notices/{noticeId}/attachments/{attachmentId}(noticeId=${notice.id},attachmentId=${a.id})}"
+                    hx-target="#admin-notice-attachments"
+                    hx-swap="outerHTML"
+                    hx-confirm="이 첨부파일을 삭제할까요? 되돌릴 수 없어요.">삭제</button>
+        </li>
+    </ul>
+
+    <form th:if="${canEdit and notice != null}"
+          class="admin-notice-upload-form"
+          th:hx-post="@{/admin/notices/{id}/attachments(id=${notice.id})}"
+          hx-target="#admin-notice-attachments"
+          hx-swap="outerHTML"
+          hx-encoding="multipart/form-data">
+        <input type="file" name="file"
+               accept=".pdf,.hwp,.docx,.xlsx"
+               required class="admin-notice-upload-input">
+        <button type="submit" class="admin-btn admin-btn--outline">업로드</button>
+        <p class="admin-notice-upload-hint">pdf · hwp · docx · xlsx · 최대 5MB</p>
+    </form>
+</section>
+</body>
+</html>

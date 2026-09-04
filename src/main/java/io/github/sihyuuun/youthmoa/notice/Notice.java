@@ -1,13 +1,17 @@
 package io.github.sihyuuun.youthmoa.notice;
 
 import io.github.sihyuuun.youthmoa.common.BaseTimeEntity;
+import io.github.sihyuuun.youthmoa.user.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -50,15 +54,29 @@ public class Notice extends BaseTimeEntity {
   @Column(length = 500)
   private String imageUrl;
 
+  /**
+   * A-admin-notice-attachment (2026-09-03 · Qn-8 Custom): 작성자 기반 RBAC. SYSTEM_ADMIN 전 공지 편집 가능,
+   * CENTER_ADMIN 본인 작성 공지만. V9 마이그레이션에서 기존 시드는 sysadmin 소유로 백필.
+   */
+  @ManyToOne(fetch = FetchType.LAZY, optional = false)
+  @JoinColumn(name = "created_by", nullable = false)
+  private User createdBy;
+
   @Builder
   private Notice(
-      String title, String content, NoticeCategory category, Boolean isPinned, String imageUrl) {
+      String title,
+      String content,
+      NoticeCategory category,
+      Boolean isPinned,
+      String imageUrl,
+      User createdBy) {
     this.title = title;
     this.content = content;
     this.category = category != null ? category : NoticeCategory.NOTICE;
     this.isPinned = isPinned != null ? isPinned : false;
     this.viewCount = 0;
     this.imageUrl = imageUrl;
+    this.createdBy = createdBy;
   }
 
   public void update(

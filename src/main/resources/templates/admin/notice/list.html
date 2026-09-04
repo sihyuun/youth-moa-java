@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>공지 관리 — 청년모아 관리자</title>
+    <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"
+          rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" th:href="@{/images/logo_symbol.png}">
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
+    <meta name="_csrf" th:content="${_csrf?.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf?.headerName}"/>
+</head>
+<body class="admin-shell-body">
+
+<div th:replace="~{admin/fragments/header :: header('notices', ${centerScopeLabel}, ${isSystemAdmin})}"></div>
+
+<main class="admin-shell-main">
+    <div class="admin-notice-page">
+
+        <section class="admin-notice-header">
+            <div>
+                <h2 class="admin-notice-title">공지 관리</h2>
+                <p class="admin-notice-sub">청년모아 공지사항을 등록·수정·삭제할 수 있어요.</p>
+            </div>
+            <a th:href="@{/admin/notices/new}" class="admin-btn admin-btn--primary">+ 신규 등록</a>
+        </section>
+
+        <section class="admin-notice-list-card">
+
+            <div class="admin-notice-row admin-notice-row--head">
+                <span class="admin-notice-col-id">번호</span>
+                <span class="admin-notice-col-cat">분류</span>
+                <span class="admin-notice-col-title">제목</span>
+                <span class="admin-notice-col-author">작성자</span>
+                <span class="admin-notice-col-date">등록일</span>
+                <span class="admin-notice-col-actions">관리</span>
+            </div>
+
+            <div th:if="${notices.isEmpty()}" class="admin-notice-empty">
+                등록된 공지사항이 없어요.
+            </div>
+
+            <div th:each="n : ${notices.content}" class="admin-notice-row">
+                <span class="admin-notice-col-id" th:text="${n.id}">1</span>
+                <span class="admin-notice-col-cat">
+                    <span class="admin-notice-cat-pill"
+                          th:classappend="${'admin-notice-cat-pill--' + n.category.name().toLowerCase()}"
+                          th:text="${n.category.label}">공지</span>
+                    <span th:if="${n.isPinned}" class="admin-notice-pinned" aria-label="상단 고정">📌</span>
+                </span>
+                <a class="admin-notice-col-title admin-notice-title-link"
+                   th:href="@{/admin/notices/{id}(id=${n.id})}"
+                   th:text="${n.title}">제목</a>
+                <span class="admin-notice-col-author"
+                      th:text="${n.createdBy != null ? n.createdBy.name : '-'}">시스템관리자</span>
+                <span class="admin-notice-col-date"
+                      th:text="${#temporals.format(n.createdAt, 'yyyy-MM-dd')}">2026-09-03</span>
+                <div class="admin-notice-col-actions">
+                    <a th:href="@{/admin/notices/{id}(id=${n.id})}"
+                       class="admin-btn admin-btn--sm admin-btn--outline">편집</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- 페이징 -->
+        <nav class="admin-notice-paging" th:if="${notices.totalPages > 1}" aria-label="페이지 이동">
+            <a class="admin-page-btn"
+               th:href="@{/admin/notices(page=${prevGroupPage})}"
+               th:classappend="${hasPrevGroup} ? '' : 'admin-page-btn--disabled'">‹</a>
+
+            <a th:each="p : ${#numbers.sequence(pageGroupStart, pageGroupEnd)}"
+               class="admin-page-btn"
+               th:classappend="${p == notices.number} ? ' admin-page-btn--active' : ''"
+               th:href="@{/admin/notices(page=${p})}"
+               th:text="${p + 1}">1</a>
+
+            <a class="admin-page-btn"
+               th:href="@{/admin/notices(page=${nextGroupPage})}"
+               th:classappend="${hasNextGroup} ? '' : 'admin-page-btn--disabled'">›</a>
+        </nav>
+
+    </div>
+</main>
+
+<script th:inline="javascript">
+    // 유저 드롭다운 (dashboard.html 과 동일 fallback)
+    (function () {
+        var trigger = document.querySelector('.admin-header-user-trigger');
+        var menu = document.getElementById('admin-user-dropdown');
+        if (!trigger || !menu) return;
+        function close() { menu.hidden = true; trigger.setAttribute('aria-expanded', 'false'); }
+        function open() { menu.hidden = false; trigger.setAttribute('aria-expanded', 'true'); }
+        trigger.addEventListener('click', function (ev) {
+            ev.stopPropagation();
+            if (menu.hidden) open(); else close();
+        });
+        document.addEventListener('click', function (ev) {
+            if (!menu.hidden && !menu.contains(ev.target)) close();
+        });
+    })();
+</script>
+</body>
+</html>
