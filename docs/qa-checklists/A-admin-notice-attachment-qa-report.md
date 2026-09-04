@@ -3,10 +3,118 @@
 | 메타 | 값 |
 |---|---|
 | 대상 브랜치 | `feature/admin-notice-attachment` |
-| impl commit | `09e9c83` (260903_admin_notice_attachment) |
-| QA 세션 | 2026-09-04 (ym-qa) |
+| impl commit | `09e9c83` (초회) → `9a726f6` (fix 1차) |
+| QA 세션 | 2026-09-04 초회 QA (ym-qa) → 2026-09-04 재검증 (ym-qa) |
 | bootRun 프로파일 | `e2e` (LocalFileStorage 활성, port 8090) |
-| 판정 | **FAIL — P0 프로덕션 회귀 2건 (list 500 · htmx 404). ym-impl 반려 대상.** |
+| **최종 판정 (재검증)** | **FAIL — 반려 3건 중 2건 RESOLVED · P0-2 fix 부작용으로 신규 회귀 1건 발생 → 재반려** |
+
+---
+
+## 재검증 결과 — 2026-09-04 (fix commit `9a726f6`)
+
+### 반려 3건 재현 결과
+
+| 항목 | 초회 상태 | 재검증 결과 | 판정 |
+|---|---|---|---|
+| P0-1: `GET /admin/notices` 500 (LazyInitializationException) | FAIL | 200 OK + `admin-notice-col-author` 에 `시스템관리자` 정상 렌더 | **RESOLVED** |
+| P0-2: HTMX webjar 경로 404 | FAIL | `/webjars/htmx.org/2.0.4/dist/htmx.min.js` 200, form.html 이 새 경로 참조 | **RESOLVED (기능만)** |
+| P1: 확장자 위반 시 500 | FAIL | 400 + `{"error":"허용되지 않는 파일 형식이에요. pdf, hwp, docx, xlsx 만 업로드할 수 있어요."}` | **RESOLVED** |
+
+### 신규 회귀 (P0-3, fix commit 부작용)
+
+**증상**: 첨부파일 업로드 인터랙션이 브라우저에서 실패한다. 서버 curl은 200 정상.
+
+**재현 절차**:
+```bash
+cd e2e && BASE_URL=http://localhost:8090 npx playwright test --project=chromium admin-notice-upload --reporter=line
+```
+
+Playwright 실측 결과 원본:
+```
+Error: expect(locator).toBeVisible() failed
+Locator: locator('.admin-notice-attachment-item').filter({ hasText: 'e2e-dummy.pdf' })
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+# error-context.md 페이지 스냅샷 발췌
+- heading "첨부파일" [level=3]
+- text: 등록된 첨부파일이 없어요.   ← 업로드 후에도 empty state 유지
+```
+
+curl 실측 (동일 endpoint, 정상):
+```
+POST /admin/notices/17/attachments (tiny.pdf, 15B, _csrf form field)
+→ 200 + <li class="admin-notice-attachment-item"> tiny.pdf 정상 렌더
+```
+
+**근본 원인 (확정)**:
+
+`form.html:16` 의 P0-2 fix 가 HTMX script 태그에 `defer` 를 도입:
+
+```html
+<script th:src="@{/webjars/htmx.org/2.0.4/dist/htmx.min.js}" defer></script>
+```
+
+`defer` 스크립트는 HTML 파싱 완료 후 · `DOMContentLoaded` 직전에 실행된다.
+반면 body 하단 inline script (`form.html:179-188`) 는 파싱 순서대로 즉시 실행되며,
+그 시점에 `window.htmx` 는 아직 `undefined` 이다.
+
+```javascript
+// form.html:180-188
+(function () {
+    var token = document.querySelector('meta[name="_csrf"]');
+    var header = document.querySelector('meta[name="_csrf_header"]');
+    if (token && header && window.htmx) {          // ← window.htmx === undefined → 리스너 미등록
+        document.body.addEventListener('htmx:configRequest', function (evt) {
+            evt.detail.headers[header.getAttribute('content')] = token.getAttribute('content');
+        });
+    }
+})();
+```
+
+결과: HTMX 요청에 `X-CSRF-TOKEN` header 가 부착되지 않음 → Spring Security 가 403 Forbidden 반환
+→ HTMX 는 error 상태로 swap 스킵 → DOM 미갱신 → "등록된 첨부파일이 없어요" 유지.
+
+curl 시나리오는 `_csrf` 를 form field 로 함께 보내서 Spring Security 가 통과시켰기 때문에 200 이 재현되어 서버 로그·응답만 봐서는 감지되지 않는 회귀다.
+
+**수정 방안 (택 1)**:
+- (권장) `defer` 제거 — 원래 head 에서 동기 로드하면 body inline script 시점에 `window.htmx` 준비 완료
+- 또는 inline script 를 `DOMContentLoaded` 리스너 안으로 감싸기
+- 또는 inline script 를 `defer` 스크립트로 분리 (선언 순서로 실행 보장)
+
+**test-only 수정 가능 여부**: **불가**. spec 은 실제 브라우저 인터랙션을 정확히 검증하고 있고 (CLAUDE.md "인터랙션 검증" 조항), 회귀는 프로덕션 코드에 있음.
+
+---
+
+## 재검증 6영역 판정
+
+| 영역 | 결과 |
+|---|---|
+| 정적 (compile + AdminNotice unit/render 21 TC) | **PASS** (BUILD SUCCESSFUL, 21/21) |
+| 동적 (curl P0-1/P0-2/P1 3건) | **PASS** — 3건 반려 원본 재현 |
+| 계약 (`--project=contracts` admin-notice-*) | **FAIL** — 3건 실패, 단 로그인 세션 유지 이슈로 이전부터 재현되던 계약 스캐너 자체 이슈로 추정 (fix 회귀 아님) |
+| 기능 E2E (`--project=chromium` admin-notice-* 4 spec) | **9 PASS / 1 FAIL** — upload spec 만 실패 (신규 회귀 P0-3) |
+| 회귀 (admin 트랙) | **19 PASS / 1 FAIL** — 실패 1건은 위 P0-3 upload spec. A1 admin-shell 무회귀 |
+| 회귀 (사용자 트랙: notice/apply/login/signup 40 spec) | **38 PASS / 2 FAIL** — 실패 1건은 P0-3, 1건은 `notices.spec.ts:78` 페이지네이션 (curl 검증 중 시드 오염으로 12→17건 초과 발생. **fix 회귀 아님, 검증 세션 아티팩트**) |
+
+### 사용자 시각 확인 대기 항목
+- 새 공지 등록 → 편집 화면 → PDF 업로드 UI 왕복 (P0-3 fix 이후 재검증 필요)
+- webjar 경로 변경 후 form.html 이외 화면 (신규 등록·편집) 의 HTMX 인터랙션 잔여 회귀 여부
+
+---
+
+## 재반려 사유
+
+Fix commit `9a726f6` 이 P0-2 를 해결하며 도입한 `defer` 속성이 body inline script 의 `window.htmx` 체크와 timing race 를 유발해 **첨부 업로드 인터랙션 전체가 브라우저에서 무력화**됨. curl 로는 정상 200 이 나오지만 실제 UI 는 동작 불가 → 릴리스 차단 수준의 회귀.
+
+**ym-impl 로 재반려**. 프로덕션 코드 수정 후 재검증 필요.
+
+---
+
+## 이하 초회 QA 리포트 원본 (2026-09-04 초회 세션)
+
+
 
 ---
 
