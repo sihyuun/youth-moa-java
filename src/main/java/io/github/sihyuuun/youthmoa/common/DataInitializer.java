@@ -61,6 +61,13 @@ public class DataInitializer implements ApplicationRunner {
   @Value("${admin.seed.password.center2:Admin!234}")
   private String adminSeedPasswordCenter2;
 
+  /**
+   * seedNotices() 가 생성하는 공지 개수. TestFixtureController#resetNotices() 가 id > SEED_NOTICE_COUNT 인 row
+   * 만 삭제하기 위해 참조. seedNotices() 를 수정하면 이 상수도 동기화한다. (E2E: sysadmin 세션으로 생성된 오염 notice 도 id 기준으로 잡기
+   * 위한 정책.)
+   */
+  public static final int SEED_NOTICE_COUNT = 12;
+
   private final ProgramRepository programRepository;
   private final RegionRepository regionRepository;
   private final CenterRepository centerRepository;

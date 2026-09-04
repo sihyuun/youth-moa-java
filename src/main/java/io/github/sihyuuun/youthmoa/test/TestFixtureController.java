@@ -2,10 +2,11 @@ package io.github.sihyuuun.youthmoa.test;
 
 import io.github.sihyuuun.youthmoa.application.Application;
 import io.github.sihyuuun.youthmoa.application.ApplicationRepository;
-import io.github.sihyuuun.youthmoa.notice.Notice;
-import io.github.sihyuuun.youthmoa.notice.NoticeRepository;
+import io.github.sihyuuun.youthmoa.common.DataInitializer;
 import io.github.sihyuuun.youthmoa.user.User;
 import io.github.sihyuuun.youthmoa.user.UserRepository;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import jakarta.validation.constraints.NotBlank;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -38,11 +39,10 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class TestFixtureController {
 
-  private static final String SEED_SYSADMIN_EMAIL = "sysadmin@youth-moa.test";
-
   private final ApplicationRepository applicationRepository;
   private final UserRepository userRepository;
-  private final NoticeRepository noticeRepository;
+
+  @PersistenceContext private EntityManager entityManager;
 
   /**
    * 특정 유저의 신청 row 를 삭제한다.
@@ -94,31 +94,35 @@ public class TestFixtureController {
    * /admin/notices} 로 임시 공지를 생성하고 정리 없이 종료 → notices.spec.ts:78 페이지네이션 테스트 (page 2 = 2건 기대) 가 오염된
    * 상태로 실행되어 6건이 나오는 회귀 발생.
    *
-   * <p>정책: {@code createdBy != sysadmin} 인 공지만 삭제. 시드 12건(모두 sysadmin 소유) 은 보존해 페이지네이션·목록 시나리오가 재현
-   * 가능하게 한다.
+   * <p>정책: {@code id > SEED_NOTICE_COUNT} 인 공지만 삭제. 시드 12건은 auto-increment 로 id 1~12 를 확보하므로 id 기준
+   * 필터가 안전하다. 이전 정책 (createdBy != sysadmin) 은 form/upload spec 이 sysadmin 세션으로 생성한 oo 공지를 잡지 못해
+   * notices.spec.ts:78 페이지네이션 회귀를 방치했음.
+   *
+   * <p>FK: {@code notice_attachment.notice_id} 는 ON DELETE CASCADE 가 걸려 있지 않으므로 (V1 baseline · V4)
+   * attachment 를 먼저 삭제한 뒤 notice 를 삭제한다.
    *
    * @return 204 No Content (idempotent — 대상 없어도 성공)
    */
   @PostMapping("/reset-notices")
   @Transactional
   public ResponseEntity<Void> resetNotices() {
-    User sysadmin =
-        userRepository
-            .findByEmail(SEED_SYSADMIN_EMAIL)
-            .orElseThrow(
-                () ->
-                    new IllegalArgumentException(
-                        "test fixture: sysadmin seed not found email=" + SEED_SYSADMIN_EMAIL));
-
-    Long sysadminId = sysadmin.getId();
-    List<Notice> targets =
-        noticeRepository.findAll().stream()
-            .filter(n -> n.getCreatedBy() == null || !sysadminId.equals(n.getCreatedBy().getId()))
-            .toList();
-    if (!targets.isEmpty()) {
-      noticeRepository.deleteAllInBatch(targets);
-    }
-    log.info("[test-fixture] reset-notices deleted={} (sysadmin seed preserved)", targets.size());
+    long seedCount = DataInitializer.SEED_NOTICE_COUNT;
+    int deletedAttachments =
+        entityManager
+            .createNativeQuery(
+                "DELETE FROM notice_attachment WHERE notice_id IN (SELECT id FROM notice WHERE id > :seedCount)")
+            .setParameter("seedCount", seedCount)
+            .executeUpdate();
+    int deletedNotices =
+        entityManager
+            .createNativeQuery("DELETE FROM notice WHERE id > :seedCount")
+            .setParameter("seedCount", seedCount)
+            .executeUpdate();
+    log.info(
+        "[test-fixture] reset-notices seedCount={} deletedNotices={} deletedAttachments={}",
+        seedCount,
+        deletedNotices,
+        deletedAttachments);
     return ResponseEntity.noContent().build();
   }
 
