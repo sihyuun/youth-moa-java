@@ -100,13 +100,15 @@ public class AdminNoticeService {
             Math.max(0, page),
             ADMIN_PAGE_SIZE,
             Sort.by(Sort.Order.desc("isPinned"), Sort.Order.desc("id")));
-    return noticeRepository.findAll(pageable);
+    // fetch join 으로 createdBy 즉시 로딩 (뷰 렌더 시 LazyInitializationException 방지).
+    return noticeRepository.findAllWithCreatedBy(pageable);
   }
 
   @Transactional(readOnly = true)
   public Notice findById(Long id) {
+    // 편집 화면·첨부 fragment 도 createdBy.name 을 참조하므로 fetch join.
     return noticeRepository
-        .findById(id)
+        .findByIdWithCreatedBy(id)
         .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 공지에요: " + id));
   }
 

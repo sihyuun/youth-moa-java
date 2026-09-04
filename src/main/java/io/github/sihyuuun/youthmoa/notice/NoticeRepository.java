@@ -4,9 +4,24 @@ import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
 public interface NoticeRepository extends JpaRepository<Notice, Long> {
+
+  /**
+   * 관리자 목록/편집 화면용 — {@code Notice.createdBy} LAZY 프록시가 뷰 렌더 시점에 초기화되지 못하고 {@code
+   * LazyInitializationException} 을 발생시키는 회귀 방지 (open-in-view=false 조합). EntityGraph 로 createdBy 를
+   * 즉시 로딩.
+   */
+  @EntityGraph(attributePaths = "createdBy")
+  @Query("select n from Notice n")
+  Page<Notice> findAllWithCreatedBy(Pageable pageable);
+
+  @EntityGraph(attributePaths = "createdBy")
+  @Query("select n from Notice n where n.id = :id")
+  Optional<Notice> findByIdWithCreatedBy(Long id);
 
   List<Notice> findAllByIsPinnedTrueOrderByCreatedAtDesc();
 
