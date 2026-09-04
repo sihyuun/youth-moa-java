@@ -5,12 +5,24 @@ import {
     ADMIN_SEED_PASS,
     ADMIN_SYSTEM_EMAIL,
     loginAdmin,
+    resetNotices,
     SEED_PASS,
     seedEmail,
 } from '../helpers';
 
 test.beforeEach(async ({ page }) => {
     await abortExternal(page);
+});
+
+// seed-pollution 방지: CENTER_ADMIN 이 생성한 임시 공지를 정리해 notices.spec.ts 페이지네이션 시나리오 오염을 차단.
+test.afterAll(async ({ browser }) => {
+    const page = await browser.newPage();
+    try {
+        await loginAdmin(page);
+        await resetNotices(page);
+    } finally {
+        await page.close();
+    }
 });
 
 test('USER 계정으로 /admin/notices 접근 시 403', async ({ page }) => {

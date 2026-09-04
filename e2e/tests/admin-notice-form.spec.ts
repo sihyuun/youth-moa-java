@@ -1,8 +1,19 @@
 import { expect, test } from '@playwright/test';
-import { abortExternal, loginAdmin } from '../helpers';
+import { abortExternal, loginAdmin, resetNotices } from '../helpers';
 
 test.beforeEach(async ({ page }) => {
     await abortExternal(page);
+});
+
+// seed-pollution 방지: 본 spec 이 생성한 임시 공지를 정리해 notices.spec.ts 페이지네이션 시나리오 오염을 차단.
+test.afterAll(async ({ browser }) => {
+    const page = await browser.newPage();
+    try {
+        await loginAdmin(page);
+        await resetNotices(page);
+    } finally {
+        await page.close();
+    }
 });
 
 test('신규 공지 작성 → 목록 이동 → 편집 폼에 값 유지 확인', async ({ page }) => {

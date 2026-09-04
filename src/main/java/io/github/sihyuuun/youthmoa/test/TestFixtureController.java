@@ -2,6 +2,8 @@ package io.github.sihyuuun.youthmoa.test;
 
 import io.github.sihyuuun.youthmoa.application.Application;
 import io.github.sihyuuun.youthmoa.application.ApplicationRepository;
+import io.github.sihyuuun.youthmoa.notice.Notice;
+import io.github.sihyuuun.youthmoa.notice.NoticeRepository;
 import io.github.sihyuuun.youthmoa.user.User;
 import io.github.sihyuuun.youthmoa.user.UserRepository;
 import jakarta.validation.constraints.NotBlank;
@@ -36,8 +38,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class TestFixtureController {
 
+  private static final String SEED_SYSADMIN_EMAIL = "sysadmin@youth-moa.test";
+
   private final ApplicationRepository applicationRepository;
   private final UserRepository userRepository;
+  private final NoticeRepository noticeRepository;
 
   /**
    * 특정 유저의 신청 row 를 삭제한다.
@@ -79,6 +84,41 @@ public class TestFixtureController {
         request.userEmail(),
         request.programId(),
         targets.size());
+    return ResponseEntity.noContent().build();
+  }
+
+  /**
+   * A-admin-notice-attachment E2E seed-pollution 해소.
+   *
+   * <p>배경: admin-notice-form / admin-notice-upload / admin-notice-rbac spec 이 {@code POST
+   * /admin/notices} 로 임시 공지를 생성하고 정리 없이 종료 → notices.spec.ts:78 페이지네이션 테스트 (page 2 = 2건 기대) 가 오염된
+   * 상태로 실행되어 6건이 나오는 회귀 발생.
+   *
+   * <p>정책: {@code createdBy != sysadmin} 인 공지만 삭제. 시드 12건(모두 sysadmin 소유) 은 보존해 페이지네이션·목록 시나리오가 재현
+   * 가능하게 한다.
+   *
+   * @return 204 No Content (idempotent — 대상 없어도 성공)
+   */
+  @PostMapping("/reset-notices")
+  @Transactional
+  public ResponseEntity<Void> resetNotices() {
+    User sysadmin =
+        userRepository
+            .findByEmail(SEED_SYSADMIN_EMAIL)
+            .orElseThrow(
+                () ->
+                    new IllegalArgumentException(
+                        "test fixture: sysadmin seed not found email=" + SEED_SYSADMIN_EMAIL));
+
+    Long sysadminId = sysadmin.getId();
+    List<Notice> targets =
+        noticeRepository.findAll().stream()
+            .filter(n -> n.getCreatedBy() == null || !sysadminId.equals(n.getCreatedBy().getId()))
+            .toList();
+    if (!targets.isEmpty()) {
+      noticeRepository.deleteAllInBatch(targets);
+    }
+    log.info("[test-fixture] reset-notices deleted={} (sysadmin seed preserved)", targets.size());
     return ResponseEntity.noContent().build();
   }
 
