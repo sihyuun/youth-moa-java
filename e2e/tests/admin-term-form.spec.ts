@@ -16,14 +16,19 @@ test.afterAll(async ({ browser }) => {
     }
 });
 
+// 0~9 → A~J 매핑으로 pattern="^[A-Z_]+$" 를 준수하는 unique suffix 를 만든다.
+// HTML5 pattern 속성이 form 제출을 차단하므로 spec 이 실제 서버까지 도달하려면 code 도 규칙을 지켜야 한다.
+function alphaSuffix(): string {
+    const digits = String(Date.now()).slice(-8);
+    return digits.replace(/[0-9]/g, d => String.fromCharCode(65 + Number(d)));
+}
+
 test('신규 약관 등록 → 편집 폼에 값 유지', async ({ page }) => {
     await loginAdmin(page);
     await page.goto('/admin/terms/new', { waitUntil: 'domcontentloaded' });
     await expect(page.locator('.admin-term-title')).toHaveText('약관 등록');
 
-    // A-Z_ 만 허용 (validateCode). 유니크 code 생성.
-    const uniqueSuffix = String(Date.now()).replace(/\D/g, '').slice(-6);
-    const code = `E2E_${uniqueSuffix}`;
+    const code = `EEE_${alphaSuffix()}`;
     await page.locator('input[name="code"]').fill(code);
     await page.locator('input[name="title"]').fill('E2E 테스트 약관');
     await page.locator('input[name="contentPath"]').fill('/terms');
@@ -43,7 +48,7 @@ test('편집에서 bumpVersion 체크 시 version 증가 (Qn-6 A)', async ({ pag
     await loginAdmin(page);
     // 1) 새 약관 만들기 (버전=1)
     await page.goto('/admin/terms/new', { waitUntil: 'domcontentloaded' });
-    const code = `BUMP_${String(Date.now()).replace(/\D/g, '').slice(-6)}`;
+    const code = `BUMP_${alphaSuffix()}`;
     await page.locator('input[name="code"]').fill(code);
     await page.locator('input[name="title"]').fill('버전 테스트');
     await page.locator('input[name="contentPath"]').fill('/terms');
@@ -68,7 +73,7 @@ test('편집에서 bumpVersion 체크 시 version 증가 (Qn-6 A)', async ({ pag
 test('편집에서 bumpVersion 미체크 시 version 유지', async ({ page }) => {
     await loginAdmin(page);
     await page.goto('/admin/terms/new', { waitUntil: 'domcontentloaded' });
-    const code = `KEEP_${String(Date.now()).replace(/\D/g, '').slice(-6)}`;
+    const code = `KEEP_${alphaSuffix()}`;
     await page.locator('input[name="code"]').fill(code);
     await page.locator('input[name="title"]').fill('버전 유지');
     await page.locator('input[name="contentPath"]').fill('/terms');

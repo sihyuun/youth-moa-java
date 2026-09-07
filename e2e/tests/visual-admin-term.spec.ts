@@ -14,6 +14,7 @@ test('관리자 약관 목록 디자인 계약 — SYSTEM_ADMIN', async ({ page 
         height: adminTermListContract.viewport.height,
     });
     await loginAdmin(page);
+    await page.goto(adminTermListContract.path);
     const anon = await runContract(page, adminTermListContract, 'anon');
     writeGapReport(adminTermListContract, { anon });
 });
@@ -25,6 +26,7 @@ test('관리자 약관 신규 폼 디자인 계약 — SYSTEM_ADMIN', async ({ p
         height: adminTermFormContract.viewport.height,
     });
     await loginAdmin(page);
+    await page.goto(adminTermFormContract.path);
     const anon = await runContract(page, adminTermFormContract, 'anon');
     writeGapReport(adminTermFormContract, { anon });
 });
@@ -36,6 +38,7 @@ test('관리자 약관 편집 디자인 계약 — SYSTEM_ADMIN', async ({ page 
         height: adminTermEditContract.viewport.height,
     });
     await loginAdmin(page);
+    await page.goto(adminTermEditContract.path);
     const anon = await runContract(page, adminTermEditContract, 'anon');
     writeGapReport(adminTermEditContract, { anon });
 });
