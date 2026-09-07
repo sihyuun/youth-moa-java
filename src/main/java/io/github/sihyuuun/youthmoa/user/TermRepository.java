@@ -10,4 +10,7 @@ public interface TermRepository extends JpaRepository<Term, Long> {
   List<Term> findByIsActiveTrueOrderBySortOrderAsc();
 
   Optional<Term> findByCode(String code);
+
+  /** A-admin-terms-crud: 관리 목록 (비활성 포함). sortOrder asc, 동률 시 id asc. */
+  List<Term> findAllByOrderBySortOrderAscIdAsc();
 }

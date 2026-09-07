@@ -114,6 +114,8 @@ public class DataInitializer implements ApplicationRunner {
             .code("SERVICE")
             .title("회원가입약관")
             .contentPath("/terms")
+            .content(
+                "<p>청년모아 서비스 이용약관 (기본 초안).</p><p>이 약관은 관리자 페이지에서 편집할 수 있어요. 실제 약관 문안은 관리자가 업데이트해주세요.</p>")
             .required(true)
             .version(1)
             .sortOrder(1)
@@ -124,6 +126,8 @@ public class DataInitializer implements ApplicationRunner {
             .code("PRIVACY")
             .title("개인정보처리방침 안내")
             .contentPath("/privacy")
+            .content(
+                "<p>청년모아 개인정보처리방침 안내 (기본 초안).</p><p>이 약관은 관리자 페이지에서 편집할 수 있어요. 실제 처리방침 문안은 관리자가 업데이트해주세요.</p>")
             .required(true)
             .version(2)
             .sortOrder(2)
@@ -131,6 +135,12 @@ public class DataInitializer implements ApplicationRunner {
             .build());
     log.info("Seeded 2 terms (SERVICE, PRIVACY)");
   }
+
+  /**
+   * A-admin-terms-crud (Qn-8 A, 2026-09-04): {@link TestFixtureController#resetTerms()} 가 id >
+   * SEED_TERM_COUNT 인 row 만 삭제하기 위해 참조. seedTerms 를 수정하면 이 상수도 동기화한다.
+   */
+  public static final long SEED_TERM_COUNT = 2L;
 
   /**
    * P0-2: 관리자 계정 시드. 재기동 시 멱등 (existsByEmail 체크). 시스템관리자 1명 + 센터관리자 2명 (centers[0], centers[1] 매칭).

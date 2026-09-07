@@ -13,4 +13,10 @@ public interface UserAgreementRepository extends JpaRepository<UserAgreement, Lo
    * UserService.withdraw 가 관련 하위 데이터를 모두 삭제하는 방식과 정합하도록 우선 삭제 시맨틱을 따른다.
    */
   void deleteAllByUser(User user);
+
+  /**
+   * A-admin-terms-crud (Qn-3 A, 2026-09-04): 약관 hard delete 가능성 판정. 이 term 에 대한 동의 이력이 하나라도 있으면 삭제
+   * 대신 400 반환 + "비활성 처리해주세요" 안내.
+   */
+  long countByTerm(Term term);
 }

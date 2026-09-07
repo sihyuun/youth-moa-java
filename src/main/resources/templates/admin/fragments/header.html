@@ -43,6 +43,8 @@
            th:class="${currentPage == 'dashboard'} ? 'admin-nav-link active' : 'admin-nav-link'">대시보드</a>
         <a th:href="@{/admin/notices}"
            th:class="${currentPage == 'notices'} ? 'admin-nav-link active' : 'admin-nav-link'">공지 관리</a>
+        <a th:href="@{/admin/terms}"
+           th:class="${currentPage == 'terms'} ? 'admin-nav-link active' : 'admin-nav-link'">약관 관리</a>
     </nav>
 
     <div class="admin-header-right">

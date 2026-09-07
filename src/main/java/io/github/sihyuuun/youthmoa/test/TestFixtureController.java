@@ -126,6 +126,38 @@ public class TestFixtureController {
     return ResponseEntity.noContent().build();
   }
 
+  /**
+   * A-admin-terms-crud (Qn-8 A, 2026-09-04): admin-term-form E2E 가 신규 약관을 생성 후 정리 없이 종료하면 다음 spec
+   * (특히 signup 회귀 · admin-term-list 개수 기대) 가 오염된다.
+   *
+   * <p>정책: {@code id > SEED_TERM_COUNT} 인 term 만 삭제 + 관련 user_agreement 도 함께 삭제. 시드 2건은
+   * auto-increment 로 id 1~2 확보. FK 순서 준수 (user_agreements 먼저 → terms).
+   *
+   * @return 204 No Content (idempotent — 대상 없어도 성공)
+   */
+  @PostMapping("/reset-terms")
+  @Transactional
+  public ResponseEntity<Void> resetTerms() {
+    long seedCount = DataInitializer.SEED_TERM_COUNT;
+    int deletedAgreements =
+        entityManager
+            .createNativeQuery(
+                "DELETE FROM user_agreements WHERE term_id IN (SELECT id FROM terms WHERE id > :seedCount)")
+            .setParameter("seedCount", seedCount)
+            .executeUpdate();
+    int deletedTerms =
+        entityManager
+            .createNativeQuery("DELETE FROM terms WHERE id > :seedCount")
+            .setParameter("seedCount", seedCount)
+            .executeUpdate();
+    log.info(
+        "[test-fixture] reset-terms seedCount={} deletedTerms={} deletedAgreements={}",
+        seedCount,
+        deletedTerms,
+        deletedAgreements);
+    return ResponseEntity.noContent().build();
+  }
+
   /** 신청 정리 요청 바디. programId 는 optional (null 이면 해당 유저 전체). */
   public record ResetApplicationsRequest(@NotBlank String userEmail, Long programId) {}
 }
