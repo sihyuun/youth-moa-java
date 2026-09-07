@@ -126,6 +126,7 @@ class UserServiceSignUpTermsTest {
                 .code("MARKETING")
                 .title("마케팅 수신 동의")
                 .contentPath("/marketing")
+                .content("<p>마케팅 수신 동의 본문 (테스트)</p>")
                 .required(true)
                 .version(1)
                 .sortOrder(3)

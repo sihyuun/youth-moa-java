@@ -1013,3 +1013,238 @@ body.admin-shell-body {
     justify-content: flex-end;
     gap: 8px;
 }
+
+/* ================================================================================
+ * A-admin-terms-crud (2026-09-04): 관리자 약관 CRUD 화면 스타일.
+ * admin-notice-* 네이밍 승계 (list 그리드 · form 필드 · 상태 뱃지).
+ * ================================================================================ */
+
+.admin-term-page,
+.admin-term-form-page {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 32px 24px;
+}
+
+.admin-term-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+}
+
+.admin-term-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: #111827;
+    margin: 0 0 6px;
+}
+
+.admin-term-sub {
+    font-size: 14px;
+    color: #6b7280;
+    margin: 0;
+}
+
+/* Qn-4 A: 활성 필수 약관 0건 경고 배너 */
+.admin-term-empty-banner {
+    background: #fef3c7;
+    border: 1px solid #fbbf24;
+    color: #92400e;
+    padding: 14px 18px;
+    border-radius: 8px;
+    font-size: 14px;
+    margin-bottom: 20px;
+}
+
+.admin-term-summary {
+    background: #eef2ff;
+    color: #3730a3;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    margin-bottom: 20px;
+    display: inline-block;
+}
+
+.admin-term-list-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.admin-term-row {
+    display: grid;
+    grid-template-columns: 60px 120px 1fr 60px 60px 60px 80px 100px 100px;
+    align-items: center;
+    padding: 14px 18px;
+    border-bottom: 1px solid #f3f4f6;
+    font-size: 14px;
+    color: #374151;
+    gap: 12px;
+}
+
+.admin-term-row:last-child {
+    border-bottom: 0;
+}
+
+.admin-term-row--head {
+    background: #f9fafb;
+    font-weight: 600;
+    color: #6b7280;
+    font-size: 12px;
+    text-transform: uppercase;
+}
+
+.admin-term-empty {
+    padding: 40px;
+    text-align: center;
+    color: #9ca3af;
+    font-size: 14px;
+}
+
+.admin-term-code-pill {
+    display: inline-block;
+    padding: 3px 8px;
+    background: #eef2ff;
+    color: #3730a3;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: 'Inter', monospace;
+}
+
+.admin-term-title-link {
+    color: #111827;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.admin-term-title-link:hover {
+    color: #3f30e9;
+    text-decoration: underline;
+}
+
+.admin-term-status-pill {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.admin-term-status-pill--active {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.admin-term-status-pill--inactive {
+    background: #f3f4f6;
+    color: #6b7280;
+}
+
+/* ---------- form ---------- */
+
+.admin-term-forbidden-banner {
+    background: #fef2f2;
+    border: 1px solid #fca5a5;
+    color: #991b1b;
+    padding: 12px 18px;
+    border-radius: 8px;
+    font-size: 14px;
+    margin-bottom: 20px;
+}
+
+.admin-term-form {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 28px;
+}
+
+.admin-term-form-row {
+    margin-bottom: 20px;
+}
+
+.admin-term-form-row-split {
+    display: flex;
+    gap: 24px;
+    align-items: flex-end;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.admin-term-form-row-split .admin-term-form-row {
+    margin-bottom: 0;
+}
+
+.admin-term-form-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 6px;
+}
+
+.admin-term-form-required {
+    color: #dc2626;
+}
+
+.admin-term-form-input,
+.admin-term-form-textarea {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: inherit;
+    color: #111827;
+    box-sizing: border-box;
+}
+
+.admin-term-form-input:focus,
+.admin-term-form-textarea:focus {
+    outline: none;
+    border-color: #3f30e9;
+    box-shadow: 0 0 0 3px rgba(63, 48, 233, 0.1);
+}
+
+.admin-term-form-input[readonly] {
+    background: #f9fafb;
+    color: #6b7280;
+    cursor: not-allowed;
+}
+
+.admin-term-form-textarea {
+    font-family: 'Inter', 'Consolas', monospace;
+    font-size: 13px;
+    line-height: 1.6;
+    resize: vertical;
+}
+
+.admin-term-form-help {
+    font-size: 12px;
+    color: #9ca3af;
+    margin: 6px 0 0;
+}
+
+.admin-term-form-row--checkbox .admin-term-form-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    margin: 0;
+}
+
+.admin-term-form-row--number .admin-term-form-input {
+    width: 100px;
+}
+
+.admin-term-form-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 28px;
+    padding-top: 20px;
+    border-top: 1px solid #f3f4f6;
+}

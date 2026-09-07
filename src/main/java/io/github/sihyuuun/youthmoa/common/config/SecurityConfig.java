@@ -31,6 +31,7 @@ import org.springframework.security.web.context.SecurityContextRepository;
  * 없이 공존한다. ({@code UnreachableFilterChainException} 방지 위해 admin chain 은 명시적 matcher 지정 필수.)
  */
 @Configuration
+@org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
 public class SecurityConfig {
 
   /** 사용자 로그인 실패 시 username 을 세션에 보존해 로그인 폼 재표시 시 채워둠. */

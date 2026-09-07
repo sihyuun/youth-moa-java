@@ -268,7 +268,12 @@
                 </label>
 
                 <!-- F-signup-terms-agreement: activeTerms 목록 동적 렌더. data-term-code 안정 셀렉터로 E2E 대응. -->
-                <div class="signup-agree-row" th:each="term : ${activeTerms}" th:attr="data-term-code=${term.code}">
+                <!--
+                  A-admin-terms-crud (Qn-2 B, 2026-09-04): term.content 를 data-term-content 로 embed.
+                  모달은 fetch 대신 이 attribute 를 읽어 렌더 → admin 이 편집한 최신 본문 즉시 반영.
+                -->
+                <div class="signup-agree-row" th:each="term : ${activeTerms}"
+                     th:attr="data-term-code=${term.code},data-term-content=${term.content}">
                     <label class="signup-agree-item">
                         <input type="checkbox"
                                class="signup-term-checkbox"
@@ -468,19 +473,26 @@
             link.addEventListener('click', async (e) => {
                 e.preventDefault();
                 const url = link.getAttribute('href');
-                // .signup-agree-row 의 data-term-code 상속 (개별 checkbox 와 동일 code)
+                // .signup-agree-row 의 data-term-code / data-term-content 상속.
                 const row = link.closest('[data-term-code]');
                 modal.dataset.currentTermCode = row ? row.getAttribute('data-term-code') : '';
                 modalTitle.textContent = link.getAttribute('data-modal-title') || '약관 보기';
                 modalBody.innerHTML = '<p class="terms-modal-loading">불러오는 중...</p>';
                 openModal();
+
+                // A-admin-terms-crud (Qn-2 B, 2026-09-04): DB 저장 content 우선. 서버가 이미 sanitize 한 HTML.
+                const embedded = row ? row.getAttribute('data-term-content') : null;
+                if (embedded && embedded.trim().length > 0) {
+                    modalBody.innerHTML = '<div class="policy-content">' + embedded + '</div>';
+                    return;
+                }
+
+                // Fallback: contentPath 정적 페이지 fetch (구버전 호환).
                 try {
                     const res = await fetch(url, { credentials: 'same-origin' });
                     if (!res.ok) throw new Error(res.status);
                     const html = await res.text();
                     const doc = new DOMParser().parseFromString(html, 'text/html');
-                    // 260819: 정책 페이지가 사이드바 레이아웃 (.policy-content) 으로 리팩터됨.
-                    // 모달 컨텍스트에서는 사이드바·모바일 헤더·관련 문서 링크 제거하고 본문만 주입.
                     const content = doc.querySelector('.policy-content');
                     if (content) {
                         const related = content.querySelector('.policy-mobile-related');

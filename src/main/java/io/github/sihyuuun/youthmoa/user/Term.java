@@ -39,9 +39,20 @@ public class Term extends BaseTimeEntity {
   @Column(nullable = false, length = 100)
   private String title;
 
-  /** 약관 본문 경로 (예: /terms). Q2 결정: 정적 템플릿 참조 유지. */
+  /**
+   * (Deprecated by A-admin-terms-crud Qn-2 B, 2026-09-04) 약관 본문 경로 (예: /terms). 초기
+   * F-signup-terms-agreement Q2 결정으로 정적 템플릿 참조를 유지했으나, admin CRUD 실사용성을 위해 {@link #content} DB TEXT
+   * 컬럼으로 이관. signup 화면은 이제 {@code content} 를 직접 렌더한다. 컬럼 자체는 하위 호환 · legacy fallback 용도로 유지.
+   */
   @Column(nullable = false, length = 200)
   private String contentPath;
+
+  /**
+   * A-admin-terms-crud (Qn-2 B, 2026-09-04): 약관 본문 (HTML). admin form 에서 편집 · 저장 전 OWASP HTML
+   * sanitizer 적용. signup 화면은 {@code th:utext} 로 직접 렌더.
+   */
+  @Column(nullable = false, columnDefinition = "TEXT")
+  private String content;
 
   /** 필수 동의 여부. false 면 UI 에 (선택) 라벨 (Q5). */
   @Column(nullable = false)
@@ -64,6 +75,7 @@ public class Term extends BaseTimeEntity {
       String code,
       String title,
       String contentPath,
+      String content,
       boolean required,
       int version,
       int sortOrder,
@@ -71,9 +83,35 @@ public class Term extends BaseTimeEntity {
     this.code = code;
     this.title = title;
     this.contentPath = contentPath;
+    this.content = content;
     this.required = required;
     this.version = version;
     this.sortOrder = sortOrder;
     this.isActive = isActive;
+  }
+
+  /**
+   * A-admin-terms-crud (Qn-5 A · Qn-6 A · Qn-9 A, 2026-09-04): 약관 편집 도메인 메서드.
+   *
+   * <p>code 는 편집 대상 아님 (Qn-9 readonly). {@code bumpVersion=true} 면 version+1. content 는 이미 sanitize
+   * 된 문자열이 들어온다고 가정 (AdminTermService 가 저장 전 sanitize).
+   */
+  public void updateContent(
+      String title,
+      String contentPath,
+      String content,
+      boolean required,
+      int sortOrder,
+      boolean isActive,
+      boolean bumpVersion) {
+    this.title = title;
+    this.contentPath = contentPath;
+    this.content = content;
+    this.required = required;
+    this.sortOrder = sortOrder;
+    this.isActive = isActive;
+    if (bumpVersion) {
+      this.version = this.version + 1;
+    }
   }
 }

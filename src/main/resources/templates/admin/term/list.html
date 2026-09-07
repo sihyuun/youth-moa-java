@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>약관 관리 — 청년모아 관리자</title>
+    <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"
+          rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" th:href="@{/images/logo_symbol.png}">
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
+    <meta name="_csrf" th:content="${_csrf?.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf?.headerName}"/>
+</head>
+<body class="admin-shell-body">
+
+<div th:replace="~{admin/fragments/header :: header('terms', ${centerScopeLabel}, ${isSystemAdmin})}"></div>
+
+<main class="admin-shell-main">
+    <div class="admin-term-page">
+
+        <section class="admin-term-header">
+            <div>
+                <h2 class="admin-term-title">약관 관리</h2>
+                <p class="admin-term-sub">회원가입에 노출되는 약관을 등록·수정·비활성 처리할 수 있어요.</p>
+            </div>
+            <a th:if="${isSystemAdmin}" th:href="@{/admin/terms/new}"
+               class="admin-btn admin-btn--primary">+ 신규 등록</a>
+        </section>
+
+        <!-- Qn-4 A: 활성 필수 약관 0건 경고 배너 -->
+        <div th:if="${activeRequiredCount == 0}" class="admin-term-empty-banner">
+            현재 활성 필수 약관이 <strong>0건</strong>이에요. 회원가입 시 약관 동의 절차가 노출되지 않아요.
+        </div>
+        <div th:if="${activeRequiredCount > 0}" class="admin-term-summary">
+            활성 필수 약관 <strong th:text="${activeRequiredCount}">2</strong>건
+        </div>
+
+        <section class="admin-term-list-card">
+
+            <div class="admin-term-row admin-term-row--head">
+                <span class="admin-term-col-id">번호</span>
+                <span class="admin-term-col-code">코드</span>
+                <span class="admin-term-col-title">제목</span>
+                <span class="admin-term-col-required">필수</span>
+                <span class="admin-term-col-sort">정렬</span>
+                <span class="admin-term-col-version">버전</span>
+                <span class="admin-term-col-status">상태</span>
+                <span class="admin-term-col-date">등록일</span>
+                <span class="admin-term-col-actions">관리</span>
+            </div>
+
+            <div th:if="${#lists.isEmpty(terms)}" class="admin-term-empty">
+                등록된 약관이 없어요.
+            </div>
+
+            <div th:each="t : ${terms}" class="admin-term-row">
+                <span class="admin-term-col-id" th:text="${t.id}">1</span>
+                <span class="admin-term-col-code">
+                    <span class="admin-term-code-pill" th:text="${t.code}">SERVICE</span>
+                </span>
+                <a class="admin-term-col-title admin-term-title-link"
+                   th:href="@{/admin/terms/{id}(id=${t.id})}"
+                   th:text="${t.title}">제목</a>
+                <span class="admin-term-col-required" th:text="${t.required} ? '✓' : ''">✓</span>
+                <span class="admin-term-col-sort" th:text="${t.sortOrder}">1</span>
+                <span class="admin-term-col-version" th:text="'v' + ${t.version}">v1</span>
+                <span class="admin-term-col-status">
+                    <span th:if="${t.isActive}" class="admin-term-status-pill admin-term-status-pill--active">활성</span>
+                    <span th:unless="${t.isActive}" class="admin-term-status-pill admin-term-status-pill--inactive">비활성</span>
+                </span>
+                <span class="admin-term-col-date"
+                      th:text="${#temporals.format(t.createdAt, 'yyyy-MM-dd')}">2026-09-04</span>
+                <div class="admin-term-col-actions">
+                    <a th:href="@{/admin/terms/{id}(id=${t.id})}"
+                       class="admin-btn admin-btn--sm admin-btn--outline">편집</a>
+                </div>
+            </div>
+        </section>
+
+    </div>
+</main>
+
+<script th:inline="javascript">
+    // 유저 드롭다운 (dashboard.html 과 동일 fallback)
+    (function () {
+        var trigger = document.querySelector('.admin-header-user-trigger');
+        var menu = document.getElementById('admin-user-dropdown');
+        if (!trigger || !menu) return;
+        function close() { menu.hidden = true; trigger.setAttribute('aria-expanded', 'false'); }
+        function open() { menu.hidden = false; trigger.setAttribute('aria-expanded', 'true'); }
+        trigger.addEventListener('click', function (ev) {
+            ev.stopPropagation();
+            if (menu.hidden) open(); else close();
+        });
+        document.addEventListener('click', function (ev) {
+            if (!menu.hidden && !menu.contains(ev.target)) close();
+        });
+    })();
+</script>
+</body>
+</html>

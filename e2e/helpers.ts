@@ -162,3 +162,17 @@ export async function resetNotices(page: Page): Promise<void> {
         );
     }
 }
+
+/**
+ * A-admin-terms-crud (Qn-8 A, 2026-09-04): admin-term E2E 가 신규 약관을 생성 후 정리하지 않으면
+ * 다음 실행에서 signup 회귀 및 목록 count 기대가 오염된다.
+ * `TestFixtureController.resetTerms()` = id > SEED_TERM_COUNT 인 term + 관련 agreement 삭제.
+ */
+export async function resetTerms(page: Page): Promise<void> {
+    const response = await page.request.post('/__test__/reset-terms');
+    if (response.status() !== 204) {
+        throw new Error(
+            `resetTerms failed: status=${response.status()} body=${await response.text()}`,
+        );
+    }
+}

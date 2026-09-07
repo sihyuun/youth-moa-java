@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${mode == 'new'} ? '약관 등록 — 청년모아 관리자' : '약관 편집 — 청년모아 관리자'">약관 편집</title>
+    <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"
+          rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" th:href="@{/images/logo_symbol.png}">
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
+    <meta name="_csrf" th:content="${_csrf?.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf?.headerName}"/>
+</head>
+<body class="admin-shell-body">
+
+<div th:replace="~{admin/fragments/header :: header('terms', ${centerScopeLabel}, ${isSystemAdmin})}"></div>
+
+<main class="admin-shell-main">
+    <div class="admin-term-form-page">
+
+        <section class="admin-term-header">
+            <div>
+                <h2 class="admin-term-title"
+                    th:text="${mode == 'new'} ? '약관 등록' : '약관 편집'">약관 편집</h2>
+                <p class="admin-term-sub"
+                   th:text="${mode == 'new'} ? '새 약관을 등록합니다.' : '기존 약관 내용을 수정합니다.'">약관 편집</p>
+            </div>
+            <a th:href="@{/admin/terms}" class="admin-btn admin-btn--outline">← 목록으로</a>
+        </section>
+
+        <!-- CENTER_ADMIN 조회 안내 배너 (Qn-1 B: 조회는 가능, UD 불가) -->
+        <div th:unless="${isSystemAdmin}" class="admin-term-forbidden-banner">
+            약관 편집·삭제는 시스템 관리자만 할 수 있어요. 이 화면은 조회 전용입니다.
+        </div>
+
+        <form class="admin-term-form"
+              th:action="${mode == 'new'} ? @{/admin/terms} : @{/admin/terms/{id}(id=${term.id})}"
+              method="post">
+            <fieldset th:disabled="${!isSystemAdmin}" style="border:0;padding:0;margin:0;">
+
+                <div class="admin-term-form-row">
+                    <label class="admin-term-form-label" for="code">약관 코드 <span
+                            class="admin-term-form-required">*</span></label>
+                    <input type="text" id="code" name="code" required maxlength="50"
+                           pattern="^[A-Z_]+$"
+                           class="admin-term-form-input"
+                           th:value="${term != null ? term.code : ''}"
+                           th:readonly="${mode == 'edit'}"
+                           th:attr="title=${mode == 'edit' ? '약관 코드는 변경할 수 없어요.' : '영대문자와 밑줄만 가능해요.'}"
+                           placeholder="예: SERVICE, PRIVACY, MARKETING">
+                    <p class="admin-term-form-help" th:if="${mode == 'edit'}">
+                        약관 코드는 변경할 수 없어요. (Qn-9)
+                    </p>
+                </div>
+
+                <div class="admin-term-form-row">
+                    <label class="admin-term-form-label" for="title">제목 <span
+                            class="admin-term-form-required">*</span></label>
+                    <input type="text" id="title" name="title" required maxlength="100"
+                           class="admin-term-form-input"
+                           th:value="${term != null ? term.title : ''}"
+                           placeholder="예: 회원가입약관">
+                </div>
+
+                <div class="admin-term-form-row">
+                    <label class="admin-term-form-label" for="contentPath">본문 경로 <span
+                            class="admin-term-form-required">*</span></label>
+                    <input type="text" id="contentPath" name="contentPath" required maxlength="200"
+                           class="admin-term-form-input"
+                           th:value="${term != null ? term.contentPath : '/terms'}"
+                           placeholder="/terms">
+                    <p class="admin-term-form-help">legacy 정적 페이지 경로 (하위 호환). 실제 본문은 아래 content 로 렌더됩니다.</p>
+                </div>
+
+                <div class="admin-term-form-row">
+                    <label class="admin-term-form-label" for="content">본문 (HTML) <span
+                            class="admin-term-form-required">*</span></label>
+                    <textarea id="content" name="content" required rows="20" cols="80"
+                              class="admin-term-form-textarea"
+                              placeholder="약관 본문을 HTML 로 입력해주세요. &lt;script&gt; 등은 저장 시 자동 제거돼요."
+                              th:text="${term != null ? term.content : ''}"></textarea>
+                    <p class="admin-term-form-help">
+                        저장 시 OWASP HTML sanitizer 로 정화됩니다. WYSIWYG 편집기는 별도 티켓에서 도입 예정.
+                    </p>
+                </div>
+
+                <div class="admin-term-form-row-split">
+                    <div class="admin-term-form-row admin-term-form-row--number">
+                        <label class="admin-term-form-label" for="sortOrder">정렬 순서 <span
+                                class="admin-term-form-required">*</span></label>
+                        <input type="number" id="sortOrder" name="sortOrder" required min="1" max="999"
+                               class="admin-term-form-input"
+                               th:value="${term != null ? term.sortOrder : 1}">
+                    </div>
+                    <div class="admin-term-form-row admin-term-form-row--checkbox">
+                        <label class="admin-term-form-label" for="required">
+                            <input type="checkbox" id="required" name="required" value="true"
+                                   th:checked="${term != null and term.required}">
+                            필수 동의
+                        </label>
+                    </div>
+                    <div class="admin-term-form-row admin-term-form-row--checkbox">
+                        <label class="admin-term-form-label" for="isActive">
+                            <input type="checkbox" id="isActive" name="isActive" value="true"
+                                   th:checked="${term == null or term.isActive}">
+                            활성
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Qn-6 A: 편집 모드에서만 노출 -->
+                <div class="admin-term-form-row admin-term-form-row--checkbox"
+                     th:if="${mode == 'edit'}">
+                    <label class="admin-term-form-label" for="bumpVersion">
+                        <input type="checkbox" id="bumpVersion" name="bumpVersion" value="true">
+                        이번 수정은 개정입니다 (버전 자동 +1)
+                    </label>
+                    <p class="admin-term-form-help">
+                        본문·필수 여부 등 실질적 변경 시 체크해주세요. 현재 버전: <strong th:text="'v' + ${term.version}">v1</strong>
+                    </p>
+                </div>
+
+                <div class="admin-term-form-actions">
+                    <button type="submit" class="admin-btn admin-btn--primary"
+                            th:text="${mode == 'new'} ? '등록' : '수정 저장'">저장</button>
+
+                    <!-- 삭제 (편집 모드 · SYSTEM_ADMIN 만) -->
+                    <button th:if="${mode == 'edit' and isSystemAdmin}"
+                            type="button"
+                            class="admin-btn admin-btn--danger"
+                            data-delete-trigger="term-delete-modal">삭제</button>
+                </div>
+
+            </fieldset>
+        </form>
+
+        <!-- 삭제 confirm 모달 -->
+        <div th:if="${mode == 'edit' and isSystemAdmin}"
+             id="term-delete-modal" class="admin-confirm-modal" hidden aria-hidden="true"
+             role="dialog" aria-labelledby="term-delete-modal-title" aria-modal="true">
+            <div class="admin-confirm-modal-backdrop" data-modal-close></div>
+            <div class="admin-confirm-modal-body">
+                <h3 id="term-delete-modal-title" class="admin-confirm-modal-title">약관을 삭제할까요?</h3>
+                <p class="admin-confirm-modal-desc">
+                    삭제 후 복구할 수 없어요. 이미 동의한 회원이 있으면 삭제가 거부되고 비활성 처리를 안내해드려요.
+                </p>
+                <div class="admin-confirm-modal-actions">
+                    <button type="button" class="admin-btn admin-btn--outline"
+                            data-modal-close>취소</button>
+                    <form th:action="@{/admin/terms/{id}/delete(id=${term.id})}"
+                          method="post" style="display:inline;">
+                        <button type="submit" class="admin-btn admin-btn--danger">삭제</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</main>
+
+<script th:inline="javascript">
+    // 유저 드롭다운
+    (function () {
+        var trigger = document.querySelector('.admin-header-user-trigger');
+        var menu = document.getElementById('admin-user-dropdown');
+        if (trigger && menu) {
+            trigger.addEventListener('click', function (ev) {
+                ev.stopPropagation();
+                menu.hidden = !menu.hidden;
+                trigger.setAttribute('aria-expanded', String(!menu.hidden));
+            });
+            document.addEventListener('click', function (ev) {
+                if (!menu.hidden && !menu.contains(ev.target)) {
+                    menu.hidden = true;
+                    trigger.setAttribute('aria-expanded', 'false');
+                }
+            });
+        }
+    })();
+
+    // 커스텀 confirm 모달
+    (function () {
+        var triggers = document.querySelectorAll('[data-delete-trigger]');
+        triggers.forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var id = btn.getAttribute('data-delete-trigger');
+                var modal = document.getElementById(id);
+                if (!modal) return;
+                modal.hidden = false;
+                modal.setAttribute('aria-hidden', 'false');
+            });
+        });
+        document.querySelectorAll('[data-modal-close]').forEach(function (el) {
+            el.addEventListener('click', function () {
+                var modal = el.closest('.admin-confirm-modal');
+                if (modal) {
+                    modal.hidden = true;
+                    modal.setAttribute('aria-hidden', 'true');
+                }
+            });
+        });
+    })();
+</script>
+</body>
+</html>

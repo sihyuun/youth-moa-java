@@ -37,6 +37,9 @@ dependencies {
 	// A-admin-notice-attachment (2026-09-03): SupabaseFileStorage REST 호출용 (Qn-6 파생 B).
 	// Supabase Java SDK 대신 표준 REST + OkHttp 로 직접 호출 (학습 목적 + 의존성 최소).
 	implementation("com.squareup.okhttp3:okhttp:4.12.0")
+	// A-admin-terms-crud (Qn-2 B, 2026-09-04): 관리자가 편집한 약관 본문(HTML) 을 저장 전 sanitize.
+	// FORMATTING·LINKS·BLOCKS·STYLES·TABLES 정책 조합으로 <script> 등 실행 코드 차단.
+	implementation("com.googlecode.owasp-java-html-sanitizer:owasp-java-html-sanitizer:20240325.1")
 	// P0-1 Flyway (2026-07-22 활성화). Boot 4 는 flyway auto-config 를 별도 모듈로 분리 →
 	// spring-boot-flyway 필수. 없으면 flyway 의존성이 있어도 auto-config 미동작 (validate 시 missing table).
 	implementation("org.springframework.boot:spring-boot-flyway")

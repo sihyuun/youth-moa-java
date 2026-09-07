@@ -68,3 +68,6 @@ core.*
 
 # audit script output
 tools/audit-out/
+
+# A-admin-notice-attachment (2026-09-03): LocalFileStorage 기본 저장 경로
+storage/
