@@ -17,9 +17,12 @@ import io.github.sihyuuun.youthmoa.notice.NoticeRepository;
 import io.github.sihyuuun.youthmoa.notification.Notification;
 import io.github.sihyuuun.youthmoa.notification.NotificationRepository;
 import io.github.sihyuuun.youthmoa.notification.NotificationType;
+import io.github.sihyuuun.youthmoa.program.ApplyQuestion;
+import io.github.sihyuuun.youthmoa.program.ApplyQuestionRepository;
 import io.github.sihyuuun.youthmoa.program.Program;
 import io.github.sihyuuun.youthmoa.program.ProgramEligibility;
 import io.github.sihyuuun.youthmoa.program.ProgramRepository;
+import io.github.sihyuuun.youthmoa.program.QuestionType;
 import io.github.sihyuuun.youthmoa.region.Region;
 import io.github.sihyuuun.youthmoa.region.RegionRepository;
 import io.github.sihyuuun.youthmoa.user.Term;
@@ -93,12 +96,14 @@ public class DataInitializer implements ApplicationRunner {
   private final CenterContentCsvLoader centerContentCsvLoader;
   private final CenterContentRepository centerContentRepository;
   private final TermRepository termRepository;
+  private final ApplyQuestionRepository applyQuestionRepository;
 
   @Override
   @Transactional
   public void run(ApplicationArguments args) {
     seedRegionsAndCenters();
     seedPrograms();
+    seedApplyQuestions();
     seedSiteImages();
     // A-admin-notice-attachment (2026-09-03 · Qn-8 Custom): Notice.createdBy 가 NOT NULL 이므로
     // sysadmin 시드가 반드시 seedNotices 보다 먼저 실행되어야 한다. seedAdmins 를 seedNotices 앞으로 이동.
@@ -1034,6 +1039,60 @@ public class DataInitializer implements ApplicationRunner {
 
     programRepository.saveAll(seeds);
     log.info("Seeded {} programs", seeds.size());
+  }
+
+  /**
+   * F0c-dynamic-fields (Qn-7 A, 2026-09-08): program #7 (청년 문화예술 스쿨) 에 3개 apply_question 시드.
+   *
+   * <p>V11 마이그레이션 SQL 이 prod PostgreSQL 스키마에서 동일 시드를 수행하지만, e2e 프로파일은 Flyway off + H2 create-drop
+   * 이므로 (docs/patterns/spring-boot-4.md 프로파일 정책) V11 이 실행되지 않는다. 따라서 e2e 프로파일에서 apply_question 이 비어
+   * 있어 admin dynamic-fields empty state · apply-dynamic-response 스펙이 실패했다 (2026-09-08 QA 반려 P0-3).
+   *
+   * <p>멱등 처리: 이미 시드 수 이상 존재하면 skip. prod (Flyway) 환경에서는 V11 실행 후 count >= 3 이므로 skip.
+   */
+  private void seedApplyQuestions() {
+    if (applyQuestionRepository.count() >= SEED_APPLY_QUESTION_COUNT) {
+      log.info("ApplyQuestions already seeded (count={}), skip", applyQuestionRepository.count());
+      return;
+    }
+    Program program7 =
+        programRepository
+            .findById(7L)
+            .orElseThrow(
+                () ->
+                    new IllegalStateException(
+                        "Program #7 seed must exist before seedApplyQuestions"));
+
+    List<ApplyQuestion> questions =
+        List.of(
+            ApplyQuestion.builder()
+                .program(program7)
+                .fieldType(QuestionType.TEXT)
+                .label("지원 동기")
+                .isRequired(true)
+                .sortOrder(1)
+                .maxLength(500)
+                .isActive(true)
+                .build(),
+            ApplyQuestion.builder()
+                .program(program7)
+                .fieldType(QuestionType.DROPDOWN)
+                .label("관심 강좌")
+                .isRequired(true)
+                .sortOrder(2)
+                .options("[\"농작물 재배\",\"유기농 요리\",\"도시양봉\"]")
+                .isActive(true)
+                .build(),
+            ApplyQuestion.builder()
+                .program(program7)
+                .fieldType(QuestionType.ATTACHMENT)
+                .label("포트폴리오")
+                .isRequired(false)
+                .sortOrder(3)
+                .isActive(true)
+                .build());
+    applyQuestionRepository.saveAll(questions);
+    log.info("Seeded {} apply questions for program #7", questions.size());
   }
 
   /**
