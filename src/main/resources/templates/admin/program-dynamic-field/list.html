@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>동적 신청 필드 관리 — 청년모아 관리자</title>
+    <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"
+          rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" th:href="@{/images/logo_symbol.png}">
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
+    <meta name="_csrf" th:content="${_csrf?.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf?.headerName}"/>
+</head>
+<body class="admin-shell-body">
+
+<div th:replace="~{admin/fragments/header :: header('dynamic-fields', ${centerScopeLabel}, ${isSystemAdmin})}"></div>
+
+<main class="admin-shell-main">
+    <div class="admin-dynamic-field-page">
+
+        <section class="admin-dynamic-field-header">
+            <div>
+                <h2 class="admin-dynamic-field-title">동적 신청 필드 관리</h2>
+                <p class="admin-dynamic-field-sub">
+                    <strong th:text="${program.title}">프로그램</strong> 신청 폼에 노출할 추가 질문을 관리해요.
+                    삭제는 지원되지 않고, 비활성 처리로 사용자에게 숨길 수 있어요. (Qn-8 C)
+                </p>
+            </div>
+            <a th:href="@{/admin/programs/{id}/dynamic-fields/new(id=${program.id})}"
+               class="admin-btn admin-btn--primary">+ 신규 등록</a>
+        </section>
+
+        <section class="admin-dynamic-field-list-card">
+
+            <div class="admin-dynamic-field-row admin-dynamic-field-row--head">
+                <span class="admin-dynamic-field-col-id">번호</span>
+                <span class="admin-dynamic-field-col-order">순서</span>
+                <span class="admin-dynamic-field-col-type">타입</span>
+                <span class="admin-dynamic-field-col-label">라벨</span>
+                <span class="admin-dynamic-field-col-required">필수</span>
+                <span class="admin-dynamic-field-col-status">상태</span>
+                <span class="admin-dynamic-field-col-actions">관리</span>
+            </div>
+
+            <div th:if="${#lists.isEmpty(questions)}" class="admin-dynamic-field-empty">
+                등록된 동적 필드가 없어요.
+            </div>
+
+            <div th:each="q : ${questions}"
+                 class="admin-dynamic-field-row"
+                 th:classappend="${!q.isActive} ? ' admin-dynamic-field-row--inactive'">
+                <span class="admin-dynamic-field-col-id" th:text="${q.id}">1</span>
+                <span class="admin-dynamic-field-col-order" th:text="${q.sortOrder}">1</span>
+                <span class="admin-dynamic-field-col-type">
+                    <span class="admin-dynamic-field-type-pill"
+                          th:classappend="' admin-dynamic-field-type-pill--' + ${#strings.toLowerCase(q.fieldType.name())}"
+                          th:text="${q.fieldType.name()}">TEXT</span>
+                </span>
+                <a class="admin-dynamic-field-col-label admin-dynamic-field-label-link"
+                   th:href="@{/admin/programs/{pid}/dynamic-fields/{fid}(pid=${program.id},fid=${q.id})}"
+                   th:text="${q.label}">라벨</a>
+                <span class="admin-dynamic-field-col-required" th:text="${q.required} ? '✓' : ''">✓</span>
+                <span class="admin-dynamic-field-col-status">
+                    <span th:if="${q.isActive}" class="admin-dynamic-field-status-pill admin-dynamic-field-status-pill--active">활성</span>
+                    <span th:unless="${q.isActive}" class="admin-dynamic-field-status-pill admin-dynamic-field-status-pill--inactive">비활성</span>
+                </span>
+                <div class="admin-dynamic-field-col-actions">
+                    <a th:href="@{/admin/programs/{pid}/dynamic-fields/{fid}(pid=${program.id},fid=${q.id})}"
+                       class="admin-btn admin-btn--sm admin-btn--outline">편집</a>
+                </div>
+            </div>
+        </section>
+
+    </div>
+</main>
+
+<script>
+    (function () {
+        var trigger = document.querySelector('.admin-header-user-trigger');
+        var menu = document.getElementById('admin-user-dropdown');
+        if (!trigger || !menu) return;
+        function close() { menu.hidden = true; trigger.setAttribute('aria-expanded', 'false'); }
+        function open() { menu.hidden = false; trigger.setAttribute('aria-expanded', 'true'); }
+        trigger.addEventListener('click', function (ev) {
+            ev.stopPropagation();
+            if (menu.hidden) open(); else close();
+        });
+        document.addEventListener('click', function (ev) {
+            if (!menu.hidden && !menu.contains(ev.target)) close();
+        });
+    })();
+</script>
+</body>
+</html>

@@ -3,6 +3,11 @@ package io.github.sihyuuun.youthmoa.application;
 import io.github.sihyuuun.youthmoa.application.event.ApplicationApprovedEvent;
 import io.github.sihyuuun.youthmoa.application.event.ApplicationCancelledEvent;
 import io.github.sihyuuun.youthmoa.application.event.ApplicationRejectedEvent;
+import io.github.sihyuuun.youthmoa.common.storage.FileStorage;
+import io.github.sihyuuun.youthmoa.common.storage.StoredFile;
+import io.github.sihyuuun.youthmoa.notice.NoticeService;
+import io.github.sihyuuun.youthmoa.program.ApplyQuestion;
+import io.github.sihyuuun.youthmoa.program.ApplyQuestionRepository;
 import io.github.sihyuuun.youthmoa.program.Program;
 import io.github.sihyuuun.youthmoa.program.ProgramRepository;
 import io.github.sihyuuun.youthmoa.program.ProgramStatus;
@@ -11,12 +16,20 @@ import io.github.sihyuuun.youthmoa.user.UserRepository;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.annotation.PostConstruct;
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -25,6 +38,13 @@ public class ApplicationService {
   private final ApplicationRepository applicationRepository;
   private final ProgramRepository programRepository;
   private final UserRepository userRepository;
+  private final ApplyQuestionRepository applyQuestionRepository;
+  private final ApplyAnswerRepository applyAnswerRepository;
+  private final FileStorage fileStorage;
+
+  /** F0c-dynamic-fields: ATTACHMENT 응답 저장 bucket. LocalFileStorage 는 파일시스템에 저장. */
+  @Value("${youthmoa.storage.supabase.apply-bucket:apply-attachments}")
+  private String applyBucket;
 
   /**
    * chore-observability PR-2: 신청 성공 지표.
@@ -66,6 +86,30 @@ public class ApplicationService {
    */
   @Transactional
   public Application apply(String userEmail, Long programId, ApplyRequest request) {
+    return apply(userEmail, programId, request, Map.of());
+  }
+
+  /**
+   * F0c-dynamic-fields (2026-09-08): 동적 응답 파일을 함께 저장하는 확장 오버로드.
+   *
+   * <p>{@code attachments} 는 questionId → MultipartFile. 검증 순서:
+   *
+   * <ol>
+   *   <li>기존 프로그램/상태 검증 (재신청·중복 로직 그대로)
+   *   <li>동적 필드 조회 (활성 필드만) — required 미충족 시 IllegalArgumentException
+   *   <li>DROPDOWN whitelist 검증, ATTACHMENT 확장자·크기 검증 (NoticeService 상수 재활용)
+   *   <li>Application 저장 → ATTACHMENT storage 업로드 → ApplyAnswer 저장 순으로 트랜잭션 안에서 진행
+   * </ol>
+   *
+   * <p>스토리지 업로드 후 예외 발생 시 이미 저장된 오브젝트는 트랜잭션 롤백으로 정리되지 않는다 (S3 등 외부 스토리지 특성). Best-effort 로 즉시
+   * delete 시도.
+   */
+  @Transactional
+  public Application apply(
+      String userEmail,
+      Long programId,
+      ApplyRequest request,
+      Map<Long, MultipartFile> attachments) {
     User user =
         userRepository
             .findByEmail(userEmail)
@@ -83,7 +127,16 @@ public class ApplicationService {
       throw new IllegalStateException("현재 모집 중인 프로그램이 아닙니다.");
     }
 
+    // F0c-dynamic-fields: 활성 동적 질문 조회 + 응답 사전 검증.
+    List<ApplyQuestion> questions =
+        applyQuestionRepository.findByProgramIdAndIsActiveTrueOrderBySortOrderAsc(programId);
+    Map<Long, String> dynamicAnswers =
+        request.getDynamicAnswers() == null ? Map.of() : request.getDynamicAnswers();
+    Map<Long, MultipartFile> dynamicAttachments = attachments == null ? Map.of() : attachments;
+    validateDynamicAnswers(questions, dynamicAnswers, dynamicAttachments);
+
     Optional<Application> existing = applicationRepository.findByUserAndProgram(user, program);
+    Application application;
     if (existing.isPresent()) {
       Application app = existing.get();
       switch (app.getStatus()) {
@@ -91,21 +144,137 @@ public class ApplicationService {
         case REJECTED -> throw new IllegalStateException("이미 반려된 신청이 있어 다시 신청할 수 없습니다.");
         case CANCELLED -> {
           app.reapply(request.getApplyReason());
+          persistDynamicAnswers(app, questions, dynamicAnswers, dynamicAttachments);
           applicationSubmittedCounter.increment();
           return app;
         }
+        default -> throw new IllegalStateException("알 수 없는 신청 상태입니다.");
+      }
+    } else {
+      application =
+          Application.builder()
+              .user(user)
+              .program(program)
+              .applyReason(request.getApplyReason())
+              .build();
+      application = applicationRepository.save(application);
+    }
+    persistDynamicAnswers(application, questions, dynamicAnswers, dynamicAttachments);
+    applicationSubmittedCounter.increment();
+    return application;
+  }
+
+  /**
+   * 동적 질문 응답 사전 검증. 실패 시 IllegalArgumentException 을 던져 트랜잭션이 rollback + controller 가 flash 처리.
+   *
+   * <ul>
+   *   <li>required 미충족 → 400
+   *   <li>DROPDOWN whitelist 위반 → 400
+   *   <li>TEXT maxLength 초과 → 400
+   *   <li>ATTACHMENT 5MB · 확장자 위반 → 400
+   * </ul>
+   */
+  void validateDynamicAnswers(
+      List<ApplyQuestion> questions,
+      Map<Long, String> answers,
+      Map<Long, MultipartFile> attachments) {
+    for (ApplyQuestion q : questions) {
+      switch (q.getFieldType()) {
+        case TEXT -> {
+          String v = answers.get(q.getId());
+          String trimmed = v == null ? "" : v.trim();
+          if (q.isRequired() && trimmed.isEmpty()) {
+            throw new IllegalArgumentException("필수 항목이에요: " + q.getLabel());
+          }
+          if (q.getMaxLength() != null && trimmed.length() > q.getMaxLength()) {
+            throw new IllegalArgumentException(
+                q.getLabel() + " 은(는) " + q.getMaxLength() + "자 이하로 입력해주세요.");
+          }
+        }
+        case DROPDOWN -> {
+          String v = answers.get(q.getId());
+          String trimmed = v == null ? "" : v.trim();
+          if (q.isRequired() && trimmed.isEmpty()) {
+            throw new IllegalArgumentException("필수 항목이에요: " + q.getLabel());
+          }
+          if (!trimmed.isEmpty() && !q.isValidDropdownValue(trimmed)) {
+            throw new IllegalArgumentException(q.getLabel() + " 항목은 허용되지 않은 옵션이에요: " + trimmed);
+          }
+        }
+        case ATTACHMENT -> {
+          MultipartFile file = attachments.get(q.getId());
+          boolean empty = file == null || file.isEmpty();
+          if (q.isRequired() && empty) {
+            throw new IllegalArgumentException("필수 첨부 파일이 필요해요: " + q.getLabel());
+          }
+          if (!empty) {
+            validateAttachment(q, file);
+          }
+        }
+        default -> throw new IllegalStateException("알 수 없는 질문 타입: " + q.getFieldType());
       }
     }
+  }
 
-    Application application =
-        Application.builder()
-            .user(user)
-            .program(program)
-            .applyReason(request.getApplyReason())
-            .build();
-    Application saved = applicationRepository.save(application);
-    applicationSubmittedCounter.increment();
-    return saved;
+  /** Qn-5 A: admin-notice 정책 승계 (5MB · pdf/hwp/docx/xlsx). */
+  private void validateAttachment(ApplyQuestion q, MultipartFile file) {
+    if (file.getSize() > NoticeService.MAX_ATTACHMENT_SIZE_BYTES) {
+      throw new IllegalArgumentException(q.getLabel() + " 파일 크기는 5MB 이하여야 해요.");
+    }
+    String ext = NoticeService.extensionOf(file.getOriginalFilename());
+    if (!NoticeService.ALLOWED_EXTENSIONS.contains(ext)) {
+      throw new IllegalArgumentException(q.getLabel() + " 는 pdf, hwp, docx, xlsx 만 업로드할 수 있어요.");
+    }
+  }
+
+  /**
+   * 검증 통과 후 실제 ApplyAnswer row 를 저장. ATTACHMENT 는 storage 업로드 후 경로만 DB 기록. 재신청(CANCELLED) 시 기존 응답
+   * row 는 그대로 두고 새 row 를 추가 (이력 보존).
+   */
+  private void persistDynamicAnswers(
+      Application application,
+      List<ApplyQuestion> questions,
+      Map<Long, String> answers,
+      Map<Long, MultipartFile> attachments) {
+    for (ApplyQuestion q : questions) {
+      switch (q.getFieldType()) {
+        case TEXT, DROPDOWN -> {
+          String v = answers.get(q.getId());
+          if (v == null || v.trim().isEmpty()) continue;
+          applyAnswerRepository.save(
+              ApplyAnswer.builder().application(application).question(q).value(v.trim()).build());
+        }
+        case ATTACHMENT -> {
+          MultipartFile file = attachments.get(q.getId());
+          if (file == null || file.isEmpty()) continue;
+          String originalName = file.getOriginalFilename();
+          if (originalName == null || originalName.isBlank()) originalName = "unnamed";
+          String ext = NoticeService.extensionOf(originalName);
+          String storedName = UUID.randomUUID() + (ext.isEmpty() ? "" : "." + ext);
+          String path = application.getId() + "/" + q.getId() + "/" + storedName;
+          StoredFile stored;
+          try {
+            stored = fileStorage.upload(applyBucket, path, file);
+          } catch (IOException e) {
+            throw new IllegalStateException("첨부 파일 업로드 중 오류가 발생했어요: " + q.getLabel(), e);
+          }
+          applyAnswerRepository.save(
+              ApplyAnswer.builder()
+                  .application(application)
+                  .question(q)
+                  .attachmentPath(path)
+                  .attachmentFilename(originalName)
+                  .attachmentSize(stored.size())
+                  .build());
+          log.info(
+              "[apply-answer] attachment saved application={} question={} path={}",
+              application.getId(),
+              q.getId(),
+              path);
+        }
+        default -> throw new IllegalStateException("알 수 없는 질문 타입: " + q.getFieldType());
+      }
+    }
   }
 
   /**

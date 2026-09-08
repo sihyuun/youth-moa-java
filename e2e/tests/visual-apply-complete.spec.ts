@@ -42,6 +42,10 @@ test('신청 완료 화면 디자인 계약 — 신청 제출 후 실 URL 에서
     await page.goto('/programs/7/apply', { waitUntil: 'domcontentloaded' });
     await applyNextStep(page, 2);
     await page.locator('#applyReason').fill('디자인 계약 실행용 지원 동기.');
+    // F0c-dynamic-fields (2026-09-08): program #7 에 필수 dynamic 필드 2건 추가됨.
+    // apply-complete.spec.ts (chromium) 와 동일 패턴으로 채워야 서버 400 flash 회피.
+    await page.locator('textarea[name="dynamicAnswers[1]"]').fill('디자인 계약용 동적 지원 동기.');
+    await page.locator('select[name="dynamicAnswers[2]"]').selectOption('농작물 재배');
     await applyNextStep(page, 3);
     await page.locator('input[name="privacyAgreed"]').check({ force: true });
     await page.locator('#applyNavSubmit').click();

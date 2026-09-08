@@ -1248,3 +1248,270 @@ body.admin-shell-body {
     padding-top: 20px;
     border-top: 1px solid #f3f4f6;
 }
+
+/* ============================================================
+ * F0c-dynamic-fields (2026-09-08): 관리자 동적 신청 필드 관리 화면 스타일.
+ * admin-term/admin-notice 패턴 승계 (다크 헤더 · 인디고 primary · 존댓말).
+ * ============================================================ */
+.admin-dynamic-field-page,
+.admin-dynamic-field-form-page {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 32px 24px;
+}
+
+.admin-dynamic-field-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 24px;
+    gap: 16px;
+}
+
+.admin-dynamic-field-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: #111827;
+    margin: 0 0 6px;
+}
+
+.admin-dynamic-field-sub {
+    font-size: 13.5px;
+    color: #6b7280;
+    margin: 0;
+    line-height: 1.6;
+}
+
+.admin-dynamic-field-list-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.admin-dynamic-field-row {
+    display: grid;
+    grid-template-columns: 60px 60px 110px 1fr 60px 90px 90px;
+    align-items: center;
+    padding: 14px 20px;
+    border-bottom: 1px solid #f3f4f6;
+    font-size: 13.5px;
+    color: #374151;
+    gap: 12px;
+}
+
+.admin-dynamic-field-row:last-child {
+    border-bottom: 0;
+}
+
+.admin-dynamic-field-row--head {
+    background: #f9fafb;
+    font-weight: 600;
+    color: #6b7280;
+    font-size: 12.5px;
+}
+
+.admin-dynamic-field-row--inactive {
+    background: #fafafa;
+    color: #9ca3af;
+}
+
+.admin-dynamic-field-empty {
+    padding: 40px 20px;
+    text-align: center;
+    color: #9ca3af;
+    font-size: 13px;
+}
+
+.admin-dynamic-field-type-pill {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 4px;
+    background: #eef2ff;
+    color: #4338ca;
+    font-size: 11.5px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+.admin-dynamic-field-type-pill--dropdown {
+    background: #ecfeff;
+    color: #0e7490;
+}
+
+.admin-dynamic-field-type-pill--attachment {
+    background: #fef3c7;
+    color: #b45309;
+}
+
+.admin-dynamic-field-label-link {
+    color: #111827;
+    font-weight: 500;
+    text-decoration: none;
+}
+
+.admin-dynamic-field-label-link:hover {
+    color: #3F30E9;
+    text-decoration: underline;
+}
+
+.admin-dynamic-field-status-pill {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11.5px;
+    font-weight: 600;
+}
+
+.admin-dynamic-field-status-pill--active {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.admin-dynamic-field-status-pill--inactive {
+    background: #f3f4f6;
+    color: #6b7280;
+}
+
+/* form */
+.admin-dynamic-field-form {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 28px 32px;
+}
+
+.admin-dynamic-field-form-row {
+    margin-bottom: 20px;
+}
+
+.admin-dynamic-field-form-row-split {
+    display: flex;
+    gap: 24px;
+    margin-bottom: 20px;
+    align-items: flex-start;
+}
+
+.admin-dynamic-field-form-row-split .admin-dynamic-field-form-row {
+    margin-bottom: 0;
+    flex: 1;
+}
+
+.admin-dynamic-field-form-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 8px;
+}
+
+.admin-dynamic-field-form-required {
+    color: #dc2626;
+}
+
+.admin-dynamic-field-form-input {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 13.5px;
+    color: #111827;
+    background: #fff;
+    box-sizing: border-box;
+}
+
+.admin-dynamic-field-form-input:focus {
+    outline: none;
+    border-color: #3F30E9;
+    box-shadow: 0 0 0 3px rgba(63, 48, 233, 0.08);
+}
+
+.admin-dynamic-field-form-textarea {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 13px;
+    line-height: 1.6;
+    resize: vertical;
+    box-sizing: border-box;
+}
+
+.admin-dynamic-field-form-help {
+    font-size: 12px;
+    color: #9ca3af;
+    margin: 6px 0 0;
+}
+
+.admin-dynamic-field-form-help--policy {
+    background: #fefce8;
+    color: #854d0e;
+    padding: 10px 14px;
+    border-radius: 6px;
+    margin: 0;
+}
+
+.admin-dynamic-field-form-row--checkbox .admin-dynamic-field-form-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    margin: 0;
+}
+
+.admin-dynamic-field-form-row--number .admin-dynamic-field-form-input {
+    width: 100px;
+}
+
+.admin-dynamic-field-form-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 28px;
+    padding-top: 20px;
+    border-top: 1px solid #f3f4f6;
+}
+
+/* ============================================================
+ * F0c-dynamic-fields: 사용자 사이드 apply.html Step 2 동적 필드.
+ * ============================================================ */
+.apply-dynamic-field {
+    margin-top: 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.apply-dynamic-required {
+    color: #dc2626;
+    margin-left: 2px;
+}
+
+.apply-dynamic-textarea {
+    min-height: 100px;
+}
+
+.apply-dynamic-select {
+    padding: 12px 14px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+    font-size: 14px;
+    color: var(--color-text);
+}
+
+.apply-dynamic-attach {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.apply-dynamic-file {
+    padding: 8px 0;
+    font-size: 13px;
+}
+
+.apply-dynamic-attach-hint {
+    font-size: 12px;
+    color: var(--color-text-tri);
+}

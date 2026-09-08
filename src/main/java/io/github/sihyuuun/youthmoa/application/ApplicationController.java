@@ -2,12 +2,18 @@ package io.github.sihyuuun.youthmoa.application;
 
 import io.github.sihyuuun.youthmoa.notification.NotificationChannel;
 import io.github.sihyuuun.youthmoa.notification.NotificationChannelResolver;
+import io.github.sihyuuun.youthmoa.program.ApplyQuestion;
+import io.github.sihyuuun.youthmoa.program.ApplyQuestionRepository;
 import io.github.sihyuuun.youthmoa.program.Program;
 import io.github.sihyuuun.youthmoa.program.ProgramService;
+import io.github.sihyuuun.youthmoa.program.QuestionType;
 import io.github.sihyuuun.youthmoa.user.User;
 import io.github.sihyuuun.youthmoa.user.UserRepository;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -21,6 +27,8 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -33,6 +41,7 @@ public class ApplicationController {
   private final ProgramService programService;
   private final UserRepository userRepository;
   private final NotificationChannelResolver notificationChannelResolver;
+  private final ApplyQuestionRepository applyQuestionRepository;
 
   @GetMapping("/programs/{id}/apply")
   public String applyForm(
@@ -50,6 +59,7 @@ public class ApplicationController {
       @Valid @ModelAttribute ApplyRequest applyRequest,
       BindingResult bindingResult,
       @AuthenticationPrincipal UserDetails principal,
+      HttpServletRequest httpRequest,
       Model model,
       RedirectAttributes redirectAttributes) {
 
@@ -58,9 +68,15 @@ public class ApplicationController {
       return "application/apply";
     }
 
+    // F0c-dynamic-fields (Qn-11 B): 폼은 항상 multipart. ATTACHMENT 응답 파일은
+    // name="dynamicAttachments_{qid}"
+    // 형식으로 전송되므로 MultipartHttpServletRequest 에서 추출한다. request 가 multipart 가 아니면 빈 Map.
+    Map<Long, MultipartFile> attachments = extractAttachments(httpRequest);
+
     Application saved;
     try {
-      saved = applicationService.apply(principal.getUsername(), programId, applyRequest);
+      saved =
+          applicationService.apply(principal.getUsername(), programId, applyRequest, attachments);
     } catch (IllegalStateException | IllegalArgumentException e) {
       redirectAttributes.addFlashAttribute("applyError", e.getMessage());
       return "redirect:/programs/" + programId + "/apply";
@@ -68,6 +84,27 @@ public class ApplicationController {
 
     // D1b: 신청 완료 페이지로 이동 (쿼리파라미터 방식, 새로고침 안전)
     return "redirect:/apply/complete?applicationId=" + saved.getId();
+  }
+
+  /**
+   * F0c-dynamic-fields: MultipartHttpServletRequest 에서 {@code dynamicAttachments_{questionId}} 파일
+   * 필드를 추출해 {@code Map<Long,MultipartFile>} 로 반환. 요청이 multipart 가 아니면 빈 Map.
+   */
+  private Map<Long, MultipartFile> extractAttachments(HttpServletRequest req) {
+    Map<Long, MultipartFile> out = new HashMap<>();
+    if (!(req instanceof MultipartHttpServletRequest mpr)) return out;
+    mpr.getFileMap()
+        .forEach(
+            (name, file) -> {
+              if (name == null || !name.startsWith("dynamicAttachments_")) return;
+              String qid = name.substring("dynamicAttachments_".length());
+              try {
+                out.put(Long.parseLong(qid), file);
+              } catch (NumberFormatException ignored) {
+                // 잘못된 파라미터 이름은 조용히 무시 (서버 로그 부하 방지).
+              }
+            });
+    return out;
   }
 
   /**
@@ -136,8 +173,17 @@ public class ApplicationController {
         userRepository
             .findByEmail(principal.getUsername())
             .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+    // F0c-dynamic-fields (Qn-Δ A): Step 2 에 동적 필드 렌더용 리스트 주입. 시드 프로그램 #7 외 대부분은 empty list → 회귀
+    // 무영향.
+    List<ApplyQuestion> dynamicQuestions =
+        applyQuestionRepository.findByProgramIdAndIsActiveTrueOrderBySortOrderAsc(programId);
     model.addAttribute("currentPage", "programs");
     model.addAttribute("program", program);
     model.addAttribute("currentUser", currentUser);
+    model.addAttribute("dynamicQuestions", dynamicQuestions);
+    // 템플릿 조건 분기용 enum name 접근 헬퍼 (Thymeleaf 에서 enum 비교 편의).
+    model.addAttribute("QT_TEXT", QuestionType.TEXT.name());
+    model.addAttribute("QT_DROPDOWN", QuestionType.DROPDOWN.name());
+    model.addAttribute("QT_ATTACHMENT", QuestionType.ATTACHMENT.name());
   }
 }

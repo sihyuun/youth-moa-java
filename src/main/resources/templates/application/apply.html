@@ -81,8 +81,10 @@
         <!-- 서버 측 에러 (redirect flash) -->
         <div th:if="${applyError}" class="alert alert-error" th:text="${applyError}"></div>
 
+        <!-- F0c-dynamic-fields (Qn-11 B): ATTACHMENT 존재 여부와 무관하게 항상 multipart. -->
         <form th:action="@{/programs/{id}/apply(id=${program.id})}"
-              th:object="${applyRequest}" method="post" novalidate id="applyForm">
+              th:object="${applyRequest}" method="post" novalidate id="applyForm"
+              enctype="multipart/form-data">
 
             <!-- Bean Validation global error -->
             <div th:if="${#fields.hasGlobalErrors()}" class="alert alert-error">
@@ -125,6 +127,47 @@
                               class="apply-textarea"></textarea>
                     <p class="apply-field-error" th:if="${#fields.hasErrors('applyReason')}"
                        th:errors="*{applyReason}"></p>
+                </div>
+
+                <!--
+                  F0c-dynamic-fields (Qn-Δ A · Qn-10 A): 관리자 설정 동적 필드.
+                  시드 프로그램 #7 에만 3필드 · 나머지는 empty list → 회귀 무영향.
+                  th:each 는 empty list 를 자연스럽게 skip 하므로 별도 wrapper 조건 불필요.
+                -->
+                <div th:each="q : ${dynamicQuestions}" class="apply-dynamic-field"
+                     th:classappend="${q.required} ? ' is-required'">
+                    <label class="apply-extra-label" th:for="'dynamic_' + ${q.id}">
+                        <span th:text="${q.label}">질문 라벨</span>
+                        <span th:if="${q.required}" class="apply-dynamic-required">*</span>
+                    </label>
+
+                    <!-- TEXT -->
+                    <textarea th:if="${q.fieldType.name() == QT_TEXT}"
+                              th:id="'dynamic_' + ${q.id}"
+                              th:name="'dynamicAnswers[' + ${q.id} + ']'"
+                              th:maxlength="${q.maxLength}"
+                              class="apply-textarea apply-dynamic-textarea"
+                              th:placeholder="${q.required} ? '필수 항목이에요' : '선택 항목이에요'"></textarea>
+
+                    <!-- DROPDOWN -->
+                    <select th:if="${q.fieldType.name() == QT_DROPDOWN}"
+                            th:id="'dynamic_' + ${q.id}"
+                            th:name="'dynamicAnswers[' + ${q.id} + ']'"
+                            class="apply-dynamic-select">
+                        <option value="">선택해주세요</option>
+                        <option th:each="opt : ${q.optionList}"
+                                th:value="${opt}" th:text="${opt}"></option>
+                    </select>
+
+                    <!-- ATTACHMENT (Qn-5 A: 5MB · pdf/hwp/docx/xlsx) -->
+                    <div th:if="${q.fieldType.name() == QT_ATTACHMENT}" class="apply-dynamic-attach">
+                        <input type="file"
+                               th:id="'dynamic_' + ${q.id}"
+                               th:name="'dynamicAttachments_' + ${q.id}"
+                               accept=".pdf,.hwp,.docx,.xlsx"
+                               class="apply-dynamic-file">
+                        <span class="apply-dynamic-attach-hint">5MB 이하 · pdf, hwp, docx, xlsx 만 업로드할 수 있어요.</span>
+                    </div>
                 </div>
             </div>
 

@@ -31,7 +31,7 @@ function normalizeText(s: string): string {
 async function measure(page: Page, check: Check): Promise<string> {
     const locator = page.locator(check.selector);
 
-    if (check.kind === 'count') {
+    if (check.kind === 'count' || check.kind === 'count-min') {
         return String(await locator.count());
     }
 
@@ -71,6 +71,12 @@ function isPass(check: Check, actual: string): boolean {
         if (Number.isNaN(value)) return false;
         return Math.abs(value - expected) <= (check.tolerance ?? 1);
     }
+    if (check.kind === 'count-min') {
+        const expected = Number(check.expected);
+        const value = Number(actual);
+        if (Number.isNaN(value)) return false;
+        return value >= expected;
+    }
     return actual === String(check.expected);
 }
 
@@ -103,7 +109,7 @@ export function assertResults(results: CheckResult[]): void {
                 `[${r.check.severity}] ${r.check.id} — ${r.check.desc} (출처 ${r.check.proto})`,
             )
             .toBe(
-                r.check.kind === 'box'
+                (r.check.kind === 'box' || r.check.kind === 'count-min')
                     ? r.pass
                         ? r.actual
                         : String(r.check.expected)

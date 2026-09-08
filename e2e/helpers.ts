@@ -176,3 +176,17 @@ export async function resetTerms(page: Page): Promise<void> {
         );
     }
 }
+
+/**
+ * F0c-dynamic-fields (Qn-7 A, 2026-09-08): admin-dynamic-field E2E 가 신규 필드를 만든 후 정리하지 않으면
+ * apply flow 렌더와 목록 count 기대가 오염된다.
+ * `TestFixtureController.resetApplyQuestions()` = id > SEED_APPLY_QUESTION_COUNT (3) 인 필드 + 관련 응답 삭제.
+ */
+export async function resetApplyQuestions(page: Page): Promise<void> {
+    const response = await page.request.post('/__test__/reset-apply-questions');
+    if (response.status() !== 204) {
+        throw new Error(
+            `resetApplyQuestions failed: status=${response.status()} body=${await response.text()}`,
+        );
+    }
+}

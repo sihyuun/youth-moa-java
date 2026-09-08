@@ -77,6 +77,13 @@ public class TestFixtureController {
               .toList();
     }
     if (!targets.isEmpty()) {
+      // F0c-dynamic-fields (Qn-7, 2026-09-08): apply_answer.application_id FK 가 걸려 있으므로
+      // application 을 삭제하기 전에 하위 답변을 먼저 삭제해야 함 (동적 필드 시드 도입으로 실측 회귀).
+      List<Long> targetIds = targets.stream().map(Application::getId).toList();
+      entityManager
+          .createNativeQuery("DELETE FROM apply_answer WHERE application_id IN (:ids)")
+          .setParameter("ids", targetIds)
+          .executeUpdate();
       applicationRepository.deleteAllInBatch(targets);
     }
     log.info(
@@ -155,6 +162,38 @@ public class TestFixtureController {
         seedCount,
         deletedTerms,
         deletedAgreements);
+    return ResponseEntity.noContent().build();
+  }
+
+  /**
+   * F0c-dynamic-fields (Qn-7 A, 2026-09-08): admin-dynamic-field E2E 가 신규 필드를 생성 후 정리하지 않으면 다음 spec
+   * 에서 apply flow 렌더가 오염된다 (특히 시드 프로그램 #7 에 dynamic field 개수 검증).
+   *
+   * <p>정책: {@code id > SEED_APPLY_QUESTION_COUNT} 인 apply_question row + 관련 apply_answer 삭제. 시드 3건은
+   * auto-increment 로 id 1~3 확보. FK 순서 준수 (apply_answer 먼저 → apply_question).
+   *
+   * @return 204 No Content (idempotent — 대상 없어도 성공)
+   */
+  @PostMapping("/reset-apply-questions")
+  @Transactional
+  public ResponseEntity<Void> resetApplyQuestions() {
+    long seedCount = DataInitializer.SEED_APPLY_QUESTION_COUNT;
+    int deletedAnswers =
+        entityManager
+            .createNativeQuery(
+                "DELETE FROM apply_answer WHERE question_id IN (SELECT id FROM apply_question WHERE id > :seedCount)")
+            .setParameter("seedCount", seedCount)
+            .executeUpdate();
+    int deletedQuestions =
+        entityManager
+            .createNativeQuery("DELETE FROM apply_question WHERE id > :seedCount")
+            .setParameter("seedCount", seedCount)
+            .executeUpdate();
+    log.info(
+        "[test-fixture] reset-apply-questions seedCount={} deletedQuestions={} deletedAnswers={}",
+        seedCount,
+        deletedQuestions,
+        deletedAnswers);
     return ResponseEntity.noContent().build();
   }
 
