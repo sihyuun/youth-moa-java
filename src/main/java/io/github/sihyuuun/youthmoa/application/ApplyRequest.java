@@ -2,6 +2,8 @@ package io.github.sihyuuun.youthmoa.application;
 
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Size;
+import java.util.HashMap;
+import java.util.Map;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -11,6 +13,9 @@ import lombok.Setter;
  * <ul>
  *   <li>applyReason: 지원 동기 (선택, 최대 1000자) — F0c-remainder Q2 결정에 따라 필수 해제
  *   <li>privacyAgreed: 개인정보 수집 동의 (필수)
+ *   <li>F0c-dynamic-fields (2026-09-08 · Qn-6 A · Qn-Δ A · Qn-11 B): 동적 응답 Map. TEXT/DROPDOWN 은
+ *       {@link #dynamicAnswers} (questionId → String). ATTACHMENT 는 MultipartFile 이라 controller 가
+ *       별도로 {@code MultipartHttpServletRequest} 에서 추출.
  * </ul>
  */
 @Getter
@@ -33,4 +38,11 @@ public class ApplyRequest {
    */
   @AssertTrue(message = "개인정보 수집 동의가 필요합니다.")
   private boolean privacyAgreed;
+
+  /**
+   * F0c-dynamic-fields: 동적 필드 응답 (TEXT/DROPDOWN). {@code name="dynamicAnswers[questionId]"} 형식으로
+   * multipart form 필드에서 바인딩. ATTACHMENT 응답은 별도 MultipartFile 이라 controller 가
+   * MultipartHttpServletRequest.getFile 로 추출.
+   */
+  private Map<Long, String> dynamicAnswers = new HashMap<>();
 }

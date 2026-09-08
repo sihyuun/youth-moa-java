@@ -68,6 +68,16 @@ public class DataInitializer implements ApplicationRunner {
    */
   public static final int SEED_NOTICE_COUNT = 12;
 
+  /**
+   * F0c-dynamic-fields (Qn-7 A · Qn-10 A, 2026-09-08): V11 마이그레이션이 seed program #7 에 3필드를 백필한다
+   * (TEXT · DROPDOWN · ATTACHMENT). {@link
+   * io.github.sihyuuun.youthmoa.test.TestFixtureController#resetApplyQuestions()} 가 id 기준 필터로 신규
+   * 필드만 삭제하기 위해 참조한다.
+   *
+   * <p>seed 개수를 변경하면 이 상수와 V11 마이그레이션을 동시에 수정해야 한다.
+   */
+  public static final long SEED_APPLY_QUESTION_COUNT = 3L;
+
   private final ProgramRepository programRepository;
   private final RegionRepository regionRepository;
   private final CenterRepository centerRepository;

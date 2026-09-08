@@ -158,6 +158,38 @@ public class TestFixtureController {
     return ResponseEntity.noContent().build();
   }
 
+  /**
+   * F0c-dynamic-fields (Qn-7 A, 2026-09-08): admin-dynamic-field E2E 가 신규 필드를 생성 후 정리하지 않으면 다음 spec
+   * 에서 apply flow 렌더가 오염된다 (특히 시드 프로그램 #7 에 dynamic field 개수 검증).
+   *
+   * <p>정책: {@code id > SEED_APPLY_QUESTION_COUNT} 인 apply_question row + 관련 apply_answer 삭제. 시드 3건은
+   * auto-increment 로 id 1~3 확보. FK 순서 준수 (apply_answer 먼저 → apply_question).
+   *
+   * @return 204 No Content (idempotent — 대상 없어도 성공)
+   */
+  @PostMapping("/reset-apply-questions")
+  @Transactional
+  public ResponseEntity<Void> resetApplyQuestions() {
+    long seedCount = DataInitializer.SEED_APPLY_QUESTION_COUNT;
+    int deletedAnswers =
+        entityManager
+            .createNativeQuery(
+                "DELETE FROM apply_answer WHERE question_id IN (SELECT id FROM apply_question WHERE id > :seedCount)")
+            .setParameter("seedCount", seedCount)
+            .executeUpdate();
+    int deletedQuestions =
+        entityManager
+            .createNativeQuery("DELETE FROM apply_question WHERE id > :seedCount")
+            .setParameter("seedCount", seedCount)
+            .executeUpdate();
+    log.info(
+        "[test-fixture] reset-apply-questions seedCount={} deletedQuestions={} deletedAnswers={}",
+        seedCount,
+        deletedQuestions,
+        deletedAnswers);
+    return ResponseEntity.noContent().build();
+  }
+
   /** 신청 정리 요청 바디. programId 는 optional (null 이면 해당 유저 전체). */
   public record ResetApplicationsRequest(@NotBlank String userEmail, Long programId) {}
 }
