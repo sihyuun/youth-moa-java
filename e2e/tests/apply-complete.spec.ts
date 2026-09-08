@@ -36,6 +36,9 @@ test('신청 제출 후 완료 페이지가 렌더된다 (성공 아이콘·요�
     await page.goto(`/programs/${FRESH_PROGRAM_ID}/apply`, { waitUntil: 'domcontentloaded' });
     await applyNextStep(page, 2);
     await page.locator('#applyReason').fill('E2E 완료 페이지 검증용 지원 동기 문장입니다.');
+    // F0c seed dynamic fields on program #7 (id=1 TEXT required, id=2 DROPDOWN required, id=3 ATTACHMENT optional)
+    await page.locator('textarea[name="dynamicAnswers[1]"]').fill('E2E 완료 검증용 동적 지원 동기');
+    await page.locator('select[name="dynamicAnswers[2]"]').selectOption('농작물 재배');
     await applyNextStep(page, 3);
     // apply.html: 실제 input 은 opacity:0 + pointer-events:none (custom UI). Playwright actionable 대기 우회.
     await page.locator('input[name="privacyAgreed"]').check({ force: true });

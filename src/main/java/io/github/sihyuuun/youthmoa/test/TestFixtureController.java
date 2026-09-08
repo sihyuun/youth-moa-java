@@ -77,6 +77,13 @@ public class TestFixtureController {
               .toList();
     }
     if (!targets.isEmpty()) {
+      // F0c-dynamic-fields (Qn-7, 2026-09-08): apply_answer.application_id FK 가 걸려 있으므로
+      // application 을 삭제하기 전에 하위 답변을 먼저 삭제해야 함 (동적 필드 시드 도입으로 실측 회귀).
+      List<Long> targetIds = targets.stream().map(Application::getId).toList();
+      entityManager
+          .createNativeQuery("DELETE FROM apply_answer WHERE application_id IN (:ids)")
+          .setParameter("ids", targetIds)
+          .executeUpdate();
       applicationRepository.deleteAllInBatch(targets);
     }
     log.info(

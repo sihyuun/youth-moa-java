@@ -17,6 +17,8 @@ export type CheckKind =
     | 'text'
     /** 셀렉터 매칭 개수 */
     | 'count'
+    /** 셀렉터 매칭 개수가 expected 이상 */
+    | 'count-min'
     /** 존재 여부 (expected: true/false) */
     | 'exists';
 

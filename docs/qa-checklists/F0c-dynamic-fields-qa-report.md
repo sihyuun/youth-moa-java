@@ -1,25 +1,27 @@
-# F0c-dynamic-fields QA Report (재검증 갱신)
+# F0c-dynamic-fields QA Report (재재검증 최종)
 
-- 작업 브랜치 · commit: `feature/F0c-dynamic-fields` @ `7edd13b` (P0 fix)
-- 이전 반려: `a5c7725` (2026-09-08 초회 QA)
-- 재검증 수행: 2026-09-08
-- 서버: `.claude/scripts/bootrun-e2e.cmd` 재기동 (PID 3872 → 재기동), profile `e2e`, port 8090
-- 판정: **REJECT (재반려)** — P0 2건은 완전 회복. 신규 P0 결함 1건 발견 (e2e 프로파일 seed 부재)
+- 작업 브랜치 · commit: `feature/F0c-dynamic-fields` @ `b1d4d48` (P0-3 fix)
+- 이전 반려: `a5c7725` (초회) → `678c799` (1차 재검증) → `b1d4d48` (2차 재검증 = 본 리포트)
+- 재재검증 수행: 2026-09-08
+- 서버: `.claude/scripts/bootrun-e2e.cmd` 재기동 (fresh H2), profile `e2e`, port 8090
+- **최종 판정: PASS ✅** — P0-1 · P0-2 · P0-3 전부 RESOLVED. 회귀 0건. ym-verify 인계 가능
 
 ---
 
-## 판정 요약
+## 판정 요약 (재재검증)
 
-| 영역 | 이전 QA | 재검증 | 비고 |
+| 영역 | 1차 재검증 (678c799) | 2차 재재검증 (b1d4d48) | 비고 |
 |---|---|---|---|
-| 1. 정적 | ✅ | ✅ | compileJava · AdminApplyQuestionServiceTest 16/16 · JpaMappingTest 3/3 |
-| 2. 동적 (curl) | ❌ 500 3건 | ✅ | P0-1 / P0-2 fix 확인 (실측 원본 아래) |
-| 3. 계약 (`--project=contracts`) | 미실행 | ❌ FAIL 1건 | **신규 결함**: seed 3필드 부재 → list.rows.seeded 0/3 |
-| 4. 기능 E2E (`--project=chromium`) | 미실행 | ❌ FAIL 3건 | seed 3필드 부재 파생 |
-| 5. 회귀 | reset-apply 500 | ✅ 부분 · ❌ apply 회귀 3건 | signup 7/7 PASS, admin 43/44 (1 FAIL) |
-| 6. 시각 | - | 미진행 | 재반려로 보류 |
+| 1. 정적 | ✅ | ✅ | compileJava BUILD SUCCESSFUL |
+| 2. 동적 (curl) | ✅ | ✅ | admin 세션 dynamic-fields list = **3 seeded rows** (정확 카운트) |
+| 3. 계약 (`--project=contracts`) | ❌ FAIL 2 (24 assertion 중) | ✅ **3/3 spec · 24/24 assertion PASS · 갭 0** | count-min runner 지원 추가 (test-only) |
+| 4. 기능 E2E (`--project=chromium`) | ❌ FAIL 4 | ✅ **15/15 PASS** | apply-complete spec dynamic 필드 채움 (test-only) |
+| 5. 회귀 apply | ❌ 3건 | ✅ **11/11 PASS** (apply.spec.ts 4/4 · apply-dynamic-response 4/4 · apply-complete 2/2 · login 1/1) | reset-applications FK 회귀 fix |
+| 5. 회귀 signup | ✅ | ✅ | 5/5 PASS |
+| 5. 회귀 admin 전체 | 43/44 | ✅ **44/44 PASS** | notice · term · A1 · rbac · list · dynamic-field 무회귀 |
+| 6. Qn-8 C soft delete | 검증 못함 | ✅ | admin-dynamic-field-form:53 PASS |
 
-**Blocking issue (신규 P0-3)**: e2e 프로파일에서 seed 프로그램 #7 에 dynamic apply_question 3필드 (TEXT · DROPDOWN · ATTACHMENT) 가 실체 없음. V11 Flyway 마이그레이션이 seed 를 담당하지만 e2e 프로파일은 Flyway off (H2 create-drop). DataInitializer 에도 apply_question 시드 로직 없음. 결과: 계약·기능·apply flow 전반 fail.
+**최종 상태**: P0-1 · P0-2 · P0-3 모두 RESOLVED. 회귀 0건. 계약 갭 0. **ym-verify 인계 조건 충족**.
 
 ---
 
@@ -210,6 +212,104 @@ POST /__test__/reset-apply-questions  204   (fix 후 회복)
   - `--project=chromium apply-dynamic-response admin-dynamic-field-* apply-complete` → 전부 PASS
   - apply.spec.ts 4건 회귀 PASS 유지
   - signup / admin (term · notice · A1) 무회귀
+
+---
+
+---
+
+## 5. 재재검증 (2026-09-08 · commit b1d4d48) — 최종
+
+### 5-1. P0-3 · e2e seed apply_question 부재 → **RESOLVED ✅**
+
+**서버 fresh 재기동 후 admin (sysadmin@youth-moa.test) 세션 실측:**
+
+```
+GET /admin/programs/7/dynamic-fields  =  200
+grep 'class="admin-dynamic-field-row"' → 3   (헤더 제외 실 데이터 rows)
+```
+
+정확히 3필드 렌더 (`지원 동기` TEXT / `관심 강좌` DROPDOWN / `포트폴리오` ATTACHMENT).
+
+**DROPDOWN 편집 폼 옵션 (`/admin/programs/7/dynamic-fields/2`)**:
+```html
+<textarea id="options" name="options" rows="6" ...>농작물 재배
+유기농 요리
+도시양봉</textarea>
+```
+옵션 3개 (P0-2 회복 유지 재확인).
+
+### 5-2. 계약 검사 (`--project=contracts admin-dynamic-field`)
+
+```
+[1/3] visual-admin-dynamic-field.spec.ts:10 (관리자 동적 필드 목록 계약)
+[2/3] visual-admin-dynamic-field.spec.ts:22 (신규 폼 계약)
+[3/3] visual-admin-dynamic-field.spec.ts:34 (편집 계약)
+  3 passed (5.6s)
+```
+
+24 assertion **갭 0 재현**. `list.rows.seeded 3/3` + `list.type-pill.exists 3/3` 통과.
+
+**test-only 수정 (스킬 정책상 허용)**: `e2e/contracts/runner.ts` + `types.ts` 에 `count-min` kind 지원 추가. 계약 정의는 이미 `count-min` 을 쓰고 있었으나 runner 가 지원 안 해 항상 fail 하던 정합성 결함이었음 (`Received: ""` = css fallback path). 세 파일(admin-dynamic-field · admin-notice · admin-term)의 기존 count-min 계약이 이 수정으로 함께 정상화.
+
+### 5-3. 기능 E2E (`--project=chromium`)
+
+```
+admin-dynamic-field(-form|-rbac|-list) + apply-dynamic-response + apply-complete
+  15 passed (30.7s)
+```
+
+이전 fail 4건 전부 회복:
+- ✅ `apply-complete:32` — 신청 → complete 페이지
+- ✅ `apply-dynamic-response:25` — Step 2 에 dynamic 3필드
+- ✅ `apply-dynamic-response:37` — dynamic 응답 포함 신청 성공
+- ✅ `admin-dynamic-field-form:53` — Qn-8 C soft delete + hard delete 버튼 부재
+
+**test-only 수정 1건 (spec 갱신 · 정책 허용)**: `apply-complete.spec.ts:32` 는 program #7 을 쓰는데 P0-3 fix 후 dynamic 필드가 실체화되어 required 검증에 걸림 (실 flash: "필수 항목이에요: 지원 동기"). spec 에 `dynamicAnswers[1]` (TEXT 지원 동기) + `dynamicAnswers[2]` (DROPDOWN 관심 강좌 = '농작물 재배') 채움 추가. 이 spec 은 완료 페이지 렌더 검증이 목적이므로 dynamic 검증은 `apply-dynamic-response` 가 담당.
+
+### 5-4. 회귀 검증
+
+**apply 계열 (`-g apply`)** — 11/11 PASS:
+```
+apply.spec.ts        4/4  (자동채움 · privacyAgreed 방어 · @Size · 중복 신청)
+apply-dynamic-response 4/4
+apply-complete       2/2
+login.spec.ts:50     1/1  (/apply 비인증 리다이렉트)
+```
+multipart 전환 후 apply.spec.ts 4/4 유지 확인.
+
+**signup** — 5/5 PASS (`signup.spec.ts` 총 5건, 이전 리포트의 "7/7" 표기 정정. 필수·정책·중복확인 5시나리오).
+
+**admin 전체 (`-g admin`)** — **44/44 PASS**. dynamic-field · notice · term · A1 · rbac 무회귀. 이전 1건 (admin-dynamic-field-form:53) 회복 포함.
+
+**신규 발견 회귀 → 즉시 fix (test-fixture 결함)**:
+
+- `resetApplications` (test-only endpoint) 가 `apply_answer.application_id` FK 를 미고려하고 `applicationRepository.deleteAllInBatch` 를 직접 호출 → P0-3 fix 로 apply_answer 가 실제 생성되면서 500 DataIntegrityViolationException 노출
+- 조치: `TestFixtureController.resetApplications` 에 `DELETE FROM apply_answer WHERE application_id IN (:ids)` 선행 실행 추가. `@Profile("e2e")` scope 이므로 운영 소스 영향 없음
+- 서버 재기동 후 이 spec (`apply-complete.spec.ts:68` 존재하지 않는 applicationId 로 접근 시 404) PASS 확인
+
+### 5-5. 정적 검증
+
+```
+./gradlew.bat compileJava  →  BUILD SUCCESSFUL in 37s
+```
+
+---
+
+## 6. 최종 판정 · ym-verify 인계
+
+**판정: PASS ✅** — F0c-dynamic-fields 커밋 `b1d4d48` 는 6영역 검증 모두 통과.
+
+- ✅ 정적 · 동적 · 계약 (24 assertion 갭 0) · 기능 E2E (15/15) · 회귀 (apply 11/11 · signup 5/5 · admin 44/44) · Qn-8 C soft delete
+- ✅ 회귀 0건 (신규 발견 test-fixture 회귀 1건은 본 QA 사이클에서 즉시 fix 후 재검증 PASS)
+- ✅ prototype-check 대상 아님 (관리자 스킴)
+
+**test-only 수정 산출물** (본 QA 사이클에서 스킬 정책 범위 내 반영):
+1. `e2e/contracts/runner.ts` · `types.ts` — count-min kind 지원
+2. `e2e/tests/apply-complete.spec.ts` — dynamic 필드 채우기 추가
+3. `src/main/java/.../test/TestFixtureController.java` — resetApplications FK 처리 (@Profile("e2e") scope)
+
+**다음 관문 (ym-verify)**:
+> 커밋 `b1d4d48` + 본 QA 리포트 · 위 test-only 수정 3건 기반으로 적대적 검증 진행. spec 구현 매핑 행 단위 재대조 + PASS/FAIL/UNVERIFIED 3단 판정 요망.
 
 ---
 
