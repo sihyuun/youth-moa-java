@@ -4,6 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.github.sihyuuun.youthmoa.common.config.JpaConfig;
+import io.github.sihyuuun.youthmoa.common.storage.FileStorage;
+import io.github.sihyuuun.youthmoa.common.storage.StoredFile;
 import io.github.sihyuuun.youthmoa.program.Program;
 import io.github.sihyuuun.youthmoa.program.ProgramRepository;
 import io.github.sihyuuun.youthmoa.user.User;
@@ -11,6 +13,8 @@ import io.github.sihyuuun.youthmoa.user.UserRepository;
 import io.github.sihyuuun.youthmoa.user.UserRole;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
+import java.io.IOException;
+import java.io.InputStream;
 import java.time.LocalDate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -21,10 +25,16 @@ import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabas
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.web.multipart.MultipartFile;
 
 @DataJpaTest
 @AutoConfigureTestDatabase
-@Import({JpaConfig.class, ApplicationService.class, ApplicationServiceTest.MeterConfig.class})
+@Import({
+  JpaConfig.class,
+  ApplicationService.class,
+  ApplicationServiceTest.MeterConfig.class,
+  ApplicationServiceTest.FileStorageStub.class
+})
 class ApplicationServiceTest {
 
   /**
@@ -35,6 +45,37 @@ class ApplicationServiceTest {
     @Bean
     MeterRegistry meterRegistry() {
       return new SimpleMeterRegistry();
+    }
+  }
+
+  /**
+   * F0c-dynamic-fields: ApplicationService 가 FileStorage 의존하므로 @DataJpaTest 컨텍스트에 stub 주입.
+   * ATTACHMENT 응답이 없는 테스트만 실행하므로 no-op 구현으로 충분.
+   */
+  @TestConfiguration
+  static class FileStorageStub {
+    @Bean
+    FileStorage fileStorage() {
+      return new FileStorage() {
+        @Override
+        public StoredFile upload(String bucket, String path, MultipartFile file)
+            throws IOException {
+          return new StoredFile(bucket, path, path, file.getSize());
+        }
+
+        @Override
+        public InputStream download(String bucket, String path) throws IOException {
+          return InputStream.nullInputStream();
+        }
+
+        @Override
+        public void delete(String bucket, String path) {}
+
+        @Override
+        public boolean exists(String bucket, String path) {
+          return false;
+        }
+      };
     }
   }
 

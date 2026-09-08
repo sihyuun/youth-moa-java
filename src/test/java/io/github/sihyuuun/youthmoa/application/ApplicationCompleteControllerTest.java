@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import io.github.sihyuuun.youthmoa.notification.NotificationChannel;
 import io.github.sihyuuun.youthmoa.notification.NotificationChannelResolver;
+import io.github.sihyuuun.youthmoa.program.ApplyQuestionRepository;
 import io.github.sihyuuun.youthmoa.program.Program;
 import io.github.sihyuuun.youthmoa.program.ProgramService;
 import io.github.sihyuuun.youthmoa.user.User;
@@ -46,6 +47,9 @@ class ApplicationCompleteControllerTest {
   @MockitoBean ProgramService programService;
   @MockitoBean UserRepository userRepository;
   @MockitoBean NotificationChannelResolver notificationChannelResolver;
+
+  // F0c-dynamic-fields: ApplicationController 에 ApplyQuestionRepository 의존 추가됨
+  @MockitoBean ApplyQuestionRepository applyQuestionRepository;
 
   // HeaderNotificationAdvice 의존성 mock (F2 @ControllerAdvice 도입 후 필요)
   @MockitoBean io.github.sihyuuun.youthmoa.notification.NotificationService notificationService;
