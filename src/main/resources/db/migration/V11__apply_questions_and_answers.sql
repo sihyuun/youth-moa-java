@@ -30,11 +30,14 @@ CREATE TABLE apply_question (
 CREATE INDEX idx_apply_question_program
     ON apply_question(program_id, is_active, sort_order);
 
+-- 컬럼명 `value` 는 H2(MODE=PostgreSQL) / PostgreSQL 모두에서 예약어 계열이라
+-- unquoted 사용 시 DDL 파싱 실패 (H2 42001, PG 는 quote 필요). Java 필드명은 `value` 유지,
+-- 실제 컬럼만 `answer_value` 로 매핑 (2026-09-08 QA 반려 P0-1).
 CREATE TABLE apply_answer (
     id                  BIGSERIAL PRIMARY KEY,
     application_id      BIGINT NOT NULL REFERENCES application(id) ON DELETE CASCADE,
     question_id         BIGINT NOT NULL REFERENCES apply_question(id),
-    value               TEXT,
+    answer_value        TEXT,
     attachment_path     VARCHAR(500),
     attachment_filename VARCHAR(200),
     attachment_size     BIGINT,

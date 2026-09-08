@@ -46,7 +46,12 @@ public class ApplyAnswer {
   @JoinColumn(name = "question_id", nullable = false)
   private ApplyQuestion question;
 
-  @Column(columnDefinition = "TEXT")
+  /**
+   * TEXT/DROPDOWN 응답값. Java 필드명 `value` 는 도메인 상 자연스럽지만, DB 컬럼명 `value` 는
+   * H2(MODE=PostgreSQL)/PostgreSQL 모두에서 예약어 계열이라 unquoted DDL 파싱 실패 → `answer_value` 로 매핑
+   * (2026-09-08 QA 반려 P0-1).
+   */
+  @Column(name = "answer_value", columnDefinition = "TEXT")
   private String value;
 
   @Column(name = "attachment_path", length = 500)

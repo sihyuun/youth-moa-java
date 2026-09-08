@@ -95,6 +95,24 @@ class AdminApplyQuestionServiceTest {
     assertThat(q.getOptionList()).containsExactly("A", "B", "C");
   }
 
+  /** QA 반려 P0-2 (2026-09-08): 관리자가 JSON 배열 literal 을 붙여넣어도 정상 파싱돼야 한다. */
+  @Test
+  void create_DROPDOWN_acceptsJsonArrayLiteral() {
+    ApplyQuestion q =
+        service.create(7L, QuestionType.DROPDOWN, "라벨", true, 1, "[\"A\",\"B\",\"C\"]", null);
+    assertThat(q.getOptions()).isEqualTo("[\"A\",\"B\",\"C\"]");
+    assertThat(q.getOptionList()).containsExactly("A", "B", "C");
+  }
+
+  /** QA 반려 P0-2 (2026-09-08): 잘못된 JSON literal 은 IllegalArgumentException + 안내 메시지. */
+  @Test
+  void create_DROPDOWN_rejectsBrokenJsonArrayLiteral() {
+    assertThatThrownBy(
+            () -> service.create(7L, QuestionType.DROPDOWN, "라벨", true, 1, "[not json", null))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("JSON 배열 형식");
+  }
+
   @Test
   void create_ATTACHMENT_setsNoOptionsNoMaxLength() {
     ApplyQuestion q = service.create(7L, QuestionType.ATTACHMENT, "포트폴리오", false, 3, null, null);

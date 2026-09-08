@@ -13,6 +13,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * F0c-dynamic-fields (2026-09-08): 관리자 동적 신청 필드 CRUD 서비스.
@@ -33,6 +37,11 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class AdminApplyQuestionService {
+
+  /** DROPDOWN options JSON literal 입력 판별용 (thread-safe). */
+  private static final ObjectMapper MAPPER = JsonMapper.builder().build();
+
+  private static final TypeReference<List<String>> STRING_LIST_TYPE = new TypeReference<>() {};
 
   private final ApplyQuestionRepository applyQuestionRepository;
   private final ProgramRepository programRepository;
@@ -160,7 +169,15 @@ public class AdminApplyQuestionService {
   /**
    * DROPDOWN 만 options 검증 · JSON 정규화. TEXT/ATTACHMENT 는 무조건 null 반환 (부적절한 값 누출 방지).
    *
-   * <p>입력 형식: 한 줄에 하나 (\n 구분) · 콤마 구분도 허용 (관리자 편의). 각 옵션은 trim, 빈 문자열은 제거. 최소 1개 이상.
+   * <p>입력 형식 (관리자 편의로 3종 모두 허용, 최종 저장은 항상 JSON 배열로 정규화):
+   *
+   * <ol>
+   *   <li>JSON 배열 literal: {@code ["A","B","C"]} → 그대로 파싱 (QA 반려 P0-2, 2026-09-08)
+   *   <li>개행 구분: {@code A\nB\nC}
+   *   <li>콤마 구분: {@code A,B,C} (개행 없을 때만)
+   * </ol>
+   *
+   * <p>각 옵션은 trim, 빈 문자열은 제거. 최소 1개 이상, 최대 50개.
    */
   String normalizeOptions(QuestionType fieldType, String raw) {
     if (fieldType != QuestionType.DROPDOWN) return null;
@@ -168,11 +185,27 @@ public class AdminApplyQuestionService {
       throw new IllegalArgumentException("드롭다운 옵션을 한 줄에 하나씩 입력해주세요.");
     }
     List<String> opts = new ArrayList<>();
-    // 우선 개행 기준으로 자름. 개행 없으면 콤마도 허용.
-    String[] parts = raw.contains("\n") ? raw.split("\\r?\\n") : raw.split(",");
-    for (String p : parts) {
-      String trimmed = p.trim();
-      if (!trimmed.isEmpty()) opts.add(trimmed);
+    String trimmedRaw = raw.trim();
+    // Case 1: JSON 배열 literal 로 보이면 Jackson 파싱 시도. 실패 시 IllegalArgumentException.
+    if (trimmedRaw.startsWith("[")) {
+      try {
+        List<String> parsed = MAPPER.readValue(trimmedRaw, STRING_LIST_TYPE);
+        for (String p : parsed) {
+          if (p == null) continue;
+          String t = p.trim();
+          if (!t.isEmpty()) opts.add(t);
+        }
+      } catch (JacksonException e) {
+        throw new IllegalArgumentException("옵션은 JSON 배열 형식이어야 해요 예: [\"A\", \"B\", \"C\"]");
+      }
+    } else {
+      // Case 2/3: 개행 기준 우선, 없으면 콤마.
+      String[] parts =
+          trimmedRaw.contains("\n") ? trimmedRaw.split("\\r?\\n") : trimmedRaw.split(",");
+      for (String p : parts) {
+        String t = p.trim();
+        if (!t.isEmpty()) opts.add(t);
+      }
     }
     if (opts.isEmpty()) {
       throw new IllegalArgumentException("드롭다운 옵션은 최소 1개 이상이어야 합니다.");
