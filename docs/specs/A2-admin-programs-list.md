@@ -103,19 +103,24 @@ A2 는 조회 전용이라 write→read 왕복 없음. 다음 지점이 Program 
 - **좌측 필터 세그먼트**: 전체 / 진행중 / 마감 / 진행 예정 / 운영중단 (5종 — SUSPENDED 포함. prototype 은 4종이나 `Program.getStatus()` 가 SUSPENDED 를 노출하므로 필터에도 포함. Qn-3)
 - **우측**: 검색 인풋 (`프로그램명, 센터 검색` placeholder, 175px, prototype L919) · 뷰 토글 (목록/카드/캘린더 — **카드·캘린더는 disabled 스타일 + A8 안내 툴팁**) · CSV 내보내기 (**disabled + A8 안내**) · 프로그램 등록 버튼 (`goToProgramForm` → **`/admin/programs/new` = A3, A2 에서는 disabled + A3 안내**)
 
-**목록 그리드** (prototype L960~1033)
+**목록 그리드** (실 구현 반영 · 2026-09-09 ym-verify 후 갱신)
 
-| # | 컬럼 | 폭 | 소스 |
+| # | 컬럼 | 소스 | 비고 |
 |---|---|---|---|
-| 1 | 체크박스 (A8 이월 — **A2 는 렌더만, disabled**) | 32px | — |
-| 2 | No. | 40px | page × size + index + 1 |
-| 3 | 프로그램명 (썸네일 32×32 + 제목 · 조직명) | 1fr | `title` · `organization` · `imageUrl` |
-| 4 | 진행기간 | 110px | `startDate ~ endDate` |
-| 5 | 신청기간 | 110px | **A3 이월** — A2 는 "-" (Qn-3 A안) 또는 진행기간과 동일 (B안) |
-| 6 | 신청현황 | 90px | `applied/capacity` (배치 조회) |
-| 7 | 조회수 | 60px | **A6 이월** — A2 는 "-" (Qn-3) |
-| 8 | 상태 뱃지 | 80px | `Program.getStatus()` 파생 |
-| 9 | 관리 | 80px | "편집" 링크 → `/admin/programs/{id}` 상세 페이지 (A3 편집 진입은 상세에서) |
+| 1 | 프로그램명 (썸네일 32×32 + 제목 · 조직명) | `title` · `organization` · `imageUrl` | — |
+| 2 | 카테고리 | `Program.category` (i18n label) | prototype 이탈 · 관리자 UX 개선 (deviation) |
+| 3 | 청년센터 | `Program.organization` | — |
+| 4 | 상태 뱃지 | `Program.getStatus()` 파생 | OPEN/UPCOMING/ENDED/SUSPENDED |
+| 5 | 신청기간 | **A3 이월** — 값 "-" | applyPeriod 컬럼 미도입 |
+| 6 | 신청현황 | `applied/capacity` (배치 조회) | 배치 조회로 N+1 회피 |
+| 7 | 조회수 | **A6 이월** — 값 "-" | viewCount 컬럼 미도입 |
+| 8 | 등록일 | `Program.createdAt` | prototype 이탈 · 관리자 UX 개선 (deviation) |
+| 9 | 관리 | "편집" 링크 → `/admin/programs/{id}` 상세 페이지 (A3 편집 진입은 상세에서) | — |
+
+**Prototype 이탈** (§9 deviation 도 참조):
+- **제거**: 체크박스 (A8 이월 · 일괄 선택 없음) · No. (페이지네이션으로 대체) · 진행기간 (신청기간과 겹침, 신청기간이 A3 완료 후 유의미해질 예정)
+- **추가**: 카테고리 · 등록일 (관리자 실무 유용성)
+- 컬럼 개수는 9종으로 동일 유지
 
 **하단 페이지네이션**: 10건/페이지 (Qn-4). 5-그룹 단위 (AdminNoticeController 패턴)
 
@@ -376,6 +381,7 @@ curl -s -o /dev/null -w "%{http_code}\n" -b centeradmin_jsessionid http://localh
 |---|---|
 | 액션바 필터 5종 (prototype 4종 → SUSPENDED 추가) | `Program.getStatus()` 가 SUSPENDED 를 노출하므로 필터에서도 커버해야 조회 가능 (POLICY 관련 없음 · A2 신규 결정) |
 | 뷰 토글 3개를 렌더만 하고 카드/캘린더 disabled | prototype 은 3뷰 동작이나 A8 이월. 접근성 위해 렌더 유지 + `aria-disabled="true"` |
+| 목록 컬럼 재편 — **체크박스/No/진행기간 제거, 카테고리/등록일 추가** | 2026-09-09 ym-verify FAIL #4 후속 spec 정정. 체크박스는 A8 일괄 선택과 함께 도입 · No 는 페이지네이션이 대체 · 진행기간·신청기간 겹침(신청기간은 A3 완료 후 유의미) · 카테고리·등록일은 관리자 실무 유용성. 컬럼 개수 9종 동일 |
 
 ---
 
