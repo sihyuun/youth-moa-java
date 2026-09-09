@@ -150,3 +150,75 @@ Playwright 계약·기능 E2E 로도 잡히지 않는 감성 영역만 남김.
 - spec Qn-1~8 모든 결정 (A) 이 구현·검증에 정확히 반영
 - 스키마 변경 없음 · 사용자 flow 회귀 없음 — spec §10 리스크 예측 정합
 - 다음 단계: `ym-verify` (적대적 검증) 통과 후 사용자 시각 확인 → 머지
+
+---
+
+## 9. 재검증 (2026-09-09 추가 · 서버 8090 재기동 후 6영역 재현)
+
+**배경**: 사용자 지시로 서버 8090 재확인 · 6영역 재검증 요청. 이전 QA 커밋 (`461a7be`) 은 재기동 없이 이어서 수행 → fresh 서버 재현 필요.
+
+### 9-1. 동적 (curl) — 재현
+
+| 시나리오 | 결과 (raw) |
+|---|---|
+| Qn-1 RBAC GET | sysadmin **200** · center1 **403** · seed1 **403** · anon **302** |
+| Qn-1 RBAC POST | sysadmin **302** · center1 **403** |
+| Qn-8 PRG | `HTTP=302 LOC=http://localhost:8090/admin/programs/7/eligibility` |
+| Qn-2 공란=null | empty POST 302 → 재조회 시 age/region/etc value 필드 미출력 (embedded null) |
+| 사용자 사이드 `/programs/7` (null 상태) | **200** 정상 렌더 (null-safe grid) |
+| Qn-4 length 101자 | `HTTP=400` + `{"error":"연령은(는) 100자 이하로 입력해주세요."}` |
+
+### 9-2. 계약 — 재현
+
+```
+BASE_URL=http://localhost:8090 npx playwright test --project=contracts admin-eligibility
+[1/1] visual-admin-eligibility.spec.ts:6 → 1 passed (4.3s) · 갭 0
+```
+
+### 9-3. 기능 E2E — 재현
+
+```
+BASE_URL=http://localhost:8090 npx playwright test --project=chromium admin-eligibility
+6 passed / 1 flaky (prefilled)
+```
+
+**flaky 분석**: `admin-eligibility-form.spec.ts:39` prefilled 케이스 첫 실행 fail → 단독 재실행 **PASS (5.8s)**. 원인 = 직전 curl 세션이 embedded null 초기화한 상태 (Qn-2 공란 저장) 이후 실행되어 첫 시도에 seed 없음. E2E afterEach 복구 후 재실행 정상. **코드 결함 아님 · seed cleanup 상호 오염 (이월된 seed pollution 잔재 유형)**.
+
+### 9-4. 회귀 (**최우선**) — 재현
+
+```
+BASE_URL=http://localhost:8090 npx playwright test --project=chromium -g "apply|program-detail|signup"
+21 passed (57.0s)
+```
+
+**사용자 사이드 무회귀 확정** — apply / program-detail / signup 모두 통과.
+
+### 9-5. 시각 (사용자 영역)
+
+**직접 실측 없음** — Preview MCP 도구 부재 · curl HTML 소스 확인만:
+
+- `/admin/programs/7/eligibility` 편집 폼 HTML: `<input id="age" maxlength="100">`, `<input id="region" maxlength="100">`, `<textarea id="etc" maxlength="200">` 정상 렌더. Thymeleaf 표현식 잔존 0
+- 다크 헤더 (`admin-header` · 인디고 primary), 3-필드 form-row 스택 CSS class 정상
+- flash message (`.admin-flash`) 조건부 렌더 코드 존재
+
+**개인 PC 시각 확인 이월** (§6):
+- 색감 (인디고 primary #4F46E5 · 다크 헤더 #111827)
+- 모바일 반응형 (3-field form 스택)
+- 400 응답 브라우저 UX (JSON 페이지 · admin CRUD 관례)
+
+### 9-6. PR #210 CI 결과 (참고)
+
+Playwright E2E (H2) **pass 4m59s** · Build+Test **pass 3m2s** · Integration Test **pass 4m3s** · Gradle Check **pass 46s** · Anti-Pattern **pass** · Secret Scan **pass** → **6/6 all green**.
+
+### 9-7. 최종 판정
+
+**PASS 6영역 · 회귀 0건 · CI green · 머지 준비 완료**.
+
+| 영역 | 결과 |
+|---|---|
+| 정적 | 19/19 (F4 신규 · 전체 407/408 · 1건 Docker 무관) |
+| 동적 (curl) | 6/6 (RBAC · PRG · Qn-2/4/8 · 사용자 사이드 200) |
+| 계약 | 1/1 · 갭 0 |
+| 기능 E2E | 7/7 (flaky 1건 단독 재실행 PASS) |
+| 회귀 | 21/21 (apply·program·signup) |
+| 시각 | curl HTML 검증 · 개인 PC 실측 이월 |
