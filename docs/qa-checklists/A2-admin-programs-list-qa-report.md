@@ -173,3 +173,69 @@ Running 62 tests using 1 worker
 - 회귀 발견: **0건**
 - 반려 사유: 없음
 - 다음 단계: `ym-verify` (적대적 검증) 또는 사용자 시각 확인 후 머지
+
+---
+
+## §9. 재검증 (2026-09-09 · /loop 지시 · 6영역 재현)
+
+**배경**: `/loop A2 QA 계속` 지시 · 서버 8090 재확인 후 6영역 라운드트립 실측.
+
+### 9-1. 동적 (curl) 재현
+
+| 시나리오 | 결과 (raw) |
+|---|---|
+| Qn-1 RBAC GET | sysadmin **200** · center1 **200** (scope 격리) · seed1 **403** · anon **302** |
+| Qn-2 상세 F4/F0c 진입 | `/admin/programs/1` **200** + eligibility · dynamic-fields 링크 각 1 |
+| Qn-3 필터 5종 | OPEN=10 · SUSPENDED=1 · ENDED=4 · UPCOMING=6 · `?q=청년`=10 |
+| Qn-9 GNB active | `admin-nav-link active">프로그램 관리` 유일 |
+| SQLi | `?q=' OR '1'='1` → 0행 (JPA parameter binding) |
+| XSS | `?q=<script>` → `value="&lt;script&gt;"` (Thymeleaf escape) |
+
+### 9-2. 계약 재현
+
+```
+BASE_URL=http://localhost:8090 npx playwright test --project=contracts admin-programs
+2 passed (6.1s) · 갭 0
+```
+
+### 9-3. 기능 E2E 재현
+
+```
+BASE_URL=http://localhost:8090 npx playwright test --project=chromium admin-programs
+11 passed (35.8s)
+```
+
+### 9-4. 회귀 (**최우선**) 재현
+
+```
+BASE_URL=http://localhost:8090 npx playwright test --project=chromium -g "program|apply|signup|admin"
+112 passed (4.5m)
+```
+
+전체 무회귀 확정 — apply·signup·program-detail·admin (A1/notice/term/dynamic-field/eligibility/programs 6세트).
+
+### 9-5. 시각 (사용자 영역)
+
+**curl HTML 검증**:
+- 목록: 컬럼 9종 렌더 정상 (spec §3-1 정정본 정합)
+- 상세: F4/F0c 진입 카드 · "편집" disabled
+- Thymeleaf 잔존 0
+
+**개인 PC 시각 이월**: 색감 · 다크 헤더 · 뱃지 계층 · 카드 밀도
+
+### 9-6. PR #211 CI
+
+Playwright E2E **pass 5m25s** · Build+Test **pass 2m44s** · Integration **pass 3m23s** · Gradle Check **pass 51s** · Anti-Pattern **pass** · Gitleaks **pass** → **6/6 all green**.
+
+### 9-7. 최종 판정
+
+**PASS 6영역 · 회귀 0건 · CI green · ym-verify PASS (spec §3-1 정정 후) · 머지 준비 완료**.
+
+| 영역 | 결과 |
+|---|---|
+| 정적 | 19/19 |
+| 동적 (curl) | 6/6 |
+| 계약 | 2/2 · 갭 0 |
+| 기능 E2E | 11/11 |
+| 회귀 | 112/112 |
+| 시각 | curl HTML 검증 · 개인 PC 실측 이월 |
