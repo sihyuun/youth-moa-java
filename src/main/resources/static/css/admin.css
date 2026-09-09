@@ -1254,13 +1254,15 @@ body.admin-shell-body {
  * admin-term/admin-notice 패턴 승계 (다크 헤더 · 인디고 primary · 존댓말).
  * ============================================================ */
 .admin-dynamic-field-page,
-.admin-dynamic-field-form-page {
+.admin-dynamic-field-form-page,
+.admin-eligibility-form-page {
     max-width: 1080px;
     margin: 0 auto;
     padding: 32px 24px;
 }
 
-.admin-dynamic-field-header {
+.admin-dynamic-field-header,
+.admin-eligibility-header {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
@@ -1268,14 +1270,16 @@ body.admin-shell-body {
     gap: 16px;
 }
 
-.admin-dynamic-field-title {
+.admin-dynamic-field-title,
+.admin-eligibility-title {
     font-size: 22px;
     font-weight: 700;
     color: #111827;
     margin: 0 0 6px;
 }
 
-.admin-dynamic-field-sub {
+.admin-dynamic-field-sub,
+.admin-eligibility-sub {
     font-size: 13.5px;
     color: #6b7280;
     margin: 0;
@@ -1374,15 +1378,28 @@ body.admin-shell-body {
 }
 
 /* form */
-.admin-dynamic-field-form {
+.admin-dynamic-field-form,
+.admin-eligibility-form {
     background: #fff;
     border: 1px solid #e5e7eb;
     border-radius: 10px;
     padding: 28px 32px;
 }
 
-.admin-dynamic-field-form-row {
+.admin-dynamic-field-form-row,
+.admin-eligibility-form-row {
     margin-bottom: 20px;
+}
+
+/* F4-admin-eligibility flash 배너 (Qn-8 A PRG) */
+.admin-eligibility-flash {
+    background: #eef2ff;
+    color: #3730a3;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 13.5px;
+    margin-bottom: 20px;
+    border: 1px solid #c7d2fe;
 }
 
 .admin-dynamic-field-form-row-split {
@@ -1397,7 +1414,8 @@ body.admin-shell-body {
     flex: 1;
 }
 
-.admin-dynamic-field-form-label {
+.admin-dynamic-field-form-label,
+.admin-eligibility-form-label {
     display: block;
     font-size: 13px;
     font-weight: 600;
@@ -1409,7 +1427,8 @@ body.admin-shell-body {
     color: #dc2626;
 }
 
-.admin-dynamic-field-form-input {
+.admin-dynamic-field-form-input,
+.admin-eligibility-form-input {
     width: 100%;
     padding: 10px 14px;
     border: 1px solid #d1d5db;
@@ -1420,13 +1439,16 @@ body.admin-shell-body {
     box-sizing: border-box;
 }
 
-.admin-dynamic-field-form-input:focus {
+.admin-dynamic-field-form-input:focus,
+.admin-eligibility-form-input:focus,
+.admin-eligibility-form-textarea:focus {
     outline: none;
     border-color: #3F30E9;
     box-shadow: 0 0 0 3px rgba(63, 48, 233, 0.08);
 }
 
-.admin-dynamic-field-form-textarea {
+.admin-dynamic-field-form-textarea,
+.admin-eligibility-form-textarea {
     width: 100%;
     padding: 10px 14px;
     border: 1px solid #d1d5db;
@@ -1438,7 +1460,8 @@ body.admin-shell-body {
     box-sizing: border-box;
 }
 
-.admin-dynamic-field-form-help {
+.admin-dynamic-field-form-help,
+.admin-eligibility-form-help {
     font-size: 12px;
     color: #9ca3af;
     margin: 6px 0 0;
@@ -1464,12 +1487,14 @@ body.admin-shell-body {
     width: 100px;
 }
 
-.admin-dynamic-field-form-actions {
+.admin-dynamic-field-form-actions,
+.admin-eligibility-form-actions {
     display: flex;
     gap: 10px;
     margin-top: 28px;
     padding-top: 20px;
     border-top: 1px solid #f3f4f6;
+    align-items: center;
 }
 
 /* ============================================================
