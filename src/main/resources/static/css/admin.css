@@ -1540,3 +1540,314 @@ body.admin-shell-body {
     font-size: 12px;
     color: var(--color-text-tri);
 }
+
+/* ─────────────────────────────────────────────────────────────────
+ * A2 — 프로그램 관리 목록 · 상세
+ * ───────────────────────────────────────────────────────────────── */
+
+.admin-program-page {
+    padding: 24px 32px 48px;
+    max-width: 1440px;
+    margin: 0 auto;
+}
+.admin-program-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+    gap: 16px;
+}
+.admin-program-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--admin-text-primary);
+    margin: 0 0 4px;
+}
+.admin-program-sub {
+    font-size: 13px;
+    color: var(--admin-text-sec);
+    margin: 0;
+}
+
+/* 액션바 */
+.admin-program-actionbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+}
+.admin-program-filters { display: flex; }
+.admin-program-search {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.admin-program-search-input {
+    width: 220px;
+    height: 34px;
+    padding: 0 10px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 13px;
+    background: #fff;
+}
+.admin-program-tabs {
+    display: inline-flex;
+    background: #f3f4f6;
+    padding: 4px;
+    border-radius: 10px;
+    gap: 2px;
+}
+.admin-program-tab {
+    padding: 6px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #6b7280;
+    text-decoration: none;
+    border-radius: 7px;
+    transition: background .12s;
+}
+.admin-program-tab:hover { color: #111827; }
+.admin-program-tab--active {
+    background: #fff;
+    color: #3F30E9;
+    box-shadow: 0 1px 2px rgba(0,0,0,.06);
+    font-weight: 600;
+}
+
+/* 목록 */
+.admin-program-list-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    overflow: hidden;
+}
+.admin-program-row {
+    display: grid;
+    /* name · category · org · status · apply · applied · views · created · actions */
+    grid-template-columns: 2fr 90px 130px 90px 100px 100px 60px 100px 80px;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 18px;
+    border-bottom: 1px solid #f3f4f6;
+    font-size: 13px;
+    color: #374151;
+}
+.admin-program-row--head {
+    background: #f9fafb;
+    font-weight: 600;
+    color: #6b7280;
+    font-size: 12px;
+}
+.admin-program-empty {
+    padding: 40px 20px;
+    text-align: center;
+    color: #9ca3af;
+    font-size: 14px;
+}
+
+.admin-program-name-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #111827;
+    text-decoration: none;
+    font-weight: 500;
+    overflow: hidden;
+}
+.admin-program-name-link:hover .admin-program-name-text {
+    color: #3F30E9;
+    text-decoration: underline;
+}
+.admin-program-thumb-wrap {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    overflow: hidden;
+    background: #f3f4f6;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.admin-program-thumb {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.admin-program-thumb--placeholder {
+    font-size: 14px;
+    color: #9ca3af;
+}
+.admin-program-name-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.admin-program-col-org,
+.admin-program-col-category {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.admin-program-col-apply,
+.admin-program-col-views {
+    color: #9ca3af;
+    font-size: 12px;
+}
+.admin-program-col-applied {
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+}
+.admin-program-col-actions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+/* 대시보드 최근 프로그램 링크 row */
+.admin-recent-programs-row--link {
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
+    transition: background .12s;
+}
+.admin-recent-programs-row--link:hover {
+    background: #f9fafb;
+}
+
+/* ─── 상세 페이지 ─── */
+.admin-program-detail-page {
+    padding: 24px 32px 48px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+.admin-program-detail-header { margin-bottom: 20px; }
+.admin-program-detail-breadcrumb { margin-bottom: 12px; }
+.admin-program-breadcrumb-link {
+    font-size: 13px;
+    color: #6b7280;
+    text-decoration: none;
+}
+.admin-program-breadcrumb-link:hover { color: #3F30E9; }
+.admin-program-detail-title-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+.admin-program-detail-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: #111827;
+    margin: 0 0 8px;
+}
+.admin-program-detail-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    color: #6b7280;
+}
+.admin-program-detail-org { font-weight: 500; }
+.admin-program-detail-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.admin-program-detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+.admin-program-detail-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 20px 24px;
+}
+.admin-program-detail-card--wide { grid-column: 1 / -1; }
+.admin-program-detail-card-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #111827;
+    margin: 0 0 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #f3f4f6;
+}
+.admin-program-detail-info { display: flex; flex-direction: column; gap: 10px; margin: 0; }
+.admin-program-detail-info-row {
+    display: grid;
+    grid-template-columns: 100px 1fr;
+    gap: 12px;
+    align-items: baseline;
+    font-size: 13px;
+}
+.admin-program-detail-info-row dt {
+    color: #6b7280;
+    font-weight: 500;
+}
+.admin-program-detail-info-row dd {
+    margin: 0;
+    color: #111827;
+}
+.admin-program-detail-dday {
+    display: inline-block;
+    margin-left: 8px;
+    padding: 1px 6px;
+    background: #fef3c7;
+    color: #92400e;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+}
+.admin-program-detail-links {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.admin-program-detail-link {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding: 12px 14px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: background .12s, border-color .12s;
+}
+.admin-program-detail-link:hover {
+    background: #f9fafb;
+    border-color: #3F30E9;
+}
+.admin-program-detail-link-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #111827;
+}
+.admin-program-detail-link-desc {
+    font-size: 12px;
+    color: #6b7280;
+}
+.admin-program-detail-link--disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+    background: #f9fafb;
+}
+.admin-program-detail-link--disabled:hover {
+    border-color: #e5e7eb;
+    background: #f9fafb;
+}
+.admin-program-detail-content {
+    font-size: 14px;
+    line-height: 1.7;
+    color: #374151;
+    white-space: pre-wrap;
+}
+
+@media (max-width: 900px) {
+    .admin-program-detail-grid { grid-template-columns: 1fr; }
+    .admin-program-row,
+    .admin-program-row--head {
+        grid-template-columns: 1fr;
+        gap: 4px;
+    }
+}

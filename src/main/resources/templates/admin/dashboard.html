@@ -125,7 +125,7 @@
             <div class="admin-recent-programs">
                 <div class="admin-card-head">
                     <h3 class="admin-card-title">최근 프로그램 현황</h3>
-                    <span class="admin-card-more admin-card-more--disabled" aria-label="전체보기 (A2 도입 예정)">전체보기 →</span>
+                    <a th:href="@{/admin/programs}" class="admin-card-more">전체보기 →</a>
                 </div>
                 <div class="admin-recent-programs-row admin-recent-programs-row--head">
                     <span>프로그램명</span>
@@ -135,8 +135,9 @@
                 </div>
                 <div th:if="${#lists.isEmpty(dashboard.recentPrograms)}"
                      class="admin-recent-programs-empty">등록된 프로그램이 없습니다.</div>
-                <div th:each="rp : ${dashboard.recentPrograms}"
-                     class="admin-recent-programs-row">
+                <a th:each="rp : ${dashboard.recentPrograms}"
+                   th:href="@{/admin/programs/{id}(id=${rp.id})}"
+                   class="admin-recent-programs-row admin-recent-programs-row--link">
                     <span class="admin-recent-programs-name" th:text="${rp.title}">프로그램명</span>
                     <span class="admin-recent-programs-center" th:text="${rp.organization}">청년센터</span>
                     <span class="admin-recent-programs-applied"
@@ -146,7 +147,7 @@
                               th:classappend="${'admin-status-badge--' + rp.status.name().toLowerCase()}"
                               th:text="${rp.status.label}">모집중</span>
                     </div>
-                </div>
+                </a>
             </div>
 
             <!-- Right column -->
