@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>자격요건 편집 — 청년모아 관리자</title>
+    <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"
+          rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" th:href="@{/images/logo_symbol.png}">
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
+    <meta name="_csrf" th:content="${_csrf?.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf?.headerName}"/>
+</head>
+<body class="admin-shell-body">
+
+<div th:replace="~{admin/fragments/header :: header('eligibility', ${centerScopeLabel}, ${isSystemAdmin})}"></div>
+
+<main class="admin-shell-main">
+    <div class="admin-eligibility-form-page">
+
+        <section class="admin-eligibility-header">
+            <div>
+                <h2 class="admin-eligibility-title">자격요건 편집</h2>
+                <p class="admin-eligibility-sub">
+                    <strong th:text="${program.title}">프로그램</strong>
+                    <span> — 연령 · 거주지 · 기타 3필드를 편집해요. 공란으로 저장하면 사용자 화면에 기본 문구가 노출돼요.</span>
+                </p>
+            </div>
+            <a th:href="@{/programs/{id}(id=${program.id})}"
+               class="admin-btn admin-btn--outline" target="_blank" rel="noopener">← 프로그램 상세 보기</a>
+        </section>
+
+        <div th:if="${flashMessage}" class="admin-eligibility-flash" role="status"
+             th:text="${flashMessage}">저장했어요.</div>
+
+        <form class="admin-eligibility-form"
+              th:action="@{/admin/programs/{id}/eligibility(id=${program.id})}"
+              method="post">
+
+            <div class="admin-eligibility-form-row">
+                <label class="admin-eligibility-form-label" for="age">연령</label>
+                <input type="text" id="age" name="age" maxlength="100"
+                       class="admin-eligibility-form-input"
+                       th:value="${age}"
+                       placeholder="예: 만 19세 ~ 39세 청년">
+                <p class="admin-eligibility-form-help">공란 시 사용자 화면에 "연령 제한 없음" 으로 노출돼요.</p>
+            </div>
+
+            <div class="admin-eligibility-form-row">
+                <label class="admin-eligibility-form-label" for="region">거주지</label>
+                <input type="text" id="region" name="region" maxlength="100"
+                       class="admin-eligibility-form-input"
+                       th:value="${region}"
+                       placeholder="예: 경기도 거주 또는 활동 중인 청년">
+                <p class="admin-eligibility-form-help">공란 시 사용자 화면에 "거주지 제한 없음" 으로 노출돼요.</p>
+            </div>
+
+            <div class="admin-eligibility-form-row">
+                <label class="admin-eligibility-form-label" for="etc">기타 조건</label>
+                <textarea id="etc" name="etc" rows="4" maxlength="200"
+                          class="admin-eligibility-form-textarea"
+                          placeholder="예: 전 회차 참석 가능자 우대"
+                          th:text="${etc}"></textarea>
+                <p class="admin-eligibility-form-help">최대 200자. 공란 시 사용자 화면에 "별도 조건 없음" 으로 노출돼요.</p>
+            </div>
+
+            <div class="admin-eligibility-form-actions">
+                <button type="submit" class="admin-btn admin-btn--primary">저장</button>
+                <a th:href="@{/programs/{id}(id=${program.id})}"
+                   class="admin-btn admin-btn--outline">취소</a>
+            </div>
+
+        </form>
+
+    </div>
+</main>
+
+<script>
+    // 유저 드롭다운 (헤더 공통)
+    (function () {
+        var trigger = document.querySelector('.admin-header-user-trigger');
+        var menu = document.getElementById('admin-user-dropdown');
+        if (trigger && menu) {
+            trigger.addEventListener('click', function (ev) {
+                ev.stopPropagation();
+                menu.hidden = !menu.hidden;
+                trigger.setAttribute('aria-expanded', String(!menu.hidden));
+            });
+            document.addEventListener('click', function (ev) {
+                if (!menu.hidden && !menu.contains(ev.target)) {
+                    menu.hidden = true;
+                    trigger.setAttribute('aria-expanded', 'false');
+                }
+            });
+        }
+    })();
+</script>
+</body>
+</html>
