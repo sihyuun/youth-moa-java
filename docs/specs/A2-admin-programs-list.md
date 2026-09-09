@@ -384,5 +384,60 @@ curl -s -o /dev/null -w "%{http_code}\n" -b centeradmin_jsessionid http://localh
 - 작업 ID: **A2**
 - 우선순위: 높음 (A3 진입점)
 - 추정 단위: 1 PR
-- 상태: `spec_done` — Qn 결정 대기
+- 상태: **`impl_done`** (2026-09-09) — ym-qa 인계 대기
 - 다음 단계: 사용자 Qn-1~Qn-9 결정 → `spec_confirmed` → ym-impl 인계
+
+---
+
+## 11. 구현 매핑 (2026-09-09 ym-impl 산출)
+
+### 백엔드
+
+| 스펙 항목 | 파일 | 라인 |
+|---|---|---|
+| §2 재활용 인프라 검증 | `admin/AdminProgramService.java` | 전체 |
+| §3-1 목록 조회 (Qn-3 A · Qn-4 A · Qn-5 A · Qn-6 A) | `AdminProgramService.list()` | L51~62 |
+| §3-1 스코프 강제 (Qn-1 A) | `AdminProgramService.scopeSpec()` | L96~100 |
+| §3-1 검색 (Qn-6 A, LIKE lower title+organization OR) | `AdminProgramService.keywordSpec()` | L102~110 |
+| §3-1 필터 5종 (Qn-3 A, OPEN/UPCOMING/ENDED/SUSPENDED/전체) | `AdminProgramService.statusSpec()` | L122~152 |
+| §3-1 신청수 배치 조회 (N+1 방지) | `AdminProgramService.countAppliedByProgramIds()` | L82~92 |
+| §3-2 상세 조회 (Qn-2 A) | `AdminProgramService.find()` | L67~77 |
+| §3-3 RBAC (Qn-1 A: SYSTEM_ADMIN + CENTER_ADMIN) | `admin/AdminProgramController.java` @PreAuthorize | L37 |
+| §3-1 목록 컨트롤러 + 페이지네이션 5-그룹 | `AdminProgramController.list()` | L43~74 |
+| §3-2 상세 컨트롤러 + 403 승격 | `AdminProgramController.detail()` | L77~91 |
+
+### 화면 (Thymeleaf)
+
+| 스펙 항목 | 파일 | 라인 |
+|---|---|---|
+| §3-1 목록 액션바 (필터 5종 + 검색) | `templates/admin/program/list.html` | L34~63 |
+| §3-1 컬럼 9종 헤더 | `templates/admin/program/list.html` | L68~78 |
+| §3-1 프로그램명 (썸네일 32×32 + 텍스트) | `templates/admin/program/list.html` | L86~100 |
+| §3-1 상태 뱃지 | `templates/admin/program/list.html` | L104~107 |
+| §3-1 신청기간 "-" (A3 이월) | `templates/admin/program/list.html` | L108~109 |
+| §3-1 신청현황 (배치 count / capacity) | `templates/admin/program/list.html` | L110~111 |
+| §3-1 조회수 "-" (A6 이월) | `templates/admin/program/list.html` | L112~113 |
+| §3-1 액션 컬럼 "편집" (Qn-7 A · 상세 페이지로 이동) | `templates/admin/program/list.html` | L118~121 |
+| §3-1 페이지네이션 5-그룹 | `templates/admin/program/list.html` | L127~140 |
+| §3-2 상세 헤더 + 브레드크럼 + 상태 뱃지 | `templates/admin/program/detail.html` | L25~48 |
+| §3-2 편집·삭제 disabled (A3 이월) | `templates/admin/program/detail.html` | L41~44 |
+| §3-2 기본 정보 카드 | `templates/admin/program/detail.html` | L52~89 |
+| §3-2 하위 관리 진입 카드 (F4 · F0c · A4 disabled) | `templates/admin/program/detail.html` | L92~110 |
+| §3-2 자격요건 요약 | `templates/admin/program/detail.html` | L112~128 |
+| §5-3 GNB "프로그램 관리" 활성화 (Qn-9 A) | `templates/admin/fragments/header.html` | L44~45 |
+| §5-4 대시보드 "최근 프로그램" 링크 활성화 | `templates/admin/dashboard.html` | L128, L138~149 |
+
+### 계약 · 테스트
+
+| 스펙 항목 | 파일 |
+|---|---|
+| §6 계약 (Qn-8 A) — 스펙 | `docs/design-contracts/admin/programs-list.md` |
+| §6 계약 — 검사 | `e2e/contracts/admin-programs.ts` |
+| §6 계약 실행 spec | `e2e/tests/visual-admin-programs.spec.ts` |
+| §6 기능 E2E 목록 | `e2e/tests/admin-programs-list.spec.ts` |
+| §6 기능 E2E 상세 | `e2e/tests/admin-programs-detail.spec.ts` |
+| §6 기능 E2E RBAC | `e2e/tests/admin-programs-rbac.spec.ts` |
+| §6 정적: 목록 렌더 | `src/test/java/io/github/sihyuuun/youthmoa/admin/AdminProgramListRenderTest.java` |
+| §6 정적: 상세 렌더 | `src/test/java/io/github/sihyuuun/youthmoa/admin/AdminProgramDetailRenderTest.java` |
+| §6 정적: 서비스 스코프/필터 통합 | `src/test/java/io/github/sihyuuun/youthmoa/admin/AdminProgramServiceTest.java` |
+| §6 CSS 신규 | `src/main/resources/static/css/admin.css` A2 섹션 (파일 하단) |

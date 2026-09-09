@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="|${program.title} — 프로그램 관리|">프로그램 상세</title>
+    <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"
+          rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" th:href="@{/images/logo_symbol.png}">
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
+    <meta name="_csrf" th:content="${_csrf?.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf?.headerName}"/>
+</head>
+<body class="admin-shell-body">
+
+<div th:replace="~{admin/fragments/header :: header('programs', ${centerScopeLabel}, ${isSystemAdmin})}"></div>
+
+<main class="admin-shell-main">
+    <div class="admin-program-detail-page">
+
+        <!-- 브레드크럼 + 상단 액션 -->
+        <section class="admin-program-detail-header">
+            <div class="admin-program-detail-breadcrumb">
+                <a th:href="@{/admin/programs}" class="admin-program-breadcrumb-link">← 프로그램 목록</a>
+            </div>
+            <div class="admin-program-detail-title-row">
+                <div>
+                    <h2 class="admin-program-detail-title" th:text="${program.title}">프로그램 제목</h2>
+                    <div class="admin-program-detail-meta">
+                        <span class="admin-status-badge"
+                              th:classappend="${'admin-status-badge--' + program.status.name().toLowerCase()}"
+                              th:text="${program.status.label}">모집중</span>
+                        <span class="admin-program-detail-org" th:text="${program.organization}">청년센터</span>
+                    </div>
+                </div>
+                <div class="admin-program-detail-actions">
+                    <a th:href="@{/programs/{id}(id=${program.id})}" target="_blank" rel="noopener"
+                       class="admin-btn admin-btn--sm admin-btn--outline">사용자 화면 미리보기 ↗</a>
+                    <button type="button" class="admin-btn admin-btn--sm admin-btn--primary" disabled
+                            aria-label="편집 (A3 도입 예정)" title="A3 에서 열립니다">편집</button>
+                    <button type="button" class="admin-btn admin-btn--sm admin-btn--danger-outline" disabled
+                            aria-label="삭제 (A3 도입 예정)" title="A3 에서 열립니다">삭제</button>
+                </div>
+            </div>
+        </section>
+
+        <div class="admin-program-detail-grid">
+
+            <!-- 정보 카드 -->
+            <section class="admin-program-detail-card">
+                <h3 class="admin-program-detail-card-title">기본 정보</h3>
+                <dl class="admin-program-detail-info">
+                    <div class="admin-program-detail-info-row">
+                        <dt>카테고리</dt>
+                        <dd th:text="${program.category != null ? program.category : '-'}">-</dd>
+                    </div>
+                    <div class="admin-program-detail-info-row">
+                        <dt>지역</dt>
+                        <dd th:text="${program.region != null ? program.region : '-'}">-</dd>
+                    </div>
+                    <div class="admin-program-detail-info-row">
+                        <dt>진행기간</dt>
+                        <dd>
+                            <span th:text="${program.startDate != null ? #temporals.format(program.startDate, 'yyyy-MM-dd') : '-'}">-</span>
+                            ~
+                            <span th:text="${program.endDate != null ? #temporals.format(program.endDate, 'yyyy-MM-dd') : '-'}">-</span>
+                            <span th:if="${program.ddayLabel != null and !program.ddayLabel.isEmpty()}"
+                                  class="admin-program-detail-dday"
+                                  th:text="${program.ddayLabel}">D-3</span>
+                        </dd>
+                    </div>
+                    <div class="admin-program-detail-info-row">
+                        <dt>모집인원</dt>
+                        <dd th:text="${program.capacity != null ? program.capacity + '명' : '제한 없음'}">30명</dd>
+                    </div>
+                    <div class="admin-program-detail-info-row">
+                        <dt>신청 현황</dt>
+                        <dd>
+                            <strong th:text="${applied}">0</strong>
+                            <span>명 신청</span>
+                            <span th:if="${program.capacity != null}"
+                                  th:text="|(${program.capacity}명 정원)|">(30명 정원)</span>
+                        </dd>
+                    </div>
+                    <div class="admin-program-detail-info-row">
+                        <dt>등록일</dt>
+                        <dd th:text="${#temporals.format(program.createdAt, 'yyyy-MM-dd HH:mm')}">2026-09-09</dd>
+                    </div>
+                </dl>
+            </section>
+
+            <!-- 하위 관리 진입 카드 -->
+            <section class="admin-program-detail-card">
+                <h3 class="admin-program-detail-card-title">하위 관리</h3>
+                <div class="admin-program-detail-links">
+                    <a th:href="@{/admin/programs/{id}/eligibility(id=${program.id})}"
+                       class="admin-program-detail-link">
+                        <span class="admin-program-detail-link-title">자격요건 편집</span>
+                        <span class="admin-program-detail-link-desc">연령 · 거주지 · 기타 조건 관리</span>
+                    </a>
+                    <a th:href="@{/admin/programs/{id}/dynamic-fields(id=${program.id})}"
+                       class="admin-program-detail-link">
+                        <span class="admin-program-detail-link-title">동적 필드 관리</span>
+                        <span class="admin-program-detail-link-desc">신청 폼에서 물어볼 추가 질문 관리</span>
+                    </a>
+                    <span class="admin-program-detail-link admin-program-detail-link--disabled"
+                          aria-label="신청 현황 (A4 도입 예정)" title="A4 에서 열립니다">
+                        <span class="admin-program-detail-link-title">신청 현황 보기</span>
+                        <span class="admin-program-detail-link-desc">신청자 목록 · 승인/반려 (A4 도입 예정)</span>
+                    </span>
+                </div>
+            </section>
+
+            <!-- 자격요건 요약 -->
+            <section class="admin-program-detail-card admin-program-detail-card--wide">
+                <h3 class="admin-program-detail-card-title">자격요건</h3>
+                <dl class="admin-program-detail-info">
+                    <div class="admin-program-detail-info-row">
+                        <dt>연령</dt>
+                        <dd th:text="${program.eligibility != null and program.eligibility.age != null and !program.eligibility.age.isEmpty() ? program.eligibility.age : '제한 없음'}">제한 없음</dd>
+                    </div>
+                    <div class="admin-program-detail-info-row">
+                        <dt>거주지</dt>
+                        <dd th:text="${program.eligibility != null and program.eligibility.region != null and !program.eligibility.region.isEmpty() ? program.eligibility.region : '제한 없음'}">제한 없음</dd>
+                    </div>
+                    <div class="admin-program-detail-info-row">
+                        <dt>기타</dt>
+                        <dd th:text="${program.eligibility != null and program.eligibility.etc != null and !program.eligibility.etc.isEmpty() ? program.eligibility.etc : '없음'}">없음</dd>
+                    </div>
+                </dl>
+            </section>
+
+            <!-- 설명 -->
+            <section class="admin-program-detail-card admin-program-detail-card--wide">
+                <h3 class="admin-program-detail-card-title">프로그램 설명</h3>
+                <div class="admin-program-detail-content"
+                     th:text="${program.content}">프로그램 설명 내용</div>
+            </section>
+
+        </div>
+
+    </div>
+</main>
+
+<script th:inline="javascript">
+    (function () {
+        var trigger = document.querySelector('.admin-header-user-trigger');
+        var menu = document.getElementById('admin-user-dropdown');
+        if (!trigger || !menu) return;
+        function close() { menu.hidden = true; trigger.setAttribute('aria-expanded', 'false'); }
+        function open() { menu.hidden = false; trigger.setAttribute('aria-expanded', 'true'); }
+        trigger.addEventListener('click', function (ev) {
+            ev.stopPropagation();
+            if (menu.hidden) open(); else close();
+        });
+        document.addEventListener('click', function (ev) {
+            if (!menu.hidden && !menu.contains(ev.target)) close();
+        });
+    })();
+</script>
+</body>
+</html>
