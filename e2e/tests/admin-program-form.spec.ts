@@ -123,6 +123,24 @@ test('FK 참조가 있는 시드 프로그램(#1) 삭제 → 소프트 삭제 30
     // 편집 폼에서 활성 체크박스 (isActive) 가 해제되어 있어야 함
     const isActive = await page.locator('input[name="active"]').isChecked();
     expect(isActive).toBe(false);
+
+    // Restore: 다른 spec (apply.spec.ts DUP_PROGRAM_ID=1) 오염 방지.
+    // PR #206 seed-pollution 학습 재발 방지 — 편집 폼에서 active 재체크 후 저장.
+    // active 체크박스는 탭2(신청정보)에 위치하므로 탭 전환 후 체크. force:true 로
+    // Thymeleaf 가 생성한 id 변조(active1)에 관계없이 name 셀렉터로 체크 강제.
+    // 시드 program #1 은 applyStartDate/EndDate 가 비어 있어 HTML5 required 로 submit 이 막힘 →
+    // wide-range 날짜를 채워 넣어야 제출 가능. ApplicationService.apply() 는 apply 기간을 검사하지
+    // 않으므로 (active 상태·중복 여부만) 이 값이 apply.spec.ts 시나리오에 영향 없음.
+    await page.locator('.admin-program-form-tab[data-tab-target="tab-apply"]').click();
+    await page.locator('input[name="applyStartDate"]').fill('2026-01-01');
+    await page.locator('input[name="applyEndDate"]').fill('2099-12-31');
+    await page.locator('input[name="active"]').check({ force: true });
+    await page.locator('.admin-program-form-actions button[type="submit"]').click();
+    await page.waitForURL(/\/admin\/programs\/\d+$/);
+    // 편집 폼 재진입해 실제 저장 상태 확인 (redirect 후 GET)
+    await page.goto('/admin/programs/1', { waitUntil: 'domcontentloaded' });
+    const isActiveRestored = await page.locator('input[name="active"]').isChecked();
+    expect(isActiveRestored).toBe(true);
 });
 
 test('FK 없는 신규 프로그램 삭제 → 목록 리다이렉트', async ({ page }) => {
