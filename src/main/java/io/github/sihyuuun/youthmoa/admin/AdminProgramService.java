@@ -2,6 +2,7 @@ package io.github.sihyuuun.youthmoa.admin;
 
 import io.github.sihyuuun.youthmoa.application.ApplicationRepository;
 import io.github.sihyuuun.youthmoa.application.ApplicationStatus;
+import io.github.sihyuuun.youthmoa.program.ApprovalMode;
 import io.github.sihyuuun.youthmoa.program.Program;
 import io.github.sihyuuun.youthmoa.program.ProgramRepository;
 import io.github.sihyuuun.youthmoa.program.ProgramStatus;
@@ -91,6 +92,131 @@ public class AdminProgramService {
   public long countApplied(Program program) {
     return applicationRepository.countByProgramAndStatusIn(
         program, List.of(ApplicationStatus.PENDING, ApplicationStatus.APPROVED));
+  }
+
+  // ================= A3-1 admin-program-form CRUD =================
+
+  /**
+   * A3-1 (2026-09-10 · Qn-1 A): 관리자 프로그램 신규 등록. SYSTEM_ADMIN 전용 매핑은 컨트롤러의 {@code @PreAuthorize} 로
+   * 강제.
+   */
+  @Transactional
+  public Program create(ProgramFormRequest req) {
+    validate(req);
+    Program program =
+        Program.builder()
+            .title(req.getTitle().trim())
+            .organization(req.getOrganization().trim())
+            .category(trimToNull(req.getCategory()))
+            .region(trimToNull(req.getRegion()))
+            .imageUrl(trimToNull(req.getImageUrl()))
+            .description(trimToNull(req.getDescription()))
+            .content(req.getContent())
+            .startDate(req.getStartDate())
+            .endDate(req.getEndDate())
+            .applyStartDate(req.getApplyStartDate())
+            .applyEndDate(req.getApplyEndDate())
+            .venue(trimToNull(req.getVenue()))
+            .contact(trimToNull(req.getContact()))
+            .capacity(req.getCapacity())
+            .approvalMode(
+                req.getApprovalMode() != null ? req.getApprovalMode() : ApprovalMode.MANUAL)
+            .termsService(trimToNull(req.getTermsService()))
+            .termsPrivacy(trimToNull(req.getTermsPrivacy()))
+            .termsMarketing(trimToNull(req.getTermsMarketing()))
+            .isActive(req.isActive())
+            .build();
+    return programRepository.save(program);
+  }
+
+  /** A3-1 (2026-09-10): 편집 저장. */
+  @Transactional
+  public Program update(Long id, ProgramFormRequest req) {
+    validate(req);
+    Program program =
+        programRepository
+            .findById(id)
+            .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 프로그램이에요: " + id));
+    program.updateFromAdminForm(
+        req.getTitle().trim(),
+        req.getOrganization().trim(),
+        trimToNull(req.getCategory()),
+        trimToNull(req.getRegion()),
+        trimToNull(req.getImageUrl()),
+        trimToNull(req.getDescription()),
+        req.getContent(),
+        req.getStartDate(),
+        req.getEndDate(),
+        req.getApplyStartDate(),
+        req.getApplyEndDate(),
+        trimToNull(req.getVenue()),
+        trimToNull(req.getContact()),
+        req.getCapacity(),
+        req.getApprovalMode() != null ? req.getApprovalMode() : ApprovalMode.MANUAL,
+        trimToNull(req.getTermsService()),
+        trimToNull(req.getTermsPrivacy()),
+        trimToNull(req.getTermsMarketing()),
+        req.isActive());
+    return program;
+  }
+
+  /**
+   * A3-1 (2026-09-10 · Qn-3 A): 삭제. Application FK 참조가 있으면 400 (admin-notice 패턴 ·
+   * AdminExceptionHandler 재활용). 참조가 없을 때만 물리 삭제.
+   */
+  @Transactional
+  public void delete(Long id) {
+    Program program =
+        programRepository
+            .findById(id)
+            .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 프로그램이에요: " + id));
+    if (applicationRepository.existsByProgram(program)) {
+      throw new IllegalArgumentException("이 프로그램은 신청 이력이 있어 삭제할 수 없어요. 대신 비활성화(운영중단)로 전환해주세요.");
+    }
+    programRepository.delete(program);
+  }
+
+  /** ProgramFormRequest 필수/유효성 검사. 실패 시 IllegalArgumentException (400 매핑). */
+  private void validate(ProgramFormRequest req) {
+    if (req == null) {
+      throw new IllegalArgumentException("요청 데이터가 비어 있어요.");
+    }
+    if (isBlank(req.getTitle())) {
+      throw new IllegalArgumentException("프로그램 제목을 입력해주세요.");
+    }
+    if (req.getTitle().trim().length() > 255) {
+      throw new IllegalArgumentException("프로그램 제목은 255자 이하여야 합니다.");
+    }
+    if (isBlank(req.getOrganization())) {
+      throw new IllegalArgumentException("청년센터(운영기관) 를 입력해주세요.");
+    }
+    if (isBlank(req.getContent())) {
+      throw new IllegalArgumentException("상세 내용을 입력해주세요.");
+    }
+    if (req.getApplyStartDate() == null || req.getApplyEndDate() == null) {
+      throw new IllegalArgumentException("신청 기간을 입력해주세요.");
+    }
+    if (req.getApplyStartDate().isAfter(req.getApplyEndDate())) {
+      throw new IllegalArgumentException("신청 시작일이 신청 마감일보다 이후일 수 없어요.");
+    }
+    if (req.getStartDate() != null
+        && req.getEndDate() != null
+        && req.getStartDate().isAfter(req.getEndDate())) {
+      throw new IllegalArgumentException("진행 시작일이 진행 종료일보다 이후일 수 없어요.");
+    }
+    if (req.getCapacity() != null && req.getCapacity() <= 0) {
+      throw new IllegalArgumentException("모집 인원은 1명 이상이어야 합니다.");
+    }
+  }
+
+  private static boolean isBlank(String s) {
+    return s == null || s.trim().isEmpty();
+  }
+
+  private static String trimToNull(String s) {
+    if (s == null) return null;
+    String t = s.trim();
+    return t.isEmpty() ? null : t;
   }
 
   // ================= Specifications =================

@@ -1,5 +1,6 @@
 package io.github.sihyuuun.youthmoa.admin;
 
+import io.github.sihyuuun.youthmoa.program.ApprovalMode;
 import io.github.sihyuuun.youthmoa.program.Program;
 import io.github.sihyuuun.youthmoa.program.ProgramStatus;
 import java.util.List;
@@ -12,21 +13,23 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.server.ResponseStatusException;
 
 /**
- * A2 (2026-09-09 · Qn-1~9 모두 A): 관리자 프로그램 목록 · 상세 조회 컨트롤러.
+ * A2 (2026-09-09) + A3-1 (2026-09-10 · Qn-A/B/C/1~8/Δ1~6 모두 A): 관리자 프로그램 목록·조회 + 등록/편집/삭제.
  *
  * <ul>
- *   <li>Qn-1 A — SYSTEM_ADMIN + CENTER_ADMIN 두 role 허용. 스코프 필터는 {@link AdminProgramService} 에 강제.
- *   <li>Qn-2 A — 관리자 전용 상세 페이지 신설 (사용자 사이드 재활용 안 함)
- *   <li>Qn-3 A — 필터 5종 · 검색 · 컬럼 9종 (applyPeriod/views 는 "-" 자리)
- *   <li>Qn-4 A — 페이지당 10건
- *   <li>Qn-5 A — createdAt DESC
- *   <li>Qn-7 A — 액션 컬럼 "편집" 링크만 (상세 페이지로 이동, 실 편집은 A3)
+ *   <li>A2 목록/상세 조회: SYSTEM_ADMIN + CENTER_ADMIN 모두 허용
+ *   <li>A3-1 등록/편집/삭제: <b>SYSTEM_ADMIN only</b> (Qn-1 A). Program-Center FK 미도입 상태라 CENTER 격리
+ *       fragile → A9 이후 CENTER_ADMIN 확장 예정
+ *   <li>Qn-A A — {@code GET /admin/programs/{id}} 는 편집 폼으로 대체. 기존 read-only detail 페이지 폐기
+ *   <li>Qn-B A — F4/F0c 는 편집 폼 상단 링크로 진입 (별도 페이지 유지, 인라인 통합은 A3-2)
+ *   <li>Qn-5 A — 응답은 PRG redirect + flash (form 실패 시 400 매핑 = admin-notice 패턴)
  * </ul>
  */
 @Controller
@@ -73,8 +76,33 @@ public class AdminProgramController {
     return "admin/program/list";
   }
 
+  // ================= A3-1 신규 등록 =================
+
+  @GetMapping("/new")
+  @PreAuthorize("hasRole('SYSTEM_ADMIN')")
+  public String createForm(Model model) {
+    populateCommonModel(model);
+    model.addAttribute("mode", "new");
+    model.addAttribute("program", null);
+    ProgramFormRequest form = new ProgramFormRequest();
+    form.setApprovalMode(ApprovalMode.MANUAL);
+    form.setActive(true);
+    model.addAttribute("form", form);
+    model.addAttribute("approvalModes", ApprovalMode.values());
+    return "admin/program/form";
+  }
+
+  @PostMapping
+  @PreAuthorize("hasRole('SYSTEM_ADMIN')")
+  public String create(@ModelAttribute("form") ProgramFormRequest form) {
+    Program saved = adminProgramService.create(form);
+    return "redirect:/admin/programs/" + saved.getId();
+  }
+
+  // ================= A3-1 편집 (Qn-A A: 상세 = 편집 폼) =================
+
   @GetMapping("/{id}")
-  public String detail(@PathVariable Long id, Model model) {
+  public String editForm(@PathVariable Long id, Model model) {
     Program program;
     try {
       program = adminProgramService.find(id);
@@ -85,9 +113,52 @@ public class AdminProgramController {
     }
     long applied = adminProgramService.countApplied(program);
     populateCommonModel(model);
+    model.addAttribute("mode", "edit");
     model.addAttribute("program", program);
     model.addAttribute("applied", applied);
-    return "admin/program/detail";
+    model.addAttribute("form", toForm(program));
+    model.addAttribute("approvalModes", ApprovalMode.values());
+    return "admin/program/form";
+  }
+
+  @PostMapping("/{id}")
+  @PreAuthorize("hasRole('SYSTEM_ADMIN')")
+  public String update(@PathVariable Long id, @ModelAttribute("form") ProgramFormRequest form) {
+    adminProgramService.update(id, form);
+    return "redirect:/admin/programs/" + id;
+  }
+
+  @PostMapping("/{id}/delete")
+  @PreAuthorize("hasRole('SYSTEM_ADMIN')")
+  public String delete(@PathVariable Long id) {
+    adminProgramService.delete(id);
+    return "redirect:/admin/programs";
+  }
+
+  // ================= 헬퍼 =================
+
+  private ProgramFormRequest toForm(Program p) {
+    ProgramFormRequest f = new ProgramFormRequest();
+    f.setTitle(p.getTitle());
+    f.setOrganization(p.getOrganization());
+    f.setCategory(p.getCategory());
+    f.setRegion(p.getRegion());
+    f.setImageUrl(p.getImageUrl());
+    f.setDescription(p.getDescription());
+    f.setContent(p.getContent());
+    f.setStartDate(p.getStartDate());
+    f.setEndDate(p.getEndDate());
+    f.setApplyStartDate(p.getApplyStartDate());
+    f.setApplyEndDate(p.getApplyEndDate());
+    f.setVenue(p.getVenue());
+    f.setContact(p.getContact());
+    f.setCapacity(p.getCapacity());
+    f.setApprovalMode(p.getApprovalMode() != null ? p.getApprovalMode() : ApprovalMode.MANUAL);
+    f.setTermsService(p.getTermsService());
+    f.setTermsPrivacy(p.getTermsPrivacy());
+    f.setTermsMarketing(p.getTermsMarketing());
+    f.setActive(p.isActive());
+    return f;
   }
 
   private void populateCommonModel(Model model) {

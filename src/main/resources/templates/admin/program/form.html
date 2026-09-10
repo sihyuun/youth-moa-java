@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${mode == 'new'} ? '프로그램 등록 — 청년모아 관리자' : '프로그램 편집 — 청년모아 관리자'">프로그램 편집</title>
+    <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"
+          rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" th:href="@{/images/logo_symbol.png}">
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
+    <meta name="_csrf" th:content="${_csrf?.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf?.headerName}"/>
+</head>
+<body class="admin-shell-body">
+
+<div th:replace="~{admin/fragments/header :: header('programs', ${centerScopeLabel}, ${isSystemAdmin})}"></div>
+
+<main class="admin-shell-main">
+    <div class="admin-program-form-page">
+
+        <section class="admin-program-form-header">
+            <div class="admin-program-form-breadcrumb">
+                <a th:href="@{/admin/programs}" class="admin-program-breadcrumb-link">← 프로그램 목록</a>
+            </div>
+            <div class="admin-program-form-title-row">
+                <div>
+                    <h2 class="admin-program-form-title"
+                        th:text="${mode == 'new'} ? '프로그램 신규 등록' : '프로그램 편집'">프로그램 편집</h2>
+                    <p class="admin-program-form-sub"
+                       th:text="${mode == 'new'} ? '새 프로그램을 등록합니다.' : '기존 프로그램 정보를 수정합니다.'">
+                        프로그램 편집</p>
+                </div>
+                <div class="admin-program-form-header-meta" th:if="${mode == 'edit'}">
+                    <span class="admin-status-badge"
+                          th:classappend="${'admin-status-badge--' + program.status.name().toLowerCase()}"
+                          th:text="${program.status.label}">모집중</span>
+                    <span class="admin-program-form-applied"
+                          th:text="|신청 ${applied}명|">신청 0명</span>
+                </div>
+            </div>
+        </section>
+
+        <form class="admin-program-form"
+              th:object="${form}"
+              th:action="${mode == 'new'} ? @{/admin/programs} : @{/admin/programs/{id}(id=${program.id})}"
+              method="post">
+
+            <!-- 탭 헤더 -->
+            <div class="admin-program-form-tabs" role="tablist">
+                <button type="button" class="admin-program-form-tab admin-program-form-tab--active"
+                        data-tab-target="tab-info" role="tab" aria-selected="true">프로그램 정보</button>
+                <button type="button" class="admin-program-form-tab"
+                        data-tab-target="tab-apply" role="tab" aria-selected="false">신청 정보</button>
+                <button type="button" class="admin-program-form-tab"
+                        data-tab-target="tab-terms" role="tab" aria-selected="false">약관 정보</button>
+            </div>
+
+            <!-- ================= 탭 1: 프로그램 정보 ================= -->
+            <div id="tab-info" class="admin-program-form-tab-panel admin-program-form-tab-panel--active"
+                 role="tabpanel">
+
+                <div class="admin-program-form-row">
+                    <label class="admin-program-form-label" for="title">프로그램 제목
+                        <span class="admin-program-form-required">*</span>
+                    </label>
+                    <input type="text" id="title" th:field="*{title}" required maxlength="255"
+                           class="admin-program-form-input"
+                           placeholder="프로그램 제목을 입력해주세요"/>
+                </div>
+
+                <div class="admin-program-form-row">
+                    <label class="admin-program-form-label" for="description">프로그램 설명</label>
+                    <input type="text" id="description" th:field="*{description}" maxlength="500"
+                           class="admin-program-form-input"
+                           placeholder="간략한 설명을 입력해주세요"/>
+                </div>
+
+                <div class="admin-program-form-row">
+                    <label class="admin-program-form-label" for="imageUrl">대표 이미지 URL</label>
+                    <input type="text" id="imageUrl" th:field="*{imageUrl}" maxlength="500"
+                           class="admin-program-form-input"
+                           placeholder="https://... (선택 · A3-2 에서 파일 업로드 지원 예정)"/>
+                </div>
+
+                <div class="admin-program-form-row-split">
+                    <div class="admin-program-form-row">
+                        <label class="admin-program-form-label" for="category">카테고리</label>
+                        <input type="text" id="category" th:field="*{category}" maxlength="50"
+                               class="admin-program-form-input"
+                               placeholder="예: 취업, 창업, 문화"/>
+                    </div>
+                    <div class="admin-program-form-row">
+                        <label class="admin-program-form-label" for="region">지역</label>
+                        <input type="text" id="region" th:field="*{region}" maxlength="50"
+                               class="admin-program-form-input"
+                               placeholder="예: 양평군"/>
+                    </div>
+                </div>
+
+                <div class="admin-program-form-row">
+                    <label class="admin-program-form-label" for="organization">청년센터(운영기관)
+                        <span class="admin-program-form-required">*</span>
+                    </label>
+                    <input type="text" id="organization" th:field="*{organization}" required maxlength="100"
+                           class="admin-program-form-input"
+                           placeholder="예: 내일스퀘어 양평"/>
+                </div>
+
+                <div class="admin-program-form-row-split">
+                    <div class="admin-program-form-row">
+                        <label class="admin-program-form-label" for="startDate">진행 시작일</label>
+                        <input type="date" id="startDate" th:field="*{startDate}"
+                               class="admin-program-form-input"/>
+                    </div>
+                    <div class="admin-program-form-row">
+                        <label class="admin-program-form-label" for="endDate">진행 종료일</label>
+                        <input type="date" id="endDate" th:field="*{endDate}"
+                               class="admin-program-form-input"/>
+                    </div>
+                </div>
+
+                <div class="admin-program-form-row">
+                    <label class="admin-program-form-label" for="content">상세 내용
+                        <span class="admin-program-form-required">*</span>
+                    </label>
+                    <textarea id="content" th:field="*{content}" required rows="10"
+                              class="admin-program-form-textarea"
+                              placeholder="프로그램 상세 내용을 입력해주세요..."></textarea>
+                </div>
+
+                <!-- Qn-B A: F4/F0c 는 별도 페이지 진입 링크 (편집 모드에서만) -->
+                <div th:if="${mode == 'edit'}" class="admin-program-form-sub-links">
+                    <a th:href="@{/admin/programs/{id}/eligibility(id=${program.id})}"
+                       class="admin-program-form-sub-link">
+                        <span class="admin-program-form-sub-link-title">자격요건 편집 →</span>
+                        <span class="admin-program-form-sub-link-desc">연령 · 거주지 · 기타 조건</span>
+                    </a>
+                    <a th:href="@{/admin/programs/{id}/dynamic-fields(id=${program.id})}"
+                       class="admin-program-form-sub-link">
+                        <span class="admin-program-form-sub-link-title">동적 필드 관리 →</span>
+                        <span class="admin-program-form-sub-link-desc">신청 폼에서 물어볼 질문</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- ================= 탭 2: 신청 정보 ================= -->
+            <div id="tab-apply" class="admin-program-form-tab-panel" role="tabpanel" hidden>
+
+                <div class="admin-program-form-row-split">
+                    <div class="admin-program-form-row">
+                        <label class="admin-program-form-label" for="applyStartDate">신청 시작일
+                            <span class="admin-program-form-required">*</span>
+                        </label>
+                        <input type="date" id="applyStartDate" th:field="*{applyStartDate}" required
+                               class="admin-program-form-input"/>
+                    </div>
+                    <div class="admin-program-form-row">
+                        <label class="admin-program-form-label" for="applyEndDate">신청 마감일
+                            <span class="admin-program-form-required">*</span>
+                        </label>
+                        <input type="date" id="applyEndDate" th:field="*{applyEndDate}" required
+                               class="admin-program-form-input"/>
+                    </div>
+                </div>
+
+                <div class="admin-program-form-row-split">
+                    <div class="admin-program-form-row">
+                        <label class="admin-program-form-label" for="venue">진행 장소</label>
+                        <input type="text" id="venue" th:field="*{venue}" maxlength="200"
+                               class="admin-program-form-input"
+                               placeholder="진행 장소를 입력해주세요"/>
+                    </div>
+                    <div class="admin-program-form-row">
+                        <label class="admin-program-form-label" for="contact">문의처</label>
+                        <input type="text" id="contact" th:field="*{contact}" maxlength="100"
+                               class="admin-program-form-input"
+                               placeholder="연락처를 입력해주세요"/>
+                    </div>
+                </div>
+
+                <div class="admin-program-form-row">
+                    <label class="admin-program-form-label" for="capacity">모집 인원</label>
+                    <input type="number" id="capacity" th:field="*{capacity}" min="1"
+                           class="admin-program-form-input"
+                           placeholder="모집 인원 수 (미입력 시 제한 없음)"/>
+                </div>
+
+                <div class="admin-program-form-row">
+                    <label class="admin-program-form-label">승인 방식
+                        <span class="admin-program-form-required">*</span>
+                    </label>
+                    <div class="admin-program-form-radio-group">
+                        <label th:each="mode : ${approvalModes}"
+                               class="admin-program-form-radio-card">
+                            <input type="radio" th:field="*{approvalMode}"
+                                   th:value="${mode.name()}"/>
+                            <span th:text="${mode.label}">수동 승인</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="admin-program-form-row admin-program-form-row--checkbox">
+                    <label>
+                        <input type="checkbox" th:field="*{active}"/>
+                        활성 상태 (체크 해제 시 SUSPENDED 로 전환)
+                    </label>
+                </div>
+            </div>
+
+            <!-- ================= 탭 3: 약관 정보 ================= -->
+            <div id="tab-terms" class="admin-program-form-tab-panel" role="tabpanel" hidden>
+
+                <div class="admin-program-form-row">
+                    <label class="admin-program-form-label" for="termsService">이용 약관</label>
+                    <textarea id="termsService" th:field="*{termsService}" rows="6"
+                              class="admin-program-form-textarea"
+                              placeholder="이용 약관 내용 (선택)"></textarea>
+                </div>
+
+                <div class="admin-program-form-row">
+                    <label class="admin-program-form-label" for="termsPrivacy">개인정보 처리방침</label>
+                    <textarea id="termsPrivacy" th:field="*{termsPrivacy}" rows="6"
+                              class="admin-program-form-textarea"
+                              placeholder="개인정보 처리방침 내용 (선택)"></textarea>
+                </div>
+
+                <div class="admin-program-form-row">
+                    <label class="admin-program-form-label" for="termsMarketing">마케팅 수신 약관</label>
+                    <textarea id="termsMarketing" th:field="*{termsMarketing}" rows="6"
+                              class="admin-program-form-textarea"
+                              placeholder="마케팅 수신 약관 내용 (선택)"></textarea>
+                </div>
+            </div>
+
+            <!-- Form actions -->
+            <div class="admin-program-form-actions">
+                <a th:href="@{/admin/programs}" class="admin-btn admin-btn--outline">취소</a>
+                <button type="submit" class="admin-btn admin-btn--primary"
+                        th:text="${mode == 'new'} ? '등록' : '저장'">저장</button>
+                <button th:if="${mode == 'edit'}"
+                        type="button"
+                        class="admin-btn admin-btn--danger"
+                        data-delete-trigger="program-delete-modal">삭제</button>
+            </div>
+
+        </form>
+
+        <!-- 삭제 confirm 모달 -->
+        <div th:if="${mode == 'edit'}"
+             id="program-delete-modal" class="admin-confirm-modal" hidden aria-hidden="true"
+             role="dialog" aria-labelledby="program-delete-modal-title" aria-modal="true">
+            <div class="admin-confirm-modal-backdrop" data-modal-close></div>
+            <div class="admin-confirm-modal-body">
+                <h3 id="program-delete-modal-title" class="admin-confirm-modal-title">프로그램을 삭제할까요?</h3>
+                <p class="admin-confirm-modal-desc">
+                    삭제한 프로그램은 되돌릴 수 없어요. 신청 이력이 있으면 삭제가 거부되며, 이 때는 활성 상태를 해제(운영중단)해주세요.
+                </p>
+                <div class="admin-confirm-modal-actions">
+                    <button type="button" class="admin-btn admin-btn--outline"
+                            data-modal-close>취소</button>
+                    <form th:action="@{/admin/programs/{id}/delete(id=${program.id})}"
+                          method="post" style="display:inline;">
+                        <button type="submit" class="admin-btn admin-btn--danger">삭제</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</main>
+
+<script th:inline="javascript">
+    // 유저 드롭다운
+    (function () {
+        var trigger = document.querySelector('.admin-header-user-trigger');
+        var menu = document.getElementById('admin-user-dropdown');
+        if (trigger && menu) {
+            trigger.addEventListener('click', function (ev) {
+                ev.stopPropagation();
+                menu.hidden = !menu.hidden;
+                trigger.setAttribute('aria-expanded', String(!menu.hidden));
+            });
+            document.addEventListener('click', function (ev) {
+                if (!menu.hidden && !menu.contains(ev.target)) {
+                    menu.hidden = true;
+                    trigger.setAttribute('aria-expanded', 'false');
+                }
+            });
+        }
+    })();
+
+    // 탭 전환
+    (function () {
+        var tabs = document.querySelectorAll('.admin-program-form-tab');
+        var panels = document.querySelectorAll('.admin-program-form-tab-panel');
+        tabs.forEach(function (tab) {
+            tab.addEventListener('click', function () {
+                var target = tab.getAttribute('data-tab-target');
+                tabs.forEach(function (t) {
+                    var active = t === tab;
+                    t.classList.toggle('admin-program-form-tab--active', active);
+                    t.setAttribute('aria-selected', String(active));
+                });
+                panels.forEach(function (p) {
+                    var show = p.id === target;
+                    p.classList.toggle('admin-program-form-tab-panel--active', show);
+                    p.hidden = !show;
+                });
+            });
+        });
+    })();
+
+    // 커스텀 confirm 모달
+    (function () {
+        document.querySelectorAll('[data-delete-trigger]').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var modal = document.getElementById(btn.getAttribute('data-delete-trigger'));
+                if (modal) { modal.hidden = false; modal.setAttribute('aria-hidden', 'false'); }
+            });
+        });
+        document.querySelectorAll('[data-modal-close]').forEach(function (el) {
+            el.addEventListener('click', function () {
+                var modal = el.closest('.admin-confirm-modal');
+                if (modal) { modal.hidden = true; modal.setAttribute('aria-hidden', 'true'); }
+            });
+        });
+    })();
+</script>
+</body>
+</html>

@@ -190,3 +190,17 @@ export async function resetApplyQuestions(page: Page): Promise<void> {
         );
     }
 }
+
+/**
+ * A3-1 admin-program-form (Qn-6 A, 2026-09-10): admin-program-form E2E 가 신규 프로그램을 생성 후
+ * 정리하지 않으면 admin-programs-list 개수 기대 · apply flow 시드가 오염된다.
+ * `TestFixtureController.resetPrograms()` = id > SEED_PROGRAM_COUNT (23) 인 프로그램 + FK cascade 삭제.
+ */
+export async function resetPrograms(page: Page): Promise<void> {
+    const response = await page.request.post('/__test__/reset-programs');
+    if (response.status() !== 204) {
+        throw new Error(
+            `resetPrograms failed: status=${response.status()} body=${await response.text()}`,
+        );
+    }
+}

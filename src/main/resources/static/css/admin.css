@@ -1851,3 +1851,180 @@ body.admin-shell-body {
         gap: 4px;
     }
 }
+
+/* ============ A3-1 admin-program-form (2026-09-10) ============ */
+.admin-program-form-page {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 24px 32px 60px;
+}
+.admin-program-form-header {
+    margin-bottom: 20px;
+}
+.admin-program-form-breadcrumb {
+    margin-bottom: 14px;
+}
+.admin-program-form-title-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 20px;
+}
+.admin-program-form-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: #111827;
+    margin: 0 0 4px;
+}
+.admin-program-form-sub {
+    font-size: 13px;
+    color: #6b7280;
+    margin: 0;
+}
+.admin-program-form-header-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.admin-program-form-applied {
+    font-size: 12px;
+    color: #4b5563;
+}
+.admin-program-form {
+    background: #fff;
+    border: 1px solid #f0eff3;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+    overflow: hidden;
+}
+.admin-program-form-tabs {
+    display: flex;
+    border-bottom: 1px solid #e3e1e8;
+    padding: 0 24px;
+    background: #fafafa;
+}
+.admin-program-form-tab {
+    padding: 14px 20px;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    font-size: 14px;
+    font-weight: 500;
+    color: #6b7280;
+    cursor: pointer;
+}
+.admin-program-form-tab--active {
+    color: var(--color-primary, #3f30e9);
+    border-bottom-color: var(--color-primary, #3f30e9);
+    font-weight: 600;
+}
+.admin-program-form-tab-panel {
+    padding: 26px;
+    display: grid;
+    gap: 18px;
+}
+.admin-program-form-tab-panel:not(.admin-program-form-tab-panel--active) {
+    display: none;
+}
+.admin-program-form-row {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.admin-program-form-row-split {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+.admin-program-form-row--checkbox {
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+}
+.admin-program-form-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #374151;
+}
+.admin-program-form-required { color: #ef4444; }
+.admin-program-form-input,
+.admin-program-form-textarea {
+    width: 100%;
+    padding: 9px 11px;
+    border: 1px solid #e3e1e8;
+    border-radius: 8px;
+    font-size: 13px;
+    color: #2b2a3d;
+    outline: none;
+    font-family: inherit;
+    box-sizing: border-box;
+}
+.admin-program-form-textarea { resize: vertical; min-height: 110px; }
+.admin-program-form-input:focus,
+.admin-program-form-textarea:focus {
+    border-color: var(--color-primary, #3f30e9);
+}
+.admin-program-form-radio-group {
+    display: flex;
+    gap: 10px;
+}
+.admin-program-form-radio-card {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border: 1px solid #e3e1e8;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    color: #374151;
+}
+.admin-program-form-radio-card input[type="radio"]:checked + span {
+    color: var(--color-primary, #3f30e9);
+    font-weight: 600;
+}
+.admin-program-form-sub-links {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 10px;
+}
+.admin-program-form-sub-link {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 14px 16px;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    text-decoration: none;
+    color: inherit;
+    transition: border-color 0.15s;
+}
+.admin-program-form-sub-link:hover {
+    border-color: var(--color-primary, #3f30e9);
+}
+.admin-program-form-sub-link-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #111827;
+}
+.admin-program-form-sub-link-desc {
+    font-size: 12px;
+    color: #6b7280;
+}
+.admin-program-form-actions {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    padding: 20px 26px;
+    border-top: 1px solid #e3e1e8;
+    background: #fafafa;
+}
+
+@media (max-width: 720px) {
+    .admin-program-form-row-split,
+    .admin-program-form-sub-links {
+        grid-template-columns: 1fr;
+    }
+}

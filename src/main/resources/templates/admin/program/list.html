@@ -25,10 +25,11 @@
         <section class="admin-program-header">
             <div>
                 <h2 class="admin-program-title">프로그램 관리</h2>
-                <p class="admin-program-sub">청년 프로그램 목록을 조회하고 관리 화면으로 진입할 수 있어요. (등록·편집·삭제는 곧 열려요)</p>
+                <p class="admin-program-sub">청년 프로그램 목록을 조회하고 등록·편집·삭제할 수 있어요.</p>
             </div>
-            <button type="button" class="admin-btn admin-btn--primary" disabled
-                    aria-label="프로그램 등록 (A3 도입 예정)" title="A3 에서 열립니다">+ 프로그램 등록</button>
+            <a sec:authorize="hasRole('SYSTEM_ADMIN')"
+               th:href="@{/admin/programs/new}"
+               class="admin-btn admin-btn--primary">+ 프로그램 등록</a>
         </section>
 
         <!-- 액션바: 필터 + 검색 -->
