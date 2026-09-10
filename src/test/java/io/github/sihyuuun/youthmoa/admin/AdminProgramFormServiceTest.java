@@ -16,8 +16,8 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * A3-1 admin-program-form (2026-09-10): AdminProgramService.create/update/delete + validation 검증. Qn-3 A
- * (FK 있으면 400) 및 Qn-Δ4 A (신청기간 필수) 등 spec 결정 사항 회귀.
+ * A3-1 admin-program-form (2026-09-10): AdminProgramService.create/update/delete + validation 검증.
+ * Qn-3 A (FK 있으면 400) 및 Qn-Δ4 A (신청기간 필수) 등 spec 결정 사항 회귀.
  */
 @SpringBootTest
 @ActiveProfiles("e2e")

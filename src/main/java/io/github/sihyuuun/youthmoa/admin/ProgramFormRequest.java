@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.format.annotation.DateTimeFormat;
 
 /**
  * A3-1 admin-program-form (2026-09-10): 관리자 프로그램 등록/편집 폼 요청 DTO.
@@ -25,14 +26,23 @@ public class ProgramFormRequest {
   private String category;
   private String organization;
   private String region;
+
+  @DateTimeFormat(pattern = "yyyy-MM-dd")
   private LocalDate startDate;
+
+  @DateTimeFormat(pattern = "yyyy-MM-dd")
   private LocalDate endDate;
+
   private String description;
   private String content;
 
   // 탭 2 — 신청 정보
+  @DateTimeFormat(pattern = "yyyy-MM-dd")
   private LocalDate applyStartDate;
+
+  @DateTimeFormat(pattern = "yyyy-MM-dd")
   private LocalDate applyEndDate;
+
   private String venue;
   private String contact;
   private Integer capacity;

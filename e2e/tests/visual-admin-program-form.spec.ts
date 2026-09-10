@@ -13,6 +13,7 @@ test('관리자 프로그램 신규 폼 디자인 계약 — SYSTEM_ADMIN', asyn
         height: adminProgramFormNewContract.viewport.height,
     });
     await loginAdmin(page);
+    await page.goto(adminProgramFormNewContract.path);
     const anon = await runContract(page, adminProgramFormNewContract, 'anon');
     writeGapReport(adminProgramFormNewContract, { anon });
 });
@@ -24,6 +25,7 @@ test('관리자 프로그램 편집 폼 디자인 계약 — SYSTEM_ADMIN', asyn
         height: adminProgramEditContract.viewport.height,
     });
     await loginAdmin(page);
+    await page.goto(adminProgramEditContract.path);
     const anon = await runContract(page, adminProgramEditContract, 'anon');
     writeGapReport(adminProgramEditContract, { anon });
 });

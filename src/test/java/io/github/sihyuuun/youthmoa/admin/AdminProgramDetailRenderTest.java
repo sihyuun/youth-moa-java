@@ -18,8 +18,8 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 /**
- * A2 (2026-09-09) + A3-1 (2026-09-10 · Qn-A A: 상세 = 편집 폼): {@code GET /admin/programs/{id}} 는 이제 편집 폼을
- * 렌더한다. 기존 read-only detail 페이지는 폐기됨. 신규 render 검증은 {@link AdminProgramFormRenderTest} 에도 있음.
+ * A2 (2026-09-09) + A3-1 (2026-09-10 · Qn-A A: 상세 = 편집 폼): {@code GET /admin/programs/{id}} 는 이제 편집
+ * 폼을 렌더한다. 기존 read-only detail 페이지는 폐기됨. 신규 render 검증은 {@link AdminProgramFormRenderTest} 에도 있음.
  */
 @SpringBootTest
 @AutoConfigureMockMvc

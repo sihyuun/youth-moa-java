@@ -77,8 +77,10 @@ test('신규 등록 → 편집 폼 prefilled 확인 (3탭 왕복)', async ({ pag
     await expect(page.locator('input[name="venue"]')).toHaveValue('e2e 장소');
     await expect(page.locator('input[name="capacity"]')).toHaveValue('50');
 
-    // 삭제 버튼 및 F4/F0c 진입 링크 노출 확인
+    // 삭제 버튼 및 F4/F0c 진입 링크 노출 확인 (sub-links 는 탭1 안에 위치)
     await expect(page.locator('.admin-program-form-actions .admin-btn--danger')).toBeVisible();
+    await page.locator('.admin-program-form-tab[data-tab-target="tab-info"]').click();
+    await expect(page.locator('#tab-info')).toBeVisible();
     await expect(page.locator('.admin-program-form-sub-links a[href*="/eligibility"]')).toBeVisible();
     await expect(page.locator('.admin-program-form-sub-links a[href*="/dynamic-fields"]')).toBeVisible();
 });

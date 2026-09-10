@@ -112,12 +112,14 @@
                 <div class="admin-program-form-row-split">
                     <div class="admin-program-form-row">
                         <label class="admin-program-form-label" for="startDate">진행 시작일</label>
-                        <input type="date" id="startDate" th:field="*{startDate}"
+                        <input type="date" id="startDate" name="startDate"
+                               th:value="${form.startDate != null} ? ${#temporals.format(form.startDate, 'yyyy-MM-dd')} : ''"
                                class="admin-program-form-input"/>
                     </div>
                     <div class="admin-program-form-row">
                         <label class="admin-program-form-label" for="endDate">진행 종료일</label>
-                        <input type="date" id="endDate" th:field="*{endDate}"
+                        <input type="date" id="endDate" name="endDate"
+                               th:value="${form.endDate != null} ? ${#temporals.format(form.endDate, 'yyyy-MM-dd')} : ''"
                                class="admin-program-form-input"/>
                     </div>
                 </div>
@@ -154,14 +156,16 @@
                         <label class="admin-program-form-label" for="applyStartDate">신청 시작일
                             <span class="admin-program-form-required">*</span>
                         </label>
-                        <input type="date" id="applyStartDate" th:field="*{applyStartDate}" required
+                        <input type="date" id="applyStartDate" name="applyStartDate" required
+                               th:value="${form.applyStartDate != null} ? ${#temporals.format(form.applyStartDate, 'yyyy-MM-dd')} : ''"
                                class="admin-program-form-input"/>
                     </div>
                     <div class="admin-program-form-row">
                         <label class="admin-program-form-label" for="applyEndDate">신청 마감일
                             <span class="admin-program-form-required">*</span>
                         </label>
-                        <input type="date" id="applyEndDate" th:field="*{applyEndDate}" required
+                        <input type="date" id="applyEndDate" name="applyEndDate" required
+                               th:value="${form.applyEndDate != null} ? ${#temporals.format(form.applyEndDate, 'yyyy-MM-dd')} : ''"
                                class="admin-program-form-input"/>
                     </div>
                 </div>
