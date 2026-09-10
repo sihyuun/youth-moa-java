@@ -236,20 +236,21 @@ Program (+ 신설 필드) 를 소비하는 모든 지점을 열거. write→read
 
 ### 5-1. Program 컬럼 추가 (V12 마이그레이션 · 필수)
 
+**주의 (2026-09-10 F1-fix 갱신)**: 아래 SQL 은 spec 초안 예시. 실제 머지된 V12 는 §11 "구현 매핑" 참조 — 약관 컬럼은 `terms_service / terms_privacy / terms_marketing` (prototype 3분류 · Qn-Δ3 A) 로 채택됐고 `has_courses` 는 A3-2 이월로 제거됨.
+
 ```sql
--- V12__extend_program_for_admin_form.sql
+-- V12__extend_program_for_admin_form.sql (실 머지본)
 ALTER TABLE program ADD COLUMN apply_start_date DATE;
 ALTER TABLE program ADD COLUMN apply_end_date DATE;
 ALTER TABLE program ADD COLUMN venue VARCHAR(200);
-ALTER TABLE program ADD COLUMN contact VARCHAR(200);
-ALTER TABLE program ADD COLUMN approval_mode VARCHAR(20) NOT NULL DEFAULT 'MANUAL';
-ALTER TABLE program ADD COLUMN has_courses BOOLEAN NOT NULL DEFAULT false;
--- Qn-A-약관 A안 채택 시 (권장):
-ALTER TABLE program ADD COLUMN terms_enabled BOOLEAN NOT NULL DEFAULT false;
-ALTER TABLE program ADD COLUMN terms_title VARCHAR(200);
-ALTER TABLE program ADD COLUMN terms_content TEXT;
--- Qn-Δ-desc 채택 시:
-ALTER TABLE program ADD COLUMN description VARCHAR(500);
+ALTER TABLE program ADD COLUMN contact VARCHAR(100);
+ALTER TABLE program ADD COLUMN approval_mode VARCHAR(10) NOT NULL DEFAULT 'MANUAL'
+    CHECK (approval_mode IN ('AUTO', 'MANUAL'));
+ALTER TABLE program ADD COLUMN terms_service   TEXT;
+ALTER TABLE program ADD COLUMN terms_privacy   TEXT;
+ALTER TABLE program ADD COLUMN terms_marketing TEXT;
+ALTER TABLE program ADD COLUMN description     TEXT;
+-- has_courses · terms_enabled/title/content 는 A3-2 이월 (Course · 단일 약관 플래그 방식 미채택)
 ```
 
 - 시드 (`DataInitializer.seedPrograms()`) — 기존 12+건 프로그램에 default 값 주입 (apply_start_date = startDate - 14일 · apply_end_date = startDate - 1일 · approval_mode='MANUAL' · has_courses=false · terms_enabled=false). **파생 시드 금지 규칙**과 상충하는지 판단: 시드 데이터는 원본 fixture 이므로 명시 입력 허용 (파생 시드 금지는 lat/lng 처럼 관리자 편집 대상에 대한 규칙 · applyPeriod 는 하드코딩 시드값 · 편집 후 재기동 시 idempotent 체크 유지)
@@ -586,6 +587,59 @@ curl -s -o /dev/null -w "%{http_code}\n" -b centeradmin_jsessionid http://localh
 - B: 폼에서 제거 · prototype 준수 (category 는 A2 목록 컬럼으로만 유지 · admin 편집 UI 없음)
 
 **Qn 총합**: 3 (핵심) + 8 (세부) + 6 (Δ) = **17개** (사용자 결정 필요)
+
+---
+
+## 11-B. 구현 매핑 (2026-09-10 F1-fix 확정)
+
+spec 초안(§5-1 SQL 예시 · §11 Qn)과 실 머지본의 매핑. ym-verify FAIL 2건 fix 후 최신 상태.
+
+### 채택 안 확정
+
+| Qn | 채택 안 | 근거 · 재컨펌 |
+|---|---|---|
+| **Qn-3 (삭제 정책)** | **A 소프트 삭제** (재컨펌) | ADMIN-00 §Q10 "프로그램·사용자 모두 소프트 삭제, 물리 삭제 미제공" 원칙. F1 초기 구현은 C(FK 있으면 400 + 물리 삭제) 로 정책 위반 → F1-fix 에서 A안으로 정정 |
+| Qn-A (약관) | A 3필드 (`terms_service` · `terms_privacy` · `terms_marketing`) | prototype 3분류 (Qn-Δ3 A). 단일 `terms_enabled/title/content` 방식 미채택 |
+| Qn-C-Course | 이월 (A3-2) | `has_courses` 컬럼 · Course 엔티티 모두 A3-2 로 이월 |
+| Qn-C-Attachment | 이월 (A3-2) | ProgramAttachment 이월 |
+| Qn-Δ2 | A `AUTO / MANUAL` (기본 MANUAL) | V12 CHECK 제약 반영 |
+| Qn-Δ4 | A `apply_start_date · apply_end_date` 필수 (서비스 계층 validation) | V12 nullable + 서비스에서 강제 |
+
+### DB 컬럼 매핑
+
+| spec §5-1 초안 (예시) | 실 V12 컬럼 | 노트 |
+|---|---|---|
+| `apply_start_date DATE` | `apply_start_date DATE` | 동일 |
+| `apply_end_date DATE` | `apply_end_date DATE` | 동일 |
+| `venue VARCHAR(200)` | `venue VARCHAR(200)` | 동일 |
+| `contact VARCHAR(200)` | `contact VARCHAR(100)` | 길이 100 으로 축소 |
+| `approval_mode VARCHAR(20)` | `approval_mode VARCHAR(10) CHECK (IN ('AUTO','MANUAL'))` | 길이 10 · CHECK 제약 추가 |
+| `has_courses BOOLEAN` | ❌ 없음 | A3-2 이월 |
+| `terms_enabled BOOLEAN` · `terms_title` · `terms_content` | ❌ 없음 | Qn-Δ3 A 채택으로 폐기 |
+| — | `terms_service TEXT` | Qn-Δ3 A 신설 |
+| — | `terms_privacy TEXT` | Qn-Δ3 A 신설 |
+| — | `terms_marketing TEXT` | Qn-Δ3 A 신설 |
+| `description VARCHAR(500)` | `description TEXT` | 길이 무제한으로 변경 |
+
+### 코드 매핑 (Qn-3 소프트 삭제 · F1-fix)
+
+| 위치 | 역할 |
+|---|---|
+| `Program.deactivate()` (Program.java:240-242) | `isActive=false` 상태 전이 도메인 메서드 |
+| `Program.getStatus()` (Program.java:248-259) | `!isActive → SUSPENDED` 파생 로직. F1-fix 에서 그대로 활용 (재수정 불필요) |
+| `AdminProgramService.delete(id)` (AdminProgramService.java) | `program.deactivate()` 호출. FK 검사 제거 (row 유지되므로 무결성 영향 없음) |
+| `AdminProgramController.delete(id, RA)` | 302 리다이렉트 + flash "프로그램 운영을 중단했어요..." |
+| `ProgramSpec.isActive()` (ProgramSpec.java:10-12) | 사용자 사이드 원천 필터. SUSPENDED 프로그램 자동 배제 → 회귀 없음 |
+| `ProgramService.list` · `ProgramCalendarService.list` · `ProgramRepository.findByCenter*` | 모두 `ProgramSpec.isActive()` 적용 확인 완료 |
+
+### 테스트 매핑
+
+| 테스트 | F1 (초기) | F1-fix (현재) |
+|---|---|---|
+| `AdminProgramFormServiceTest.delete_FK_있는_시드_프로그램_1_...` | `400 IllegalArgumentException("신청 이력")` 기대 | 소프트 삭제 성공 · `isActive=false` 확인 |
+| `AdminProgramFormServiceTest.delete_FK_없는_신규_삭제_...` | `findById().isEmpty()` (물리 삭제) | `findById().get().isActive()==false` (소프트) |
+| `admin-program-form.spec.ts` FK 시드 삭제 | `status 400` | `status 302` + isActive checkbox unchecked 확인 |
+| `admin-program-form.spec.ts` clean 삭제 | 상세 재접근 404 기대 | 상세 재접근 200 + isActive unchecked |
 
 ---
 

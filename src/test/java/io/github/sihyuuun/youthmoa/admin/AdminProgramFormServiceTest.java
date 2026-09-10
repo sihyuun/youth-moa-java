@@ -17,7 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * A3-1 admin-program-form (2026-09-10): AdminProgramService.create/update/delete + validation 검증.
- * Qn-3 A (FK 있으면 400) 및 Qn-Δ4 A (신청기간 필수) 등 spec 결정 사항 회귀.
+ * Qn-3 A 재컨펌 (ADMIN-00 §Q10 소프트 삭제 · FK 무관 성공) 및 Qn-Δ4 A (신청기간 필수) 등 spec 결정 사항 회귀.
  */
 @SpringBootTest
 @ActiveProfiles("e2e")
@@ -143,19 +143,22 @@ class AdminProgramFormServiceTest {
   }
 
   @Test
-  void delete_FK_없는_신규_삭제_성공() {
+  void delete_FK_없는_신규_삭제_소프트_삭제_isActive_false() {
+    // ADMIN-00 §Q10: 소프트 삭제 — row 는 유지되고 isActive=false 로 SUSPENDED 상태 전환
     Program saved = adminProgramService.create(validRequest("del-me"));
     Long id = saved.getId();
     adminProgramService.delete(id);
-    assertThat(programRepository.findById(id)).isEmpty();
+    Program reloaded = programRepository.findById(id).orElseThrow();
+    assertThat(reloaded.isActive()).isFalse();
   }
 
   @Test
-  void delete_FK_있는_시드_프로그램_1_삭제_400() {
-    // 시드 프로그램 #1 은 다수 seed 신청 존재 → FK 참조로 삭제 거부
-    assertThatThrownBy(() -> adminProgramService.delete(1L))
-        .isInstanceOf(IllegalArgumentException.class)
-        .hasMessageContaining("신청 이력");
+  void delete_FK_있는_시드_프로그램_1_소프트_삭제_성공() {
+    // ADMIN-00 §Q10 재컨펌: FK (Application·Bookmark) 존재해도 소프트 삭제는 성공. row 유지되므로 FK 무결성 영향 없음.
+    // 이전 (F1 물리 삭제) 는 400 이었으나 정책 위반으로 A안(소프트) 재정정.
+    adminProgramService.delete(1L);
+    Program reloaded = programRepository.findById(1L).orElseThrow();
+    assertThat(reloaded.isActive()).isFalse();
   }
 
   @Test

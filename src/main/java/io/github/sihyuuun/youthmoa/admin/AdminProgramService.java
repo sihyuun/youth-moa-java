@@ -161,8 +161,14 @@ public class AdminProgramService {
   }
 
   /**
-   * A3-1 (2026-09-10 · Qn-3 A): 삭제. Application FK 참조가 있으면 400 (admin-notice 패턴 ·
-   * AdminExceptionHandler 재활용). 참조가 없을 때만 물리 삭제.
+   * A3-1 (2026-09-10 · Qn-3 A 재컨펌 · ADMIN-00 §Q10 준수): 소프트 삭제. {@code Program.deactivate()} 로
+   * {@code isActive=false} 만 갱신 → 상태가 SUSPENDED 로 파생됨 (Program.getStatus).
+   *
+   * <p>ADMIN-00 §Q10 원칙 인용: "프로그램·사용자 모두 소프트 삭제, 물리 삭제 미제공". FK (Application·Bookmark) 존재 여부와 무관하게
+   * row 는 유지되므로 별도 검사 불필요. 사용자 사이드는 {@code ProgramSpec.isActive()} 로 원천 필터링되어 회귀 없음.
+   *
+   * <p>초기 구현 (2026-09-10 F1) 은 물리 삭제 + FK 400 방어였으나 정책 위반 · ym-verify FAIL. 본 커밋 (F1-fix) 에서
+   * A안(소프트) 로 정정.
    */
   @Transactional
   public void delete(Long id) {
@@ -170,10 +176,7 @@ public class AdminProgramService {
         programRepository
             .findById(id)
             .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 프로그램이에요: " + id));
-    if (applicationRepository.existsByProgram(program)) {
-      throw new IllegalArgumentException("이 프로그램은 신청 이력이 있어 삭제할 수 없어요. 대신 비활성화(운영중단)로 전환해주세요.");
-    }
-    programRepository.delete(program);
+    program.deactivate();
   }
 
   /** ProgramFormRequest 필수/유효성 검사. 실패 시 IllegalArgumentException (400 매핑). */

@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 /**
  * A2 (2026-09-09) + A3-1 (2026-09-10 · Qn-A/B/C/1~8/Δ1~6 모두 A): 관리자 프로그램 목록·조회 + 등록/편집/삭제.
@@ -128,10 +129,16 @@ public class AdminProgramController {
     return "redirect:/admin/programs/" + id;
   }
 
+  /**
+   * A3-1 fix (2026-09-10 · ADMIN-00 §Q10 소프트 삭제): 소프트 삭제 후 목록으로 리다이렉트. FK 존재 여부와 무관하게 항상 302.
+   * SUSPENDED 상태로 목록에 남으며 사용자 사이드는 {@code ProgramSpec.isActive()} 로 자동 필터링됨.
+   */
   @PostMapping("/{id}/delete")
   @PreAuthorize("hasRole('SYSTEM_ADMIN')")
-  public String delete(@PathVariable Long id) {
+  public String delete(@PathVariable Long id, RedirectAttributes redirectAttributes) {
     adminProgramService.delete(id);
+    redirectAttributes.addFlashAttribute(
+        "flashMessage", "프로그램 운영을 중단했어요. 목록에서 SUSPENDED 상태로 확인할 수 있어요.");
     return "redirect:/admin/programs";
   }
 

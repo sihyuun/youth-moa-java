@@ -4,7 +4,7 @@
  * 시나리오:
  *   - create: 신규 프로그램 3탭 왕복 → 저장 → 편집 폼 prefilled 확인
  *   - edit: 편집 폼에서 제목 수정 → 저장 → 반영
- *   - delete-fk-blocked: FK 있는 시드 프로그램(#1) 삭제 시 400
+ *   - delete-fk-soft: FK 있는 시드 프로그램(#1) 삭제 → 302 목록 · isActive=false (ADMIN-00 §Q10 소프트 삭제)
  *   - delete-clean: FK 없는 신규 프로그램 삭제 → 302 목록
  *   - rbac.center: CENTER_ADMIN 은 /new / POST 시 403 (Qn-1 A: SYSTEM only)
  *   - rbac.anon: 로그인 없이 접근 시 302 login
@@ -105,9 +105,9 @@ test('편집 → 제목 수정 → 저장 → 반영', async ({ page }) => {
     await expect(page.locator('input[name="title"]')).toHaveValue(updated);
 });
 
-test('FK 참조가 있는 시드 프로그램(#1) 삭제 시 400', async ({ page }) => {
+test('FK 참조가 있는 시드 프로그램(#1) 삭제 → 소프트 삭제 302 (ADMIN-00 §Q10)', async ({ page }) => {
     await loginAdmin(page);
-    // 시드 프로그램 #1 은 다수 seed 신청이 있어 FK 참조 존재
+    // 시드 프로그램 #1 은 다수 seed 신청이 있어 FK 참조 존재. 소프트 삭제이므로 FK 무관하게 성공.
     // CSRF 토큰 확보 후 POST /admin/programs/1/delete
     await page.goto('/admin/programs/1', { waitUntil: 'domcontentloaded' });
     const csrfToken = await page.locator('meta[name="_csrf"]').getAttribute('content');
@@ -116,7 +116,13 @@ test('FK 참조가 있는 시드 프로그램(#1) 삭제 시 400', async ({ page
         form: { _csrf: csrfToken ?? '' },
         maxRedirects: 0,
     });
-    expect(response.status()).toBe(400);
+    expect(response.status()).toBe(302);
+    expect(response.headers()['location']).toContain('/admin/programs');
+    // 재조회 시 SUSPENDED 상태로 남아 있어야 함 (row 유지)
+    await page.goto('/admin/programs/1', { waitUntil: 'domcontentloaded' });
+    // 편집 폼에서 활성 체크박스 (isActive) 가 해제되어 있어야 함
+    const isActive = await page.locator('input[name="active"]').isChecked();
+    expect(isActive).toBe(false);
 });
 
 test('FK 없는 신규 프로그램 삭제 → 목록 리다이렉트', async ({ page }) => {
@@ -139,10 +145,10 @@ test('FK 없는 신규 프로그램 삭제 → 목록 리다이렉트', async ({
     await page.locator('.admin-program-form-actions .admin-btn--danger').click();
     await page.locator('#program-delete-modal form button[type="submit"]').click();
     await page.waitForURL('**/admin/programs');
-    // 목록에서 새 프로그램이 사라진 상태 (검색으로 확인)
+    // ADMIN-00 §Q10 소프트 삭제: row 유지 · isActive=false. 편집 폼 재진입 시 200 · 활성 체크박스 해제 상태.
     await page.goto(`/admin/programs/${id}`, { waitUntil: 'domcontentloaded' });
-    // 404 응답
-    expect([404, 200]).toContain(page.url() ? 404 : 200); // best-effort
+    const isActive = await page.locator('input[name="active"]').isChecked();
+    expect(isActive).toBe(false);
 });
 
 test('CENTER_ADMIN 이 /new GET 시 403 (Qn-1 A: SYSTEM only)', async ({ page }) => {
