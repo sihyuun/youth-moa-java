@@ -81,6 +81,13 @@ public class DataInitializer implements ApplicationRunner {
    */
   public static final long SEED_APPLY_QUESTION_COUNT = 3L;
 
+  /**
+   * A3-1 admin-program-form (Qn-6 A, 2026-09-10): seedPrograms() 가 생성하는 프로그램 개수. {@link
+   * io.github.sihyuuun.youthmoa.test.TestFixtureController#resetPrograms()} 가 id &gt;
+   * SEED_PROGRAM_COUNT 인 row 만 삭제하기 위해 참조. seedPrograms 리스트 수를 바꾸면 이 상수도 동기화한다.
+   */
+  public static final long SEED_PROGRAM_COUNT = 23L;
+
   private final ProgramRepository programRepository;
   private final RegionRepository regionRepository;
   private final CenterRepository centerRepository;

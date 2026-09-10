@@ -4,6 +4,8 @@ import io.github.sihyuuun.youthmoa.common.BaseTimeEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -73,6 +75,48 @@ public class Program extends BaseTimeEntity {
 
   @Column private Integer capacity;
 
+  // ============== A3-1 admin-program-form (2026-09-10 · V12) ==============
+
+  /** 신청 시작일 (nullable — 기존 시드 및 관리자 미입력 프로그램은 null 허용). */
+  @Column(name = "apply_start_date")
+  private LocalDate applyStartDate;
+
+  /** 신청 마감일. */
+  @Column(name = "apply_end_date")
+  private LocalDate applyEndDate;
+
+  /** 진행 장소. */
+  @Column(length = 200)
+  private String venue;
+
+  /** 문의처. */
+  @Column(length = 100)
+  private String contact;
+
+  /** 신청 승인 방식. NOT NULL DEFAULT MANUAL (V12). 실 실행 로직 (AUTO 즉시 승인) 은 A4 스코프. */
+  @Enumerated(EnumType.STRING)
+  @Column(name = "approval_mode", nullable = false, length = 10)
+  private ApprovalMode approvalMode;
+
+  /** 이용 약관 내용 (nullable). */
+  @JdbcTypeCode(SqlTypes.LONGVARCHAR)
+  @Column(name = "terms_service")
+  private String termsService;
+
+  /** 개인정보 처리방침 내용 (nullable). */
+  @JdbcTypeCode(SqlTypes.LONGVARCHAR)
+  @Column(name = "terms_privacy")
+  private String termsPrivacy;
+
+  /** 마케팅 수신 약관 내용 (nullable). */
+  @JdbcTypeCode(SqlTypes.LONGVARCHAR)
+  @Column(name = "terms_marketing")
+  private String termsMarketing;
+
+  /** 프로그램 짧은 설명 (prototype "프로그램 설명" 필드). */
+  @JdbcTypeCode(SqlTypes.LONGVARCHAR)
+  private String description;
+
   @Builder
   private Program(
       String title,
@@ -86,7 +130,16 @@ public class Program extends BaseTimeEntity {
       LocalDate endDate,
       String applyUrl,
       Boolean isActive,
-      Integer capacity) {
+      Integer capacity,
+      LocalDate applyStartDate,
+      LocalDate applyEndDate,
+      String venue,
+      String contact,
+      ApprovalMode approvalMode,
+      String termsService,
+      String termsPrivacy,
+      String termsMarketing,
+      String description) {
     this.title = title;
     this.organization = organization;
     this.category = category;
@@ -99,6 +152,15 @@ public class Program extends BaseTimeEntity {
     this.applyUrl = applyUrl;
     this.isActive = isActive != null ? isActive : true;
     this.capacity = capacity;
+    this.applyStartDate = applyStartDate;
+    this.applyEndDate = applyEndDate;
+    this.venue = venue;
+    this.contact = contact;
+    this.approvalMode = approvalMode != null ? approvalMode : ApprovalMode.MANUAL;
+    this.termsService = termsService;
+    this.termsPrivacy = termsPrivacy;
+    this.termsMarketing = termsMarketing;
+    this.description = description;
   }
 
   public void update(
@@ -124,6 +186,51 @@ public class Program extends BaseTimeEntity {
     this.endDate = endDate;
     this.applyUrl = applyUrl;
     this.capacity = capacity;
+  }
+
+  /**
+   * A3-1 admin-program-form (2026-09-10): 관리자 3탭 폼 저장. 신설 컬럼 8종 함께 갱신. isActive 도 수동 편집 가능 (Qn-Δ6
+   * A).
+   */
+  public void updateFromAdminForm(
+      String title,
+      String organization,
+      String category,
+      String region,
+      String imageUrl,
+      String description,
+      String content,
+      LocalDate startDate,
+      LocalDate endDate,
+      LocalDate applyStartDate,
+      LocalDate applyEndDate,
+      String venue,
+      String contact,
+      Integer capacity,
+      ApprovalMode approvalMode,
+      String termsService,
+      String termsPrivacy,
+      String termsMarketing,
+      boolean isActive) {
+    this.title = title;
+    this.organization = organization;
+    this.category = category;
+    this.region = region;
+    this.imageUrl = imageUrl;
+    this.description = description;
+    this.content = content;
+    this.startDate = startDate;
+    this.endDate = endDate;
+    this.applyStartDate = applyStartDate;
+    this.applyEndDate = applyEndDate;
+    this.venue = venue;
+    this.contact = contact;
+    this.capacity = capacity;
+    this.approvalMode = approvalMode != null ? approvalMode : ApprovalMode.MANUAL;
+    this.termsService = termsService;
+    this.termsPrivacy = termsPrivacy;
+    this.termsMarketing = termsMarketing;
+    this.isActive = isActive;
   }
 
   public void activate() {

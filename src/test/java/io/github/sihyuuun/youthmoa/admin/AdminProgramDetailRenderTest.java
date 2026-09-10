@@ -17,7 +17,10 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
-/** A2 (2026-09-09) — 관리자 프로그램 상세 페이지 렌더 검증. */
+/**
+ * A2 (2026-09-09) + A3-1 (2026-09-10 · Qn-A A: 상세 = 편집 폼): {@code GET /admin/programs/{id}} 는 이제 편집
+ * 폼을 렌더한다. 기존 read-only detail 페이지는 폐기됨. 신규 render 검증은 {@link AdminProgramFormRenderTest} 에도 있음.
+ */
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("e2e")
@@ -34,26 +37,21 @@ class AdminProgramDetailRenderTest {
   }
 
   @Test
-  void GET_admin_program_detail_렌더_기본정보_하위관리_링크() throws Exception {
+  void GET_admin_program_detail_는_편집_폼으로_렌더된다() throws Exception {
     mockMvc
         .perform(get("/admin/programs/" + PROGRAM_ID).with(sysadmin()))
         .andExpect(status().isOk())
-        // 헤더 액션
-        .andExpect(content().string(containsString("사용자 화면 미리보기")))
-        // 편집·삭제 disabled (A3 이월)
-        .andExpect(content().string(containsString("disabled")))
-        // 카드 타이틀
-        .andExpect(content().string(containsString(">기본 정보</h3>")))
-        .andExpect(content().string(containsString(">하위 관리</h3>")))
-        .andExpect(content().string(containsString(">자격요건</h3>")))
-        .andExpect(content().string(containsString(">프로그램 설명</h3>")))
+        // 편집 모드 타이틀
+        .andExpect(content().string(containsString("프로그램 편집")))
+        // 3탭
+        .andExpect(content().string(containsString(">프로그램 정보</button>")))
+        .andExpect(content().string(containsString(">신청 정보</button>")))
+        .andExpect(content().string(containsString(">약관 정보</button>")))
         // 하위 관리 링크 (F4 · F0c)
         .andExpect(
             content().string(containsString("/admin/programs/" + PROGRAM_ID + "/eligibility")))
         .andExpect(
             content().string(containsString("/admin/programs/" + PROGRAM_ID + "/dynamic-fields")))
-        // 사용자 화면 미리보기 링크
-        .andExpect(content().string(containsString("href=\"/programs/" + PROGRAM_ID + "\"")))
         // GNB 활성
         .andExpect(content().string(containsString("class=\"admin-nav-link active\">프로그램 관리</a>")))
         // Thymeleaf 표현식 잔존 없음

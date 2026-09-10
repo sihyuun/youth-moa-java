@@ -197,6 +197,66 @@ public class TestFixtureController {
     return ResponseEntity.noContent().build();
   }
 
+  /**
+   * A3-1 admin-program-form (Qn-6 A, 2026-09-10): admin-program-form-create/edit/delete E2E 가 신규
+   * 프로그램을 생성 후 정리하지 않으면 다음 spec (특히 admin-programs-list 개수 검증 · seed 기반 apply flow) 이 오염된다.
+   *
+   * <p>정책: {@code id > SEED_PROGRAM_COUNT} 인 program row 만 삭제. FK: {@code application.program_id},
+   * {@code apply_question.program_id}, {@code apply_answer(via application)} — 순서 준수 (application
+   * 먼저, 그 다음 apply_question, 마지막 program).
+   *
+   * @return 204 No Content (idempotent — 대상 없어도 성공)
+   */
+  @PostMapping("/reset-programs")
+  @Transactional
+  public ResponseEntity<Void> resetPrograms() {
+    long seedCount = DataInitializer.SEED_PROGRAM_COUNT;
+    // apply_answer -> application 순서. apply_answer 는 application_id FK. application 은 program_id
+    // FK.
+    int deletedAnswers =
+        entityManager
+            .createNativeQuery(
+                "DELETE FROM apply_answer WHERE application_id IN "
+                    + "(SELECT id FROM application WHERE program_id IN "
+                    + "(SELECT id FROM program WHERE id > :seedCount))")
+            .setParameter("seedCount", seedCount)
+            .executeUpdate();
+    int deletedApplications =
+        entityManager
+            .createNativeQuery(
+                "DELETE FROM application WHERE program_id IN "
+                    + "(SELECT id FROM program WHERE id > :seedCount)")
+            .setParameter("seedCount", seedCount)
+            .executeUpdate();
+    int deletedQuestions =
+        entityManager
+            .createNativeQuery(
+                "DELETE FROM apply_question WHERE program_id IN "
+                    + "(SELECT id FROM program WHERE id > :seedCount)")
+            .setParameter("seedCount", seedCount)
+            .executeUpdate();
+    int deletedBookmarks =
+        entityManager
+            .createNativeQuery("DELETE FROM bookmark WHERE program_id > :seedCount")
+            .setParameter("seedCount", seedCount)
+            .executeUpdate();
+    int deletedPrograms =
+        entityManager
+            .createNativeQuery("DELETE FROM program WHERE id > :seedCount")
+            .setParameter("seedCount", seedCount)
+            .executeUpdate();
+    log.info(
+        "[test-fixture] reset-programs seedCount={} deletedPrograms={} deletedApplications={}"
+            + " deletedAnswers={} deletedQuestions={} deletedBookmarks={}",
+        seedCount,
+        deletedPrograms,
+        deletedApplications,
+        deletedAnswers,
+        deletedQuestions,
+        deletedBookmarks);
+    return ResponseEntity.noContent().build();
+  }
+
   /** 신청 정리 요청 바디. programId 는 optional (null 이면 해당 유저 전체). */
   public record ResetApplicationsRequest(@NotBlank String userEmail, Long programId) {}
 }

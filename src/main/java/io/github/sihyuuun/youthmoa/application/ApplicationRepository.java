@@ -36,6 +36,9 @@ public interface ApplicationRepository extends JpaRepository<Application, Long> 
 
   long countByProgramAndStatusIn(Program program, List<ApplicationStatus> statuses);
 
+  /** A3-1 admin-program-form (2026-09-10 · Qn-3 A): 삭제 전 FK 참조 검증. status 무관, 존재만 확인. */
+  boolean existsByProgram(Program program);
+
   List<Application> findAllByProgramAndStatusOrderByAppliedAtAsc(
       Program program, ApplicationStatus status);
 
