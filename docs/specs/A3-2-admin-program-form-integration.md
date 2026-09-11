@@ -575,6 +575,7 @@ curl -s -o /tmp/dl.pdf -w "%{http_code}\n" -b jsession http://localhost:8091/adm
 | 리치 에디터 (Toast UI Editor) | A3-3 or 후행 |
 | 드래그·드롭 sortOrder | A3-3 or 후행 (Qn-Δ-drag) |
 | 신청 마감 vs 진행 시작 검증 로직 | A3-1 spec §5-A3 에서 이월된 항목. 이번 티켓 스코프 밖 |
+| **orphan file cleanup** (verify fix 2026-09-11 신설) | **후속 티켓** — Controller `@Transactional(rollbackFor=Exception.class)` 도입으로 DB 는 전체 롤백되지만, FileStorage 물리 저장 이후 후행 예외 (예: Course validation 실패) 발생 시 물리 파일이 남을 수 있음. 스케줄러 or CLI 로 `program-images`/`program-attachments` bucket 을 DB 상 imageUrl · ProgramAttachment 참조와 대조해 미참조 파일 삭제 |
 | Program-Center FK 승격 | **A9** |
 | 조회수 | **A6** |
 | 카드·캘린더·CSV | **A8** |

@@ -25,6 +25,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -117,8 +118,17 @@ public class AdminProgramController {
     return "admin/program/form";
   }
 
+  /**
+   * A3-2 verify fix (2026-09-11): 이미지·첨부 validation 실패 시 Program/Course/Question 도 전량 롤백되도록 컨트롤러 단위
+   * 트랜잭션으로 감싼다 (spec §2-3 "단일 트랜잭션 · 전체 롤백"). {@code rollbackFor = Exception.class} 는 FileStorage
+   * IOException 등 checked exception 까지 롤백 대상에 포함하기 위함.
+   *
+   * <p>주의 — 물리 파일 저장 이후 트랜잭션 롤백 시 orphan file 이 생길 수 있음. spec §13 deferred "orphan cleanup 후속 티켓"
+   * 참조.
+   */
   @PostMapping
   @PreAuthorize("hasRole('SYSTEM_ADMIN')")
+  @Transactional(rollbackFor = Exception.class)
   public String create(
       @ModelAttribute("form") ProgramFormRequest form,
       @RequestParam(value = "image", required = false) MultipartFile image,
@@ -167,8 +177,12 @@ public class AdminProgramController {
     return "admin/program/form";
   }
 
+  /**
+   * A3-2 verify fix (2026-09-11): create 와 동일 — 단일 트랜잭션으로 Program/Course/Question/이미지/첨부 전체 롤백 보장.
+   */
   @PostMapping("/{id}")
   @PreAuthorize("hasRole('SYSTEM_ADMIN')")
+  @Transactional(rollbackFor = Exception.class)
   public String update(
       @PathVariable Long id,
       @ModelAttribute("form") ProgramFormRequest form,
