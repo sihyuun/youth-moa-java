@@ -117,6 +117,15 @@ public class Program extends BaseTimeEntity {
   @JdbcTypeCode(SqlTypes.LONGVARCHAR)
   private String description;
 
+  // ============== A3-2 admin-program-form-integration (2026-09-11 · V13) ==============
+
+  /**
+   * A3-2 (Qn-B A): 강좌 제공 여부. true 이면 Course row 를 별도 관리. false 이면 Course 는 무시된다 (soft 정리 없이 조회만
+   * 스킵).
+   */
+  @Column(name = "has_courses", nullable = false)
+  private boolean hasCourses;
+
   @Builder
   private Program(
       String title,
@@ -139,7 +148,8 @@ public class Program extends BaseTimeEntity {
       String termsService,
       String termsPrivacy,
       String termsMarketing,
-      String description) {
+      String description,
+      Boolean hasCourses) {
     this.title = title;
     this.organization = organization;
     this.category = category;
@@ -161,6 +171,7 @@ public class Program extends BaseTimeEntity {
     this.termsPrivacy = termsPrivacy;
     this.termsMarketing = termsMarketing;
     this.description = description;
+    this.hasCourses = hasCourses != null && hasCourses;
   }
 
   public void update(
@@ -211,7 +222,9 @@ public class Program extends BaseTimeEntity {
       String termsService,
       String termsPrivacy,
       String termsMarketing,
-      boolean isActive) {
+      boolean isActive,
+      boolean hasCourses,
+      ProgramEligibility eligibility) {
     this.title = title;
     this.organization = organization;
     this.category = category;
@@ -231,6 +244,13 @@ public class Program extends BaseTimeEntity {
     this.termsPrivacy = termsPrivacy;
     this.termsMarketing = termsMarketing;
     this.isActive = isActive;
+    this.hasCourses = hasCourses;
+    this.eligibility = eligibility;
+  }
+
+  /** A3-2: imageUrl 만 개별 갱신 (파일 업로드 후 URL 반영용). */
+  public void updateImageUrl(String imageUrl) {
+    this.imageUrl = imageUrl;
   }
 
   public void activate() {

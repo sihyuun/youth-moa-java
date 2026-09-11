@@ -2,6 +2,8 @@ package io.github.sihyuuun.youthmoa.admin;
 
 import io.github.sihyuuun.youthmoa.program.ApprovalMode;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -55,4 +57,21 @@ public class ProgramFormRequest {
 
   // 활성 여부 (Qn-Δ6 A: status 수동 편집 가능)
   private boolean active = true;
+
+  // ============== A3-2 admin-program-form-integration (2026-09-11) ==============
+
+  /** F4 인라인 (Qn-A A): 편집 폼 안에서 자격요건 3필드 함께 저장. 별도 페이지도 병존. */
+  private String eligibilityAge;
+
+  private String eligibilityRegion;
+  private String eligibilityEtc;
+
+  /** 강좌 제공 여부 (Qn-B A). checked 아니면 courses 는 무시. */
+  private boolean hasCourses;
+
+  /** 강좌 다중 row (Qn-Δ-encoding A: repeated form fields). 서버가 제출 순서대로 sortOrder 재부여. */
+  private List<CourseFormRow> courses = new ArrayList<>();
+
+  /** 신청 질문 다중 row (F0c 인라인 · Qn-A A). id 존재 여부로 upsert · 사라진 id 는 soft delete. */
+  private List<ApplyQuestionFormRow> questions = new ArrayList<>();
 }
