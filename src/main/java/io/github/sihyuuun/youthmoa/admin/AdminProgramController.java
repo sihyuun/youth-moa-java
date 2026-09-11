@@ -1,13 +1,27 @@
 package io.github.sihyuuun.youthmoa.admin;
 
+import io.github.sihyuuun.youthmoa.program.ApplyQuestion;
+import io.github.sihyuuun.youthmoa.program.ApplyQuestionRepository;
 import io.github.sihyuuun.youthmoa.program.ApprovalMode;
+import io.github.sihyuuun.youthmoa.program.Course;
+import io.github.sihyuuun.youthmoa.program.CourseRepository;
 import io.github.sihyuuun.youthmoa.program.Program;
+import io.github.sihyuuun.youthmoa.program.ProgramAttachment;
+import io.github.sihyuuun.youthmoa.program.ProgramEligibility;
 import io.github.sihyuuun.youthmoa.program.ProgramStatus;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -18,6 +32,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -41,6 +56,15 @@ public class AdminProgramController {
 
   private final AdminProgramService adminProgramService;
   private final AdminScope adminScope;
+  private final AdminProgramImageService adminProgramImageService;
+  private final AdminProgramAttachmentService adminProgramAttachmentService;
+  private final CourseRepository courseRepository;
+  private final ApplyQuestionRepository applyQuestionRepository;
+  private final io.github.sihyuuun.youthmoa.common.storage.FileStorage fileStorage;
+
+  @org.springframework.beans.factory.annotation.Value(
+      "${youthmoa.storage.supabase.program-attachment-bucket:program-attachments}")
+  private String attachmentBucket;
 
   @GetMapping
   public String list(
@@ -95,8 +119,21 @@ public class AdminProgramController {
 
   @PostMapping
   @PreAuthorize("hasRole('SYSTEM_ADMIN')")
-  public String create(@ModelAttribute("form") ProgramFormRequest form) {
+  public String create(
+      @ModelAttribute("form") ProgramFormRequest form,
+      @RequestParam(value = "image", required = false) MultipartFile image,
+      @RequestParam(value = "attachments", required = false) List<MultipartFile> attachments)
+      throws IOException {
     Program saved = adminProgramService.create(form);
+    // A3-2: 이미지 + 첨부 파일 업로드 (있을 때만)
+    adminProgramImageService.uploadImageIfPresent(saved.getId(), image);
+    if (attachments != null) {
+      for (MultipartFile f : attachments) {
+        if (f != null && !f.isEmpty()) {
+          adminProgramAttachmentService.uploadAttachment(saved.getId(), f);
+        }
+      }
+    }
     return "redirect:/admin/programs/" + saved.getId();
   }
 
@@ -119,14 +156,81 @@ public class AdminProgramController {
     model.addAttribute("applied", applied);
     model.addAttribute("form", toForm(program));
     model.addAttribute("approvalModes", ApprovalMode.values());
+    // A3-2: 인라인 프리필용 모델
+    List<Course> courses = courseRepository.findByProgramIdOrderBySortOrderAscIdAsc(id);
+    List<ApplyQuestion> questions =
+        applyQuestionRepository.findByProgramIdOrderBySortOrderAscIdAsc(id);
+    List<ProgramAttachment> attachments = adminProgramAttachmentService.findAttachments(id);
+    model.addAttribute("courses", courses);
+    model.addAttribute("questions", questions);
+    model.addAttribute("attachments", attachments);
     return "admin/program/form";
   }
 
   @PostMapping("/{id}")
   @PreAuthorize("hasRole('SYSTEM_ADMIN')")
-  public String update(@PathVariable Long id, @ModelAttribute("form") ProgramFormRequest form) {
+  public String update(
+      @PathVariable Long id,
+      @ModelAttribute("form") ProgramFormRequest form,
+      @RequestParam(value = "image", required = false) MultipartFile image,
+      @RequestParam(value = "attachments", required = false) List<MultipartFile> attachments)
+      throws IOException {
     adminProgramService.update(id, form);
+    adminProgramImageService.uploadImageIfPresent(id, image);
+    if (attachments != null) {
+      for (MultipartFile f : attachments) {
+        if (f != null && !f.isEmpty()) {
+          adminProgramAttachmentService.uploadAttachment(id, f);
+        }
+      }
+    }
     return "redirect:/admin/programs/" + id;
+  }
+
+  // ================= A3-2 첨부 개별 삭제 · 다운로드 =================
+
+  @PostMapping("/{id}/attachments/{aid}/delete")
+  @PreAuthorize("hasRole('SYSTEM_ADMIN')")
+  public String deleteAttachment(
+      @PathVariable Long id,
+      @PathVariable("aid") Long attachmentId,
+      RedirectAttributes redirectAttributes)
+      throws IOException {
+    adminProgramAttachmentService.deleteAttachment(id, attachmentId);
+    redirectAttributes.addFlashAttribute("flashMessage", "첨부파일을 삭제했어요.");
+    return "redirect:/admin/programs/" + id;
+  }
+
+  @GetMapping("/{id}/attachments/{aid}/download")
+  public ResponseEntity<InputStreamResource> downloadAttachment(
+      @PathVariable Long id, @PathVariable("aid") Long attachmentId) throws IOException {
+    ProgramAttachment attachment =
+        adminProgramAttachmentService.findAttachments(id).stream()
+            .filter(a -> a.getId().equals(attachmentId))
+            .findFirst()
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "첨부파일을 찾을 수 없어요."));
+    String encoded =
+        URLEncoder.encode(attachment.getFileName(), StandardCharsets.UTF_8).replace("+", "%20");
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentDisposition(
+        org.springframework.http.ContentDisposition.attachment()
+            .filename(encoded, StandardCharsets.US_ASCII)
+            .build());
+    if (attachment.getContentType() != null && !attachment.getContentType().isBlank()) {
+      headers.setContentType(MediaType.parseMediaType(attachment.getContentType()));
+    } else {
+      headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+    }
+    // legacy: data 컬럼 우선. 없으면 FileStorage.
+    if (attachment.getData() != null && attachment.getData().length > 0) {
+      headers.setContentLength(attachment.getData().length);
+      InputStream is = new java.io.ByteArrayInputStream(attachment.getData());
+      return ResponseEntity.ok().headers(headers).body(new InputStreamResource(is));
+    }
+    InputStream is = fileStorage.download(attachmentBucket, id + "/" + attachment.getStoredName());
+    headers.setContentLength(attachment.getFileSize());
+    return ResponseEntity.ok().headers(headers).body(new InputStreamResource(is));
   }
 
   /**
@@ -165,6 +269,37 @@ public class AdminProgramController {
     f.setTermsPrivacy(p.getTermsPrivacy());
     f.setTermsMarketing(p.getTermsMarketing());
     f.setActive(p.isActive());
+    // A3-2: 인라인 필드 프리필
+    f.setHasCourses(p.isHasCourses());
+    ProgramEligibility elig = p.getEligibility();
+    if (elig != null) {
+      f.setEligibilityAge(elig.getAge());
+      f.setEligibilityRegion(elig.getRegion());
+      f.setEligibilityEtc(elig.getEtc());
+    }
+    // Course / Question 프리필 — 편집 폼에 초기 row 표시. isActive=true 만 (soft delete 제외).
+    List<Course> activeCourses =
+        courseRepository.findByProgramIdAndIsActiveTrueOrderBySortOrderAscIdAsc(p.getId());
+    for (Course c : activeCourses) {
+      CourseFormRow row = new CourseFormRow();
+      row.setId(c.getId());
+      row.setName(c.getName());
+      row.setSchedule(c.getSchedule());
+      row.setCapacity(c.getCapacity());
+      f.getCourses().add(row);
+    }
+    List<ApplyQuestion> activeQuestions =
+        applyQuestionRepository.findByProgramIdAndIsActiveTrueOrderBySortOrderAsc(p.getId());
+    for (ApplyQuestion q : activeQuestions) {
+      ApplyQuestionFormRow row = new ApplyQuestionFormRow();
+      row.setId(q.getId());
+      row.setFieldType(q.getFieldType());
+      row.setLabel(q.getLabel());
+      row.setRequired(q.isRequired());
+      row.setOptions(q.getOptions());
+      row.setMaxLength(q.getMaxLength());
+      f.getQuestions().add(row);
+    }
     return f;
   }
 

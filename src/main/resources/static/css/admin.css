@@ -2028,3 +2028,87 @@ body.admin-shell-body {
         grid-template-columns: 1fr;
     }
 }
+
+/* =============== A3-2 admin-program-form-integration (2026-09-11) =============== */
+
+.admin-program-form-fieldset {
+    margin-top: 24px;
+    padding: 20px;
+    border: 1px solid var(--color-border-light, #e3e1e8);
+    border-radius: 8px;
+    background: #fafafa;
+}
+.admin-program-form-legend {
+    padding: 0 8px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-text, #171717);
+}
+.admin-program-form-help {
+    margin: 4px 0 12px;
+    font-size: 12px;
+    color: var(--color-text-sec, #6b7280);
+}
+
+/* 이미지 업로드 */
+.admin-program-form-image-upload {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+}
+.admin-program-form-image-preview {
+    width: 190px;
+    height: 190px;
+    object-fit: cover;
+    border: 1px dashed var(--color-border-light, #d1d5db);
+    border-radius: 8px;
+    background: #fff;
+}
+
+/* 첨부파일 리스트 */
+.admin-program-form-attachment-list {
+    margin-bottom: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.admin-program-form-attachment-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 12px;
+    background: #fff;
+    border: 1px solid var(--color-border-light, #e5e7eb);
+    border-radius: 6px;
+}
+.admin-program-form-attachment-name {
+    flex: 1;
+    color: var(--color-primary, #3f30e9);
+    text-decoration: none;
+    font-size: 14px;
+    word-break: break-all;
+}
+.admin-program-form-attachment-name:hover { text-decoration: underline; }
+.admin-program-form-attachment-size {
+    font-size: 12px;
+    color: var(--color-text-sec, #6b7280);
+}
+
+/* Course · Question row */
+.admin-program-form-course-row,
+.admin-program-form-question-row {
+    margin-bottom: 16px;
+    padding: 16px;
+    background: #fff;
+    border: 1px solid var(--color-border-light, #e5e7eb);
+    border-radius: 8px;
+}
+.admin-program-form-course-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 8px;
+}
+.admin-program-form-courses {
+    margin-top: 12px;
+}

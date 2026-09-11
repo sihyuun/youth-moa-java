@@ -46,7 +46,8 @@
         <form class="admin-program-form"
               th:object="${form}"
               th:action="${mode == 'new'} ? @{/admin/programs} : @{/admin/programs/{id}(id=${program.id})}"
-              method="post">
+              method="post"
+              enctype="multipart/form-data">
 
             <!-- 탭 헤더 -->
             <div class="admin-program-form-tabs" role="tablist">
@@ -82,7 +83,28 @@
                     <label class="admin-program-form-label" for="imageUrl">대표 이미지 URL</label>
                     <input type="text" id="imageUrl" th:field="*{imageUrl}" maxlength="500"
                            class="admin-program-form-input"
-                           placeholder="https://... (선택 · A3-2 에서 파일 업로드 지원 예정)"/>
+                           placeholder="https://... (선택)"/>
+                </div>
+
+                <!-- A3-2 (Qn-D A · Δ-existing-image): 파일 업로드 · 성공 시 imageUrl 덮어씀. 미제출 시 기존 URL 유지 -->
+                <div class="admin-program-form-row">
+                    <label class="admin-program-form-label" for="image">대표 이미지 파일 업로드</label>
+                    <div class="admin-program-form-image-upload">
+                        <img th:if="${form.imageUrl != null and !form.imageUrl.isEmpty()}"
+                             th:src="${form.imageUrl}"
+                             alt="현재 대표 이미지"
+                             class="admin-program-form-image-preview"
+                             id="image-preview"/>
+                        <img th:unless="${form.imageUrl != null and !form.imageUrl.isEmpty()}"
+                             alt="이미지 미리보기"
+                             class="admin-program-form-image-preview"
+                             id="image-preview"
+                             style="display:none;"/>
+                        <input type="file" id="image" name="image" accept="image/jpeg,image/png,image/webp"
+                               class="admin-program-form-input"
+                               data-preview-target="image-preview"/>
+                        <p class="admin-program-form-help">jpg / png / webp · 최대 2MB</p>
+                    </div>
                 </div>
 
                 <div class="admin-program-form-row-split">
@@ -132,6 +154,56 @@
                               class="admin-program-form-textarea"
                               placeholder="프로그램 상세 내용을 입력해주세요..."></textarea>
                 </div>
+
+                <!-- A3-2 (Qn-A A · F4 인라인 · 병존): 자격요건 3필드 -->
+                <fieldset class="admin-program-form-fieldset">
+                    <legend class="admin-program-form-legend">자격요건 (인라인)</legend>
+                    <p class="admin-program-form-help">별도 페이지 (자격요건 편집) 와 병존해요. 이 필드에 입력한 값이 저장 시 함께 반영돼요.</p>
+                    <div class="admin-program-form-row">
+                        <label class="admin-program-form-label" for="eligibilityAge">연령 조건</label>
+                        <input type="text" id="eligibilityAge" th:field="*{eligibilityAge}" maxlength="100"
+                               class="admin-program-form-input"
+                               placeholder="예: 만 19~34세"/>
+                    </div>
+                    <div class="admin-program-form-row">
+                        <label class="admin-program-form-label" for="eligibilityRegion">거주지 조건</label>
+                        <input type="text" id="eligibilityRegion" th:field="*{eligibilityRegion}" maxlength="100"
+                               class="admin-program-form-input"
+                               placeholder="예: 양평군 거주 청년"/>
+                    </div>
+                    <div class="admin-program-form-row">
+                        <label class="admin-program-form-label" for="eligibilityEtc">기타 조건</label>
+                        <input type="text" id="eligibilityEtc" th:field="*{eligibilityEtc}" maxlength="200"
+                               class="admin-program-form-input"
+                               placeholder="예: 관련 분야 관심자"/>
+                    </div>
+                </fieldset>
+
+                <!-- A3-2 (Qn-C A · 첨부): ProgramAttachment 인라인 (multipart · 개별 삭제) -->
+                <fieldset class="admin-program-form-fieldset" id="program-attachments-section">
+                    <legend class="admin-program-form-legend">첨부파일</legend>
+                    <p class="admin-program-form-help">pdf · hwp · docx · xlsx · 파일당 5MB · 프로그램당 10개까지</p>
+                    <div th:if="${mode == 'edit' and attachments != null and !attachments.isEmpty()}"
+                         class="admin-program-form-attachment-list">
+                        <div th:each="att : ${attachments}" class="admin-program-form-attachment-row">
+                            <a th:href="@{/admin/programs/{id}/attachments/{aid}/download(id=${program.id},aid=${att.id})}"
+                               class="admin-program-form-attachment-name"
+                               th:text="${att.fileName}">파일명.pdf</a>
+                            <span class="admin-program-form-attachment-size"
+                                  th:text="${att.humanFileSize}">1.2MB</span>
+                            <form th:action="@{/admin/programs/{id}/attachments/{aid}/delete(id=${program.id},aid=${att.id})}"
+                                  method="post" style="display:inline;">
+                                <button type="submit" class="admin-btn admin-btn--danger admin-btn--sm">삭제</button>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="admin-program-form-row">
+                        <label class="admin-program-form-label" for="attachments">첨부 추가</label>
+                        <input type="file" id="attachments" name="attachments" multiple
+                               accept=".pdf,.hwp,.docx,.xlsx"
+                               class="admin-program-form-input"/>
+                    </div>
+                </fieldset>
 
                 <!-- Qn-B A: F4/F0c 는 별도 페이지 진입 링크 (편집 모드에서만) -->
                 <div th:if="${mode == 'edit'}" class="admin-program-form-sub-links">
@@ -212,6 +284,196 @@
                         활성 상태 (체크 해제 시 SUSPENDED 로 전환)
                     </label>
                 </div>
+
+                <!-- A3-2 (Qn-B A · 강좌 인라인): 강좌 제공 여부 + 다중 row -->
+                <fieldset class="admin-program-form-fieldset">
+                    <legend class="admin-program-form-legend">강좌 제공</legend>
+                    <div class="admin-program-form-row admin-program-form-row--checkbox">
+                        <label>
+                            <input type="checkbox" id="hasCourses" th:field="*{hasCourses}"/>
+                            강좌를 나누어 제공해요 (해제 시 기존 강좌는 저장 시 비활성 처리)
+                        </label>
+                    </div>
+                    <div id="courses-section" class="admin-program-form-courses"
+                         th:style="${form.hasCourses} ? '' : 'display:none;'">
+                        <p class="admin-program-form-help">최대 20개까지 · 순서는 저장 시 서버가 자동 재부여해요.</p>
+                        <div id="course-rows">
+                            <div th:each="row, iter : ${form.courses}"
+                                 class="admin-program-form-course-row"
+                                 th:attr="data-course-index=${iter.index}">
+                                <input type="hidden" th:name="|courses[${iter.index}].id|" th:value="${row.id}"/>
+                                <div class="admin-program-form-row-split">
+                                    <div class="admin-program-form-row">
+                                        <label class="admin-program-form-label">강좌명 <span class="admin-program-form-required">*</span></label>
+                                        <input type="text" th:name="|courses[${iter.index}].name|"
+                                               th:value="${row.name}" maxlength="200" required
+                                               class="admin-program-form-input"
+                                               placeholder="예: 1강 오리엔테이션"/>
+                                    </div>
+                                    <div class="admin-program-form-row">
+                                        <label class="admin-program-form-label">일정</label>
+                                        <input type="text" th:name="|courses[${iter.index}].schedule|"
+                                               th:value="${row.schedule}" maxlength="200"
+                                               class="admin-program-form-input"
+                                               placeholder="예: 매주 월 19:00~21:00"/>
+                                    </div>
+                                    <div class="admin-program-form-row">
+                                        <label class="admin-program-form-label">정원</label>
+                                        <input type="number" th:name="|courses[${iter.index}].capacity|"
+                                               th:value="${row.capacity}" min="1"
+                                               class="admin-program-form-input"
+                                               placeholder="선택"/>
+                                    </div>
+                                </div>
+                                <div class="admin-program-form-course-actions">
+                                    <button type="button" class="admin-btn admin-btn--outline admin-btn--sm"
+                                            data-course-remove>삭제</button>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" id="add-course-btn"
+                                class="admin-btn admin-btn--outline">+ 강좌 추가</button>
+                        <!-- 신규 row 템플릿 (JS 로 clone) -->
+                        <template id="course-row-template">
+                            <div class="admin-program-form-course-row" data-course-index="__idx__">
+                                <input type="hidden" name="courses[__idx__].id" value=""/>
+                                <div class="admin-program-form-row-split">
+                                    <div class="admin-program-form-row">
+                                        <label class="admin-program-form-label">강좌명 <span class="admin-program-form-required">*</span></label>
+                                        <input type="text" name="courses[__idx__].name" maxlength="200" required
+                                               class="admin-program-form-input"
+                                               placeholder="예: 1강 오리엔테이션"/>
+                                    </div>
+                                    <div class="admin-program-form-row">
+                                        <label class="admin-program-form-label">일정</label>
+                                        <input type="text" name="courses[__idx__].schedule" maxlength="200"
+                                               class="admin-program-form-input"
+                                               placeholder="예: 매주 월 19:00~21:00"/>
+                                    </div>
+                                    <div class="admin-program-form-row">
+                                        <label class="admin-program-form-label">정원</label>
+                                        <input type="number" name="courses[__idx__].capacity" min="1"
+                                               class="admin-program-form-input"
+                                               placeholder="선택"/>
+                                    </div>
+                                </div>
+                                <div class="admin-program-form-course-actions">
+                                    <button type="button" class="admin-btn admin-btn--outline admin-btn--sm"
+                                            data-course-remove>삭제</button>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </fieldset>
+
+                <!-- A3-2 (Qn-A A · F0c 인라인): 신청 질문 관리 (별도 페이지와 병존) -->
+                <fieldset class="admin-program-form-fieldset">
+                    <legend class="admin-program-form-legend">신청 질문 (인라인)</legend>
+                    <p class="admin-program-form-help">별도 페이지 (동적 필드 관리) 와 병존해요.
+                        객관식 옵션은 쉼표(,)로 구분해서 입력해주세요.</p>
+                    <div id="question-rows">
+                        <div th:each="row, iter : ${form.questions}"
+                             class="admin-program-form-question-row"
+                             th:attr="data-question-index=${iter.index}">
+                            <input type="hidden" th:name="|questions[${iter.index}].id|" th:value="${row.id}"/>
+                            <div class="admin-program-form-row-split">
+                                <div class="admin-program-form-row">
+                                    <label class="admin-program-form-label">유형 <span class="admin-program-form-required">*</span></label>
+                                    <select th:name="|questions[${iter.index}].fieldType|" required
+                                            class="admin-program-form-input">
+                                        <option value="" th:selected="${row.fieldType == null}">선택</option>
+                                        <option value="TEXT" th:selected="${row.fieldType != null and row.fieldType.name() == 'TEXT'}">주관식 (단문)</option>
+                                        <option value="TEXTAREA" th:selected="${row.fieldType != null and row.fieldType.name() == 'TEXTAREA'}">주관식 (장문)</option>
+                                        <option value="RADIO" th:selected="${row.fieldType != null and row.fieldType.name() == 'RADIO'}">객관식 (단일선택)</option>
+                                        <option value="CHECKBOX" th:selected="${row.fieldType != null and row.fieldType.name() == 'CHECKBOX'}">객관식 (다중선택)</option>
+                                    </select>
+                                </div>
+                                <div class="admin-program-form-row">
+                                    <label class="admin-program-form-label">질문 <span class="admin-program-form-required">*</span></label>
+                                    <input type="text" th:name="|questions[${iter.index}].label|"
+                                           th:value="${row.label}" maxlength="200" required
+                                           class="admin-program-form-input"
+                                           placeholder="예: 지원 동기를 알려주세요"/>
+                                </div>
+                            </div>
+                            <div class="admin-program-form-row-split">
+                                <div class="admin-program-form-row">
+                                    <label class="admin-program-form-label">옵션 (객관식만)</label>
+                                    <input type="text" th:name="|questions[${iter.index}].options|"
+                                           th:value="${row.options}"
+                                           class="admin-program-form-input"
+                                           placeholder="예: 대학생,직장인,기타"/>
+                                </div>
+                                <div class="admin-program-form-row">
+                                    <label class="admin-program-form-label">최대 글자수 (주관식만)</label>
+                                    <input type="number" th:name="|questions[${iter.index}].maxLength|"
+                                           th:value="${row.maxLength}" min="1"
+                                           class="admin-program-form-input"/>
+                                </div>
+                                <div class="admin-program-form-row admin-program-form-row--checkbox">
+                                    <label>
+                                        <input type="checkbox" th:name="|questions[${iter.index}].required|"
+                                               value="true" th:checked="${row.required}"/>
+                                        필수 응답
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="admin-program-form-course-actions">
+                                <button type="button" class="admin-btn admin-btn--outline admin-btn--sm"
+                                        data-question-remove>삭제</button>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" id="add-question-btn"
+                            class="admin-btn admin-btn--outline">+ 질문 추가</button>
+                    <template id="question-row-template">
+                        <div class="admin-program-form-question-row" data-question-index="__idx__">
+                            <input type="hidden" name="questions[__idx__].id" value=""/>
+                            <div class="admin-program-form-row-split">
+                                <div class="admin-program-form-row">
+                                    <label class="admin-program-form-label">유형 <span class="admin-program-form-required">*</span></label>
+                                    <select name="questions[__idx__].fieldType" required
+                                            class="admin-program-form-input">
+                                        <option value="">선택</option>
+                                        <option value="TEXT">주관식 (단문)</option>
+                                        <option value="TEXTAREA">주관식 (장문)</option>
+                                        <option value="RADIO">객관식 (단일선택)</option>
+                                        <option value="CHECKBOX">객관식 (다중선택)</option>
+                                    </select>
+                                </div>
+                                <div class="admin-program-form-row">
+                                    <label class="admin-program-form-label">질문 <span class="admin-program-form-required">*</span></label>
+                                    <input type="text" name="questions[__idx__].label" maxlength="200" required
+                                           class="admin-program-form-input"
+                                           placeholder="예: 지원 동기를 알려주세요"/>
+                                </div>
+                            </div>
+                            <div class="admin-program-form-row-split">
+                                <div class="admin-program-form-row">
+                                    <label class="admin-program-form-label">옵션 (객관식만)</label>
+                                    <input type="text" name="questions[__idx__].options"
+                                           class="admin-program-form-input"
+                                           placeholder="예: 대학생,직장인,기타"/>
+                                </div>
+                                <div class="admin-program-form-row">
+                                    <label class="admin-program-form-label">최대 글자수 (주관식만)</label>
+                                    <input type="number" name="questions[__idx__].maxLength" min="1"
+                                           class="admin-program-form-input"/>
+                                </div>
+                                <div class="admin-program-form-row admin-program-form-row--checkbox">
+                                    <label>
+                                        <input type="checkbox" name="questions[__idx__].required" value="true"/>
+                                        필수 응답
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="admin-program-form-course-actions">
+                                <button type="button" class="admin-btn admin-btn--outline admin-btn--sm"
+                                        data-question-remove>삭제</button>
+                            </div>
+                        </div>
+                    </template>
+                </fieldset>
             </div>
 
             <!-- ================= 탭 3: 약관 정보 ================= -->
@@ -314,6 +576,73 @@
                     p.hidden = !show;
                 });
             });
+        });
+    })();
+
+    // A3-2: 이미지 프리뷰
+    (function () {
+        var input = document.getElementById('image');
+        var preview = document.getElementById('image-preview');
+        if (!input || !preview) return;
+        input.addEventListener('change', function () {
+            var file = input.files && input.files[0];
+            if (!file) return;
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                preview.src = e.target.result;
+                preview.style.display = '';
+            };
+            reader.readAsDataURL(file);
+        });
+    })();
+
+    // A3-2: hasCourses 토글
+    (function () {
+        var checkbox = document.getElementById('hasCourses');
+        var section = document.getElementById('courses-section');
+        if (!checkbox || !section) return;
+        checkbox.addEventListener('change', function () {
+            section.style.display = checkbox.checked ? '' : 'none';
+        });
+    })();
+
+    // A3-2: 강좌 · 질문 추가/삭제
+    (function () {
+        function nextIndex(container, selector) {
+            var rows = container.querySelectorAll(selector);
+            return rows.length;
+        }
+        function addRow(templateId, containerId, attr) {
+            var tpl = document.getElementById(templateId);
+            var container = document.getElementById(containerId);
+            if (!tpl || !container) return;
+            var idx = nextIndex(container, '[' + attr + ']');
+            var html = tpl.innerHTML.replace(/__idx__/g, idx);
+            var wrapper = document.createElement('div');
+            wrapper.innerHTML = html.trim();
+            container.appendChild(wrapper.firstChild);
+        }
+        var addCourseBtn = document.getElementById('add-course-btn');
+        if (addCourseBtn) {
+            addCourseBtn.addEventListener('click', function () {
+                addRow('course-row-template', 'course-rows', 'data-course-index');
+            });
+        }
+        var addQuestionBtn = document.getElementById('add-question-btn');
+        if (addQuestionBtn) {
+            addQuestionBtn.addEventListener('click', function () {
+                addRow('question-row-template', 'question-rows', 'data-question-index');
+            });
+        }
+        // 삭제 (이벤트 위임)
+        document.addEventListener('click', function (ev) {
+            if (ev.target.matches('[data-course-remove]')) {
+                var row = ev.target.closest('.admin-program-form-course-row');
+                if (row) row.remove();
+            } else if (ev.target.matches('[data-question-remove]')) {
+                var row = ev.target.closest('.admin-program-form-question-row');
+                if (row) row.remove();
+            }
         });
     })();
 

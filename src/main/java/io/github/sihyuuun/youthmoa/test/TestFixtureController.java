@@ -240,6 +240,17 @@ public class TestFixtureController {
             .createNativeQuery("DELETE FROM bookmark WHERE program_id > :seedCount")
             .setParameter("seedCount", seedCount)
             .executeUpdate();
+    // A3-2 (2026-09-11 · Δ-reset A): course · program_attachment cascade
+    int deletedCourses =
+        entityManager
+            .createNativeQuery("DELETE FROM course WHERE program_id > :seedCount")
+            .setParameter("seedCount", seedCount)
+            .executeUpdate();
+    int deletedAttachments =
+        entityManager
+            .createNativeQuery("DELETE FROM program_attachment WHERE program_id > :seedCount")
+            .setParameter("seedCount", seedCount)
+            .executeUpdate();
     int deletedPrograms =
         entityManager
             .createNativeQuery("DELETE FROM program WHERE id > :seedCount")
@@ -247,13 +258,16 @@ public class TestFixtureController {
             .executeUpdate();
     log.info(
         "[test-fixture] reset-programs seedCount={} deletedPrograms={} deletedApplications={}"
-            + " deletedAnswers={} deletedQuestions={} deletedBookmarks={}",
+            + " deletedAnswers={} deletedQuestions={} deletedBookmarks={} deletedCourses={}"
+            + " deletedAttachments={}",
         seedCount,
         deletedPrograms,
         deletedApplications,
         deletedAnswers,
         deletedQuestions,
-        deletedBookmarks);
+        deletedBookmarks,
+        deletedCourses,
+        deletedAttachments);
     return ResponseEntity.noContent().build();
   }
 

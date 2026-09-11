@@ -2,14 +2,23 @@ package io.github.sihyuuun.youthmoa.admin;
 
 import io.github.sihyuuun.youthmoa.application.ApplicationRepository;
 import io.github.sihyuuun.youthmoa.application.ApplicationStatus;
+import io.github.sihyuuun.youthmoa.program.ApplyQuestion;
+import io.github.sihyuuun.youthmoa.program.ApplyQuestionRepository;
 import io.github.sihyuuun.youthmoa.program.ApprovalMode;
+import io.github.sihyuuun.youthmoa.program.Course;
+import io.github.sihyuuun.youthmoa.program.CourseRepository;
 import io.github.sihyuuun.youthmoa.program.Program;
+import io.github.sihyuuun.youthmoa.program.ProgramEligibility;
 import io.github.sihyuuun.youthmoa.program.ProgramRepository;
 import io.github.sihyuuun.youthmoa.program.ProgramStatus;
+import io.github.sihyuuun.youthmoa.program.QuestionType;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -41,9 +50,15 @@ public class AdminProgramService {
   /** Qn-4 A. 프로그램은 카드 정보량이 커 10건이 시각적으로 적절. */
   public static final int ADMIN_PAGE_SIZE = 10;
 
+  /** A3-2 Qn-Δ-B-max A: 강좌 상한 20개. UX·성능 보호. */
+  public static final int MAX_COURSES_PER_PROGRAM = 20;
+
   private final ProgramRepository programRepository;
   private final ApplicationRepository applicationRepository;
   private final AdminScope adminScope;
+  private final CourseRepository courseRepository;
+  private final ApplyQuestionRepository applyQuestionRepository;
+  private final AdminApplyQuestionService adminApplyQuestionService;
 
   /**
    * 목록 조회.
@@ -125,8 +140,13 @@ public class AdminProgramService {
             .termsPrivacy(trimToNull(req.getTermsPrivacy()))
             .termsMarketing(trimToNull(req.getTermsMarketing()))
             .isActive(req.isActive())
+            .hasCourses(req.isHasCourses())
+            .eligibility(buildEligibility(req))
             .build();
-    return programRepository.save(program);
+    Program saved = programRepository.save(program);
+    upsertCourses(saved, req.getCourses(), req.isHasCourses());
+    upsertQuestions(saved, req.getQuestions());
+    return saved;
   }
 
   /** A3-1 (2026-09-10): 편집 저장. */
@@ -156,8 +176,160 @@ public class AdminProgramService {
         trimToNull(req.getTermsService()),
         trimToNull(req.getTermsPrivacy()),
         trimToNull(req.getTermsMarketing()),
-        req.isActive());
+        req.isActive(),
+        req.isHasCourses(),
+        buildEligibility(req));
+    // A3-2: F4/F0c 인라인 통합 (Qn-A A)
+    upsertCourses(program, req.getCourses(), req.isHasCourses());
+    upsertQuestions(program, req.getQuestions());
     return program;
+  }
+
+  // ================= A3-2 인라인 통합 =================
+
+  /** F4 인라인. 3필드 모두 blank 이면 null (embedded 삭제 · F4 별도 페이지 정책 승계). */
+  private ProgramEligibility buildEligibility(ProgramFormRequest req) {
+    String age = trimToNull(req.getEligibilityAge());
+    String region = trimToNull(req.getEligibilityRegion());
+    String etc = trimToNull(req.getEligibilityEtc());
+    if (age == null && region == null && etc == null) return null;
+    if (age != null && age.length() > 100) {
+      throw new IllegalArgumentException("연령 조건은 100자 이하로 입력해주세요.");
+    }
+    if (region != null && region.length() > 100) {
+      throw new IllegalArgumentException("거주지 조건은 100자 이하로 입력해주세요.");
+    }
+    if (etc != null && etc.length() > 200) {
+      throw new IllegalArgumentException("기타 조건은 200자 이하로 입력해주세요.");
+    }
+    return ProgramEligibility.builder().age(age).region(region).etc(etc).build();
+  }
+
+  /**
+   * Course upsert. id 있는 row 는 update, 없는 row 는 insert, 목록에서 사라진 기존 id 는 soft delete (deactivate).
+   * hasCourses=false 이면 신규 등록 없이 기존 활성 강좌 전량 soft delete. Qn-Δ-sortOrder A: 제출 순서대로 1..N 재부여.
+   * Qn-Δ-B-max A: 상한 20개.
+   */
+  @Transactional
+  void upsertCourses(Program program, List<CourseFormRow> rows, boolean hasCourses) {
+    List<Course> existing =
+        courseRepository.findByProgramIdOrderBySortOrderAscIdAsc(program.getId());
+    Map<Long, Course> existingById = new HashMap<>();
+    for (Course c : existing) existingById.put(c.getId(), c);
+
+    if (!hasCourses) {
+      for (Course c : existing) if (c.isActive()) c.deactivate();
+      return;
+    }
+
+    List<CourseFormRow> effective = new ArrayList<>();
+    for (CourseFormRow r : rows == null ? List.<CourseFormRow>of() : rows) {
+      if (r == null || r.isBlank()) continue;
+      effective.add(r);
+    }
+    if (effective.size() > MAX_COURSES_PER_PROGRAM) {
+      throw new IllegalArgumentException("강좌는 " + MAX_COURSES_PER_PROGRAM + "개까지만 등록할 수 있어요.");
+    }
+    for (CourseFormRow r : effective) {
+      if (r.getName() == null || r.getName().trim().isEmpty()) {
+        throw new IllegalArgumentException("강좌명을 입력해주세요.");
+      }
+      if (r.getName().length() > 200) {
+        throw new IllegalArgumentException("강좌명은 200자 이하로 입력해주세요.");
+      }
+      if (r.getSchedule() != null && r.getSchedule().length() > 200) {
+        throw new IllegalArgumentException("강좌 일정은 200자 이하로 입력해주세요.");
+      }
+      if (r.getCapacity() != null && r.getCapacity() <= 0) {
+        throw new IllegalArgumentException("강좌 정원은 1명 이상이어야 합니다.");
+      }
+    }
+
+    Set<Long> keptIds = new HashSet<>();
+    int order = 1;
+    for (CourseFormRow r : effective) {
+      String name = r.getName().trim();
+      String schedule = trimToNull(r.getSchedule());
+      Integer capacity = r.getCapacity();
+      if (r.getId() != null && existingById.containsKey(r.getId())) {
+        Course c = existingById.get(r.getId());
+        c.update(name, schedule, capacity, order);
+        c.activate();
+        keptIds.add(c.getId());
+      } else {
+        Course c =
+            Course.builder()
+                .program(program)
+                .name(name)
+                .schedule(schedule)
+                .capacity(capacity)
+                .sortOrder(order)
+                .isActive(true)
+                .build();
+        courseRepository.save(c);
+      }
+      order++;
+    }
+    // 사라진 기존 id → soft delete
+    for (Course c : existing) {
+      if (!keptIds.contains(c.getId()) && c.isActive()) {
+        c.deactivate();
+      }
+    }
+  }
+
+  /**
+   * ApplyQuestion upsert. F0c 별도 페이지 patch 방식과 병존 (Qn-A A). id 있는 row 는 update, 없는 row 는 insert,
+   * 목록에서 사라진 기존 활성 id 는 soft delete.
+   */
+  @Transactional
+  void upsertQuestions(Program program, List<ApplyQuestionFormRow> rows) {
+    List<ApplyQuestion> existing =
+        applyQuestionRepository.findByProgramIdOrderBySortOrderAscIdAsc(program.getId());
+    Map<Long, ApplyQuestion> existingById = new HashMap<>();
+    for (ApplyQuestion q : existing) existingById.put(q.getId(), q);
+
+    List<ApplyQuestionFormRow> effective = new ArrayList<>();
+    for (ApplyQuestionFormRow r : rows == null ? List.<ApplyQuestionFormRow>of() : rows) {
+      if (r == null || r.isBlank()) continue;
+      effective.add(r);
+    }
+
+    Set<Long> keptIds = new HashSet<>();
+    int order = 1;
+    for (ApplyQuestionFormRow r : effective) {
+      if (r.getFieldType() == null) {
+        throw new IllegalArgumentException("질문 유형을 선택해주세요.");
+      }
+      QuestionType type = r.getFieldType();
+      String label = r.getLabel();
+      String normalizedOptions = adminApplyQuestionService.normalizeOptions(type, r.getOptions());
+      Integer normalizedMaxLength =
+          adminApplyQuestionService.normalizeMaxLength(type, r.getMaxLength());
+      if (r.getId() != null && existingById.containsKey(r.getId())) {
+        ApplyQuestion q = existingById.get(r.getId());
+        q.update(type, label.trim(), r.isRequired(), order, normalizedOptions, normalizedMaxLength);
+        q.activate();
+        keptIds.add(q.getId());
+      } else {
+        ApplyQuestion q =
+            ApplyQuestion.builder()
+                .program(program)
+                .fieldType(type)
+                .label(label.trim())
+                .isRequired(r.isRequired())
+                .sortOrder(order)
+                .options(normalizedOptions)
+                .maxLength(normalizedMaxLength)
+                .isActive(true)
+                .build();
+        applyQuestionRepository.save(q);
+      }
+      order++;
+    }
+    for (ApplyQuestion q : existing) {
+      if (!keptIds.contains(q.getId()) && q.isActive()) q.deactivate();
+    }
   }
 
   /**
