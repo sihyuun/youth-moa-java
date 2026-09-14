@@ -228,6 +228,12 @@ public class TestFixtureController {
                     + "(SELECT id FROM program WHERE id > :seedCount)")
             .setParameter("seedCount", seedCount)
             .executeUpdate();
+    // A4 admin-program-detail (Qn-8 A): 시드 프로그램의 신청에 대해서도 admin_note 초기화 (E2E 각 spec 독립성).
+    entityManager
+        .createNativeQuery(
+            "UPDATE application SET admin_note = NULL WHERE program_id <= :seedCount")
+        .setParameter("seedCount", seedCount)
+        .executeUpdate();
     int deletedQuestions =
         entityManager
             .createNativeQuery(

@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="|신청 관리 — ${program.title} — 청년모아 관리자|">신청 관리</title>
+    <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"
+          rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" th:href="@{/images/logo_symbol.png}">
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
+    <meta name="_csrf" th:content="${_csrf?.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf?.headerName}"/>
+</head>
+<body class="admin-shell-body">
+
+<div th:replace="~{admin/fragments/header :: header('programs', ${centerScopeLabel}, ${isSystemAdmin})}"></div>
+
+<main class="admin-shell-main">
+    <div class="admin-program-page">
+
+        <!-- 브레드크럼 + 툴바 -->
+        <section class="admin-program-form-header">
+            <div class="admin-program-form-breadcrumb">
+                <a th:href="@{/admin/programs/{id}(id=${program.id})}" class="admin-program-breadcrumb-link">← 프로그램 상세로</a>
+            </div>
+            <div class="admin-program-form-title-row">
+                <div>
+                    <h2 class="admin-program-form-title">신청 관리</h2>
+                    <p class="admin-program-form-sub" th:text="${program.title}">프로그램명</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 플래시 메시지 -->
+        <div th:if="${flashMessage}" class="admin-flash admin-flash--success" th:text="${flashMessage}"
+             data-testid="flash-success"></div>
+        <div th:if="${flashError}" class="admin-flash admin-flash--error" th:text="${flashError}"
+             data-testid="flash-error"></div>
+
+        <!-- 요약 배지 (Qn-7 A: 전체·대기·승인·거절·취소) -->
+        <section class="admin-application-summary" data-testid="summary-badges">
+            <div class="admin-application-summary-item">
+                <span class="admin-application-summary-label">전체</span>
+                <span class="admin-application-summary-value" th:text="${total}" data-testid="summary-total">0</span>
+            </div>
+            <div class="admin-application-summary-item admin-application-summary-item--pending">
+                <span class="admin-application-summary-label">대기</span>
+                <span class="admin-application-summary-value" th:text="${summary['PENDING']}"
+                      data-testid="summary-pending">0</span>
+            </div>
+            <div class="admin-application-summary-item admin-application-summary-item--approved">
+                <span class="admin-application-summary-label">승인</span>
+                <span class="admin-application-summary-value" th:text="${summary['APPROVED']}"
+                      data-testid="summary-approved">0</span>
+            </div>
+            <div class="admin-application-summary-item admin-application-summary-item--rejected">
+                <span class="admin-application-summary-label">반려</span>
+                <span class="admin-application-summary-value" th:text="${summary['REJECTED']}"
+                      data-testid="summary-rejected">0</span>
+            </div>
+            <div class="admin-application-summary-item admin-application-summary-item--cancelled">
+                <span class="admin-application-summary-label">취소</span>
+                <span class="admin-application-summary-value" th:text="${summary['CANCELLED']}"
+                      data-testid="summary-cancelled">0</span>
+            </div>
+            <div class="admin-application-summary-item">
+                <span class="admin-application-summary-label">정원</span>
+                <span class="admin-application-summary-value"
+                      th:text="${program.capacity != null} ? ${program.capacity} : '-'">-</span>
+            </div>
+        </section>
+
+        <!-- 필터 -->
+        <section class="admin-program-actionbar">
+            <form method="get" th:action="@{/admin/programs/{id}/applications(id=${program.id})}"
+                  class="admin-program-filters">
+                <input type="hidden" name="status" th:value="${statusFilter}"/>
+                <div class="admin-program-search">
+                    <input type="text" name="q" th:value="${q}"
+                           class="admin-program-search-input"
+                           placeholder="신청자 이름, 이메일 검색"
+                           aria-label="신청자 검색"
+                           data-testid="filter-q"/>
+                    <button type="submit" class="admin-btn admin-btn--sm admin-btn--outline">검색</button>
+                </div>
+            </form>
+            <nav class="admin-program-tabs" aria-label="상태 필터">
+                <a th:href="@{/admin/programs/{id}/applications(id=${program.id},q=${q})}"
+                   th:class="${statusFilter == null or statusFilter == ''} ? 'admin-program-tab admin-program-tab--active' : 'admin-program-tab'"
+                   data-testid="filter-all">전체</a>
+                <a th:href="@{/admin/programs/{id}/applications(id=${program.id},q=${q},status='PENDING')}"
+                   th:class="${statusFilter == 'PENDING'} ? 'admin-program-tab admin-program-tab--active' : 'admin-program-tab'"
+                   data-testid="filter-pending">대기</a>
+                <a th:href="@{/admin/programs/{id}/applications(id=${program.id},q=${q},status='APPROVED')}"
+                   th:class="${statusFilter == 'APPROVED'} ? 'admin-program-tab admin-program-tab--active' : 'admin-program-tab'"
+                   data-testid="filter-approved">승인</a>
+                <a th:href="@{/admin/programs/{id}/applications(id=${program.id},q=${q},status='REJECTED')}"
+                   th:class="${statusFilter == 'REJECTED'} ? 'admin-program-tab admin-program-tab--active' : 'admin-program-tab'"
+                   data-testid="filter-rejected">반려</a>
+                <a th:href="@{/admin/programs/{id}/applications(id=${program.id},q=${q},status='CANCELLED')}"
+                   th:class="${statusFilter == 'CANCELLED'} ? 'admin-program-tab admin-program-tab--active' : 'admin-program-tab'"
+                   data-testid="filter-cancelled">취소</a>
+            </nav>
+        </section>
+
+        <!-- 목록 테이블 -->
+        <section class="admin-program-list-card">
+            <div class="admin-application-row admin-application-row--head">
+                <span>No</span>
+                <span>이름</span>
+                <span>이메일</span>
+                <span>핸드폰</span>
+                <span>접수일시</span>
+                <span>참여횟수</span>
+                <span>상태</span>
+                <span>관리</span>
+            </div>
+
+            <div th:if="${applications.isEmpty()}" class="admin-program-empty" data-testid="empty-state">
+                <span>아직 신청이 없어요.</span>
+            </div>
+
+            <div th:each="app, iter : ${applications.content}"
+                 class="admin-application-row"
+                 th:attr="data-testid='application-row-' + ${app.id}">
+                <span th:text="${applications.number * 10 + iter.count}">1</span>
+                <span th:text="${app.user.name}">이름</span>
+                <span th:text="${app.user.email}">email@test</span>
+                <span th:text="${app.user.phone != null} ? ${app.user.phone} : '-'">-</span>
+                <span th:text="${#temporals.format(app.appliedAt, 'yyyy-MM-dd HH:mm')}">2026-09-15 00:00</span>
+                <span th:text="${visits[app.user.id] != null} ? ${visits[app.user.id]} : 0">0</span>
+                <span>
+                    <span class="admin-application-status-badge"
+                          th:classappend="'admin-application-status-badge--' + ${#strings.toLowerCase(app.status.name())}"
+                          th:text="${app.status.name() == 'PENDING'} ? '대기' :
+                                   (${app.status.name() == 'APPROVED'} ? '승인' :
+                                   (${app.status.name() == 'REJECTED'} ? '반려' : '취소'))"
+                          data-testid="row-status-badge">대기</span>
+                </span>
+                <span>
+                    <a th:href="@{/admin/programs/{id}/applications/{aid}(id=${program.id},aid=${app.id})}"
+                       class="admin-btn admin-btn--sm admin-btn--outline"
+                       data-testid="open-detail-btn">상세</a>
+                </span>
+            </div>
+        </section>
+
+        <!-- 페이지네이션 -->
+        <nav th:if="${applications.totalPages > 1}" class="admin-pagination" aria-label="페이지">
+            <a th:if="${hasPrevGroup}"
+               th:href="@{/admin/programs/{id}/applications(id=${program.id},q=${q},status=${statusFilter},page=${prevGroupPage})}"
+               class="admin-pagination-link">‹</a>
+            <a th:each="i : ${#numbers.sequence(pageGroupStart, pageGroupEnd)}"
+               th:href="@{/admin/programs/{id}/applications(id=${program.id},q=${q},status=${statusFilter},page=${i})}"
+               th:class="${i == applications.number} ? 'admin-pagination-link admin-pagination-link--active' : 'admin-pagination-link'"
+               th:text="${i + 1}">1</a>
+            <a th:if="${hasNextGroup}"
+               th:href="@{/admin/programs/{id}/applications(id=${program.id},q=${q},status=${statusFilter},page=${nextGroupPage})}"
+               class="admin-pagination-link">›</a>
+        </nav>
+
+    </div>
+</main>
+
+</body>
+</html>

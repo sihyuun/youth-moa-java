@@ -2112,3 +2112,91 @@ body.admin-shell-body {
 .admin-program-form-courses {
     margin-top: 12px;
 }
+
+/* ================= A4 admin-program-detail (2026-09-15) ================= */
+.admin-application-summary {
+    display: flex; gap: 12px; margin: 24px 0; flex-wrap: wrap;
+}
+.admin-application-summary-item {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 12px 20px; background: #F0EFF3; border-radius: 8px; min-width: 88px;
+}
+.admin-application-summary-label { font-size: 12px; color: var(--admin-text-sec); margin-bottom: 4px; }
+.admin-application-summary-value { font-size: 20px; font-weight: 600; color: var(--admin-text); }
+.admin-application-summary-item--pending { background: #FEF3C7; }
+.admin-application-summary-item--pending .admin-application-summary-value { color: #B45309; }
+.admin-application-summary-item--approved { background: #D1FAE5; }
+.admin-application-summary-item--approved .admin-application-summary-value { color: #047857; }
+.admin-application-summary-item--rejected { background: #FEE2E2; }
+.admin-application-summary-item--rejected .admin-application-summary-value { color: #B91C1C; }
+.admin-application-summary-item--cancelled { background: #E5E7EB; }
+.admin-application-summary-item--cancelled .admin-application-summary-value { color: #4B5563; }
+
+.admin-application-row {
+    display: grid;
+    grid-template-columns: 44px 100px 1fr 120px 150px 80px 90px 90px;
+    align-items: center; gap: 12px; padding: 14px 16px;
+    border-bottom: 1px solid var(--admin-border-light); font-size: 14px;
+}
+.admin-application-row--head {
+    background: #F0EFF3; font-weight: 600; color: var(--admin-text-sec); font-size: 12px;
+}
+
+.admin-application-status-badge {
+    display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 500;
+}
+.admin-application-status-badge--pending { background: #FEF3C7; color: #B45309; }
+.admin-application-status-badge--approved { background: #D1FAE5; color: #047857; }
+.admin-application-status-badge--rejected { background: #FEE2E2; color: #B91C1C; }
+.admin-application-status-badge--cancelled { background: #E5E7EB; color: #4B5563; }
+
+.admin-application-detail-section {
+    background: #fff; border: 1px solid var(--admin-border-light); border-radius: 8px;
+    padding: 20px 24px; margin-bottom: 16px;
+}
+.admin-application-detail-section-title {
+    font-size: 15px; font-weight: 600; margin: 0 0 14px 0;
+}
+.admin-application-detail-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px 24px;
+}
+.admin-application-detail-label {
+    display: block; font-size: 12px; color: var(--admin-text-sec); margin-bottom: 4px;
+}
+.admin-application-detail-value { font-size: 14px; color: var(--admin-text); }
+.admin-application-detail-textbox {
+    background: #F0EFF3; border: 1px solid #E3E1E8; border-radius: 6px;
+    padding: 10px 12px; font-size: 14px; line-height: 1.5; white-space: pre-wrap;
+}
+.admin-application-answer-item { margin-bottom: 12px; }
+.admin-application-answer-label { font-size: 12px; color: var(--admin-text-sec); margin-bottom: 4px; }
+.admin-application-answer-pill {
+    display: inline-block; padding: 4px 12px; border-radius: 12px;
+    background: #EDE9FE; color: #7C3AED; font-size: 13px;
+}
+.admin-application-answer-file {
+    font-size: 13px; color: var(--admin-text-sec);
+}
+
+.admin-application-actions {
+    display: flex; flex-direction: column; gap: 12px;
+}
+.admin-application-inline-form {
+    display: flex; gap: 8px; align-items: center;
+}
+.admin-application-inline-form .admin-program-form-input { flex: 1; }
+
+.admin-flash {
+    padding: 12px 16px; border-radius: 6px; margin-bottom: 12px; font-size: 14px;
+}
+.admin-flash--success { background: #D1FAE5; color: #047857; }
+.admin-flash--error { background: #FEE2E2; color: #B91C1C; }
+
+.admin-pagination {
+    display: flex; gap: 4px; justify-content: center; margin-top: 24px;
+}
+.admin-pagination-link {
+    padding: 8px 12px; border: 1px solid var(--admin-border-light); border-radius: 6px;
+    color: var(--admin-text); text-decoration: none; font-size: 13px;
+}
+.admin-pagination-link--active { background: #3F30E9; color: #fff; border-color: #3F30E9; }
