@@ -595,6 +595,9 @@ curl -s -o /dev/null -w "%{http_code}\n" -b centeradmin_jsessionid \
 | 모달 저장 원자적 (Qn-Δ9 A) | prototype dropdown 즉시 반영 이탈 · 데이터 정합성 |
 | REJECTED 후 재신청 차단 유지 (Qn-4 A) | 현행 로직 유지 · 정책 변경은 별도 티켓 |
 | Program-Center FK 없이 organization 문자열 매칭 | A9 이월 (ADMIN-00 Q2) |
+| PAGE_SIZE = 10 (Qn-6 A 원안 20 이탈) | admin-notice/term/programs 페이지네이션 일관성 · 사용자 컨펌 (2026-09-15 A4 fix) |
+| 상세 UI 페이지 wrapper (Qn-B A 원안 480px HTMX 모달 이탈) | 신청 정보량이 많아 페이지가 자연스러움 · 사용자 컨펌 |
+| 상태 변경 endpoint 4개 분리 (approve/reject/cancel/note · Qn-Δ9 A 원안 원자적 단일 POST 이탈) | REST 관례 · 상태 변경 명확성 · 사용자 컨펌 |
 
 ---
 

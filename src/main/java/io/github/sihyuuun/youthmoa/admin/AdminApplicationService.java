@@ -79,8 +79,15 @@ public class AdminApplicationService {
   public Page<Application> list(Long programId, String status, String q, int page) {
     Pageable pageable =
         PageRequest.of(Math.max(0, page), PAGE_SIZE, Sort.by(Sort.Order.desc("appliedAt")));
+    // fetch join user — OSIV=false 환경에서 템플릿 렌더 시 LazyInitializationException 방지 (spec §7).
+    // count 쿼리에는 fetch 를 걸면 Hibernate 가 에러를 내므로 resultType 체크 필수.
     Specification<Application> spec =
-        (root, query, cb) -> cb.equal(root.get("program").get("id"), programId);
+        (root, query, cb) -> {
+          if (query != null && Long.class != query.getResultType()) {
+            root.fetch("user");
+          }
+          return cb.equal(root.get("program").get("id"), programId);
+        };
     if (status != null && !status.isBlank() && !"ALL".equalsIgnoreCase(status)) {
       try {
         ApplicationStatus s = ApplicationStatus.valueOf(status.toUpperCase());

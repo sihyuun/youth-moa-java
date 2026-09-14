@@ -28,12 +28,12 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * A4 admin-program-detail (2026-09-15 · Qn 24건 A) — {@link AdminApplicationService} 통합 검증.
  *
- * <p>A3-2 학습 반영: verify FAIL 원인이 "신규 로직 테스트 자산 부재" 였으므로, A4 QA 세션에서 Service Test 를 필수 신설한다. e2e 프로파일
- * H2 + 시드 데이터 활용. {@link SecurityContextHolder} 로 AdminScope 를 실제 라우팅한다.
+ * <p>A3-2 학습 반영: verify FAIL 원인이 "신규 로직 테스트 자산 부재" 였으므로, A4 QA 세션에서 Service Test 를 필수 신설한다. e2e
+ * 프로파일 H2 + 시드 데이터 활용. {@link SecurityContextHolder} 로 AdminScope 를 실제 라우팅한다.
  *
- * <p>시드 (DataInitializer): program 1 (organization="내일스퀘어 양평", capacity=30) 에 28건 APPROVED. program 2 에
- * 19건 PENDING. program 3 에 6건 PENDING. center1_admin 은 centers[0] ("28청춘창업소" or "내일꿈제작소" 등 CSV 알파벳
- * 첫번째) 소속.
+ * <p>시드 (DataInitializer): program 1 (organization="내일스퀘어 양평", capacity=30) 에 28건 APPROVED. program
+ * 2 에 19건 PENDING. program 3 에 6건 PENDING. center1_admin 은 centers[0] ("28청춘창업소" or "내일꿈제작소" 등 CSV
+ * 알파벳 첫번째) 소속.
  */
 @SpringBootTest
 @ActiveProfiles("e2e")
@@ -168,13 +168,13 @@ class AdminApplicationServiceTest {
   @Test
   void summaryCounts_returnsAllFourStatuses() {
     loginAsSysadmin();
-    Map<ApplicationStatus, Long> summary =
-        adminApplicationService.summaryCounts(firstProgramId());
-    assertThat(summary).containsKeys(
-        ApplicationStatus.PENDING,
-        ApplicationStatus.APPROVED,
-        ApplicationStatus.REJECTED,
-        ApplicationStatus.CANCELLED);
+    Map<ApplicationStatus, Long> summary = adminApplicationService.summaryCounts(firstProgramId());
+    assertThat(summary)
+        .containsKeys(
+            ApplicationStatus.PENDING,
+            ApplicationStatus.APPROVED,
+            ApplicationStatus.REJECTED,
+            ApplicationStatus.CANCELLED);
   }
 
   @Test
@@ -242,10 +242,7 @@ class AdminApplicationServiceTest {
     Application pending = firstApplicationByStatus(ApplicationStatus.PENDING);
     if (pending == null) return;
     adminApplicationService.reject(
-        pending.getProgram().getId(),
-        pending.getId(),
-        "sysadmin@youth-moa.test",
-        "정원 초과입니다");
+        pending.getProgram().getId(), pending.getId(), "sysadmin@youth-moa.test", "정원 초과입니다");
     Application after = applicationRepository.findById(pending.getId()).orElseThrow();
     assertThat(after.getStatus()).isEqualTo(ApplicationStatus.REJECTED);
     assertThat(after.getRejectReason()).contains("정원 초과");
@@ -275,10 +272,7 @@ class AdminApplicationServiceTest {
     assertThatThrownBy(
             () ->
                 adminApplicationService.reject(
-                    pending.getProgram().getId(),
-                    pending.getId(),
-                    "sysadmin@youth-moa.test",
-                    null))
+                    pending.getProgram().getId(), pending.getId(), "sysadmin@youth-moa.test", null))
         .isInstanceOf(IllegalArgumentException.class);
   }
 
@@ -288,10 +282,7 @@ class AdminApplicationServiceTest {
     Application pending = firstApplicationByStatus(ApplicationStatus.PENDING);
     if (pending == null) return;
     adminApplicationService.forceCancel(
-        pending.getProgram().getId(),
-        pending.getId(),
-        "sysadmin@youth-moa.test",
-        "중복 신청");
+        pending.getProgram().getId(), pending.getId(), "sysadmin@youth-moa.test", "중복 신청");
     Application after = applicationRepository.findById(pending.getId()).orElseThrow();
     assertThat(after.getStatus()).isEqualTo(ApplicationStatus.CANCELLED);
     // Qn-C A: "관리자 취소: " 접두어
@@ -308,10 +299,7 @@ class AdminApplicationServiceTest {
     assertThatThrownBy(
             () ->
                 adminApplicationService.forceCancel(
-                    pending.getProgram().getId(),
-                    pending.getId(),
-                    "sysadmin@youth-moa.test",
-                    ""))
+                    pending.getProgram().getId(), pending.getId(), "sysadmin@youth-moa.test", ""))
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessageContaining("취소 사유");
   }
@@ -345,7 +333,8 @@ class AdminApplicationServiceTest {
     Application app = applicationRepository.findAll().stream().findFirst().orElseThrow();
     String tooLong = "가".repeat(1001);
     assertThatThrownBy(
-            () -> adminApplicationService.updateNote(app.getProgram().getId(), app.getId(), tooLong))
+            () ->
+                adminApplicationService.updateNote(app.getProgram().getId(), app.getId(), tooLong))
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessageContaining("1000자");
   }

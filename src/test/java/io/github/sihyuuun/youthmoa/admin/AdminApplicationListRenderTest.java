@@ -20,8 +20,8 @@ import org.springframework.test.web.servlet.MockMvc;
 /**
  * A4 admin-program-detail (2026-09-15) — 신청 관리 목록 화면 렌더 검증.
  *
- * <p>F0h-c2 사고 (Thymeleaf 파싱·SpEL 표현식 잔존) 재발 방지를 위해 필수. 요약 배지 5종, 필터 세그먼트, 테이블 헤더, data-testid 셀렉터 존재를
- * 확인한다.
+ * <p>F0h-c2 사고 (Thymeleaf 파싱·SpEL 표현식 잔존) 재발 방지를 위해 필수. 요약 배지 5종, 필터 세그먼트, 테이블 헤더, data-testid 셀렉터
+ * 존재를 확인한다.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -75,10 +75,7 @@ class AdminApplicationListRenderTest {
             get("/admin/programs/" + PROGRAM_ID + "/applications?status=PENDING").with(sysadmin()))
         .andExpect(status().isOk())
         // PENDING 필터 링크에 --active class 부착 (기본은 admin-program-tab, 활성은 --active)
-        .andExpect(
-            content()
-                .string(
-                    containsString("data-testid=\"filter-pending\">대기</a>")))
+        .andExpect(content().string(containsString("data-testid=\"filter-pending\">대기</a>")))
         .andExpect(content().string(containsString("admin-program-tab--active")));
   }
 
