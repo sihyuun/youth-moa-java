@@ -11,7 +11,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-public interface ApplicationRepository extends JpaRepository<Application, Long> {
+public interface ApplicationRepository
+    extends JpaRepository<Application, Long>,
+        org.springframework.data.jpa.repository.JpaSpecificationExecutor<Application> {
 
   Optional<Application> findByUserAndProgram(User user, Program program);
 
@@ -45,6 +47,20 @@ public interface ApplicationRepository extends JpaRepository<Application, Long> 
   /** 홈 "누적 참여자" — 신청 한 번이라도 한 distinct user 수. status 무관 (학습 단계 단순화). */
   @Query("SELECT COUNT(DISTINCT a.user.id) FROM Application a")
   long countDistinctUsers();
+
+  /** A4 admin-program-detail: 프로그램 내 상태별 카운트 (요약 배지용). */
+  long countByProgramIdAndStatus(Long programId, ApplicationStatus status);
+
+  /** A4 admin-program-detail: 프로그램 내 전체 카운트 (요약 배지용). */
+  long countByProgramId(Long programId);
+
+  /**
+   * A4 admin-program-detail: 사용자별 승인 신청 수 일괄 조회 (참여횟수 파생 · N+1 방지). Object[]{userId, count} 리스트 반환.
+   */
+  @Query(
+      "SELECT a.user.id, COUNT(a) FROM Application a WHERE a.user.id IN :userIds AND a.status = :status GROUP BY a.user.id")
+  List<Object[]> countByUserIdInAndStatus(
+      @Param("userIds") List<Long> userIds, @Param("status") ApplicationStatus status);
 
   /** 프로그램 ID 목록으로 상태별 신청자 수 일괄 조회 (N+1 방지). Object[]{programId, count} 리스트 반환. */
   @Query(

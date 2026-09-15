@@ -217,6 +217,12 @@
                         <span class="admin-program-form-sub-link-title">동적 필드 관리 →</span>
                         <span class="admin-program-form-sub-link-desc">신청 폼에서 물어볼 질문</span>
                     </a>
+                    <a th:href="@{/admin/programs/{id}/applications(id=${program.id})}"
+                       class="admin-program-form-sub-link"
+                       data-testid="link-applications">
+                        <span class="admin-program-form-sub-link-title">신청 관리 →</span>
+                        <span class="admin-program-form-sub-link-desc">신청 목록 · 승인/반려 · 담당자 의견</span>
+                    </a>
                 </div>
             </div>
 

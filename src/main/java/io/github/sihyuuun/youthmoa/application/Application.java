@@ -61,6 +61,13 @@ public class Application {
   @Column(length = 200)
   private String cancelReason;
 
+  /**
+   * A4 admin-program-detail (V15 · Qn-1 A): 관리자 담당자 의견. prototype L2739 textarea. 사용자에게 노출될 수 있음
+   * (placeholder 문구 기준). 상태 전이와 무관하게 저장 가능.
+   */
+  @Column(length = 1000)
+  private String adminNote;
+
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "processed_by")
   private User processedBy;
@@ -101,6 +108,25 @@ public class Application {
   public void cancel(String reason) {
     this.status = ApplicationStatus.CANCELLED;
     this.cancelReason = reason;
+  }
+
+  /**
+   * A4 admin-program-detail (Qn-1 A): 관리자 담당자 의견 갱신. 상태 전이와 무관 · 재로드 시 그대로 유지. null/blank 는 컬럼
+   * clear 처리.
+   */
+  public void updateAdminNote(String note) {
+    this.adminNote = (note == null || note.isBlank()) ? null : note;
+  }
+
+  /**
+   * A4 admin-program-detail (Qn-C A): 관리자 강제 취소. 사용자 취소(cancel) 와 도메인 메서드는 공유하되
+   * processedBy·processedAt 을 기록해 감사 가능. reason 은 필수 (Bean Validation 은 Controller/Service 단에서 강제).
+   */
+  public void forceCancelByAdmin(User admin, String reason) {
+    this.status = ApplicationStatus.CANCELLED;
+    this.cancelReason = reason;
+    this.processedBy = admin;
+    this.processedAt = LocalDateTime.now();
   }
 
   /** CANCELLED 상태의 신청을 같은 row 로 재활성화 (DB unique constraint 우회). */
