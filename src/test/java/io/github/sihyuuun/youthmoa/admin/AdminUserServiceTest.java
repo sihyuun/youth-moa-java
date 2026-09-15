@@ -53,6 +53,28 @@ class AdminUserServiceTest {
   void setup() {
     sysadmin = userRepository.findByEmail("sysadmin@youth-moa.test").orElseThrow();
     seed1 = userRepository.findByEmail("seed1@youth-moa.test").orElseThrow();
+    // CI 회귀 방어 (2026-09-15): AdminUserControllerRbacTest.POST_deactivate_SYSTEM_ADMIN_302_redirect
+    // 가 seed1 을 실제 DB 에 deactivate 하고 남기는 사고 관측 (CI 실행 순서: RBAC → Service).
+    // 이 테스트 클래스는 @Transactional 로 rollback 되지만 leaker 는 rollback 되지 않으므로,
+    // 매 테스트 시작 시 seed1 을 활성 상태로 재설정한다. 이 조작 역시 TX 내부에서만 유지 → 무해.
+    if (!seed1.isActive()) {
+      seed1.reactivate();
+      // 감사 컬럼 3종 (deactivatedAt/By/Reason) 도 초기화 — 리액티베이트는 이력 보존이라 clear 하지
+      // 않으므로 리플렉션으로 직접 null 세팅. 테스트 격리 목적 한정.
+      clearDeactivationAudit(seed1);
+    }
+  }
+
+  private void clearDeactivationAudit(User u) {
+    for (String f : new String[] {"deactivatedAt", "deactivatedBy", "deactivationReason"}) {
+      try {
+        Field field = User.class.getDeclaredField(f);
+        field.setAccessible(true);
+        field.set(u, null);
+      } catch (ReflectiveOperationException e) {
+        throw new IllegalStateException("failed to clear audit field " + f, e);
+      }
+    }
   }
 
   // ================= 목록 · 검색 · 필터 =================
