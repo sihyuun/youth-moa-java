@@ -68,12 +68,11 @@ test('재활성화 — 차단 상태에서 재활성화 버튼 클릭 → 활성
     await expect(page.locator('.admin-program-header .admin-user-status-badge')).toHaveText('차단');
 
     // 재활성화 버튼 노출 · 클릭
-    // CI 회귀 방어 (2026-09-15): 302 redirect 응답 처리 타이밍에 의해 danger-zone 하위 form 이
-    // toBeVisible 시점에 아직 붙지 않은 경우 관측 (backend 재렌더 순간 vs Playwright 폴링 race).
-    // 안정적인 상태 확인을 위해 강제 reload 후 form 을 기다린다 — 결과 동등성 유지 (POST 재발송 아님).
-    await page.reload({ waitUntil: 'domcontentloaded' });
+    // CI 회귀 방어 (2026-09-15 · Recovery #2): reload 는 CI 에서 60s timeout · 명시적 goto 로 재진입
+    // (302 응답 후 form action 렌더 순간 vs Playwright 폴링 race 를 결정적으로 해소).
+    await page.goto(`/admin/users/${seedId}`, { waitUntil: 'domcontentloaded' });
     const reactivateForm = page.locator('.admin-user-danger-zone form[action*="/reactivate"]');
-    await expect(reactivateForm).toBeVisible();
+    await expect(reactivateForm).toBeVisible({ timeout: 10_000 });
     await reactivateForm.locator('button[type="submit"]').click();
 
     await expect(page.locator('.admin-program-header .admin-user-status-badge')).toHaveText('활성');
