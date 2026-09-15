@@ -220,13 +220,15 @@ public boolean isEnabled() {
 |---|---|---|
 | `GET /admin/users` | `admin/users/list.html` | 검색·role filter·페이지네이션 10건 (Qn-5) |
 | `GET /admin/users/{id}` | `admin/users/detail.html` | 2컬럼 (좌 프로필 편집 · 우 신청 현황 탭 4종) |
-| `POST /admin/users/{id}` | redirect `/admin/users/{id}` | 프로필 편집 저장 |
+| `POST /admin/users/{id}` | redirect `/admin/users/{id}` | 프로필 편집 저장 — **A5 이월** (D1 · 후속 티켓 A5-2) |
 | `POST /admin/users/{id}/deactivate` | redirect `/admin/users/{id}` | 차단 (확인 모달 필수) |
 | `POST /admin/users/{id}/reactivate` | redirect `/admin/users/{id}` | 재활성화 |
 | `POST /admin/users/{id}/role` | redirect `/admin/users/{id}` | role 변경 (SYSTEM_ADMIN 만) |
 | `POST /admin/users/{id}/admin-note` | fragment `#admin-note-view` (HTMX) | 메모 저장 (인라인) |
-| `GET /admin/users/new` | `admin/users/register.html` | 신규 사용자 등록 폼 |
-| `POST /admin/users` | redirect `/admin/users/{id}` | 신규 등록 저장 |
+| `GET /admin/users/new` | `admin/users/register.html` | 신규 사용자 등록 폼 — **A5 이월** (D2 · Qn-4 결정 반영 · 후속 A5-1/A8) |
+| `POST /admin/users` | redirect `/admin/users/{id}` | 신규 등록 저장 — **A5 이월** (D2) |
+
+**D1 · D2 이월 근거** (ym-verify 2026-09-15 지적): §12 §후속 결정 시 프로필 편집·신규 등록 UI 는 스코프에서 실질 제외되었으나 §4 원안 표는 갱신 누락. 후속 티켓 A5-2 (프로필 편집) · A5-1 (관리자 신규 계정 발급) 로 분리.
 
 **관리자 계정 관리 (`/admin/staff`)**: Qn-A **B안 채택 권장 → 별도 화면 없음 · `/admin/users?role=CENTER_ADMIN,SYSTEM_ADMIN` 필터로 대체**. prototype 미명시 이탈 최소화.
 
