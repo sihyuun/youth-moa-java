@@ -1,5 +1,6 @@
 package io.github.sihyuuun.youthmoa.common.config;
 
+import io.github.sihyuuun.youthmoa.user.LastAccessAuthenticationSuccessHandler;
 import javax.sql.DataSource;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -7,10 +8,12 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.env.Environment;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
 import org.springframework.security.web.authentication.rememberme.JdbcTokenRepositoryImpl;
 import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
@@ -36,15 +39,20 @@ public class SecurityConfig {
 
   /** 사용자 로그인 실패 시 username 을 세션에 보존해 로그인 폼 재표시 시 채워둠. */
   private static SimpleUrlAuthenticationFailureHandler loginFailureHandler() {
-    return failureHandler("/login?error");
+    return failureHandler("/login?error", "/login?blocked");
   }
 
   /** 관리자 로그인 실패 시 username 을 세션에 보존해 /admin/login?error 로 리다이렉트. */
   private static SimpleUrlAuthenticationFailureHandler adminLoginFailureHandler() {
-    return failureHandler("/admin/login?error");
+    return failureHandler("/admin/login?error", "/admin/login?blocked");
   }
 
-  private static SimpleUrlAuthenticationFailureHandler failureHandler(String defaultFailureUrl) {
+  /**
+   * A5 admin-users (2026-09-15): DisabledException 을 별도 URL (blocked) 로 분기. 그 외 인증 실패는
+   * defaultFailureUrl.
+   */
+  private static SimpleUrlAuthenticationFailureHandler failureHandler(
+      String defaultFailureUrl, String blockedUrl) {
     return new SimpleUrlAuthenticationFailureHandler(defaultFailureUrl) {
       @Override
       public void onAuthenticationFailure(
@@ -55,6 +63,11 @@ public class SecurityConfig {
         String username = request.getParameter("username");
         if (username != null) {
           request.getSession().setAttribute("savedUsername", username);
+        }
+        if (exception instanceof DisabledException) {
+          setDefaultFailureUrl(blockedUrl);
+        } else {
+          setDefaultFailureUrl(defaultFailureUrl);
         }
         super.onAuthenticationFailure(request, response, exception);
       }
@@ -89,7 +102,11 @@ public class SecurityConfig {
    */
   @Bean
   @Order(1)
-  public SecurityFilterChain adminSecurityFilterChain(HttpSecurity http) throws Exception {
+  public SecurityFilterChain adminSecurityFilterChain(
+      HttpSecurity http, LastAccessAuthenticationSuccessHandler lastAccessHandler)
+      throws Exception {
+    // A5 admin-users: lastAccessAt 갱신 핸들러 + 기본 성공 URL 유지 (/admin).
+    SavedRequestAwareAuthenticationSuccessHandler adminSuccess = adminLoginSuccessHandler();
     http.securityMatcher("/admin/**")
         .authorizeHttpRequests(
             auth ->
@@ -101,8 +118,8 @@ public class SecurityConfig {
             form ->
                 form.loginPage("/admin/login")
                     .loginProcessingUrl("/admin/login")
-                    .defaultSuccessUrl("/admin", true)
                     .failureUrl("/admin/login?error")
+                    .successHandler(chainedSuccessHandler(lastAccessHandler, adminSuccess))
                     .failureHandler(adminLoginFailureHandler())
                     .permitAll())
         .logout(
@@ -127,6 +144,7 @@ public class SecurityConfig {
       HttpSecurity http,
       PersistentTokenRepository persistentTokenRepository,
       Environment environment,
+      LastAccessAuthenticationSuccessHandler lastAccessHandler,
       @Value("${security.remember-me.key}") String rememberMeKey)
       throws Exception {
     // fix-e2e-seed-pollution: e2e 프로파일에서만 test-only fixture endpoint 공개.
@@ -195,7 +213,8 @@ public class SecurityConfig {
             form ->
                 form.loginPage("/login")
                     .loginProcessingUrl("/login")
-                    .defaultSuccessUrl("/", true)
+                    .successHandler(
+                        chainedSuccessHandler(lastAccessHandler, userLoginSuccessHandler()))
                     .failureHandler(loginFailureHandler())
                     .permitAll())
         // Spring Security remember-me — PersistentToken (DB 기반).
@@ -228,6 +247,49 @@ public class SecurityConfig {
     //   - Thymeleaf 는 ${_csrf.token} / ${_csrf.headerName} 로 접근
     //   - HTMX 는 static/js/htmx-csrf.js 가 meta 태그 값을 configRequest 에서 헤더로 부착
     return http.build();
+  }
+
+  /** A5 admin-users: 관리자 로그인 성공 후 /admin 으로 강제 이동. */
+  private static SavedRequestAwareAuthenticationSuccessHandler adminLoginSuccessHandler() {
+    SavedRequestAwareAuthenticationSuccessHandler h =
+        new SavedRequestAwareAuthenticationSuccessHandler();
+    h.setDefaultTargetUrl("/admin");
+    h.setAlwaysUseDefaultTargetUrl(true);
+    return h;
+  }
+
+  /** A5 admin-users: 사용자 로그인 성공 후 / 로 이동 (기존 defaultSuccessUrl("/", true) 등가). */
+  private static SavedRequestAwareAuthenticationSuccessHandler userLoginSuccessHandler() {
+    SavedRequestAwareAuthenticationSuccessHandler h =
+        new SavedRequestAwareAuthenticationSuccessHandler();
+    h.setDefaultTargetUrl("/");
+    h.setAlwaysUseDefaultTargetUrl(true);
+    return h;
+  }
+
+  /**
+   * A5 admin-users: lastAccessAt 갱신을 먼저 수행하고 그 다음 실제 redirect handler 를 호출. lastAccess 갱신 예외는
+   * handler 내부에서 삼켜지므로 실 redirect 는 반드시 진행됨.
+   */
+  private static org.springframework.security.web.authentication.AuthenticationSuccessHandler
+      chainedSuccessHandler(
+          LastAccessAuthenticationSuccessHandler lastAccessHandler,
+          SavedRequestAwareAuthenticationSuccessHandler redirect) {
+    return (request, response, authentication) -> {
+      // lastAccessHandler.onAuthenticationSuccess 는 super 호출로 redirect 를 유발하므로
+      // 여기서는 갱신 로직만 수행하고 실제 redirect 는 아래 redirect handler 가 담당.
+      try {
+        if (authentication.getPrincipal()
+            instanceof io.github.sihyuuun.youthmoa.user.UserPrincipal up) {
+          if (up.getId() != null) {
+            lastAccessHandler.getUpdater().updateLastAccess(up.getId());
+          }
+        }
+      } catch (Exception ignore) {
+        // 회귀 방어: 갱신 실패해도 로그인 성공은 반드시 완료.
+      }
+      redirect.onAuthenticationSuccess(request, response, authentication);
+    };
   }
 
   @Bean

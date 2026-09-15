@@ -54,9 +54,11 @@
                     <div id="adminPasswordError" class="admin-auth-field-error" hidden></div>
                 </div>
 
-                <!-- ?error / ?logout / 서버 errorMsg alert -->
+                <!-- ?error / ?logout / ?blocked / 서버 errorMsg alert -->
                 <div th:if="${param.error}" class="admin-auth-alert admin-auth-alert--error"
                      role="alert">아이디 또는 비밀번호가 올바르지 않습니다.</div>
+                <div th:if="${param.blocked}" class="admin-auth-alert admin-auth-alert--error"
+                     role="alert">차단된 계정입니다. 관리자에게 문의해주세요.</div>
                 <div th:if="${param.logout}" class="admin-auth-alert admin-auth-alert--success"
                      role="status">로그아웃되었습니다.</div>
 
