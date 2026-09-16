@@ -347,3 +347,48 @@ CREATE INDEX idx_daily_visit_date ON daily_visit (visit_date DESC);
 - User 엔티티 (gender·birthDate): `C:\Users\User\IdeaProjects\youth-moa-java\src\main\java\io\github\sihyuuun\youthmoa\user\User.java` L58~62
 - Flyway 최신: `C:\Users\User\IdeaProjects\youth-moa-java\src\main\resources\db\migration\V16__add_users_active_and_admin_fields.sql`
 - 신설 대상 계약: `e2e/contracts/admin-stats.ts` + `docs/design-contracts/admin/stats.md` (impl 시 생성)
+
+---
+
+## 15. 구현 매핑 (impl 완료 · 2026-09-16)
+
+행 단위 spec → 파일:라인 매핑. CLAUDE.md `ym-impl` 규정에 따라 필수.
+
+| Spec 항목 | 코드 |
+|---|---|
+| §4-1 DailyVisit 엔티티 | `src/main/java/io/github/sihyuuun/youthmoa/stats/DailyVisit.java` |
+| §4-1 V17 마이그레이션 | `src/main/resources/db/migration/V17__create_daily_visit.sql` |
+| §4-3 AgeBucket 헬퍼 | `src/main/java/io/github/sihyuuun/youthmoa/user/AgeBucket.java` |
+| §6-1 GET /admin/stats | `admin/AdminStatsController.java:26` |
+| §6-2 HTMX chart fragment | `admin/AdminStatsController.java:42` (반환 `admin/stats :: chart`) |
+| §7-1 Repository | `stats/DailyVisitRepository.java` |
+| §7-1 Interceptor | `stats/VisitTrackingInterceptor.java` (`postHandle`) |
+| §7-1 Scheduler | `stats/DailyVisitScheduler.java` (`@Scheduled cron="0 0 2 * * *"`) |
+| §7-1 Aggregator (Collector) | `stats/DailyVisitCollector.java` (ConcurrentHashMap + LongAdder) |
+| §7-1 BarChart / LineChart / DonutChart | `admin/chart/SvgChartRenderer.java` |
+| §7-1 AdminStatsService | `admin/AdminStatsService.java` |
+| §7-2 @EnableScheduling + WebMvcConfig | `common/config/WebMvcConfig.java` |
+| §7-2 Interceptor 제외 패턴 | `WebMvcConfig#addInterceptors` — /admin/**, /actuator/**, /css/**, /js/**, /images/**, /webjars/**, /favicon.ico, /error, /login, /logout, /h2-console/**, /__test__/** |
+| §7-3 V17 스키마 | 위와 동일 |
+| §8 Interceptor 성능 | LongAdder + ConcurrentHashMap · DB write 없음 (postHandle) |
+| Qn-1 서버 SVG | `SvgChartRenderer` (외부 CDN 없음) |
+| Qn-2 연령 5+UNKNOWN | `AgeBucket` enum 6개 |
+| Qn-3 방문자 = 익명+인증 합산 + authenticatedVisits 별도 | `DailyVisit.uniqueVisitors` + `authenticatedVisits` 컬럼 |
+| Qn-5 도넛 팔레트 | `SvgChartRenderer.DONUT_PALETTE` |
+| Qn-6 HTMX fragment 카운트 | Interceptor path 필터에 특별 제외 없음 (HX-Request 포함) |
+| Qn-7 테스트 스케줄러 disable | `src/test/resources/application.properties` `spring.task.scheduling.enabled=false` + `DailyVisitScheduler` `@ConditionalOnProperty` |
+| Qn-9 KPI 증감 30일 | `AdminStatsService#pctDelta` (cur30 vs prev30) |
+| Qn-10 마감임박 applyEndDate 우선 | `AdminStatsService#deadlineOf` |
+| §9-3 계약 신설 | `e2e/contracts/admin-stats.ts` + `docs/design-contracts/admin/stats.md` |
+| §9-1 정적 테스트 | `AgeBucketTest` · `DailyVisitCollectorTest` · `SvgChartRendererTest` |
+| GNB 통계 링크 | `templates/admin/fragments/header.html` L46~48 |
+
+### 이월 (impl 미포함)
+
+| 항목 | 사유 |
+|---|---|
+| Program.viewCount (조회수) | 엔티티에 컬럼 미도입. 화면은 0 표시 · `deferred: A6-followup` |
+| Excel export | `deferred: A8` |
+| 차트 hover 툴팁 | 서버 SVG 정적 렌더. `deferred: A8-polish` |
+| 기능 E2E (`tests/admin-stats.spec.ts`) | 계약(contracts) 검사로 우선 커버. 기능 E2E 는 후속 (ym-qa 단계 확장) |
+| Visual E2E (`tests/visual-admin-stats.spec.ts`) | 상동 (ym-qa 단계 확장) |
