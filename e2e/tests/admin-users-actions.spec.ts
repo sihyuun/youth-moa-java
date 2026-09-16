@@ -8,7 +8,11 @@ import { ADMIN_SYSTEM_EMAIL, abortExternal, loginAdmin } from '../helpers';
  *
  * 격리: 각 테스트 전에 `/__test__/reset-users` 로 is_active · deactivated 컬럼 · admin_note 초기화
  * (TestFixtureController · e2e profile only). 서로 다른 seed 유저를 고르지만 반복 실행 안전성 확보 목적.
+ *
+ * CI 회귀 방어 (2026-09-15 · Recovery #4 · Option A): 5개 spec 이 seed30 공유하여
+ * 병렬 실행 시 재활성화 form submit navigation 이 hang. serial 모드로 순차 실행 강제.
  */
+test.describe.configure({ mode: 'serial' });
 
 async function resetUsers(page: import('@playwright/test').Page) {
     const res = await page.request.post('/__test__/reset-users');
