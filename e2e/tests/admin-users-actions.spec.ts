@@ -68,9 +68,9 @@ test('재활성화 — 차단 상태에서 재활성화 버튼 클릭 → 활성
     await expect(page.locator('.admin-program-header .admin-user-status-badge')).toHaveText('차단');
 
     // 재활성화 버튼 노출 · 클릭
-    // CI 회귀 방어 (2026-09-15 · Recovery #2): reload 는 CI 에서 60s timeout · 명시적 goto 로 재진입
-    // (302 응답 후 form action 렌더 순간 vs Playwright 폴링 race 를 결정적으로 해소).
-    await page.goto(`/admin/users/${seedId}`, { waitUntil: 'domcontentloaded' });
+    // CI 회귀 방어 (2026-09-15 · Recovery #3): reload/goto 둘 다 CI 에서 60s timeout 관측.
+    // deactivate submit → 302 → GET 응답이 이미 완료된 시점 (badge '차단' 확인됨)에
+    // 재활성화 form 도 함께 렌더돼 있으므로 재요청 없이 바로 대기.
     const reactivateForm = page.locator('.admin-user-danger-zone form[action*="/reactivate"]');
     await expect(reactivateForm).toBeVisible({ timeout: 10_000 });
     await reactivateForm.locator('button[type="submit"]').click();
