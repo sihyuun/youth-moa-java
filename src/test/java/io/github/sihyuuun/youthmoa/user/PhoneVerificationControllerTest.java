@@ -45,6 +45,14 @@ class PhoneVerificationControllerTest {
   @MockitoBean io.github.sihyuuun.youthmoa.notification.NotificationService notificationService;
   @MockitoBean UserRepository userRepository;
 
+  // A5 admin-users (2026-09-15): SecurityConfig 가 successHandler 로 요구. 미mock 시 NoSuchBean 로 컨텍스트 로딩
+  // 실패.
+  @MockitoBean
+  io.github.sihyuuun.youthmoa.user.LastAccessAuthenticationSuccessHandler lastAccessHandler;
+
+  @MockitoBean
+  io.github.sihyuuun.youthmoa.user.LastAccessAuthenticationSuccessHandler.Updater lastAccessUpdater;
+
   @Test
   void send_code_정상() throws Exception {
     when(smsRateLimiter.tryAcquire(anyString())).thenReturn(true);

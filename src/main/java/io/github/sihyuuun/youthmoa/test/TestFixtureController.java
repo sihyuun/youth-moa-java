@@ -279,4 +279,33 @@ public class TestFixtureController {
 
   /** 신청 정리 요청 바디. programId 는 optional (null 이면 해당 유저 전체). */
   public record ResetApplicationsRequest(@NotBlank String userEmail, Long programId) {}
+
+  /**
+   * A5 admin-users (2026-09-15 · Qn-6 A): admin-users E2E 격리용 reset endpoint.
+   *
+   * <p>정책:
+   *
+   * <ul>
+   *   <li>시드 관리자 (sysadmin/center1/center2) 는 유지
+   *   <li>기존 시드 사용자의 is_active/deactivated_* 컬럼 초기화 (활성=true · 감사 컬럼 NULL · admin_note NULL)
+   *   <li>role 은 시드 초기값 유지 (SYSTEM_ADMIN → sysadmin, CENTER_ADMIN → center1/2, USER → seed*)
+   * </ul>
+   *
+   * <p>주의: {@code deactivated_by} 는 self-referential FK 이므로 deactivated_by 를 먼저 NULL 로 만든 후 다른 user
+   * 삭제 등도 가능. 여기서는 삭제하지 않고 컬럼만 초기화.
+   *
+   * @return 204 No Content (idempotent)
+   */
+  @PostMapping("/reset-users")
+  @Transactional
+  public ResponseEntity<Void> resetUsers() {
+    int reset =
+        entityManager
+            .createNativeQuery(
+                "UPDATE users SET is_active = TRUE, deactivated_at = NULL,"
+                    + " deactivated_by = NULL, deactivation_reason = NULL, admin_note = NULL")
+            .executeUpdate();
+    log.info("[test-fixture] reset-users updatedRows={}", reset);
+    return ResponseEntity.noContent().build();
+  }
 }

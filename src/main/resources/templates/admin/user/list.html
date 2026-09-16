@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>사용자 관리 — 청년모아 관리자</title>
+    <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"
+          rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" th:href="@{/images/logo_symbol.png}">
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
+    <meta name="_csrf" th:content="${_csrf?.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf?.headerName}"/>
+</head>
+<body class="admin-shell-body">
+
+<div th:replace="~{admin/fragments/header :: header('users', ${centerScopeLabel}, ${isSystemAdmin})}"></div>
+
+<main class="admin-shell-main">
+    <div class="admin-program-page">
+
+        <!-- 헤더 -->
+        <section class="admin-program-header">
+            <div>
+                <h2 class="admin-program-title">사용자 관리</h2>
+                <p class="admin-program-sub">가입한 사용자를 조회하고 권한 변경·차단·재활성화할 수 있어요.</p>
+            </div>
+        </section>
+
+        <!-- Flash 메시지 -->
+        <div th:if="${flashMessage}" class="admin-flash admin-flash--success" role="status"
+             th:text="${flashMessage}"></div>
+        <div th:if="${flashError}" class="admin-flash admin-flash--error" role="alert"
+             th:text="${flashError}"></div>
+
+        <!-- 액션바: 검색 + role filter -->
+        <section class="admin-program-actionbar">
+            <form method="get" th:action="@{/admin/users}" class="admin-program-filters">
+                <input type="hidden" name="role" th:value="${roleFilter}"/>
+                <div class="admin-program-search">
+                    <input type="text" name="q" th:value="${q}"
+                           class="admin-program-search-input"
+                           placeholder="이름, 이메일 검색"
+                           aria-label="사용자 검색"/>
+                    <button type="submit" class="admin-btn admin-btn--sm admin-btn--outline">검색</button>
+                </div>
+            </form>
+
+            <!-- role filter 세그먼트 (Qn-A 이월: 4옵션) -->
+            <nav class="admin-program-tabs" aria-label="권한 필터">
+                <a th:href="@{/admin/users(q=${q})}"
+                   th:class="${roleFilter == null or roleFilter == ''} ? 'admin-program-tab admin-program-tab--active' : 'admin-program-tab'">전체</a>
+                <a th:href="@{/admin/users(q=${q}, role='SYSTEM_ADMIN')}"
+                   th:class="${roleFilter == 'SYSTEM_ADMIN'} ? 'admin-program-tab admin-program-tab--active' : 'admin-program-tab'">시스템 관리자</a>
+                <a th:href="@{/admin/users(q=${q}, role='CENTER_ADMIN')}"
+                   th:class="${roleFilter == 'CENTER_ADMIN'} ? 'admin-program-tab admin-program-tab--active' : 'admin-program-tab'">관리자</a>
+                <a th:href="@{/admin/users(q=${q}, role='USER')}"
+                   th:class="${roleFilter == 'USER'} ? 'admin-program-tab admin-program-tab--active' : 'admin-program-tab'">사용자</a>
+            </nav>
+        </section>
+
+        <p class="admin-user-count">총 <strong th:text="${users.totalElements}">0</strong>명</p>
+
+        <!-- 목록 -->
+        <section class="admin-user-list-card">
+
+            <div class="admin-user-row admin-user-row--head" role="row">
+                <span class="admin-user-col-no">No.</span>
+                <span class="admin-user-col-name">이름</span>
+                <span class="admin-user-col-email">이메일</span>
+                <span class="admin-user-col-gender">성별</span>
+                <span class="admin-user-col-role">권한</span>
+                <span class="admin-user-col-phone">핸드폰</span>
+                <span class="admin-user-col-join">가입일</span>
+                <span class="admin-user-col-last">최근접속</span>
+                <span class="admin-user-col-status">상태</span>
+            </div>
+
+            <div th:if="${users.isEmpty()}" class="admin-user-empty">
+                <span th:if="${(q != null and !q.isEmpty()) or (roleFilter != null and !roleFilter.isEmpty())}">검색 결과가 없어요.</span>
+                <span th:unless="${(q != null and !q.isEmpty()) or (roleFilter != null and !roleFilter.isEmpty())}">등록된 사용자가 없어요.</span>
+            </div>
+
+            <a th:each="u, iter : ${users.content}"
+               th:href="@{/admin/users/{id}(id=${u.id})}"
+               class="admin-user-row"
+               role="row">
+                <span class="admin-user-col-no"
+                      th:text="${users.number * users.size + iter.index + 1}">1</span>
+                <span class="admin-user-col-name" th:text="${u.name}">이름</span>
+                <span class="admin-user-col-email" th:text="${u.email}">email@ex.com</span>
+                <span class="admin-user-col-gender"
+                      th:text="${u.gender != null ? (u.gender.name() == 'MALE' ? '남' : (u.gender.name() == 'FEMALE' ? '여' : '-')) : '-'}">-</span>
+                <span class="admin-user-col-role">
+                    <span class="admin-role-badge"
+                          th:classappend="${'admin-role-badge--' + u.role.name().toLowerCase()}"
+                          th:text="${u.role.name() == 'SYSTEM_ADMIN' ? '시스템 관리자' : (u.role.name() == 'CENTER_ADMIN' or u.role.name() == 'ADMIN' ? '관리자' : '사용자')}">사용자</span>
+                </span>
+                <span class="admin-user-col-phone"
+                      th:text="${u.phone != null and !u.phone.isEmpty() ? u.phone : '-'}">-</span>
+                <span class="admin-user-col-join"
+                      th:text="${u.createdAt != null ? #temporals.format(u.createdAt, 'yyyy-MM-dd') : '-'}">-</span>
+                <span class="admin-user-col-last"
+                      th:text="${u.lastAccessAt != null ? #temporals.format(u.lastAccessAt, 'yyyy-MM-dd') : '-'}">-</span>
+                <span class="admin-user-col-status">
+                    <span class="admin-user-status-badge"
+                          th:classappend="${u.isActive() ? 'admin-user-status-badge--active' : 'admin-user-status-badge--inactive'}"
+                          th:text="${u.isActive() ? '활성' : '차단'}">활성</span>
+                </span>
+            </a>
+        </section>
+
+        <!-- 페이징 -->
+        <nav class="admin-notice-paging" th:if="${users.totalPages > 1}" aria-label="페이지 이동">
+            <a class="admin-page-btn"
+               th:href="@{/admin/users(q=${q}, role=${roleFilter}, page=${prevGroupPage})}"
+               th:classappend="${hasPrevGroup} ? '' : 'admin-page-btn--disabled'">‹</a>
+
+            <a th:each="p : ${#numbers.sequence(pageGroupStart, pageGroupEnd)}"
+               class="admin-page-btn"
+               th:classappend="${p == users.number} ? ' admin-page-btn--active' : ''"
+               th:href="@{/admin/users(q=${q}, role=${roleFilter}, page=${p})}"
+               th:text="${p + 1}">1</a>
+
+            <a class="admin-page-btn"
+               th:href="@{/admin/users(q=${q}, role=${roleFilter}, page=${nextGroupPage})}"
+               th:classappend="${hasNextGroup} ? '' : 'admin-page-btn--disabled'">›</a>
+        </nav>
+
+    </div>
+</main>
+
+<script th:inline="javascript">
+    (function () {
+        var trigger = document.querySelector('.admin-header-user-trigger');
+        var menu = document.getElementById('admin-user-dropdown');
+        if (!trigger || !menu) return;
+        function close() { menu.hidden = true; trigger.setAttribute('aria-expanded', 'false'); }
+        function open() { menu.hidden = false; trigger.setAttribute('aria-expanded', 'true'); }
+        trigger.addEventListener('click', function (ev) {
+            ev.stopPropagation();
+            if (menu.hidden) open(); else close();
+        });
+        document.addEventListener('click', function (ev) {
+            if (!menu.hidden && !menu.contains(ev.target)) close();
+        });
+    })();
+</script>
+</body>
+</html>

@@ -16,6 +16,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 import lombok.AccessLevel;
@@ -111,6 +112,26 @@ public class User extends BaseTimeEntity {
   // ddl-auto=update 환경에서 기존 row 는 default 로 채워지도록 columnDefinition 명시.
   @Column(nullable = false, columnDefinition = "boolean not null default false")
   private boolean phoneVerified = false;
+
+  // ─── A5 admin-users (2026-09-15) — 관리자 차단·감사·메모 ───
+  // V16 마이그레이션과 세트. 기존 row 는 DEFAULT TRUE 로 초기화됨.
+  // UserPrincipal.isEnabled() 가 이 값을 읽어 로그인 차단 여부 결정.
+  @Column(nullable = false, columnDefinition = "boolean not null default true")
+  private boolean isActive = true;
+
+  @Column private LocalDateTime lastAccessAt;
+
+  @Column(length = 1000)
+  private String adminNote;
+
+  @Column private LocalDateTime deactivatedAt;
+
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "deactivated_by")
+  private User deactivatedBy;
+
+  @Column(length = 500)
+  private String deactivationReason;
 
   @Builder
   private User(
@@ -230,5 +251,41 @@ public class User extends BaseTimeEntity {
     this.role = role;
     this.center = center;
     this.centerScope = centerScope;
+  }
+
+  // ─── A5 admin-users 도메인 메서드 ───
+
+  /**
+   * A5: 관리자 차단. isActive=false 로 전환 + 감사 컬럼 (deactivated_at/by/reason) 세트 기록. 재활성화 시에도 마지막 차단 이력은
+   * 유지 (감사 목적).
+   */
+  public void deactivate(User admin, String reason) {
+    this.isActive = false;
+    this.deactivatedAt = LocalDateTime.now();
+    this.deactivatedBy = admin;
+    this.deactivationReason = reason;
+  }
+
+  /** A5: 재활성화. 감사 컬럼은 이력 보존을 위해 clear 하지 않음. */
+  public void reactivate() {
+    this.isActive = true;
+  }
+
+  /** A5: 로그인 성공 시 AuthenticationSuccessHandler 에서 호출. REQUIRES_NEW 트랜잭션에서 실행. */
+  public void updateLastAccess(LocalDateTime now) {
+    this.lastAccessAt = now;
+  }
+
+  /** A5: 관리자 메모 (사용자에게 노출되지 않음). */
+  public void updateAdminNote(String note) {
+    this.adminNote = note;
+  }
+
+  /**
+   * A5: role 승격/강등 (SYSTEM_ADMIN 전용). center/centerScope 는 별도로 assignRole 로 관리. USER 로 강등 시 기존 센터
+   * 소속도 유지 (신청 이력·history 보존).
+   */
+  public void promoteTo(UserRole newRole) {
+    this.role = newRole;
   }
 }

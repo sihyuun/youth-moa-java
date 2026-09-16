@@ -50,6 +50,11 @@
         <div th:if="${logoutMsg}" class="alert alert-success" th:text="${logoutMsg}"></div>
         <div th:if="${errorMsg}" class="alert alert-error" th:text="${errorMsg}"></div>
 
+        <!-- A5 admin-users (2026-09-15): 관리자에 의해 차단된 계정 로그인 시도 시 안내. -->
+        <div th:if="${param.blocked}" class="alert alert-error">
+            차단된 계정입니다. 관리자에게 문의해주세요.
+        </div>
+
         <!-- F-wireframe #7 (WF-3-003-02): 회원 탈퇴 완료 토스트. wireframe 문구 "탈퇴처리되었습니다." 준수. -->
         <script th:if="${param.withdraw}">
             document.addEventListener('DOMContentLoaded', function () {

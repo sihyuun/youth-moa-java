@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="|${target.name} — 사용자 상세|">사용자 상세</title>
+    <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"
+          rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" th:href="@{/images/logo_symbol.png}">
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
+    <meta name="_csrf" th:content="${_csrf?.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf?.headerName}"/>
+</head>
+<body class="admin-shell-body">
+
+<div th:replace="~{admin/fragments/header :: header('users', ${centerScopeLabel}, ${isSystemAdmin})}"></div>
+
+<main class="admin-shell-main">
+    <div class="admin-program-page">
+
+        <!-- 헤더 (뒤로가기 + 이름) -->
+        <section class="admin-program-header">
+            <div>
+                <a th:href="@{/admin/users}" class="admin-user-back">← 사용자 목록</a>
+                <h2 class="admin-program-title" th:text="${target.name}">사용자</h2>
+                <p class="admin-program-sub"
+                   th:text="|가입 ${target.createdAt != null ? #temporals.format(target.createdAt, 'yyyy-MM-dd') : '-'} · 최근접속 ${target.lastAccessAt != null ? #temporals.format(target.lastAccessAt, 'yyyy-MM-dd HH:mm') : '-'}|">
+                    가입 - · 최근접속 -
+                </p>
+            </div>
+            <div>
+                <span class="admin-user-status-badge"
+                      th:classappend="${target.isActive() ? 'admin-user-status-badge--active' : 'admin-user-status-badge--inactive'}"
+                      th:text="${target.isActive() ? '활성' : '차단'}">활성</span>
+            </div>
+        </section>
+
+        <!-- Flash 메시지 -->
+        <div th:if="${flashMessage}" class="admin-flash admin-flash--success" role="status"
+             th:text="${flashMessage}"></div>
+        <div th:if="${flashError}" class="admin-flash admin-flash--error" role="alert"
+             th:text="${flashError}"></div>
+
+        <!-- 2컬럼 (좌 프로필 / 우 신청 이력) -->
+        <div class="admin-user-detail-grid">
+
+            <!-- ═══════ 좌: 프로필 (읽기 전용 표기 · 편집은 후속 스코프) ═══════ -->
+            <section class="admin-user-card">
+                <header class="admin-user-card-head">
+                    <h3 class="admin-user-card-title">회원 정보</h3>
+                </header>
+                <div class="admin-user-profile-list">
+                    <div class="admin-user-field">
+                        <label class="admin-user-field-label">이메일 (아이디)</label>
+                        <div class="admin-user-field-value admin-user-field-value--disabled"
+                             th:text="${target.email}">email@ex.com</div>
+                    </div>
+                    <div class="admin-user-field">
+                        <label class="admin-user-field-label">이름</label>
+                        <div class="admin-user-field-value" th:text="${target.name}">이름</div>
+                    </div>
+                    <div class="admin-user-field">
+                        <label class="admin-user-field-label">성별</label>
+                        <div class="admin-user-field-value"
+                             th:text="${target.gender != null ? (target.gender.name() == 'MALE' ? '남' : (target.gender.name() == 'FEMALE' ? '여' : '-')) : '-'}">-
+                        </div>
+                    </div>
+                    <div class="admin-user-field">
+                        <label class="admin-user-field-label">생년월일</label>
+                        <div class="admin-user-field-value"
+                             th:text="${target.birthDate != null ? #temporals.format(target.birthDate, 'yyyy-MM-dd') : '-'}">-
+                        </div>
+                    </div>
+                    <div class="admin-user-field">
+                        <label class="admin-user-field-label">핸드폰 번호</label>
+                        <div class="admin-user-field-value"
+                             th:text="${target.phone != null and !target.phone.isEmpty() ? target.phone : '-'}">-
+                        </div>
+                    </div>
+                    <div class="admin-user-field">
+                        <label class="admin-user-field-label">주소</label>
+                        <div class="admin-user-field-value"
+                             th:text="${(target.zipcode != null ? '(' + target.zipcode + ') ' : '') + (target.address != null ? target.address : '-') + (target.addressDetail != null and !target.addressDetail.isEmpty() ? ' ' + target.addressDetail : '')}">-
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 권한 변경 form (SYSTEM_ADMIN 전용 · 자기 자신 disabled) -->
+                <form th:action="@{/admin/users/{id}/role(id=${target.id})}" method="post"
+                      class="admin-user-role-form">
+                    <input type="hidden" th:name="${_csrf.parameterName}"
+                           th:value="${_csrf.token}"/>
+                    <h4 class="admin-user-card-subtitle">권한</h4>
+                    <div class="admin-user-role-radios">
+                        <label class="admin-user-role-radio"
+                               th:each="r : ${roleOptions}"
+                               th:classappend="${target.role == r} ? ' admin-user-role-radio--selected' : ''">
+                            <input type="radio" name="role"
+                                   th:value="${r.name()}"
+                                   th:checked="${target.role == r}"
+                                   th:disabled="${isSelf}"/>
+                            <span th:text="${r.name() == 'SYSTEM_ADMIN' ? '시스템 관리자' : (r.name() == 'CENTER_ADMIN' ? '관리자' : '사용자')}">사용자</span>
+                        </label>
+                    </div>
+                    <p th:if="${isSelf}" class="admin-user-hint">본인 계정의 권한은 변경할 수 없어요.</p>
+                    <button type="submit" class="admin-btn admin-btn--primary admin-btn--sm"
+                            th:disabled="${isSelf}">권한 변경
+                    </button>
+                </form>
+
+                <!-- 관리자 메모 -->
+                <form th:action="@{/admin/users/{id}/admin-note(id=${target.id})}" method="post"
+                      class="admin-user-note-form">
+                    <input type="hidden" th:name="${_csrf.parameterName}"
+                           th:value="${_csrf.token}"/>
+                    <h4 class="admin-user-card-subtitle">관리자 메모</h4>
+                    <textarea name="adminNote" rows="3"
+                              class="admin-user-note-textarea"
+                              maxlength="1000"
+                              placeholder="사용자에 대한 관리자 메모를 입력하세요 (사용자에게 노출되지 않음)"
+                              th:text="${target.adminNote}"></textarea>
+                    <div class="admin-user-note-actions">
+                        <button type="submit" class="admin-btn admin-btn--outline admin-btn--sm">메모 저장</button>
+                    </div>
+                </form>
+
+                <!-- Danger zone: 차단 / 재활성화 (자기 자신 disabled) -->
+                <div class="admin-user-danger-zone">
+                    <h4 class="admin-user-card-subtitle admin-user-card-subtitle--danger">위험 존</h4>
+                    <p class="admin-user-danger-desc">
+                        차단 시 사용자는 로그인할 수 없게 되지만, 기존 신청 이력은 유지돼요.
+                    </p>
+
+                    <!-- 활성 상태 → 차단 버튼 (모달 open) -->
+                    <div th:if="${target.isActive()}">
+                        <button type="button"
+                                class="admin-btn admin-btn--danger"
+                                th:disabled="${isSelf}"
+                                onclick="document.getElementById('deactivateModal').hidden=false">
+                            사용자 차단
+                        </button>
+                        <p th:if="${isSelf}" class="admin-user-hint">본인 계정은 차단할 수 없어요.</p>
+                    </div>
+
+                    <!-- 차단 상태 → 재활성화 form -->
+                    <form th:unless="${target.isActive()}"
+                          th:action="@{/admin/users/{id}/reactivate(id=${target.id})}" method="post">
+                        <input type="hidden" th:name="${_csrf.parameterName}"
+                               th:value="${_csrf.token}"/>
+                        <div class="admin-user-deactivated-info">
+                            <p><strong>차단일:</strong>
+                                <span th:text="${target.deactivatedAt != null ? #temporals.format(target.deactivatedAt, 'yyyy-MM-dd HH:mm') : '-'}">-</span>
+                            </p>
+                            <p><strong>차단 관리자:</strong>
+                                <span th:text="${target.deactivatedBy != null ? target.deactivatedBy.name : '-'}">-</span>
+                            </p>
+                            <p><strong>사유:</strong>
+                                <span th:text="${target.deactivationReason != null ? target.deactivationReason : '-'}">-</span>
+                            </p>
+                        </div>
+                        <button type="submit" class="admin-btn admin-btn--primary">재활성화</button>
+                    </form>
+                </div>
+            </section>
+
+            <!-- ═══════ 우: 프로그램 신청 현황 ═══════ -->
+            <section class="admin-user-card">
+                <header class="admin-user-card-head">
+                    <h3 class="admin-user-card-title">프로그램 신청 현황</h3>
+                </header>
+
+                <!-- 탭 4종 -->
+                <nav class="admin-user-tabs" aria-label="신청 상태 필터">
+                    <a th:href="@{/admin/users/{id}(id=${target.id}, tab='ALL')}"
+                       th:class="${activeTab == 'ALL' or activeTab == null or activeTab == ''} ? 'admin-user-tab admin-user-tab--active' : 'admin-user-tab'">전체</a>
+                    <a th:href="@{/admin/users/{id}(id=${target.id}, tab='APPROVED')}"
+                       th:class="${activeTab == 'APPROVED'} ? 'admin-user-tab admin-user-tab--active' : 'admin-user-tab'">승인</a>
+                    <a th:href="@{/admin/users/{id}(id=${target.id}, tab='REJECTED')}"
+                       th:class="${activeTab == 'REJECTED'} ? 'admin-user-tab admin-user-tab--active' : 'admin-user-tab'">반려</a>
+                    <a th:href="@{/admin/users/{id}(id=${target.id}, tab='CANCELLED')}"
+                       th:class="${activeTab == 'CANCELLED'} ? 'admin-user-tab admin-user-tab--active' : 'admin-user-tab'">취소</a>
+                </nav>
+
+                <!-- 신청 리스트 -->
+                <div class="admin-user-app-list">
+                    <div th:if="${applications.isEmpty()}" class="admin-user-empty admin-user-empty--sm">
+                        신청 이력이 없어요.
+                    </div>
+
+                    <article th:each="app : ${applications}" class="admin-user-app-card">
+                        <div class="admin-user-app-body">
+                            <div class="admin-user-app-icon"
+                                 th:text="${#strings.substring(app.program.title, 0, 1)}">A</div>
+                            <div class="admin-user-app-main">
+                                <div class="admin-user-app-title-row">
+                                    <a th:href="@{/admin/programs/{pid}(pid=${app.program.id})}"
+                                       class="admin-user-app-title" th:text="${app.program.title}">프로그램명</a>
+                                    <span class="admin-role-badge"
+                                          th:classappend="${'admin-app-status-badge--' + app.status.name().toLowerCase()}"
+                                          th:text="${app.status.name() == 'PENDING' ? '대기' : (app.status.name() == 'APPROVED' ? '승인' : (app.status.name() == 'REJECTED' ? '반려' : '취소'))}">대기</span>
+                                </div>
+                                <div class="admin-user-app-org"
+                                     th:text="${app.program.organization != null ? app.program.organization : '-'}">-</div>
+                                <div class="admin-user-app-date"
+                                     th:text="${app.appliedAt != null ? #temporals.format(app.appliedAt, 'yyyy-MM-dd HH:mm') : '-'}">-</div>
+                            </div>
+                        </div>
+                        <div class="admin-user-app-footer">
+                            <span class="admin-user-app-applied"
+                                  th:text="|접수 ${app.appliedAt != null ? #temporals.format(app.appliedAt, 'yyyy.MM.dd HH:mm') : '-'}|">접수 -</span>
+                            <a th:href="@{/admin/programs/{pid}/applications(pid=${app.program.id})}"
+                               class="admin-user-app-link">신청 상세 →</a>
+                        </div>
+                    </article>
+                </div>
+            </section>
+        </div>
+
+    </div>
+</main>
+
+<!-- 차단 확인 모달 -->
+<div id="deactivateModal" class="admin-modal" hidden>
+    <div class="admin-modal-backdrop"
+         onclick="document.getElementById('deactivateModal').hidden=true"></div>
+    <div class="admin-modal-panel" role="dialog" aria-modal="true"
+         aria-labelledby="deactivateModalTitle">
+        <h3 id="deactivateModalTitle" class="admin-modal-title">사용자 차단</h3>
+        <p class="admin-modal-desc">
+            <strong th:text="${target.name}">사용자</strong>님을 차단하시겠습니까?<br>
+            로그인이 차단되며, 기존 신청 이력은 유지됩니다.
+        </p>
+        <form th:action="@{/admin/users/{id}/deactivate(id=${target.id})}" method="post"
+              class="admin-modal-form">
+            <input type="hidden" th:name="${_csrf.parameterName}"
+                   th:value="${_csrf.token}"/>
+            <label class="admin-user-field-label" for="deactivateReason">
+                차단 사유 <span style="color:#EF4444">*</span>
+            </label>
+            <textarea id="deactivateReason" name="reason" rows="3"
+                      class="admin-user-note-textarea"
+                      maxlength="500"
+                      required
+                      placeholder="차단 사유를 입력하세요 (필수)"></textarea>
+            <div class="admin-modal-actions">
+                <button type="button" class="admin-btn admin-btn--outline"
+                        onclick="document.getElementById('deactivateModal').hidden=true">취소</button>
+                <button type="submit" class="admin-btn admin-btn--danger">차단</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script th:inline="javascript">
+    (function () {
+        var trigger = document.querySelector('.admin-header-user-trigger');
+        var menu = document.getElementById('admin-user-dropdown');
+        if (!trigger || !menu) return;
+        function close() { menu.hidden = true; trigger.setAttribute('aria-expanded', 'false'); }
+        function open() { menu.hidden = false; trigger.setAttribute('aria-expanded', 'true'); }
+        trigger.addEventListener('click', function (ev) {
+            ev.stopPropagation();
+            if (menu.hidden) open(); else close();
+        });
+        document.addEventListener('click', function (ev) {
+            if (!menu.hidden && !menu.contains(ev.target)) close();
+        });
+    })();
+</script>
+</body>
+</html>

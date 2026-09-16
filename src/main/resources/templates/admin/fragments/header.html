@@ -43,6 +43,10 @@
            th:class="${currentPage == 'dashboard'} ? 'admin-nav-link active' : 'admin-nav-link'">대시보드</a>
         <a th:href="@{/admin/programs}"
            th:class="${currentPage == 'programs'} ? 'admin-nav-link active' : 'admin-nav-link'">프로그램 관리</a>
+        <!-- A5 admin-users (2026-09-15): SYSTEM_ADMIN 전용 (Qn-A 이월로 별도 staff 화면 X). -->
+        <a sec:authorize="hasRole('SYSTEM_ADMIN')"
+           th:href="@{/admin/users}"
+           th:class="${currentPage == 'users'} ? 'admin-nav-link active' : 'admin-nav-link'">사용자 관리</a>
         <a th:href="@{/admin/notices}"
            th:class="${currentPage == 'notices'} ? 'admin-nav-link active' : 'admin-nav-link'">공지 관리</a>
         <a th:href="@{/admin/terms}"
