@@ -3,63 +3,333 @@ name: youth-moa-java 신규 프로젝트 (Spring Boot 4 + Java 21 + Thymeleaf)
 description: 기존 youth-moa(Next.js)를 Java 풀스택으로 재작성하는 학습/전환 프로젝트. 진행 상황·DB·다음 작업·열린 PR 메모
 type: project
 originSessionId: 51da8e75-f7a2-4b05-b2b6-963ce41efb6a
+modified: 2026-09-16T00:00:00.000Z
 ---
 
-> **마지막 갱신**: 2026-09-03 (**E2E flaky 3층 청산 세션** — A형/B형/backdrop 3중 원인 삼각측량 + `@Profile("e2e")` test-only 컴포넌트 최초 도입 + spec 큐 감사. 남은: 오버레이 감사 + admin 트랙 착수. **Observability PR-3 는 이미 PR #113 (2026-07-27) 로 완료된 것으로 확인됨** — 이전 STATE 의 "미완결" 표기는 outdated 였음).
+> **마지막 갱신**: 2026-09-16 (**admin 트랙 대공사 + PR 정리** — A1~A5 admin 트랙 12 PR 머지 · Dependabot 8 PR 머지 · 열린 PR 10→0 청산 · `/dev-cycle` skill 정착 · A5 Recovery #1~#5 패턴 축적).
 
-## 🟢 2026-09-01 ~ 2026-09-03 세션 — E2E flaky 3층 청산 (5 PR 연속 머지)
+## 🟢 2026-09-04 ~ 2026-09-16 세션 — admin 트랙 대공사 (12 PR) + PR 정리 (10건 청산)
 
-### 머지 완료 (main 순서)
+### admin 트랙 12 PR 머지
 
 | PR | 커밋 | 스코프 |
 |---|---|---|
-| **#198** | `542dd33` | F0f UNVERIFIED U-1/U-2 청산 (N3 브레이크포인트 회귀 테스트 2건 + `programs.md §5-C` "신청 마감 = 진행 종료" 정책 명제 + `F0f §7 PR-3` 완료 표기) |
-| **#199** | `24cb532` | **A형 flaky 해소** — `apply.html` IIFE 최하단 `window.__applyReady=true` + `helpers.applyNextStep()` 이 `waitFor(attached) + waitForFunction(__applyReady)` 이중 방어. `waitUntil:'commit'` → `'domcontentloaded'` |
-| **#200** | `1c093b7` | **B형 flaky 해소 + backdrop hotfix** — `TestFixtureController @Profile("e2e") POST /__test__/reset-applications` (3중 프로파일 가드). backdrop click intercept 사전 결함 hotfix (`click({position:{x:10,y:10}})`) |
-| **#201** | `a70ae21` | `apply.spec.ts` 4곳 `waitUntil` 통일 (A형 리스크 예방) |
-| **#202** | `8a3309d` | spec 큐 감사 정리 — F0f · F-notice-attachment · F0h-c4 impl_done 갱신, README 표 확장 |
+| **#204** | `8891802` | admin 트랙 ADR + Q1~Q6 결정 |
+| **#205** | `1a3b80f` | **A1 admin shell** — 로그인 + 대시보드 + 헤더 + **P0-2 Security 완결** (CSRF 활성화 · ROLE 시드) |
+| **#206** | `37c7fd3` | admin 공지 CRUD + 파일 업로드 (**P0-3 완결**) |
+| **#207** | `8e59720` | A-admin-terms-crud — 약관 CRUD + content DB |
+| **#208** | `2747f79` | F0c-dynamic-fields — 관리자 동적 필드 + 사용자 신청 폼 통합 |
+| **#209** | `4466252` | **`/dev-cycle` skill 신설** — 5-agent 표준 파이프라인 오케스트레이션 |
+| **#210** | `ee57da9` | F4 admin-eligibility (파생 큐 완결) |
+| **#211** | `92397b6` | A2 admin-programs-list |
+| **#212** | `9847250` | A3-1 admin-program-form (3탭 폼 분할 1/2) |
+| **#213** | `7bb5920` | A3-2 admin-program-form-integration (분할 2/2 · Course · Attachment · 이미지) |
+| **#214** | `4f0f81d` | A4 admin-program-detail — 관리자 신청 관리 · 상태 변경 · 담당자 의견 |
+| **#215** | `16a9c44` | **A5 admin-users** — 회원 관리 · 차단 · 역할 변경 (SYSTEM_ADMIN) — 2026-09-16 머지 |
 
-### 이번 세션 주요 학습·정착
+### Dependabot / 정체 PR 정리 (2026-09-16 세션)
 
-1. **E2E flaky 삼각측량 절차 확립**
-   - `--repeat-each=5/10` 로 재현률 정량화 → 스냅샷 `error-context.md` 를 grep 으로 유형 분리 → 부모 커밋 재현 여부로 이번 변경 인과 배제 → 반증 실험 (fresh 서버 재부팅)
-   - 상세: [`docs/postmortems/2026-09-03-e2e-flaky-triangulation.md`](postmortems/2026-09-03-e2e-flaky-triangulation.md)
+| PR | 처리 | 이유 |
+|---|---|---|
+| #165 spring-boot 4.1.1 · #194 setup-java 5→6 | ✅ merge | CI green (rebase 불필요) |
+| #86 opencsv · #99 gitleaks · #100 nurigo · #101 setup-node · #164 gradle-wrapper · #166 spotless | ✅ `@dependabot rebase` → merge | 22~58일 stale base → rebase 후 6/6 CI PASS |
+| #92 e2e fix (63일 stale) | ❌ close | 후속 커밋으로 회귀 5건 전부 대체 (main program-detail L36~44 · signup L22~37) |
+| #124 F-signup-terms-agreement docs | ❌ close | 명세 이미 실현 (Term 엔티티 · V3 · V10 · PR #207 완결) |
 
-2. **`@Profile("e2e")` test-only 컴포넌트 최초 도입 (PR #200)**
-   - 프로덕션 코드에 test 전용 endpoint 를 추가하는 최초 사례. 3중 프로파일 가드:
-     - `@Profile("e2e")` — Bean 자체 미등록
-     - `SecurityConfig.matchesProfiles("e2e")` — 매처·CSRF 도 e2e 에서만
-     - `TestFixtureProfileGuardTest` (컨텍스트) + `TestFixtureHttpGuardTest` (실 HTTP 404) 회귀 방지
+**결과**: 열린 PR **10건 → 0건**. dependabot 자동 폴링·머지 부담 해소.
 
-3. **ym-verify 사이클 실효성 확인**
-   - 5회 이상 팩트체크·반박 시도로 커밋 메시지 정확도 향상 (예: "24/24" 요약 → 실측 raw 출력 그대로 인용). PR #199 → PR #200 → PR #200 재검증에서 반박 실패 항목만 통과 처리하는 3단 판정 (PASS/FAIL/UNVERIFIED) 정착
+### 주요 학습·정착
 
-4. **`contracts` 프로젝트 CI non-blocking 이 실패 신호 소실의 근본 원인** 이라는 진단 도출
-   - 다음 세션 후속으로 blocking 승격 검토 (안정화 확인 후)
+1. **`/dev-cycle` skill 정착 (#209)** — 표준 5-agent (ym-spec → 사용자 컨펌 → ym-impl → ym-qa → ym-verify) 파이프라인 오케스트레이션. A4 · A5 파일럿 검증 완료. 사용자 개입 지점 = Qn 결정 1곳
+2. **A5 Recovery #1~#5 패턴 축적** (재발 방지 자산):
+   - **Test ordering 오염**: `@SpringBootTest` no `@Transactional` leaker 가 알파벳 순 먼저 실행되어 seed 오염. `@BeforeEach` reactivate/clear 로 격리
+   - **`@WebMvcTest` context 회귀**: 신설 Bean (`LastAccessAuthenticationSuccessHandler`) 이 `SecurityConfig` 생성자 파라미터 → 컨텍스트 부팅 실패. `@MockitoBean` 추가로 해결
+   - **Playwright form submit CI hang**: reload → goto → serial 모드 모두 60s timeout. `page.request.post()` 로 CSRF 헤더 직접 POST 우회. `click` autowait navigation 은 CI 환경에서 hang 가능성 있음
+3. **P0-2 Security 완결** (#205): CSRF 활성화 + `/admin/**` hasRole + ROLE 시드
+4. **UserPrincipal.isEnabled() 하드코딩 `true` → `user.isActive()`** (#215): 차단 flow · signup/login/apply 무회귀 실증. V16 전건 `TRUE` default 로 기존 유저 영향 X
+5. **회원 탈퇴 vs 관리자 차단 분리** (#215):
+   - 탈퇴 (`UserService.withdraw`): 하드 삭제 (User + Application + Bookmark + Notification + UserAgreement)
+   - 차단 (`AdminUserService.deactivate`): soft (`isActive=false`) + audit (deactivatedAt/By/Reason)
+6. **Dependabot stale PR = 대부분 stale base** (신규 규칙): 22~58일 전 기준 CI FAIL 은 대부분 rebase 만으로 해소. **close 전 `@dependabot rebase` 검증 필수**. 실증: 6/6 rebase 후 CI PASS
 
-### 왜 이 flaky 가 오래 이어졌는가
+### A5 이월 항목 (spec §12)
 
-1. **`contracts` non-blocking** — 실패해도 파이프라인 통과 → 신호 어디에도 남지 않음
-2. **1회 실행 우연 PASS** — solo 재현률 60% 라 스팟체크로 놓침
-3. **fresh 서버 우회** — `webServer.reuseExistingServer:true` 라 로컬 재부팅 후엔 B형 미발동
-4. **팩트체크 없이 요약 수치 인용** — "실은 23/24" 사실 소실
+- **Qn-A**: `/admin/staff` 별도 화면 → 후속 A5-1 (role filter 4옵션 통합으로 대체)
+- **Qn-4**: 관리자 신규 계정 발급 UI → A5-1/A8
+- **D1**: `POST /admin/users/{id}` 프로필 편집 → A5-2
 
-### 다음 세션 우선순위
+### 다음 작업 큐 (top 5)
 
-1. **오버레이 감사** — `position:absolute;inset:0` backdrop + center click 패턴 spec 전수 검사 (이번 backdrop hotfix 파생)
-2. **admin 트랙 착수 결정** — 사용자 트랙 spec 큐 = 0 도래. PM Review (ym-pm) 로 로드맵 확정 필요
-3. **`contracts` CI blocking 승격** — 안정화 확인 후
+1. **A6 admin-stats** — 성별·연령 도넛 · `DailyVisit` 집계 (Q4 결정: DailyVisit 집계 테이블 방식)
+2. **A7 admin-header-live** — NEW_APPLICATION · NEW_USER 알림 벨 (NotificationType 추가 필요)
+3. **A8 bulk action · CSV export**
+4. **A5-1** 관리자 계정 관리 화면 (Qn-A + Qn-4 통합)
+5. **A5-2** 사용자 프로필 편집 (D1)
 
-> Observability PR-3 대시보드는 이미 PR #113 (`a6be7ae` 2026-07-27) 로 완료됨.
-> `docs/observability/grafana/youthmoa-dashboard.json` + provisioning + docker-compose 존재.
-> 이전 STATE 의 "미완결" 표기는 outdated 였음.
+### 이전 이월 (변동 없음)
 
-### 이월 (변동 없음)
-
-- **D5 Q1**: Program 신청기간 분리 (recruitStart/End vs runStart/End) — admin 트랙 재활성화 시
-- **D5 Q3**: CapacityBar `showLabel` 미니 모드 — admin 트랙 재활성화 시
+- **D5 Q1**: Program 신청기간 분리 (recruitStart/End vs runStart/End) — 이미 A3-1 에서 반영됨 → 이월 종료
+- **D5 Q3**: CapacityBar `showLabel` 미니 모드 — admin/캘린더 트랙 착수 시 진행
 
 ---
+
+## 🟢 2026-08-18 세션 — E `/mypage` 트랙 + P0 재청산 (PR #146 CI 대기 · 이후 머지)
+
+## 🟢 2026-08-18 세션 — E `/mypage` 트랙 + P0 재청산 (PR #146 CI 대기)
+
+### 사용자 트랙 계약 시리즈 6/6 완결
+
+| 트랙 | 화면 | PR | 커밋 |
+|---|---|---|---|
+| A | `/login` + 폼 계열 | #138 | `aeefc19` |
+| B | `/signup` | #139 | `d6625e6` |
+| C | `/notices` + `/notices/{id}` | #140 | `ee5e945` |
+| D | `/apply` + `/apply/complete` | #141 | `bc5e268` |
+| — | 인증 검증 문구 정리 | #142 | `1b9ddc6` |
+| F | `/notifications` | #143 | `6e7f91b` |
+| — | CLAUDE.md 인터랙션 조항 | #144 | `9be7028` |
+| — | 알림 상호작용 통합 (X 삭제·read OOB) | #145 | `d5ebc4f` |
+| **E** | `/mypage` 4탭 + `/mypage/profile/edit` | **#146** | CI 대기 (2c7c3d7) |
+
+### E 트랙 (mypage) 세부
+
+**Q 12건 prototype 통일성 원칙으로 확정** — 각 Q 에 대해 prototype tsx 라인 인용 후 채택. 미정의 항목만 사용자 판단 (Q-2 즐겨찾기 카드 → ProgramCard 재사용).
+
+**결정 확정본** (`docs/design-contracts/mypage.md` · `mypage-profile-edit.md` §8):
+- 신청 상세 `/mypage/applications/{id}` 신설 (tsx L1442)
+- 즐겨찾기 ProgramCard 재사용
+- 관심 편집 별도 모달 (InterestEditModal tsx L1798~)
+- KPI 카드 `<a href="?tab=X">` 링크화 (tsx L1380)
+- 성별 pill 편집 허용 (tsx L1524)
+- "개인 정보 수정" 공백 정합 (tsx L1488)
+- 주소 검색 SVG search 이식 (tsx L1539)
+- 탈퇴 danger + close SVG (tsx L1585)
+
+**인터랙션 E2E** `mypage-interactions.spec.ts` **7/7 PASS** — CLAUDE.md #144 조항 준수.
+
+### P0 재청산 (사용자 지적 후) — 시각 이질감 해소
+
+impl 초기 완료 후 사용자가 "prototype 이랑 갭 너무 큼" 지적. 재검증 결과 P0 5건 발견·수정:
+
+- **C1 컨테이너 max-width 1440 → 1080** (prototype L1351) — **핵심 원인**. `.mypage-page > .container { max-width: 1080px }` override
+- **C2 KPI divider** — 3 KPI `border-left` 이식
+- **PV1-3 profile-verify** — `.mypage-card` wrap + 90px 라벨 그리드
+- **PV6 verify 버튼** — 중앙 컴팩트 (전체 폭 fill 해제)
+- **H11 history 취소 버튼 danger red** — CSS source-order 이슈 해소
+
+### 🔥 핵심 사고 재발 방지 — CSS source-order
+
+**사고**: `.btn-outline--danger` 를 L5702 에 정의했으나 L6062 에서 `.btn-outline` 이 재정의(color: text, border: border)돼 있어 후행이 우선. probe 로 color=text, border=border 관측 후 발견.
+
+**교훈**: 대규모 프로젝트에서 같은 클래스명이 여러 번 정의될 수 있음. 새 rule 추가 시 반드시 grep 로 동일 클래스명 검색 후 최후행 이후에 배치. specificity 동일 → source-order.
+
+**적용 위치**: `.mypage-page > .container` 는 그대로 유지 (specificity 승리로 회귀 없음). 확인 방법:
+```js
+const bl = await el.evaluate(el => window.getComputedStyle(el).maxWidth);
+```
+
+## 📋 다음 세션 우선순위 (다른 PC 에서 이어서)
+
+### 1. PR #146 상태 확인
+```powershell
+cd C:\Users\User\IdeaProjects\youth-moa-java
+gh pr view 146
+```
+- CI green 이면 squash merge
+- 실패 시 로그 확인 (spotless 는 이번에 apply 완료)
+
+### 2. mypage P1 청산 (`docs/design-contracts/mypage.md` 참조)
+계약 갭 리포트 상 남은 항목 (`e2e/gap-reports/gap-mypage.md` 재실행 후 확인):
+- **P1 summary.avatar.size** 58 vs 56 (main.css `.mypage-summary-avatar`)
+- **P1 tabs.active.bg** primary-light `oklch(0.9 0.055 280)` vs `oklch(0.93 0.0425 280)` — 토큰 확인 필요
+- **P1 summary.interest-chip.exists** — seed 유저 interest 세팅 여부 (DataInitializer seed1 interest set)
+- **P1 favorites.card.grid** — 실 즐겨찾기 있을 때 grid 확인 (empty state 는 정합)
+
+### 3. mypage P1 - PE2 이름 필드 readonly (tsx L1513 정합)
+- profile-edit.html L31 `<input type="text" required>` → readonly 로 전환
+- 이름 변경 별도 API 로 분리하는 흐름 판단 필요
+
+### 4. mypage P2 다수 (font-size 미세)
+- section-title 18 → 20 통일
+- summary padding 24/28 → 26/30
+- 등 다수. 계약 재실행 후 리포트 참조
+
+### 5. 잔여 계약 gap (다른 화면) — 2026-08-25 청산 완료
+- 전체 계약 spec 20건 통과 · gap-reports 20개 모두 "갭 0건"
+- home interestChip · program-detail 4건 모두 이전 트랙에서 정리됨
+- 남은 것은 의도적 이탈·이월(admin/seed 의존) 로 유지 확정
+
+### 6. 남은 스펙 큐
+- **admin 트랙** — 사용자 트랙 완결로 조건 성립. `ADMIN-00-master-directive.md` 참조
+- **welcome 알림 자동 생성** — 사용자가 "welcome 페이지 있으니 불필요" 결정. 이월 X
+- **필터 count OOB 갱신** — `/notifications` 페이지 필터 count 는 스펙 이월 (알림 상호작용 PR #145 §남은 미세 제한)
+
+## 참고 자산 갱신 사항
+
+- **mypage-interactions.spec.ts** — CI 매 실행마다 7 시나리오 검증. 회귀 방어. 다른 PC에서도 그대로 동작.
+- **runner.ts collectContract·assertResults 분리** — 탭 순회 병합 지원. `visual-mypage.spec.ts` 4탭 순회 후 병합 리포트.
+- **seedPassword(n) helper** — `Test1234!` 상수 반환. auth 폼 test 용.
+- **seed 유저 pool** — 50명 (2026-08-12 확장). rotation:
+  - `visual-apply-complete.spec.ts` seed29~38 (초 단위 rotation)
+  - `apply-complete.spec.ts` seed39~48 (초 단위 rotation)
+  - 신청 있는 seed = seed1~28 (program0), seed1~19 (program1), seed1~6 (program2)
+  - 알림 있는 seed = seed1, seed30 만 (4건씩)
+
+## 🔴 다른 PC 재개 절차
+
+```powershell
+# 1. main 최신화
+cd C:\Users\User\IdeaProjects\youth-moa-java
+git checkout main
+git pull origin main
+
+# 2. PR #146 확인
+gh pr view 146
+
+# 3. 머지 완료 시 mypage P1 착수
+# 3a. 갭 리포트 재생성
+.\.claude\scripts\bootrun-e2e.cmd  # 별도 창
+cd e2e && BASE_URL=http://localhost:8090 npx playwright test visual-mypage --project=contracts
+
+# 3b. gap-reports/gap-mypage.md 확인 후 P1 항목 하나씩 수정
+```
+
+**주의**:
+- CSS 새 rule 추가 전 반드시 `grep -n "<클래스명>" main.css` 로 중복 정의 확인
+- `git add -A` 금지 · 명시 파일만
+- 인터랙션 신설·변경 시 `mypage-interactions.spec.ts` 도 갱신
+
+---
+
+## 이전 갱신 이력
+
+> **마지막 갱신**: 2026-07-28 (**디자인 계약 장치 도입** — 5화면 계약 + CI 논블로킹 편입. 다음: 갭 85건 수정 · 남은 9화면 계약).
+
+## 🟢 2026-07-28 세션 — 디자인 계약(Design Contract) 장치 도입 (미커밋)
+
+프로토타입 갭이 반복 발생하는 **구조적 원인**을 제거하기 위한 장치. 사용자 문제 제기: "메모리 업데이트하고 규칙을 추가해도 표준화가 안 되고, 시각 검증할 때마다 갭이 많아 계속 수정 요청하는 상태".
+
+**진단**: 규칙 부족이 아니었다. ① 기준이 매 세션 재해석되는 prototype.tsx(2,733줄)라 판단이 흔들림 ② 육안 스크린샷 비교로는 정량값(width 400 vs 460)을 못 잡음 ③ "일치 확정" baseline 이 없어 회귀를 못 막음 ④ 7/22 시각대조 규칙 신설 후에도 7/27 스캔에서 60갭 — 산문 규칙은 늘릴수록 준수율이 떨어짐.
+
+**장치 구조** (상세: [[feedback_design_contract_first]], `docs/design-contracts/README.md`)
+- 기계 계약 `e2e/contracts/<screen>.ts` — px·색·폰트·개수. soft assertion 으로 **한 번 실행에 전체 갭 목록**이 나옴
+- 서술 계약 `docs/design-contracts/<screen>.md` — 아키텍처·상태머신·CTA 라우팅
+- 갭 리포트 `e2e/gap-reports/gap-<screen>.md` (gitignore)
+- Playwright 프로젝트 2분할: `chromium` 65건(블로킹) / `contracts` 5건(논블로킹)
+- CI `e2e-playwright.yml` — `continue-on-error` 스텝 + `$GITHUB_STEP_SUMMARY` 갭 표 + 아티팩트 업로드
+
+**계약 5화면 결과: 362/447 통과 · 갭 85건 · 의도적 이탈 8건**
+
+| 화면 | 결과 | 특기 |
+|---|---|---|
+| 홈 | 22/41 · 갭 19 | **P0 2건** — Hero 좌측정렬(`flex-start`, 타이틀이 중앙에서 518px 좌측). 7/27 스캔 미검출 |
+| 프로그램 목록 | 58/75 · 갭 17 | **기능 갭** — prototype L825 는 "전체" 탭에서 종료 제외, 구현은 2건 노출 |
+| 프로그램 상세 | 90/101 · 갭 11 | batch2 치수 이식은 정확(P0 0). 단 CTA 가 `status` 로만 분기해 **정원마감 시 「신청하기」 노출** (상태카드와 모순) |
+| 청년센터 | 80/98 · 갭 18 | **3-column 정합 확인** (360→240 · 320 · flex 1) — 7/27 "이미 정합" 결론이 정량으로 맞음 |
+| 헤더·푸터 | 112/132 · 갭 20 | 푸터 `관리자` 링크 누락(prototype L486), 알림 아이콘 SVG 누락 |
+
+**공통 갭 계열**: SVG 를 문자로 대체(`✓`·`▾`·`⚠`) 3건 — CLAUDE.md 금지 규칙이 문서에만 있고 안 지켜짐. 폭 토큰을 전역 1440 으로 일괄 적용(퀵메뉴 1080, sticky 바 1080 이어야 함). 그림자를 브랜드 틴트 토큰으로 치환(prototype 은 헤더·알림패널만 중립 검정).
+
+**실측 정정**: `prototype.html` 과 `prototype.tsx` 는 **같은 소스** (단일 파일 React 앱, 컴포넌트 목록 차이 0건, `html 라인 = tsx 라인 + 35`). CLAUDE.md·ym-spec 의 "3자산 순차 정독 후 충돌 시 html 채택" 절차는 두 파일 사이에선 실행할 일이 없다 → ym-spec.md 에 정정 반영.
+
+**확정 결정**: 카피(문구)는 구현 현행 유지 (서비스명 「청년모아」 정착) → 계약에서 `deviation` 처리.
+
+**Obsidian**: repo 자체를 vault 로 여는 방식 채택 (`.gitignore` 에 `.obsidian/`). 별도 vault 는 git 이력·Claude 접근이 끊겨 금지. 단 **Obsidian 은 사람용 열람 레이어일 뿐 표준화 문제의 해법이 아님** — 그건 계약 장치가 담당.
+
+**미커밋 상태**: 브랜치 `feature/user-page-polish` 에 사용자 기존 작업(정책 페이지·상세·signup·main.css 등 8파일 + PolicyController·policy 템플릿) 과 이번 계약 산출물이 함께 있음. 계약 산출물은 전부 **신규 파일**이라 기존 작업과 충돌 없음.
+
+### 같은 세션 A단계 — 결정 확정 + 문서 정리 완료 (미커밋)
+
+- **`docs/design-contracts/POLICY.md` 신설** — 전 화면 공통 정책 5건: P-1 카피 현행 유지(정보구조는 예외) · P-2 그림자 브랜드 틴트 토큰 · P-3 SVG 문자 대체 금지(이탈 불가) · P-4 폭 토큰 전역 일괄 적용 금지 · P-5 구현 추가 요소는 계약 대상 아님
+  - **범용 DECISIONS.md 는 만들지 않기로 결정** — 결정이 이미 6군데에 있어 7번째 silo 가 되면 중복이 낡아 진리를 알 수 없게 된다. 편입 기준 "2개 이상 화면에 영향" 으로 좁힘
+- **계약 스키마에 `deferred` 필드 추가** (`types.ts`) — 이월(맞출 예정, 이번 범위 아님)을 `deviation`(영구 이탈)과 구분. 이월을 갭으로 남기면 갭이 영구히 0 이 안 돼 baseline 등록이 막힌다. 리포트에 별도 "이월" 절로 표기
+- **정책 반영 결과 갭 85 → 76건** (공통 20→12 · 목록 17→16). 의도적 이탈 10건 · 이월 4건
+- **에이전트 오판 1건 정정** — "prototype 헤더는 relative 인데 구현은 sticky 라 아키텍처 이탈" 은 **오판**. `Header` 함수 본문은 `relative`(L415) 지만 `App` 이 L2715 에서 `position:sticky, top:0, zIndex:200` 래퍼로 감싼다. 정합이므로 ADR 불필요. 교훈: **컴포넌트 본문만 읽고 레이아웃 판정하면 상위 래퍼 속성을 놓친다** → `App`(L2650~2733) 까지 확인
+- **CLAUDE.md 917 → 581줄 (37% 감소)**
+  - `docs/patterns/` 신설 — thymeleaf-spring(198) · jpa-postgres(74) · spring-boot-4(15) + README
+  - `docs/postmortems/2026-07-06-destructive-git-chain.md` 신설
+  - spec 산출 규칙 4개(50줄) → `~/.claude/agents/ym-spec.md` 로 이관 (특정 에이전트 절차라 상시 컨텍스트 낭비였음)
+  - prototype 시각 대조 산문 2섹션(35줄) → 계약 장치 참조로 대체 (**유일하게 폐기한 내용** — 계약이 대체)
+  - 검증 자산 표에 계약 장치 추가 + "참조 문서 지도" 표 신설
+- **`ym-spec.md` 갱신** — 0단계(계약 우선) + POLICY P-1~P-5 표 + spec 규칙 4개 이관 + prototype.html≡tsx 정정
+
+**다음**:
+1. 갭 76건 수정 — 홈 P0 2건 우선. 화면별 갭 0 달성 시 스크린샷 baseline 등록 + 블로킹 승격
+2. 남은 9화면 계약 (`/login` `/signup` `/apply` `/apply/complete` `/notices` `/notices/{id}` `/mypage` 4탭 `/mypage/profile/edit` `/notifications`)
+3. CLAUDE.md(916줄) 축약 — 사고 회고·기술 패턴을 `docs/postmortems/`·`docs/patterns/` 로 이관, 자동화 가능한 규칙은 테스트로 이관
+4. 사용자 결정 대기 항목 다수 (각 `docs/design-contracts/<screen>.md` 마지막 절)
+
+---
+
+## 🟢 2026-07-27~28 세션 — Phase 1 prototype 갭 스캔 트랙 (PR #114~#116)
+
+### 배치 1 (#114 `d73a253`) — 즉시 가능 quick fixes
+- 홈 Hero 인기 검색어 5칩 anchor (prototype L537~543)
+- 홈 Hero 배지 문구 정합 ("경기도 청년센터 프로그램 통합 플랫폼")
+- `/signup` 전역 헤더 제거 (prototype noHeader), 로고+폼 only 레이아웃
+- `/notifications` 개발 안내 문구 ("페이지네이션 F2d..") 삭제
+- `docs/00_assets/gap-scan/2026-07-27/` : 13 페이지 fullPage 스크린샷 20건 + GAP_REPORT.md 커밋
+
+### 배치 2 (#115 `409256d`) — 컴포넌트 신설 + 상세 재작업 + 시드 확장
+- 홈 퀵메뉴 4그리드 (prototype L561~575, lucide SVG 원형)
+- 홈 공지 좌측 대형 이미지 (mainNotice imageUrl 시드)
+- `/programs/{id}` 상세 대폭 재작업:
+  * sticky 하단 CTA 바 (prototype L1095~1120, backdrop-filter)
+  * 뒤로가기 아이콘 버튼 38×38 (텍스트 링크 → icon-only)
+  * 정보 그리드 dl/dt/dd → 2열 grid + primaryBg 원형 아이콘 카드
+  * 프로그램 설명 대형 이미지 placeholder (360px + opacity 0.3)
+  * ENDED grayscale + "종료된 프로그램" overlay chip
+  * container 폭 정합 (padding 36 0 → content 폭 840→1000, prototype 일치)
+- 아이콘 SVG 통일: 이모지 ☆/★ → lucide SVG (icons.html 총 14종). `text-decoration: none` (`.detail-cta`·`.detail-sticky-bookmark`·`.btn-outline-primary`)
+- 상태 라벨 정합:
+  * ENDED capacity-bar → "종료된 프로그램" (prototype capInfo.label)
+  * ENDED dday-chip → "종료" (짧은 뱃지)
+  * isFull (파생 정원 100%) → "모집 마감" (ENDED 와 의미 구분 유지)
+  * "운영 기간이 끝난" → "진행 기간이 끝난" 통일
+- 시드 확장: pagination 데모용 15건 추가 (10 → 25, 3 페이지). Program.organization 을 centers.csv 실제 이름으로 정정 (14건)
+- "메이커스페이스"/"취업지원센터"(서울시) 등 가상명 → "청년이봄"/"광명시 청년동" 등 실제 명
+
+### 배치 3 (#116 `90994ff`) — 아키텍처 재설계
+- `/programs` 좌측 사이드바 완전 제거 → 상단 filter-bar 재구성:
+  * 상태 탭 + 세로 divider + 지역/청년센터 dropdown chip + 초기화 링크
+  * 팝오버 modal-center → chip 하단 attach dropdown (260px, options max-height 220 스크롤)
+  * 외부 클릭 자동 close · `syncChipActiveState()` 로 HTMX partial swap 후 chip is-active 동기화
+- `/centers` 3-column: 2026-07-09 F0h-c2 refactor 로 이미 정합 완료 (스캔 오진 정정)
+- `/centers` 필터·라벨 정책: 현행 유지 (`운영중만 보기` = isActive, 배지 = 실시간 isCurrentlyOpen). 관리자가 폐업 지속 관리 전제
+- 아이콘 fragment 신설: chevD (▾), refresh (↻)
+
+### 세션 정착 습관
+- CI green 감시 + 자동 squash 머지 실행 (PR #113 부터 시작. Free 플랜 branch protection 없어도 self-PR 워크플로우로 진행)
+- prototype 갭 발견 시 반드시 **DevTools 정량 대조 병용** — 스크린샷만으론 width·padding 같은 정량값 놓침 (batch2 학습). `getBoundingClientRect`·`getComputedStyle` 필수
+- 라벨/문구 통일 (운영 기간 → 진행 기간, `종료` vs `모집 마감` 구분) 은 사용자 피드백 루프에서 확정
+
+**남은 우선 작업 큐**:
+1. **admin 트랙 착수** — Flyway·Security 선행 완료 상태. A1 shell 부터 가능. 사용자 트랙 완결 후 착수 원칙 유지
+2. 포트폴리오 큐 5 spec: chore-caching-loadtest · feature-oauth2-kakao · feature-F2c-sse-notifications · ADMIN-01-approval-cycle-and-upload
+3. Q8 Supabase drift diff (정보성)
+
+**Phase 1 갭 스캔 산출물 (repo 유지)**:
+- `docs/00_assets/gap-scan/2026-07-27/GAP_REPORT.md` — 13 페이지 60 갭 표
+- 스크린샷 20건 (fullPage) — 배치 2·3 작업의 기준 자산
+
+## 🟢 2026-07-27 세션 — Observability PR-3 머지 (chore-observability 트랙 종결)
+
+- **PR #113** `docs/observability-dashboard` squash 머지 (`a6be7ae`) — 로컬 재현 스택 + 대시보드
+  - `docs/observability/local/` — prometheus + grafana docker-compose (5s scrape, `host.docker.internal:9091`, Linux 호환 `host-gateway`)
+  - `docs/observability/grafana-provisioning/` — datasource + dashboards provider 자동 등록
+  - `docs/observability/grafana/youthmoa-dashboard.json` — JVM(3)·HTTP(3)·DB(2)·도메인(3) 4행 11패널, `$job` 템플릿 변수
+  - `docs/observability/README.md` — 개념·기동·검증 절차 + JVM 4701 UI import 안내 (라이선스상 JSON 미임베드)
+- **동적 검증 (회사 PC)**: Prometheus target UP · `up{job="youthmoa"}=1` · JVM heap PromQL 정상 · Grafana v11.2.2 provisioning 대시보드 자동 등록 · 로그인 실패 유발 → `youthmoa_login_failure_total 0→1` end-to-end
+- **CI**: 6/6 green (Build+Test·Integration·E2E·Gradle Check·Anti-Pattern·gitleaks)
+- **정착된 습관 변경**: 이번 PR 부터 Claude 가 CI green 감시 + squash 머지까지 실행 (사용자 승인). 이전엔 관행적으로 "머지는 사용자 영역" 이었음 — 이유는 branch protection 부재·revert 비용 뿐이라 설명 후 자동화로 전환.
+
+**남은 우선 작업 큐**:
+1. ~~fix-6 후속~~ — 2026-07-27 확인 완료. `.form-input`/`.form-input--readonly`/`.form-card` 공통 토큰 signup+profile-edit 실공유, 옛 이름(`--ro`, `signup-input`, `signup-section`) 잔존 0건, 남은 `.signup-*` 는 signup 고유 위젯이라 통합 대상 아님. 큐에서 제거
+2. **포트폴리오 큐 5 spec**: chore-caching-loadtest · feature-oauth2-kakao · feature-F2c-sse-notifications · ADMIN-01-approval-cycle-and-upload
+3. **admin 트랙 착수** — Flyway·Security 선행 완료 상태. A1 shell 부터 가능
+4. **Q8 Supabase drift diff** (정보성)
+
+**스택 잔존 (다음 세션 정리 필요)**: 회사 PC `docs/observability/local/docker compose up -d` (grafana 3000, prometheus 9090) + bootrun-e2e (앱 8090, actuator 9091) 백그라운드 실행 중. 필요 없으면 `docker compose down` + 백그라운드 프로세스 종료.
 
 ## 🟢 2026-07-22 ~ 2026-07-24 세션 — 5개 PR 연속 머지 (인프라 대전환)
 
@@ -528,7 +798,7 @@ F0f #23 + F0e #25 머지 후:
 | 프로그램 상세 `/programs/{id}` | 🟢 90% | 자격요건 4-grid (F4) |
 | 신청 폼 `/programs/{id}/apply` | 🔴 45% | 신청자 정보·개인정보 동의·완료 페이지 (D1b) |
 | 로그인 `/login` | 🟢 95% | find-id / find-password 페이지 |
-| 회원가입 `/signup` | 🟢 90% | 성별 옵션 확장 (Q-D3 미결정) |
+| 회원가입 `/signup` | 🟢 90% | — (성별 3옵션 이월은 2026-08-25 폐기: prototype·wireframe 모두 남/여 2옵션이 진리, "선택안함" 근거 없음) |
 | 헤더 | 🟡 70% | 검색 활성화 / 알림 종 / transparent 모드 |
 | 푸터 | 🟢 95% | 정책 링크 실제 페이지 |
 | 공지사항 목록·상세 | ❌ 미구현 | F0g |
