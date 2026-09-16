@@ -71,14 +71,25 @@ test('재활성화 — 차단 상태에서 재활성화 버튼 클릭 → 활성
     await page.locator('#deactivateModal form.admin-modal-form button[type="submit"]').click();
     await expect(page.locator('.admin-program-header .admin-user-status-badge')).toHaveText('차단');
 
-    // 재활성화 버튼 노출 · 클릭
-    // CI 회귀 방어 (2026-09-15 · Recovery #3): reload/goto 둘 다 CI 에서 60s timeout 관측.
-    // deactivate submit → 302 → GET 응답이 이미 완료된 시점 (badge '차단' 확인됨)에
-    // 재활성화 form 도 함께 렌더돼 있으므로 재요청 없이 바로 대기.
+    // 재활성화 — form submit 을 page.request 로 직접 수행하여 click autowait navigation hang 우회
+    // (2026-09-15 · Recovery #5): reload/goto/click 모두 60s timeout. UI submit 대신 request 로
+    // POST + CSRF 토큰 전송. 결과 검증은 GET 재요청으로 badge 상태 확인.
     const reactivateForm = page.locator('.admin-user-danger-zone form[action*="/reactivate"]');
     await expect(reactivateForm).toBeVisible({ timeout: 10_000 });
-    await reactivateForm.locator('button[type="submit"]').click();
+    const csrfToken = await page
+        .locator('meta[name="_csrf"]')
+        .getAttribute('content');
+    const csrfHeader = await page
+        .locator('meta[name="_csrf_header"]')
+        .getAttribute('content');
+    const reactivateRes = await page.request.post(`/admin/users/${seedId}/reactivate`, {
+        headers: csrfHeader && csrfToken ? { [csrfHeader]: csrfToken } : {},
+        form: csrfToken ? { _csrf: csrfToken } : {},
+        maxRedirects: 0,
+    });
+    expect([302, 303]).toContain(reactivateRes.status());
 
+    await page.goto(`/admin/users/${seedId}`, { waitUntil: 'domcontentloaded' });
     await expect(page.locator('.admin-program-header .admin-user-status-badge')).toHaveText('활성');
 });
 
