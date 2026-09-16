@@ -33,7 +33,7 @@ dependencies {
 	// F0h-real-coords: CSV 시드 로더 (RFC 4180 파싱). 48행 규모, DataInitializer 에서만 사용.
 	implementation("com.opencsv:opencsv:5.9")
 	// F-signup-01: CoolSMS SDK — 실 SMS 발송용. youthmoa.coolsms.enabled=false 이면 MockSmsSender 사용.
-	implementation("net.nurigo:sdk:4.3.0")
+	implementation("net.nurigo:sdk:4.3.2")
 	// A-admin-notice-attachment (2026-09-03): SupabaseFileStorage REST 호출용 (Qn-6 파생 B).
 	// Supabase Java SDK 대신 표준 REST + OkHttp 로 직접 호출 (학습 목적 + 의존성 최소).
 	implementation("com.squareup.okhttp3:okhttp:4.12.0")
