@@ -1,5 +1,6 @@
 package io.github.sihyuuun.youthmoa.user;
 
+import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -21,4 +22,19 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
 
   /** A5 admin-users: safeguard — 마지막 활성 SYSTEM_ADMIN 강등 방지 (차단된 SYSTEM_ADMIN 도 제외). */
   long countByRoleAndIsActiveTrue(UserRole role);
+
+  /**
+   * A7 admin 헤더 알림 벨 (2026-09-17): 특정 role 의 활성 사용자 목록. NEW_USER 는 SYSTEM_ADMIN 만 수신하므로 이 쿼리로 대상
+   * 결정. isActive=false 관리자는 로그인 자체가 차단되므로 알림 fan-out 대상에서도 제외.
+   */
+  List<User> findByRoleAndIsActiveTrue(UserRole role);
+
+  /**
+   * A7 admin 헤더 알림 벨 (2026-09-17) NEW_APPLICATION B-1: role 이 CENTER_ADMIN 이고 소속 center.name 이 특정
+   * organization 문자열과 일치하는 활성 사용자. A9 이전까지 Program.organization ↔ Center.name 문자열 매칭이 사실상 유일한 조인
+   * 경로.
+   *
+   * <p>SYSTEM_ADMIN 은 스코프 상 모든 신청을 볼 수 있으나 QC B-1 결정에 따라 NEW_APPLICATION 알림에서는 제외. 대시보드(A6)로 커버.
+   */
+  List<User> findByRoleAndIsActiveTrueAndCenter_Name(UserRole role, String centerName);
 }

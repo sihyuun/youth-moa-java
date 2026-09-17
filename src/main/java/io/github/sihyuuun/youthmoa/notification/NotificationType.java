@@ -6,7 +6,15 @@ public enum NotificationType {
   APPLICATION_CANCELLED,
   WAITLIST_PROMOTED,
   PROGRAM_DEADLINE_NEAR,
-  WELCOME;
+  WELCOME,
+
+  // ── A7 admin 헤더 알림 벨 (2026-09-17) ─────────────────────────────────
+  // admin 트랙 전용 이벤트 타입. Notification 엔티티는 user FK 기반 fan-out INSERT.
+  // 사용자 알림 flow (PR #143) 완전 무영향 — 기존 값 6종은 그대로 유지.
+  /** 사용자가 프로그램 신청 시 발행. 수신자: 해당 프로그램의 organization 매칭 CENTER_ADMIN (Qn-C B-1). */
+  NEW_APPLICATION,
+  /** 신규 회원가입 시 발행. 수신자: SYSTEM_ADMIN 전체 (Qn-E). */
+  NEW_USER;
 
   /**
    * 알림 종류별 톤 컬러 키.
@@ -25,10 +33,10 @@ public enum NotificationType {
    */
   public String getToneColor() {
     return switch (this) {
-      case APPLICATION_APPROVED, WAITLIST_PROMOTED -> "success";
+      case APPLICATION_APPROVED, WAITLIST_PROMOTED, NEW_USER -> "success";
       case PROGRAM_DEADLINE_NEAR -> "warning";
       case APPLICATION_REJECTED, APPLICATION_CANCELLED -> "error";
-      case WELCOME -> "primary";
+      case WELCOME, NEW_APPLICATION -> "primary";
     };
   }
 
@@ -48,9 +56,9 @@ public enum NotificationType {
    */
   public String getIconName() {
     return switch (this) {
-      case APPLICATION_APPROVED -> "check";
+      case APPLICATION_APPROVED, NEW_USER -> "check";
       case PROGRAM_DEADLINE_NEAR -> "calendar";
-      case WELCOME, WAITLIST_PROMOTED -> "bell";
+      case WELCOME, WAITLIST_PROMOTED, NEW_APPLICATION -> "bell";
       case APPLICATION_REJECTED, APPLICATION_CANCELLED -> "close";
     };
   }

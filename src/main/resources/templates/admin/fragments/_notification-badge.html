@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<!--
+  A7 admin 헤더 알림 벨 (2026-09-17) — 배지 fragment.
+
+  두 가지 호출 컨텍스트:
+  1) 초기 렌더 (header.html 안에서 th:replace 로 인클루드) — 파라미터 시그니처 `badge(count)` 로 count 를 그대로 표시
+  2) 30s polling / HTMX 응답 (AdminNotificationController.badge()) — model attribute `adminUnreadCount`
+     를 사용. Thymeleaf 는 fragment argument 가 없으면 model 로 fallback.
+
+  Qn-6: unread=0 이면 hidden 속성으로 완전 숨김 (사용자 트랙 dot 방식과 달리 admin 은 숫자 배지).
+  outerHTML swap 이 정상 동작하도록 id 는 span 자체에 붙인다.
+-->
+<span th:fragment="badge(count)"
+      id="admin-notif-badge"
+      class="admin-notif-badge"
+      th:data-notif-badge="${count}"
+      th:hidden="${count == null or count <= 0}"
+      th:text="${count != null and count > 0} ? ${count} : ''"
+      aria-live="polite">0</span>
+
+<!--
+  model-fallback 버전 — polling / mark-all-read 응답 시 사용.
+  argument 없이 호출되며 AdminNotificationController 가 model 에 세팅한 adminUnreadCount 를 참조.
+-->
+<span th:fragment="badge"
+      id="admin-notif-badge"
+      class="admin-notif-badge"
+      th:data-notif-badge="${adminUnreadCount}"
+      th:hidden="${adminUnreadCount == null or adminUnreadCount <= 0}"
+      th:text="${adminUnreadCount != null and adminUnreadCount > 0} ? ${adminUnreadCount} : ''"
+      aria-live="polite">0</span>
+</body>
+</html>

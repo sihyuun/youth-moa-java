@@ -3,12 +3,14 @@ package io.github.sihyuuun.youthmoa.user;
 import io.github.sihyuuun.youthmoa.application.ApplicationRepository;
 import io.github.sihyuuun.youthmoa.bookmark.BookmarkRepository;
 import io.github.sihyuuun.youthmoa.notification.NotificationRepository;
+import io.github.sihyuuun.youthmoa.user.event.UserCreatedEvent;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -28,6 +30,14 @@ public class UserService implements UserDetailsService {
   private final NotificationRepository notificationRepository;
   private final TermRepository termRepository;
   private final UserAgreementRepository userAgreementRepository;
+
+  /**
+   * A7 admin 헤더 알림 벨 (2026-09-17): signUp 성공 시 {@link UserCreatedEvent} 발행용.
+   *
+   * <p>{@code @TransactionalEventListener(AFTER_COMMIT)} 리스너에서 SYSTEM_ADMIN 대상으로 fan-out INSERT.
+   * signUp 트랜잭션 롤백 시 이벤트는 소비되지 않는다.
+   */
+  private final ApplicationEventPublisher eventPublisher;
 
   @Override
   public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
@@ -209,6 +219,10 @@ public class UserService implements UserDetailsService {
               .agreedAt(now)
               .build());
     }
+
+    // A7 admin 헤더 알림 (2026-09-17): 회원가입 성공 이벤트 발행. AFTER_COMMIT 리스너가 SYSTEM_ADMIN 에 fan-out.
+    eventPublisher.publishEvent(
+        new UserCreatedEvent(user.getId(), user.getName(), user.getEmail()));
   }
 
   /**

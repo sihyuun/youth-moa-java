@@ -2,6 +2,7 @@ package io.github.sihyuuun.youthmoa.application;
 
 import io.github.sihyuuun.youthmoa.application.event.ApplicationApprovedEvent;
 import io.github.sihyuuun.youthmoa.application.event.ApplicationCancelledEvent;
+import io.github.sihyuuun.youthmoa.application.event.ApplicationCreatedEvent;
 import io.github.sihyuuun.youthmoa.application.event.ApplicationRejectedEvent;
 import io.github.sihyuuun.youthmoa.common.storage.FileStorage;
 import io.github.sihyuuun.youthmoa.common.storage.StoredFile;
@@ -146,6 +147,8 @@ public class ApplicationService {
           app.reapply(request.getApplyReason());
           persistDynamicAnswers(app, questions, dynamicAnswers, dynamicAttachments);
           applicationSubmittedCounter.increment();
+          // A7 admin 헤더 알림 (2026-09-17): 재신청도 관리자에게 "새 신청" 시그널을 동일하게 전달.
+          publishApplicationCreated(app);
           return app;
         }
         default -> throw new IllegalStateException("알 수 없는 신청 상태입니다.");
@@ -161,7 +164,25 @@ public class ApplicationService {
     }
     persistDynamicAnswers(application, questions, dynamicAnswers, dynamicAttachments);
     applicationSubmittedCounter.increment();
+    // A7 admin 헤더 알림 (2026-09-17): 신규 신청 성공 시 이벤트 발행.
+    publishApplicationCreated(application);
     return application;
+  }
+
+  /**
+   * A7 admin 헤더 알림 벨: {@link ApplicationCreatedEvent} 발행 (2026-09-17).
+   *
+   * <p>{@code @TransactionalEventListener(AFTER_COMMIT)} 리스너에서 관리자에게 fan-out INSERT. apply 트랜잭션 롤백
+   * 시 이벤트는 소비되지 않으므로 데이터 정합성 유지. 신규/재신청 두 경로에서 동일하게 호출된다.
+   */
+  private void publishApplicationCreated(Application app) {
+    eventPublisher.publishEvent(
+        new ApplicationCreatedEvent(
+            app.getId(),
+            app.getUser().getId(),
+            app.getProgram().getId(),
+            app.getProgram().getTitle(),
+            app.getProgram().getOrganization()));
   }
 
   /**
