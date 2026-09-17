@@ -354,6 +354,8 @@ COMMENT ON COLUMN notification.type IS
 | 자동 만료 (30일 삭제) | `deferred: A7-scheduler` | 수동 삭제 우선 |
 | deadline admin 알림 | `deferred: A7-scheduler` | 스케줄러 신설 필요 |
 | 승인/반려 admin 알림 | **deviation** | 담당자 본인 처리이므로 재알림 불필요 (POLICY 준하는 결정) |
+| admin-notifications 기능 E2E (`admin-header-notifications.spec.ts`) | `deferred: A7-e2e-suite` | 벨 클릭·드롭다운·개별 읽음·모두 읽음·삭제 4시나리오 Playwright · 계약 검사(`--project=contracts admin-header-notifications`) + 유닛 테스트로 이번 스코프 커버 |
+| visual E2E (`visual-admin-header-notifications.spec.ts`) | `deferred: A7-e2e-suite` | 300px 라이트 dropdown · 다크 헤더 감성 확인 · 시각 검증 사용자 영역 |
 
 ---
 
