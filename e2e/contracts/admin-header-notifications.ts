@@ -56,6 +56,17 @@ export const adminHeaderNotificationsContract: ScreenContract = {
             proto: 'polling hx-target',
             severity: 'P0',
         },
+        {
+            // 2026-09-17 P0 재반려 회귀 방어: fragment 정의 중복(badge, badge(count) 두 개)으로 인해
+            // <span id="admin-notif-badge"> 가 DOM 에 2회 렌더되던 사고. count===1 검사로 재발 차단.
+            id: 'badge.id.unique',
+            desc: '#admin-notif-badge id 중복 금지 (fragment 이름 충돌 회귀 방어)',
+            selector: '#admin-notif-badge',
+            kind: 'count',
+            expected: 1,
+            proto: 'HTML id 유일성 (polling outerHTML swap 은 첫 매치만 대체하므로 중복 시 잔존 span 이 data-notif-badge 를 잃음)',
+            severity: 'P0',
+        },
         // ── 드롭다운 (초기 hidden) ────────────────────────────
         {
             id: 'dropdown.hidden-initial',

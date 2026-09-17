@@ -112,6 +112,12 @@ class AdminNotificationRenderTest {
     // 시드 unread 1건 → 배지 텍스트 "1" 표기
     assertThat(html).contains(">1<");
     assertThat(html).doesNotContain("${");
+    // 2026-09-17 P0 회귀 방어: fragment 정의 중복으로 <span id="admin-notif-badge"> 가
+    // 2회 렌더되던 사고. id 는 응답 HTML 안에 정확히 1회만 등장해야 한다.
+    int idOccurrences = html.split("id=\"admin-notif-badge\"", -1).length - 1;
+    assertThat(idOccurrences)
+        .as("#admin-notif-badge id 는 응답 안에 정확히 1개만 있어야 한다 (fragment 이름 충돌 회귀 방어)")
+        .isEqualTo(1);
   }
 
   private static org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder get(

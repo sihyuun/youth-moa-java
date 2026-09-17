@@ -63,7 +63,7 @@ public class AdminNotificationController {
   public String badge(@AuthenticationPrincipal UserPrincipal principal, Model model) {
     long unread = adminNotificationService.unreadCount(principal.getId());
     model.addAttribute("adminUnreadCount", unread);
-    return "admin/fragments/_notification-badge :: badge";
+    return "admin/fragments/_notification-badge :: badge(count=${adminUnreadCount})";
   }
 
   /**
