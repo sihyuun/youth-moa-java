@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<!--
+  A7 admin 헤더 알림 벨 (2026-09-17) — 배지 fragment.
+
+  단일 시그니처 `badge(count)` 만 유지. 두 호출 컨텍스트 모두 count 를 명시로 전달한다:
+  1) 초기 렌더 (header.html) — `badge(${adminHeaderUnreadCount})`
+  2) 30s polling / mark-all-read 응답 (AdminNotificationController) — `badge(${adminUnreadCount})`
+
+  이전에는 파라미터 없는 `badge` fragment 도 따로 정의했으나, Thymeleaf 는 같은 이름 fragment 를 argument 유무로
+  구분하지 않아 `~{... :: badge(...)}` 호출 시 두 fragment 가 모두 매치되어 <span id="admin-notif-badge"> 가
+  DOM 에 2회 렌더되는 P0 사고 발생. → fragment 정의 통합으로 해소 (2026-09-17 QA 재반려).
+
+  Qn-6: unread=0 이면 hidden 속성으로 완전 숨김 (사용자 트랙 dot 방식과 달리 admin 은 숫자 배지).
+  outerHTML swap 이 정상 동작하도록 id 는 span 자체에 붙인다.
+-->
+<span th:fragment="badge(count)"
+      id="admin-notif-badge"
+      class="admin-notif-badge"
+      th:data-notif-badge="${count}"
+      th:hidden="${count == null or count &lt;= 0}"
+      th:text="${count != null and count &gt; 0} ? ${count} : ''"
+      aria-live="polite">0</span>
+</body>
+</html>

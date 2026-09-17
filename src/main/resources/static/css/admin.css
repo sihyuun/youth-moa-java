@@ -2992,3 +2992,179 @@ body.admin-shell-body {
     background: #FEF3C7;
     color: #92400E;
 }
+
+/* ────────────────────────────────────────────────────────────────
+   A7 admin 헤더 알림 벨 (2026-09-17)
+   docs/specs/A7-admin-header-live.md · 계약: docs/design-contracts/admin/header-notifications.md
+   prototype admin L443~493 정합. 다크 헤더 위 라이트 톤 드롭다운(300px).
+   ──────────────────────────────────────────────────────────────── */
+
+.admin-header-notif { position: relative; }
+
+/* 벨 아이콘 자체는 기존 .admin-header-icon-btn 스타일 재사용. position 만 relative 로 배지 앵커. */
+.admin-header-bell { position: relative; }
+
+/* 배지: 다크 헤더 위 red dot + 1.5px 다크 border, 원형, 숫자 흰색 */
+.admin-notif-badge {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    background: #E72D0F;
+    color: #FFFFFF;
+    font-size: 10px;
+    font-weight: 600;
+    line-height: 13px; /* border 1.5*2 감안 */
+    text-align: center;
+    border: 1.5px solid #111827;
+    border-radius: 10px;
+    box-sizing: border-box;
+    pointer-events: none;
+}
+
+/* 드롭다운 패널: 300px 라이트 카드 */
+.admin-notif-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    width: 300px;
+    background: #FFFFFF;
+    border: 1px solid #E3E1E8;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(17, 24, 39, 0.12);
+    z-index: 600;
+    overflow: hidden;
+}
+.admin-notif-dropdown[hidden] { display: none; }
+
+.admin-notif-panel {
+    display: flex;
+    flex-direction: column;
+    max-height: 420px;
+}
+
+.admin-notif-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 14px;
+    border-bottom: 1px solid #F1EFF5;
+}
+.admin-notif-panel-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1E1B25;
+}
+.admin-notif-mark-all {
+    background: none;
+    border: none;
+    color: #6B6478;
+    font-size: 12px;
+    cursor: pointer;
+    padding: 4px 6px;
+    border-radius: 6px;
+    transition: background-color 0.15s;
+}
+.admin-notif-mark-all:hover { background: #F6F5F8; }
+
+.admin-notif-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    overflow-y: auto;
+}
+
+.admin-notif-item {
+    border-bottom: 1px solid #F6F5F8;
+}
+.admin-notif-item:last-child { border-bottom: none; }
+.admin-notif-item--unread { background: #FBFAFF; }
+
+.admin-notif-item-link {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 14px;
+    color: inherit;
+    text-decoration: none;
+    cursor: pointer;
+}
+.admin-notif-item-link:hover { background: #F6F5F8; }
+
+.admin-notif-icon {
+    flex-shrink: 0;
+    width: 30px;
+    height: 30px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+}
+.admin-notif-icon--primary { background: #EEEBFF; color: #3F30E9; }
+.admin-notif-icon--success { background: #E6F7EE; color: #12B76A; }
+.admin-notif-icon--warning { background: #FEF3C7; color: #B54708; }
+.admin-notif-icon--error   { background: #FEE4E2; color: #D92D20; }
+
+.admin-notif-body {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+.admin-notif-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1E1B25;
+    line-height: 1.4;
+}
+.admin-notif-message {
+    font-size: 12px;
+    color: #6B6478;
+    line-height: 1.4;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+.admin-notif-time {
+    font-size: 11px;
+    color: #9C97A8;
+    margin-top: 2px;
+}
+
+.admin-notif-actions {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+}
+.admin-notif-delete {
+    background: none;
+    border: none;
+    color: #9C97A8;
+    padding: 2px;
+    cursor: pointer;
+    border-radius: 4px;
+    line-height: 0;
+    transition: background-color 0.15s, color 0.15s;
+}
+.admin-notif-delete:hover { background: #F1EFF5; color: #6B6478; }
+
+.admin-notif-unread-dot {
+    width: 6px;
+    height: 6px;
+    background: #3F30E9;
+    border-radius: 50%;
+}
+
+.admin-notif-empty {
+    padding: 32px 14px;
+    text-align: center;
+    color: #9C97A8;
+    font-size: 13px;
+}
