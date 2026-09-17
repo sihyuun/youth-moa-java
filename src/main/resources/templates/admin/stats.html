@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>관리자 통계 — 청년모아</title>
+    <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"
+          rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" th:href="@{/images/logo_symbol.png}">
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
+    <script th:src="@{/webjars/htmx.org/2.0.4/dist/htmx.min.js}" defer></script>
+    <meta name="_csrf" th:content="${_csrf?.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf?.headerName}"/>
+</head>
+<body class="admin-shell-body">
+
+<div th:replace="~{admin/fragments/header :: header('stats', ${centerScopeLabel}, ${isSystemAdmin})}"></div>
+
+<main class="admin-shell-main">
+    <div class="admin-stats">
+
+        <!-- Welcome -->
+        <section class="admin-stats-welcome">
+            <h2 class="admin-stats-welcome-title">통계 대시보드</h2>
+            <p class="admin-stats-welcome-sub">방문자 · 프로그램 참여 · 사용자 분포를 한눈에 확인하세요.</p>
+        </section>
+
+        <!-- KPI cards -->
+        <section class="admin-stat-grid" aria-label="핵심 지표">
+
+            <div class="admin-stat-card">
+                <div class="admin-stat-card-head">
+                    <span class="admin-stat-card-label">최근 30일 방문자</span>
+                    <div class="admin-stat-card-icon admin-stat-card-icon--purple" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none"
+                             stroke="currentColor" stroke-width="2">
+                            <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
+                            <circle cx="9" cy="7" r="4"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="admin-stat-card-value" th:text="${stats.visitors30}">0</div>
+                <div class="admin-stat-card-trend">
+                    <span th:if="${stats.visitorsDeltaPct > 0}"
+                          class="admin-stat-card-trend-delta admin-stat-card-trend-delta--up"
+                          th:text="|↑ ${stats.visitorsDeltaPct}%|">↑ 0%</span>
+                    <span th:if="${stats.visitorsDeltaPct < 0}"
+                          class="admin-stat-card-trend-delta admin-stat-card-trend-delta--down"
+                          th:text="|↓ ${-stats.visitorsDeltaPct}%|">↓ 0%</span>
+                    <span th:if="${stats.visitorsDeltaPct == 0}"
+                          class="admin-stat-card-trend-delta admin-stat-card-trend-delta--flat">→ 동일</span>
+                    <span class="admin-stat-card-trend-caption">이전 30일 대비</span>
+                </div>
+            </div>
+
+            <div class="admin-stat-card">
+                <div class="admin-stat-card-head">
+                    <span class="admin-stat-card-label">전체 프로그램</span>
+                    <div class="admin-stat-card-icon admin-stat-card-icon--green" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none"
+                             stroke="currentColor" stroke-width="2">
+                            <polyline points="9 11 12 14 22 4"/>
+                            <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="admin-stat-card-value" th:text="${stats.totalPrograms}">0</div>
+                <div class="admin-stat-card-trend">
+                    <span class="admin-stat-card-trend-caption">현재 등록 기준</span>
+                </div>
+            </div>
+
+            <div class="admin-stat-card">
+                <div class="admin-stat-card-head">
+                    <span class="admin-stat-card-label">전체 회원</span>
+                    <div class="admin-stat-card-icon admin-stat-card-icon--orange" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none"
+                             stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <polyline points="12 6 12 12 16 14"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="admin-stat-card-value" th:text="${stats.totalUsers}">0</div>
+                <div class="admin-stat-card-trend">
+                    <span class="admin-stat-card-trend-caption">USER 롤 기준</span>
+                </div>
+            </div>
+
+            <div class="admin-stat-card">
+                <div class="admin-stat-card-head">
+                    <span class="admin-stat-card-label">승인 대기</span>
+                    <div class="admin-stat-card-icon admin-stat-card-icon--gray" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none"
+                             stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="8" y1="12" x2="16" y2="12"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="admin-stat-card-value" th:text="${stats.pendingCount}">0</div>
+                <div class="admin-stat-card-trend">
+                    <span class="admin-stat-card-trend-caption">신청 대기 처리 필요</span>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- Visitor chart card -->
+        <section class="admin-stats-chart-card">
+            <div class="admin-stats-chart-head">
+                <div>
+                    <h3 class="admin-stats-chart-title">방문자 현황</h3>
+                    <p class="admin-stats-chart-sub" th:text="${stats.visitorsRangeLabel}">범위</p>
+                </div>
+                <div class="admin-stats-chart-tabs" role="tablist">
+                    <a th:href="@{/admin/stats(chartMode='month')}"
+                       hx-get="/admin/stats/chart?mode=month"
+                       hx-target="#chart-container"
+                       hx-swap="innerHTML"
+                       th:classappend="${stats.chartMode == 'month'} ? ' admin-stats-chart-tab--active' : ''"
+                       class="admin-stats-chart-tab">월별</a>
+                    <a th:href="@{/admin/stats(chartMode='year')}"
+                       hx-get="/admin/stats/chart?mode=year"
+                       hx-target="#chart-container"
+                       hx-swap="innerHTML"
+                       th:classappend="${stats.chartMode == 'year'} ? ' admin-stats-chart-tab--active' : ''"
+                       class="admin-stats-chart-tab">연도별</a>
+                </div>
+            </div>
+            <div id="chart-container" class="admin-stats-chart-container" th:fragment="chart">
+                <div class="admin-stats-chart-svg" th:utext="${stats.chartSvg}">svg</div>
+                <div class="admin-stats-chart-summary">
+                    <div class="admin-stats-chart-summary-cell">
+                        <div class="admin-stats-chart-summary-val" th:text="${stats.totalVisitsPeriod}">0</div>
+                        <div class="admin-stats-chart-summary-label">기간 합계</div>
+                    </div>
+                    <div class="admin-stats-chart-summary-cell">
+                        <div class="admin-stats-chart-summary-val" th:text="${stats.avgVisits}">0</div>
+                        <div class="admin-stats-chart-summary-label">평균</div>
+                    </div>
+                    <div class="admin-stats-chart-summary-cell">
+                        <div class="admin-stats-chart-summary-val admin-stats-chart-summary-val--primary"
+                             th:text="${stats.peakVisits}">0</div>
+                        <div class="admin-stats-chart-summary-label">최고</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Program stats table -->
+        <section class="admin-stats-program-card">
+            <h3 class="admin-stats-section-title">프로그램별 참여 현황</h3>
+            <div class="admin-stats-program-wrap">
+                <div class="admin-stats-program-inner">
+                    <div class="admin-stats-program-row admin-stats-program-row--head">
+                        <span>프로그램명</span>
+                        <span>청년센터</span>
+                        <span>진행기간</span>
+                        <span>신청/정원</span>
+                        <span>신청률</span>
+                        <span>조회수</span>
+                        <span>상태</span>
+                    </div>
+                    <div th:if="${#lists.isEmpty(stats.programStats)}"
+                         class="admin-stats-program-empty">등록된 프로그램이 없습니다.</div>
+                    <a th:each="ps : ${stats.programStats}"
+                       th:href="@{/admin/programs/{id}(id=${ps.id})}"
+                       class="admin-stats-program-row admin-stats-program-row--link">
+                        <span class="admin-stats-program-name" th:text="${ps.title}">프로그램명</span>
+                        <span class="admin-stats-program-center" th:text="${ps.organization}">청년센터</span>
+                        <span class="admin-stats-program-period" th:text="${ps.period}">기간</span>
+                        <span class="admin-stats-program-applied"
+                              th:text="|${ps.applied}/${ps.capacity}|">0/0</span>
+                        <div class="admin-stats-program-progress-wrap">
+                            <div class="admin-stats-program-progress-track">
+                                <div class="admin-stats-program-progress-fill"
+                                     th:style="'width:' + ${ps.capacityPct} + '%;background:' + ${ps.progressColor}"></div>
+                            </div>
+                            <span class="admin-stats-program-progress-pct"
+                                  th:text="${ps.capacityPct} + '%'">0%</span>
+                        </div>
+                        <span class="admin-stats-program-views" th:text="${ps.views}">0</span>
+                        <div>
+                            <span class="admin-status-badge"
+                                  th:classappend="${'admin-status-badge--' + ps.status.name().toLowerCase()}"
+                                  th:text="${ps.status.label}">모집중</span>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Gender / Age donuts -->
+        <section class="admin-stats-donut-row">
+            <div class="admin-stats-donut-card">
+                <h3 class="admin-stats-section-title">성별 분포</h3>
+                <div class="admin-stats-donut-body">
+                    <div class="admin-stats-donut-svg" th:utext="${stats.genderChartSvg}">svg</div>
+                    <div class="admin-stats-donut-legend">
+                        <div th:if="${#lists.isEmpty(stats.genderLegend)}"
+                             class="admin-stats-donut-empty">데이터 없음</div>
+                        <div th:each="gd : ${stats.genderLegend}" class="admin-stats-donut-legend-item">
+                            <div class="admin-stats-donut-legend-left">
+                                <span class="admin-stats-donut-swatch"
+                                      th:style="'background:' + ${gd.color()}"></span>
+                                <span class="admin-stats-donut-legend-label" th:text="${gd.label()}">라벨</span>
+                            </div>
+                            <span class="admin-stats-donut-legend-pct" th:text="${gd.pct()}">0%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="admin-stats-donut-card">
+                <h3 class="admin-stats-section-title">연령 분포</h3>
+                <div class="admin-stats-donut-body">
+                    <div class="admin-stats-donut-svg" th:utext="${stats.ageChartSvg}">svg</div>
+                    <div class="admin-stats-donut-legend">
+                        <div th:if="${#lists.isEmpty(stats.ageLegend)}"
+                             class="admin-stats-donut-empty">데이터 없음</div>
+                        <div th:each="ad : ${stats.ageLegend}" class="admin-stats-donut-legend-item">
+                            <div class="admin-stats-donut-legend-left">
+                                <span class="admin-stats-donut-swatch"
+                                      th:style="'background:' + ${ad.color()}"></span>
+                                <span class="admin-stats-donut-legend-label" th:text="${ad.label()}">라벨</span>
+                            </div>
+                            <span class="admin-stats-donut-legend-pct" th:text="${ad.pct()}">0%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Deadline urgent + Pending approvals -->
+        <section class="admin-stats-list-row">
+            <div class="admin-stats-list-card">
+                <div class="admin-card-head">
+                    <div class="admin-urgent-title-wrap">
+                        <span class="admin-urgent-dot" aria-hidden="true"></span>
+                        <h3 class="admin-card-title">마감 임박 프로그램</h3>
+                        <span class="admin-urgent-pill">D-7 이내</span>
+                    </div>
+                </div>
+                <div th:if="${#lists.isEmpty(stats.urgentPrograms)}"
+                     class="admin-stats-list-empty">마감 임박 프로그램이 없습니다.</div>
+                <a th:each="up : ${stats.urgentPrograms}"
+                   th:href="@{/admin/programs/{id}(id=${up.id})}"
+                   class="admin-stats-list-item">
+                    <div class="admin-stats-list-item-body">
+                        <div class="admin-stats-list-item-title" th:text="${up.title}">프로그램명</div>
+                        <div class="admin-stats-list-item-sub">
+                            <span th:text="${up.organization}">청년센터</span>
+                            <span> · </span>
+                            <span th:if="${up.applyEndDate != null}"
+                                  th:text="|${#temporals.format(up.applyEndDate, 'yyyy-MM-dd')} 마감|">마감일</span>
+                            <span th:if="${up.applyEndDate == null and up.endDate != null}"
+                                  th:text="|${#temporals.format(up.endDate, 'yyyy-MM-dd')} 마감|">마감일</span>
+                        </div>
+                    </div>
+                    <span class="admin-status-badge"
+                          th:classappend="${'admin-status-badge--' + up.status.name().toLowerCase()}"
+                          th:text="${up.status.label}">모집중</span>
+                </a>
+            </div>
+
+            <div class="admin-stats-list-card">
+                <div class="admin-card-head">
+                    <div class="admin-urgent-title-wrap">
+                        <span class="admin-pending-card-dot" aria-hidden="true"></span>
+                        <h3 class="admin-card-title">최근 승인 대기</h3>
+                    </div>
+                </div>
+                <div th:if="${#lists.isEmpty(stats.pendingApplications)}"
+                     class="admin-stats-list-empty">승인 대기 중인 신청이 없습니다.</div>
+                <a th:each="ap : ${stats.pendingApplications}"
+                   th:href="@{/admin/programs/{id}/applications(id=${ap.program.id})}"
+                   class="admin-stats-list-item">
+                    <div class="admin-stats-list-item-body">
+                        <div class="admin-stats-list-item-title" th:text="${ap.program.title}">프로그램명</div>
+                        <div class="admin-stats-list-item-sub">
+                            <span th:text="${ap.user != null ? ap.user.name : '-'}">신청자</span>
+                            <span> · </span>
+                            <span th:if="${ap.appliedAt != null}"
+                                  th:text="${#temporals.format(ap.appliedAt, 'MM-dd HH:mm')}">신청일</span>
+                        </div>
+                    </div>
+                    <span class="admin-status-badge admin-status-badge--pending">대기</span>
+                </a>
+            </div>
+        </section>
+
+    </div>
+</main>
+
+<script th:inline="javascript">
+    (function () {
+        var trigger = document.querySelector('.admin-header-user-trigger');
+        var menu = document.getElementById('admin-user-dropdown');
+        if (!trigger || !menu) return;
+        function close() { menu.hidden = true; trigger.setAttribute('aria-expanded', 'false'); }
+        function open() { menu.hidden = false; trigger.setAttribute('aria-expanded', 'true'); }
+        trigger.addEventListener('click', function (ev) {
+            ev.stopPropagation();
+            if (menu.hidden) open(); else close();
+        });
+        document.addEventListener('click', function (ev) {
+            if (!menu.hidden && !menu.contains(ev.target)) close();
+        });
+    })();
+</script>
+</body>
+</html>
