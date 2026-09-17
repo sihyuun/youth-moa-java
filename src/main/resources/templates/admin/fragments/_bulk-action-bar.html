@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<!--
+  A8 admin-bulk-csv (2026-09-17) — floating bottom action bar.
+
+  파라미터:
+    - domain         : 'users' | 'programs' | 'applications' (data-bulk-domain 속성)
+    - csvHrefBase    : 선택 건 CSV export href (querystring 없이 경로만). JS 가 ids 파라미터 붙임
+    - showRoleChange : Users 도메인 only — 권한 변경 액션 노출 여부 (boolean)
+
+  prototype 정합: html L2772 다크 톤 (#1E293B) · L4091~4124 (선택 개수 + CSV + 삭제 + 해제).
+  spec §4-3 · POLICY §QA (floating bottom) · §QB (페이지 이동 시 초기화).
+-->
+<body>
+
+<div th:fragment="bar(domain, csvHrefBase, showRoleChange, approvePath)"
+     class="admin-bulk-action-bar"
+     th:data-bulk-domain="${domain}"
+     th:data-csv-base="${csvHrefBase}"
+     th:data-approve-path="${approvePath}"
+     data-active="false"
+     role="region"
+     aria-label="일괄 처리">
+
+    <span class="admin-bulk-count">
+        <strong data-bulk-count>0</strong>건 선택됨
+    </span>
+
+    <div class="admin-bulk-actions">
+        <!-- Users -->
+        <button type="button" class="admin-bulk-btn admin-bulk-btn--danger"
+                th:if="${domain == 'users'}"
+                data-bulk-action="deactivate">차단</button>
+        <button type="button" class="admin-bulk-btn"
+                th:if="${domain == 'users'}"
+                data-bulk-action="reactivate">재활성화</button>
+        <button type="button" class="admin-bulk-btn"
+                th:if="${domain == 'users' and showRoleChange}"
+                data-bulk-action="role">권한 변경</button>
+
+        <!-- Programs -->
+        <button type="button" class="admin-bulk-btn admin-bulk-btn--danger"
+                th:if="${domain == 'programs'}"
+                data-bulk-action="deactivate">운영 중단</button>
+        <button type="button" class="admin-bulk-btn"
+                th:if="${domain == 'programs'}"
+                data-bulk-action="reactivate">재활성화</button>
+
+        <!-- Applications: A안 Approve 만. Reject 는 이월 (A8-reject-bulk) -->
+        <button type="button" class="admin-bulk-btn admin-bulk-btn--primary"
+                th:if="${domain == 'applications'}"
+                data-bulk-action="approve">일괄 승인</button>
+
+        <!-- CSV (선택 건) -->
+        <a href="#" class="admin-bulk-btn" data-bulk-action="csv-selected">선택 건 CSV</a>
+    </div>
+
+    <button type="button" class="admin-bulk-clear" data-bulk-clear>선택 해제</button>
+</div>
+
+<!-- 확인/입력 모달 (재사용) -->
+<div class="admin-bulk-modal-backdrop" data-bulk-modal data-open="false" role="dialog" aria-modal="true">
+    <div class="admin-bulk-modal">
+        <h3 class="admin-bulk-modal-title" data-bulk-modal-title>일괄 처리</h3>
+        <p class="admin-bulk-modal-msg" data-bulk-modal-msg>선택한 항목을 처리할까요?</p>
+        <input type="text" class="admin-bulk-modal-input" data-bulk-modal-input hidden
+               placeholder="사유를 입력해주세요."/>
+        <select class="admin-bulk-modal-select" data-bulk-modal-select hidden>
+            <option value="USER">사용자</option>
+            <option value="CENTER_ADMIN">관리자</option>
+            <option value="SYSTEM_ADMIN">시스템 관리자</option>
+        </select>
+        <div class="admin-bulk-modal-actions">
+            <button type="button" class="admin-btn admin-btn--sm admin-btn--outline"
+                    data-bulk-modal-cancel>취소</button>
+            <button type="button" class="admin-btn admin-btn--sm admin-btn--primary"
+                    data-bulk-modal-confirm>확인</button>
+        </div>
+    </div>
+</div>
+
+<!-- 서브밋 hidden form (JS 가 채워서 제출) -->
+<form data-bulk-form method="post" style="display:none">
+    <input type="hidden" name="ids" value=""/>
+    <input type="hidden" name="reason" value=""/>
+    <input type="hidden" name="role" value=""/>
+    <input th:if="${_csrf}" type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+</form>
+
+</body>
+</html>

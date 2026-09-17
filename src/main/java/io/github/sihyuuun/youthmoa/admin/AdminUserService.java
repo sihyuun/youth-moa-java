@@ -40,6 +40,7 @@ public class AdminUserService {
 
   private final UserRepository userRepository;
   private final ApplicationRepository applicationRepository;
+  private final AdminUserSafeguard safeguard;
 
   // ================= 조회 =================
 
@@ -100,17 +101,17 @@ public class AdminUserService {
 
   // ================= 변경 =================
 
-  /** 차단. Qn-3 A: 사유 필수. Safeguard: (1) 자기 자신 X (2) 마지막 SYSTEM_ADMIN X. */
+  /**
+   * 차단. Qn-3 A: 사유 필수. Safeguard 는 A8 (2026-09-17) 부터 {@link AdminUserSafeguard} 로 추출됨 — 개별·bulk
+   * endpoint 재사용.
+   */
   @Transactional
   public void deactivate(Long userId, User currentAdmin, String reason) {
     if (reason == null || reason.isBlank()) {
       throw new IllegalArgumentException("차단 사유를 입력해주세요.");
     }
     User target = findById(userId);
-    assertNotSelf(currentAdmin, target, "본인 계정은 차단할 수 없어요.");
-    if (target.getRole() == UserRole.SYSTEM_ADMIN) {
-      assertNotLastSystemAdmin(target);
-    }
+    safeguard.assertCanDeactivate(currentAdmin, target);
     if (!target.isActive()) return; // idempotent
     target.deactivate(currentAdmin, reason);
   }
@@ -119,7 +120,7 @@ public class AdminUserService {
   @Transactional
   public void reactivate(Long userId, User currentAdmin) {
     User target = findById(userId);
-    assertNotSelf(currentAdmin, target, "본인 계정은 재활성화 대상이 아니에요.");
+    safeguard.assertCanReactivate(currentAdmin, target);
     if (target.isActive()) return; // idempotent
     target.reactivate();
   }
@@ -130,16 +131,9 @@ public class AdminUserService {
    */
   @Transactional
   public void changeRole(Long userId, User currentAdmin, UserRole newRole) {
-    if (newRole == null) {
-      throw new IllegalArgumentException("변경할 권한을 선택해주세요.");
-    }
     User target = findById(userId);
-    assertNotSelf(currentAdmin, target, "본인 계정의 권한은 변경할 수 없어요.");
-    if (target.getRole() == newRole) return; // idempotent
-    // 마지막 SYSTEM_ADMIN 강등 방지
-    if (target.getRole() == UserRole.SYSTEM_ADMIN && newRole != UserRole.SYSTEM_ADMIN) {
-      assertNotLastSystemAdmin(target);
-    }
+    if (target.getRole() == newRole) return; // idempotent (사전 검증 전 짧게 컷)
+    safeguard.assertCanChangeRole(currentAdmin, target, newRole);
     target.promoteTo(newRole);
   }
 
@@ -154,20 +148,6 @@ public class AdminUserService {
   }
 
   // ================= 헬퍼 =================
-
-  private void assertNotSelf(User admin, User target, String message) {
-    if (admin != null && admin.getId() != null && admin.getId().equals(target.getId())) {
-      throw new IllegalStateException(message);
-    }
-  }
-
-  private void assertNotLastSystemAdmin(User target) {
-    long activeSystemAdmins = userRepository.countByRoleAndIsActiveTrue(UserRole.SYSTEM_ADMIN);
-    // target 도 활성 SYSTEM_ADMIN 이므로 자기 자신 포함 count. 1 이면 target 이 유일한 활성 SYSTEM_ADMIN 이라는 뜻.
-    if (target.getRole() == UserRole.SYSTEM_ADMIN && target.isActive() && activeSystemAdmins <= 1) {
-      throw new IllegalStateException("마지막 시스템 관리자는 차단하거나 강등할 수 없어요.");
-    }
-  }
 
   /** role 옵션 리스트 (목록 필터 dropdown 및 상세 role radio). */
   public List<UserRole> roleOptions() {

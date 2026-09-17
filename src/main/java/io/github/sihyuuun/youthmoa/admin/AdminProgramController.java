@@ -56,6 +56,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class AdminProgramController {
 
   private final AdminProgramService adminProgramService;
+  private final AdminProgramBulkService adminProgramBulkService;
   private final AdminScope adminScope;
   private final AdminProgramImageService adminProgramImageService;
   private final AdminProgramAttachmentService adminProgramAttachmentService;
@@ -258,6 +259,51 @@ public class AdminProgramController {
     redirectAttributes.addFlashAttribute(
         "flashMessage", "프로그램 운영을 중단했어요. 목록에서 SUSPENDED 상태로 확인할 수 있어요.");
     return "redirect:/admin/programs";
+  }
+
+  // ================= A8 admin-bulk (2026-09-17) =================
+
+  @PostMapping("/bulk/deactivate")
+  public String bulkDeactivate(
+      @RequestParam(value = "ids", required = false) List<Long> ids, RedirectAttributes ra) {
+    BulkResult result = adminProgramBulkService.bulkDeactivate(ids);
+    applyBulkFlash(ra, result, "운영 중단");
+    return "redirect:/admin/programs";
+  }
+
+  @PostMapping("/bulk/reactivate")
+  public String bulkReactivate(
+      @RequestParam(value = "ids", required = false) List<Long> ids, RedirectAttributes ra) {
+    BulkResult result = adminProgramBulkService.bulkReactivate(ids);
+    applyBulkFlash(ra, result, "재활성화");
+    return "redirect:/admin/programs";
+  }
+
+  private static void applyBulkFlash(RedirectAttributes ra, BulkResult result, String actionLabel) {
+    if (result.getTotal() == 0) {
+      ra.addFlashAttribute("flashError", "선택된 항목이 없어요.");
+      return;
+    }
+    String msg =
+        "총 "
+            + result.getTotal()
+            + "건 중 "
+            + result.getSuccessCount()
+            + "건 "
+            + actionLabel
+            + "이 완료됐어요.";
+    if (result.hasFailure()) {
+      StringBuilder sb = new StringBuilder(msg);
+      sb.append(" ").append(result.getFailCount()).append("건은 처리하지 못했어요");
+      int shown = 0;
+      for (BulkResult.FailureRow f : result.getErrors()) {
+        if (shown++ >= 5) break;
+        sb.append(" · #").append(f.id()).append(" (").append(f.reason()).append(")");
+      }
+      ra.addFlashAttribute("flashError", sb.toString());
+    } else {
+      ra.addFlashAttribute("flashMessage", msg);
+    }
   }
 
   // ================= 헬퍼 =================

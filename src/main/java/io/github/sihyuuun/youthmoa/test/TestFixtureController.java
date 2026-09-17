@@ -281,6 +281,45 @@ public class TestFixtureController {
   public record ResetApplicationsRequest(@NotBlank String userEmail, Long programId) {}
 
   /**
+   * A8 admin-bulk-csv (2026-09-17 · Qn-5 A): bulk 시나리오 격리 endpoint.
+   *
+   * <p>기존 reset-users + reset-programs 를 순차 호출한 것과 동일한 효과. bulk spec 이 여러 도메인을 한 번에 초기화할 때 매번 두
+   * endpoint 를 부르는 번거로움을 줄인다. idempotent.
+   *
+   * @return 204 No Content
+   */
+  @PostMapping("/reset-bulk-fixtures")
+  @Transactional
+  public ResponseEntity<Void> resetBulkFixtures() {
+    // Users 활성화 · 감사 컬럼 초기화 (reset-users 정합)
+    int users =
+        entityManager
+            .createNativeQuery(
+                "UPDATE users SET is_active = TRUE, deactivated_at = NULL,"
+                    + " deactivated_by = NULL, deactivation_reason = NULL, admin_note = NULL")
+            .executeUpdate();
+    // Programs 활성화 (bulk deactivate 시나리오 반복 지원)
+    int programs =
+        entityManager
+            .createNativeQuery("UPDATE program SET is_active = TRUE WHERE id <= :seedCount")
+            .setParameter("seedCount", DataInitializer.SEED_PROGRAM_COUNT)
+            .executeUpdate();
+    // Applications 상태를 PENDING 으로 원복 (bulk approve 반복 지원 · APPROVED → PENDING)
+    // 시드 신청 데이터만 대상.
+    int apps =
+        entityManager
+            .createNativeQuery(
+                "UPDATE application SET status = 'PENDING', processed_by = NULL,"
+                    + " processed_at = NULL, reject_reason = NULL"
+                    + " WHERE status = 'APPROVED' AND program_id <= :seedCount")
+            .setParameter("seedCount", DataInitializer.SEED_PROGRAM_COUNT)
+            .executeUpdate();
+    log.info(
+        "[test-fixture] reset-bulk-fixtures users={} programs={} apps={}", users, programs, apps);
+    return ResponseEntity.noContent().build();
+  }
+
+  /**
    * A5 admin-users (2026-09-15 · Qn-6 A): admin-users E2E 격리용 reset endpoint.
    *
    * <p>정책:

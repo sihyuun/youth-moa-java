@@ -43,6 +43,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class AdminUserController {
 
   private final AdminUserService adminUserService;
+  private final AdminUserBulkService adminUserBulkService;
   private final AdminScope adminScope;
   private final UserRepository userRepository;
 
@@ -172,7 +173,87 @@ public class AdminUserController {
     return "redirect:/admin/users/" + uid;
   }
 
+  // ================= A8 admin-bulk (2026-09-17) =================
+
+  @PostMapping("/bulk/deactivate")
+  public String bulkDeactivate(
+      @RequestParam(value = "ids", required = false) List<Long> ids,
+      @RequestParam(required = false) String reason,
+      @AuthenticationPrincipal UserPrincipal principal,
+      RedirectAttributes ra) {
+    try {
+      User admin = loadCurrentAdmin(principal);
+      BulkResult result = adminUserBulkService.bulkDeactivate(ids, admin, reason);
+      applyFlash(ra, result, "차단");
+    } catch (IllegalArgumentException | IllegalStateException e) {
+      ra.addFlashAttribute("flashError", e.getMessage());
+    }
+    return "redirect:/admin/users";
+  }
+
+  @PostMapping("/bulk/reactivate")
+  public String bulkReactivate(
+      @RequestParam(value = "ids", required = false) List<Long> ids,
+      @AuthenticationPrincipal UserPrincipal principal,
+      RedirectAttributes ra) {
+    try {
+      User admin = loadCurrentAdmin(principal);
+      BulkResult result = adminUserBulkService.bulkReactivate(ids, admin);
+      applyFlash(ra, result, "재활성화");
+    } catch (IllegalArgumentException | IllegalStateException e) {
+      ra.addFlashAttribute("flashError", e.getMessage());
+    }
+    return "redirect:/admin/users";
+  }
+
+  @PostMapping("/bulk/role")
+  public String bulkChangeRole(
+      @RequestParam(value = "ids", required = false) List<Long> ids,
+      @RequestParam String role,
+      @AuthenticationPrincipal UserPrincipal principal,
+      RedirectAttributes ra) {
+    try {
+      User admin = loadCurrentAdmin(principal);
+      UserRole newRole = UserRole.valueOf(role.toUpperCase());
+      BulkResult result = adminUserBulkService.bulkChangeRole(ids, admin, newRole);
+      applyFlash(ra, result, "권한 변경");
+    } catch (IllegalArgumentException e) {
+      ra.addFlashAttribute("flashError", "권한 값이 올바르지 않아요.");
+    } catch (IllegalStateException e) {
+      ra.addFlashAttribute("flashError", e.getMessage());
+    }
+    return "redirect:/admin/users";
+  }
+
   // ================= 헬퍼 =================
+
+  private static void applyFlash(RedirectAttributes ra, BulkResult result, String actionLabel) {
+    if (result.getTotal() == 0) {
+      ra.addFlashAttribute("flashError", "선택된 항목이 없어요.");
+      return;
+    }
+    String msg =
+        "총 "
+            + result.getTotal()
+            + "건 중 "
+            + result.getSuccessCount()
+            + "건 "
+            + actionLabel
+            + "이 완료됐어요.";
+    if (result.hasFailure()) {
+      StringBuilder sb = new StringBuilder(msg);
+      sb.append(" ").append(result.getFailCount()).append("건은 처리하지 못했어요");
+      // 실패 5건까지 상세 표시
+      int shown = 0;
+      for (BulkResult.FailureRow f : result.getErrors()) {
+        if (shown++ >= 5) break;
+        sb.append(" · #").append(f.id()).append(" (").append(f.reason()).append(")");
+      }
+      ra.addFlashAttribute("flashError", sb.toString());
+    } else {
+      ra.addFlashAttribute("flashMessage", msg);
+    }
+  }
 
   private User loadCurrentAdmin(UserPrincipal principal) {
     return userRepository

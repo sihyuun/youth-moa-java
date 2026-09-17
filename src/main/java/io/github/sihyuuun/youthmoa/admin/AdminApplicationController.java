@@ -43,6 +43,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class AdminApplicationController {
 
   private final AdminApplicationService adminApplicationService;
+  private final AdminApplicationBulkService adminApplicationBulkService;
   private final AdminScope adminScope;
 
   // ================= 목록 =================
@@ -192,6 +193,53 @@ public class AdminApplicationController {
       throw new AccessDeniedException(e.getMessage());
     }
     return "redirect:/admin/programs/" + programId + "/applications";
+  }
+
+  // ================= A8 admin-bulk (2026-09-17 · Qn-App1 A: Approve 만) =================
+
+  @PostMapping("/bulk/approve")
+  public String bulkApprove(
+      @PathVariable Long programId,
+      @RequestParam(value = "ids", required = false) List<Long> ids,
+      @AuthenticationPrincipal io.github.sihyuuun.youthmoa.user.UserPrincipal principal,
+      RedirectAttributes ra) {
+    try {
+      BulkResult result =
+          adminApplicationBulkService.bulkApprove(programId, ids, principal.getUsername());
+      applyBulkFlash(ra, result, "승인");
+    } catch (IllegalArgumentException e) {
+      ra.addFlashAttribute("flashError", e.getMessage());
+    } catch (IllegalStateException e) {
+      throw new AccessDeniedException(e.getMessage());
+    }
+    return "redirect:/admin/programs/" + programId + "/applications";
+  }
+
+  private static void applyBulkFlash(RedirectAttributes ra, BulkResult result, String actionLabel) {
+    if (result.getTotal() == 0) {
+      ra.addFlashAttribute("flashError", "선택된 항목이 없어요.");
+      return;
+    }
+    String msg =
+        "총 "
+            + result.getTotal()
+            + "건 중 "
+            + result.getSuccessCount()
+            + "건 "
+            + actionLabel
+            + "이 완료됐어요.";
+    if (result.hasFailure()) {
+      StringBuilder sb = new StringBuilder(msg);
+      sb.append(" ").append(result.getFailCount()).append("건은 처리하지 못했어요");
+      int shown = 0;
+      for (BulkResult.FailureRow f : result.getErrors()) {
+        if (shown++ >= 5) break;
+        sb.append(" · #").append(f.id()).append(" (").append(f.reason()).append(")");
+      }
+      ra.addFlashAttribute("flashError", sb.toString());
+    } else {
+      ra.addFlashAttribute("flashMessage", msg);
+    }
   }
 
   // ================= 헬퍼 =================
