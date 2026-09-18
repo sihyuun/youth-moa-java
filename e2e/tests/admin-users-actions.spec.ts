@@ -33,10 +33,13 @@ test.afterEach(async ({ page }) => {
 /** 시드 사용자 (seed30@youth-moa.test) 의 id 를 `/admin/users?q=` 로 조회. */
 async function findSeedUserId(page: import('@playwright/test').Page, email: string): Promise<number> {
     await page.goto(`/admin/users?q=${encodeURIComponent(email)}`, { waitUntil: 'domcontentloaded' });
-    const href = await page.locator('a.admin-user-row:not(.admin-user-row--head)').first().getAttribute('href');
-    const match = href?.match(/\/admin\/users\/(\d+)/);
-    if (!match) throw new Error(`could not find user id for ${email}`);
-    return Number(match[1]);
+    // A8 이후 row 는 <div data-user-id="..."> + 내부 <a class="admin-user-row-link"> 로 분리.
+    const userId = await page
+        .locator('.admin-user-row:not(.admin-user-row--head)')
+        .first()
+        .getAttribute('data-user-id');
+    if (!userId) throw new Error(`could not find user id for ${email}`);
+    return Number(userId);
 }
 
 test('차단 사유 필수 — 모달 열고 제출 → 302 redirect + 상태 변경', async ({ page }) => {

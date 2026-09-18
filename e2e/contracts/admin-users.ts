@@ -181,7 +181,7 @@ export const adminUsersListContract: ScreenContract = {
         {
             id: 'list.rows.seeded',
             desc: '시드 사용자 최소 10건 (페이지 사이즈)',
-            selector: 'a.admin-user-row:not(.admin-user-row--head)',
+            selector: '.admin-user-row:not(.admin-user-row--head)',
             kind: 'count-min',
             expected: 10,
             proto: 'DataInitializer 시드 · admin/prototype.html L1230',
@@ -190,7 +190,7 @@ export const adminUsersListContract: ScreenContract = {
         {
             id: 'list.row.role.badge',
             desc: 'role badge 존재',
-            selector: 'a.admin-user-row .admin-role-badge',
+            selector: '.admin-user-row .admin-role-badge',
             kind: 'exists',
             expected: true,
             proto: 'admin/prototype.html L1237 roleCfg',
@@ -199,7 +199,7 @@ export const adminUsersListContract: ScreenContract = {
         {
             id: 'list.row.status.badge',
             desc: 'status badge 존재',
-            selector: 'a.admin-user-row .admin-user-status-badge',
+            selector: '.admin-user-row .admin-user-status-badge',
             kind: 'exists',
             expected: true,
             proto: 'admin/prototype.html L1242 statusBadge',
@@ -226,26 +226,33 @@ export const adminUsersListContract: ScreenContract = {
             severity: 'P1',
         },
 
-        // ─── 이월 항목 (검사 제외) ───
+        // ─── A8 (2026-09-17) 편입: bulk selection · CSV export ───
         {
             id: 'action.bulk.checkbox',
-            desc: 'checkbox 컬럼',
+            desc: 'checkbox 컬럼 (A8 편입)',
             selector: '.admin-user-col-check',
             kind: 'exists',
             expected: true,
-            proto: 'admin/prototype.html L1220',
-            severity: 'P2',
-            deferred: 'A8-admin-bulk-actions · Qn-9 이월 결정 (spec §12)',
+            proto: 'admin/prototype.html L1220 · A8 spec §4-3',
+            severity: 'P0',
         },
         {
             id: 'action.csv.export.button',
-            desc: 'CSV 내보내기 버튼',
-            selector: 'button.admin-btn-csv',
+            desc: 'CSV 내보내기 버튼 (A8 편입 · 상단 헤더 · 필터 전체)',
+            selector: '[data-testid="csv-export-btn"]',
             kind: 'exists',
             expected: true,
-            proto: 'admin/prototype.html L1189',
-            severity: 'P2',
-            deferred: 'A8-admin-bulk-actions · Qn-9 이월 결정 (spec §12)',
+            proto: 'admin/prototype.html L1189 · A8 Qn-CSV1',
+            severity: 'P0',
+        },
+        {
+            id: 'action.bulk.selection.bar',
+            desc: '다크 bulk selection bar (A8 편입 · floating bottom)',
+            selector: '.admin-bulk-action-bar[data-bulk-domain="users"]',
+            kind: 'exists',
+            expected: true,
+            proto: 'admin/prototype.html L1201~1210 · A8 QA',
+            severity: 'P0',
         },
         {
             id: 'action.register.button',
@@ -256,16 +263,6 @@ export const adminUsersListContract: ScreenContract = {
             proto: 'admin/prototype.html L1192',
             severity: 'P2',
             deferred: 'A5-1 · Qn-4 이월 (기존 사용자 승격 flow 만)',
-        },
-        {
-            id: 'action.bulk.selection.bar',
-            desc: '다크 bulk selection bar',
-            selector: '.admin-user-bulk-bar',
-            kind: 'exists',
-            expected: true,
-            proto: 'admin/prototype.html L1201~1210',
-            severity: 'P2',
-            deferred: 'A8-admin-bulk-actions · Qn-9 이월 결정 (spec §12)',
         },
     ],
 };

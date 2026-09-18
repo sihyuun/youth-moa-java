@@ -32,8 +32,9 @@ test('관리자 사용자 상세 디자인 계약 — SYSTEM_ADMIN', async ({ pa
     await loginAdmin(page);
     // seed1 유저 상세로 이동 (id 조회)
     await page.goto('/admin/users?q=seed1', { waitUntil: 'domcontentloaded' });
+    // A8 (2026-09-17): row 는 <div> 로 변경 (checkbox 추가). 내부 링크로 이동
     const href = await page
-        .locator('a.admin-user-row:not(.admin-user-row--head)')
+        .locator('.admin-user-row:not(.admin-user-row--head) a.admin-user-row-link')
         .first()
         .getAttribute('href');
     if (!href) throw new Error('seed1 not found for admin-user-detail contract');

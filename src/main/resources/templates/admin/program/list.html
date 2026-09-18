@@ -27,10 +27,22 @@
                 <h2 class="admin-program-title">프로그램 관리</h2>
                 <p class="admin-program-sub">청년 프로그램 목록을 조회하고 등록·편집·삭제할 수 있어요.</p>
             </div>
-            <a sec:authorize="hasRole('SYSTEM_ADMIN')"
-               th:href="@{/admin/programs/new}"
-               class="admin-btn admin-btn--primary">+ 프로그램 등록</a>
+            <div class="admin-program-header-actions" style="display:flex;gap:8px;align-items:center;">
+                <a class="admin-btn--csv admin-program-csv-btn"
+                   th:href="@{/admin/programs/export.csv(q=${q}, status=${statusFilter})}"
+                   data-testid="csv-export-btn"
+                   aria-label="CSV 내보내기">📥 CSV 내보내기</a>
+                <a sec:authorize="hasRole('SYSTEM_ADMIN')"
+                   th:href="@{/admin/programs/new}"
+                   class="admin-btn admin-btn--primary">+ 프로그램 등록</a>
+            </div>
         </section>
+
+        <!-- Flash 메시지 -->
+        <div th:if="${flashMessage}" class="admin-flash admin-flash--success" role="status"
+             th:text="${flashMessage}"></div>
+        <div th:if="${flashError}" class="admin-flash admin-flash--error" role="alert"
+             th:text="${flashError}"></div>
 
         <!-- 액션바: 필터 + 검색 -->
         <section class="admin-program-actionbar">
@@ -65,6 +77,10 @@
         <section class="admin-program-list-card">
 
             <div class="admin-program-row admin-program-row--head">
+                <span class="admin-program-col-check">
+                    <input type="checkbox" class="admin-bulk-checkbox" data-bulk-select-all
+                           aria-label="전체 선택"/>
+                </span>
                 <span class="admin-program-col-name">프로그램명</span>
                 <span class="admin-program-col-category">카테고리</span>
                 <span class="admin-program-col-org">청년센터</span>
@@ -81,7 +97,14 @@
                 <span th:unless="${(q != null and !q.isEmpty()) or (statusFilter != null and !statusFilter.isEmpty())}">등록된 프로그램이 없어요.</span>
             </div>
 
-            <div th:each="p : ${programs.content}" class="admin-program-row">
+            <div th:each="p : ${programs.content}" class="admin-program-row"
+                 th:data-program-id="${p.id}">
+                <span class="admin-program-col-check">
+                    <input type="checkbox" class="admin-bulk-checkbox"
+                           data-bulk-checkbox
+                           th:value="${p.id}"
+                           th:aria-label="|${p.title} 선택|"/>
+                </span>
                 <a class="admin-program-col-name admin-program-name-link"
                    th:href="@{/admin/programs/{id}(id=${p.id})}">
                     <span class="admin-program-thumb-wrap">
@@ -135,9 +158,13 @@
                th:classappend="${hasNextGroup} ? '' : 'admin-page-btn--disabled'">›</a>
         </nav>
 
+        <!-- A8 bulk action bar -->
+        <div th:replace="~{admin/fragments/_bulk-action-bar :: bar('programs', @{/admin/programs/export.csv(q=${q}, status=${statusFilter})}, false, null)}"></div>
+
     </div>
 </main>
 
+<script th:src="@{/js/admin-bulk.js}" defer></script>
 <script th:inline="javascript">
     (function () {
         var trigger = document.querySelector('.admin-header-user-trigger');

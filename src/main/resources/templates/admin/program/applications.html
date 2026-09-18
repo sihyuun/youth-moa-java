@@ -31,6 +31,10 @@
                     <h2 class="admin-program-form-title">신청 관리</h2>
                     <p class="admin-program-form-sub" th:text="${program.title}">프로그램명</p>
                 </div>
+                <a class="admin-btn--csv"
+                   th:href="@{/admin/programs/{id}/applications/export.csv(id=${program.id}, status=${statusFilter}, q=${q})}"
+                   data-testid="csv-export-btn"
+                   aria-label="CSV 내보내기">📥 CSV 내보내기</a>
             </div>
         </section>
 
@@ -109,6 +113,10 @@
         <!-- 목록 테이블 -->
         <section class="admin-program-list-card">
             <div class="admin-application-row admin-application-row--head">
+                <span class="admin-application-col-check">
+                    <input type="checkbox" class="admin-bulk-checkbox" data-bulk-select-all
+                           aria-label="전체 선택"/>
+                </span>
                 <span>No</span>
                 <span>이름</span>
                 <span>이메일</span>
@@ -126,6 +134,12 @@
             <div th:each="app, iter : ${applications.content}"
                  class="admin-application-row"
                  th:attr="data-testid='application-row-' + ${app.id}">
+                <span class="admin-application-col-check">
+                    <input type="checkbox" class="admin-bulk-checkbox"
+                           data-bulk-checkbox
+                           th:value="${app.id}"
+                           th:aria-label="|${app.user.name} 신청 선택|"/>
+                </span>
                 <span th:text="${applications.number * 10 + iter.count}">1</span>
                 <span th:text="${app.user.name}">이름</span>
                 <span th:text="${app.user.email}">email@test</span>
@@ -162,8 +176,12 @@
                class="admin-pagination-link">›</a>
         </nav>
 
+        <!-- A8 bulk action bar. approvePath 로 programId 주입 (JS 가 사용) -->
+        <div th:replace="~{admin/fragments/_bulk-action-bar :: bar('applications', @{/admin/programs/{id}/applications/export.csv(id=${program.id}, status=${statusFilter}, q=${q})}, false, @{/admin/programs/{id}/applications/bulk/approve(id=${program.id})})}"></div>
+
     </div>
 </main>
 
+<script th:src="@{/js/admin-bulk.js}" defer></script>
 </body>
 </html>

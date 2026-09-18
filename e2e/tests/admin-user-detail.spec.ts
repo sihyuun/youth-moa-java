@@ -14,10 +14,13 @@ test.beforeEach(async ({ page }) => {
 
 async function findSeedUserId(page: import('@playwright/test').Page, email: string): Promise<number> {
     await page.goto(`/admin/users?q=${encodeURIComponent(email)}`, { waitUntil: 'domcontentloaded' });
-    const href = await page.locator('a.admin-user-row:not(.admin-user-row--head)').first().getAttribute('href');
-    const match = href?.match(/\/admin\/users\/(\d+)/);
-    if (!match) throw new Error(`could not find user id for ${email}`);
-    return Number(match[1]);
+    // A8 이후 row 는 <div data-user-id="..."> + 내부 <a class="admin-user-row-link"> 로 분리.
+    const userId = await page
+        .locator('.admin-user-row:not(.admin-user-row--head)')
+        .first()
+        .getAttribute('data-user-id');
+    if (!userId) throw new Error(`could not find user id for ${email}`);
+    return Number(userId);
 }
 
 test('상세 진입 → 2컬럼 그리드 · 좌 프로필 · 우 신청 이력', async ({ page }) => {

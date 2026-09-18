@@ -27,6 +27,11 @@
                 <h2 class="admin-program-title">사용자 관리</h2>
                 <p class="admin-program-sub">가입한 사용자를 조회하고 권한 변경·차단·재활성화할 수 있어요.</p>
             </div>
+            <!-- A8: 상단 CSV 내보내기 (필터 결과 전체 · Qn-CSV1) -->
+            <a class="admin-btn--csv admin-btn-csv"
+               th:href="@{/admin/users/export.csv(q=${q}, role=${roleFilter})}"
+               data-testid="csv-export-btn"
+               aria-label="CSV 내보내기">📥 CSV 내보내기</a>
         </section>
 
         <!-- Flash 메시지 -->
@@ -67,6 +72,10 @@
         <section class="admin-user-list-card">
 
             <div class="admin-user-row admin-user-row--head" role="row">
+                <span class="admin-user-col-check">
+                    <input type="checkbox" class="admin-bulk-checkbox" data-bulk-select-all
+                           aria-label="전체 선택"/>
+                </span>
                 <span class="admin-user-col-no">No.</span>
                 <span class="admin-user-col-name">이름</span>
                 <span class="admin-user-col-email">이메일</span>
@@ -83,13 +92,22 @@
                 <span th:unless="${(q != null and !q.isEmpty()) or (roleFilter != null and !roleFilter.isEmpty())}">등록된 사용자가 없어요.</span>
             </div>
 
-            <a th:each="u, iter : ${users.content}"
-               th:href="@{/admin/users/{id}(id=${u.id})}"
-               class="admin-user-row"
-               role="row">
-                <span class="admin-user-col-no"
-                      th:text="${users.number * users.size + iter.index + 1}">1</span>
-                <span class="admin-user-col-name" th:text="${u.name}">이름</span>
+            <div th:each="u, iter : ${users.content}"
+                 class="admin-user-row"
+                 role="row"
+                 th:data-user-id="${u.id}">
+                <span class="admin-user-col-check">
+                    <input type="checkbox" class="admin-bulk-checkbox"
+                           data-bulk-checkbox
+                           th:value="${u.id}"
+                           th:aria-label="|${u.name} 선택|"/>
+                </span>
+                <a class="admin-user-col-no admin-user-row-link"
+                   th:href="@{/admin/users/{id}(id=${u.id})}"
+                   th:text="${users.number * users.size + iter.index + 1}">1</a>
+                <a class="admin-user-col-name admin-user-row-link"
+                   th:href="@{/admin/users/{id}(id=${u.id})}"
+                   th:text="${u.name}">이름</a>
                 <span class="admin-user-col-email" th:text="${u.email}">email@ex.com</span>
                 <span class="admin-user-col-gender"
                       th:text="${u.gender != null ? (u.gender.name() == 'MALE' ? '남' : (u.gender.name() == 'FEMALE' ? '여' : '-')) : '-'}">-</span>
@@ -109,8 +127,11 @@
                           th:classappend="${u.isActive() ? 'admin-user-status-badge--active' : 'admin-user-status-badge--inactive'}"
                           th:text="${u.isActive() ? '활성' : '차단'}">활성</span>
                 </span>
-            </a>
+            </div>
         </section>
+
+        <!-- A8 bulk action bar -->
+        <div th:replace="~{admin/fragments/_bulk-action-bar :: bar('users', @{/admin/users/export.csv(q=${q}, role=${roleFilter})}, true, null)}"></div>
 
         <!-- 페이징 -->
         <nav class="admin-notice-paging" th:if="${users.totalPages > 1}" aria-label="페이지 이동">
@@ -132,6 +153,7 @@
     </div>
 </main>
 
+<script th:src="@{/js/admin-bulk.js}" defer></script>
 <script th:inline="javascript">
     (function () {
         var trigger = document.querySelector('.admin-header-user-trigger');

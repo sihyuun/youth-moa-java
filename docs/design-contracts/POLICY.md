@@ -66,6 +66,36 @@
 
 **적용 방법**: 새 섹션 작업 시 `.container` 를 붙이기 전에 prototype 해당 블록의 `maxWidth` 를 먼저 확인한다.
 
+## P-CSV-1. CSV 파일명 규칙
+
+**결정**: `{domain}_{yyyyMMdd_HHmmss}.csv` (KST · underscore). 예: `users_20260917_143025.csv`.
+
+**근거**: 관리자가 여러 시점의 export 를 로컬에 보관할 때 파일명 정렬만으로 시점 파악 가능. 도메인 접두어로 파일 검색성 확보.
+
+## P-CSV-2. CSV 인코딩
+
+**결정**: UTF-8 + BOM (0xEF 0xBB 0xBF). `Content-Type: text/csv; charset=UTF-8`.
+
+**근거**: Excel 은 BOM 없이 UTF-8 을 CP949 로 오인 → 한글 깨짐. BOM 을 붙이면 Excel/Numbers/Google Sheets 모두 UTF-8 로 정확 인식. Qn-QC 확정.
+
+## P-CSV-3. CSV 라인 종결
+
+**결정**: CRLF (`\r\n`). opencsv `CSVWriter` 기본값.
+
+**근거**: RFC 4180 · Windows Excel 호환. LF-only 는 구 Excel 에서 단일 셀에 병합 렌더링 사고 이력.
+
+## P-BULK-1. bulk action 트랜잭션 = per-row
+
+**결정**: bulk endpoint 는 각 row 를 독립 트랜잭션(REQUIRES_NEW)으로 실행. 한 row 실패 시 다른 row 롤백되지 않음. 결과는 `BulkResult(successCount, failCount, errors)` 로 집계.
+
+**근거**: all-or-nothing 은 대량 처리 UX 부적합 — 1건 사유로 100건이 전부 롤백되면 재시도 부담이 커진다. per-row 는 부분 성공을 허용하고 실패 사유를 flash 에 표시해 재작업 대상만 정확히 특정할 수 있게 한다.
+
+## P-BULK-2. bulk selection state = 페이지 이동 시 초기화
+
+**결정**: selection 은 DOM 내부 `Set<Long>` 로만 관리. 페이지 이동·필터 변경·검색 시 자동 초기화.
+
+**근거**: 여러 페이지에 걸친 선택 UX 는 "지금 몇 건이 담겨 있는가" 를 사용자가 놓치기 쉬워 오조작 위험. QB 확정.
+
 ## P-5. prototype 에 없는 개선은 계약에 넣지 않고 문서로 남긴다
 
 **결정**: 구현이 prototype 보다 나은 방향으로 추가한 요소는 **계약 검사 대상이 아니다.** 계약은 "prototype 대비 누락·불일치" 를 잡는 도구이므로, 추가분을 넣으면 방향이 뒤집힌다. 대신 해당 화면 계약 `.md` 에 "prototype 에 없는 구현 추가 요소" 로 기록해 나중에 "이건 왜 있지?" 가 되지 않게 한다.

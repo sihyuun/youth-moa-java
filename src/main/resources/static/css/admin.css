@@ -3168,3 +3168,174 @@ body.admin-shell-body {
     color: #9C97A8;
     font-size: 13px;
 }
+
+/* ─── A8 admin-bulk-csv (2026-09-17) ─────────────────────────────
+ * spec §4-3 · prototype.html L2772 (다크 톤) · L4091~4124 (bulk selection).
+ * POLICY: floating bottom · #1E293B · 선택 개수 + 액션 슬롯 + 해제.
+ */
+
+/* 상단 CSV 내보내기 버튼 */
+.admin-btn--csv {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--admin-primary);
+    background: #fff;
+    border: 1px solid var(--admin-primary);
+    border-radius: 8px;
+    text-decoration: none;
+    transition: background 0.15s;
+}
+.admin-btn--csv:hover {
+    background: var(--admin-primary-bg);
+}
+
+/* 목록 체크박스 컬럼 */
+.admin-user-col-check,
+.admin-program-col-check,
+.admin-application-col-check {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    min-width: 36px;
+}
+.admin-bulk-checkbox {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    accent-color: var(--admin-primary);
+}
+
+/* Floating bulk action bar */
+.admin-bulk-action-bar {
+    position: fixed;
+    left: 50%;
+    bottom: 28px;
+    transform: translateX(-50%);
+    z-index: 900;
+    display: none;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 24px;
+    background: #1E293B;
+    color: #fff;
+    border-radius: 12px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+    max-width: min(1200px, 90vw);
+}
+.admin-bulk-action-bar[data-active="true"] {
+    display: flex;
+}
+.admin-bulk-count {
+    font-weight: 600;
+    font-size: 14px;
+    color: #fff;
+}
+.admin-bulk-count strong {
+    color: #A5B4FC;
+    font-weight: 700;
+}
+.admin-bulk-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.admin-bulk-btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 12px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #fff;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 6px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.15s;
+}
+.admin-bulk-btn:hover {
+    background: rgba(255, 255, 255, 0.18);
+}
+.admin-bulk-btn--danger {
+    color: #FCA5A5;
+    border-color: #7F1D1D;
+}
+.admin-bulk-btn--primary {
+    background: var(--admin-primary);
+    border-color: var(--admin-primary);
+}
+.admin-bulk-btn--primary:hover {
+    background: var(--admin-primary-hover);
+}
+.admin-bulk-clear {
+    background: transparent;
+    border: none;
+    color: #94A3B8;
+    font-size: 13px;
+    cursor: pointer;
+    padding: 4px 8px;
+}
+.admin-bulk-clear:hover {
+    color: #fff;
+}
+
+/* Bulk confirm dialog (modal) */
+.admin-bulk-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 950;
+    display: none;
+    align-items: center;
+    justify-content: center;
+}
+.admin-bulk-modal-backdrop[data-open="true"] {
+    display: flex;
+}
+.admin-bulk-modal {
+    background: #fff;
+    border-radius: 12px;
+    padding: 24px;
+    width: 420px;
+    max-width: 90vw;
+    box-shadow: var(--shadow-lg);
+}
+.admin-bulk-modal-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0 0 8px 0;
+    color: var(--admin-text-primary);
+}
+.admin-bulk-modal-msg {
+    font-size: 14px;
+    color: var(--admin-text-sec);
+    margin: 0 0 16px 0;
+    line-height: 1.5;
+}
+.admin-bulk-modal-input {
+    width: 100%;
+    padding: 8px 12px;
+    font-size: 14px;
+    border: 1px solid var(--admin-border);
+    border-radius: 6px;
+    margin-bottom: 16px;
+}
+.admin-bulk-modal-select {
+    width: 100%;
+    padding: 8px 12px;
+    font-size: 14px;
+    border: 1px solid var(--admin-border);
+    border-radius: 6px;
+    margin-bottom: 16px;
+    background: #fff;
+}
+.admin-bulk-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
