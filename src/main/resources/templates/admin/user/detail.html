@@ -151,12 +151,13 @@
                 </form>
 
                 <!-- A5-1 (2026-09-18): 임시 비밀번호 재발급 (SYSTEM_ADMIN 만, 자기 자신 제외) -->
+                <!-- Recovery #1 (2026-09-18): .admin-user-danger-zone 클래스 중복 해소 - 위험 존과 성격 다름 (관리 액션 vs 계정 정지) -->
                 <div sec:authorize="hasRole('SYSTEM_ADMIN')"
                      th:if="${!isSelf}"
-                     class="admin-user-danger-zone"
+                     class="admin-user-password-reset"
                      style="border-top:1px solid #E3E1E8;padding-top:16px;margin-top:16px">
                     <h4 class="admin-user-card-subtitle">비밀번호 재발급</h4>
-                    <p class="admin-user-danger-desc" style="font-size:12px;color:#6E6B82;margin:6px 0 10px 0">
+                    <p style="font-size:12px;color:#6E6B82;margin:6px 0 10px 0">
                         임시 비밀번호를 자동 생성해 즉시 교체해요. 대상자는 다음 로그인 시 반드시 새 비밀번호로 변경해야 해요.
                     </p>
                     <form th:action="@{/admin/users/{id}/reset-password(id=${target.id})}" method="post"
