@@ -44,6 +44,29 @@
         <div th:if="${flashError}" class="admin-flash admin-flash--error" role="alert"
              th:text="${flashError}"></div>
 
+        <!-- A5-1 (2026-09-18): 초기/임시 비밀번호 1회 노출 카드 (flash — 새로고침 시 사라짐) -->
+        <div th:if="${flashInitialPassword}"
+             class="admin-flash admin-flash--success"
+             role="status"
+             data-testid="admin-user-initial-password"
+             style="border-left:4px solid #3F30E9;padding:16px 20px;background:#EEF0FF">
+            <p style="margin:0 0 8px 0;font-size:13px;font-weight:700;color:#2B2A3D">
+                초기 비밀번호가 발급되었어요
+            </p>
+            <p th:if="${flashInitialEmail}" style="margin:0 0 6px 0;font-size:12px;color:#6E6B82">
+                이메일: <strong th:text="${flashInitialEmail}" style="color:#2B2A3D">-</strong>
+            </p>
+            <p style="margin:0 0 6px 0;font-size:12px;color:#6E6B82">
+                초기 비밀번호:
+                <strong th:text="${flashInitialPassword}"
+                        data-testid="admin-user-initial-password-value"
+                        style="color:#3F30E9;font-family:monospace;font-size:14px;padding:2px 6px;background:#fff;border-radius:4px;border:1px solid #E3E1E8">-</strong>
+            </p>
+            <p style="margin:0;font-size:11px;color:#EF4444">
+                이 비밀번호는 이 화면에서만 확인할 수 있어요. 안전한 채널로 대상자에게 전달하고, 대상자는 최초 로그인 후 반드시 비밀번호를 변경해야 해요.
+            </p>
+        </div>
+
         <!-- 2컬럼 (좌 프로필 / 우 신청 이력) -->
         <div class="admin-user-detail-grid">
 
@@ -126,6 +149,25 @@
                         <button type="submit" class="admin-btn admin-btn--outline admin-btn--sm">메모 저장</button>
                     </div>
                 </form>
+
+                <!-- A5-1 (2026-09-18): 임시 비밀번호 재발급 (SYSTEM_ADMIN 만, 자기 자신 제외) -->
+                <!-- Recovery #1 (2026-09-18): .admin-user-danger-zone 클래스 중복 해소 - 위험 존과 성격 다름 (관리 액션 vs 계정 정지) -->
+                <div sec:authorize="hasRole('SYSTEM_ADMIN')"
+                     th:if="${!isSelf}"
+                     class="admin-user-password-reset"
+                     style="border-top:1px solid #E3E1E8;padding-top:16px;margin-top:16px">
+                    <h4 class="admin-user-card-subtitle">비밀번호 재발급</h4>
+                    <p style="font-size:12px;color:#6E6B82;margin:6px 0 10px 0">
+                        임시 비밀번호를 자동 생성해 즉시 교체해요. 대상자는 다음 로그인 시 반드시 새 비밀번호로 변경해야 해요.
+                    </p>
+                    <form th:action="@{/admin/users/{id}/reset-password(id=${target.id})}" method="post"
+                          onsubmit="return confirm('임시 비밀번호를 재발급할까요? 기존 비밀번호는 즉시 무효화돼요.');">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                        <button type="submit"
+                                class="admin-btn admin-btn--outline admin-btn--sm"
+                                data-testid="admin-user-reset-password-btn">임시 비밀번호 재발급</button>
+                    </form>
+                </div>
 
                 <!-- Danger zone: 차단 / 재활성화 (자기 자신 disabled) -->
                 <div class="admin-user-danger-zone">

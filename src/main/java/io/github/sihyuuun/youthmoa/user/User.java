@@ -133,6 +133,21 @@ public class User extends BaseTimeEntity {
   @Column(length = 500)
   private String deactivationReason;
 
+  // ─── A5-1 admin-staff-management (2026-09-18) — 관리자 발급 · 초기 password 강제 변경 · 감사 ───
+  // V19 마이그레이션과 세트. 기존 row 는 DEFAULT FALSE / NULL 로 초기화됨.
+  //   - mustChangePassword=TRUE 이면 로그인 후 PasswordChangeRequiredInterceptor 가 /password/change 로 강제
+  // redirect.
+  //   - passwordChangedAt 은 감사용 (unknown=NULL). 신규 발급 시 NULL 유지, 자체 변경 시 now().
+  //   - invitedBy 는 관리자가 발급한 계정 감사 추적. 자체 가입 유저는 NULL.
+  @Column(nullable = false, columnDefinition = "boolean not null default false")
+  private boolean mustChangePassword = false;
+
+  @Column private LocalDateTime passwordChangedAt;
+
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "invited_by")
+  private User invitedBy;
+
   @Builder
   private User(
       String email,
@@ -201,8 +216,33 @@ public class User extends BaseTimeEntity {
     this.notifyNewProgramNews = newProgramNews;
   }
 
+  /**
+   * 사용자 자체 비밀번호 변경 (마이페이지 · 비밀번호 찾기 · 강제 변경 화면 공용). A5-1: mustChangePassword flag 해제 및
+   * passwordChangedAt 갱신.
+   */
   public void changePassword(String newPassword) {
     this.password = newPassword;
+    this.mustChangePassword = false;
+    this.passwordChangedAt = LocalDateTime.now();
+  }
+
+  /**
+   * A5-1: 관리자가 신규 관리자 계정을 발급할 때 · 자동생성 password 를 세팅한다.
+   *
+   * <p>mustChangePassword=TRUE 세팅 후 인터셉터가 최초 로그인 시 /password/change 로 강제 이동시킨다. invitedBy 는 감사 로그.
+   */
+  public void assignInitialPassword(String encodedPassword, User invitedBy) {
+    this.password = encodedPassword;
+    this.mustChangePassword = true;
+    this.passwordChangedAt = null;
+    this.invitedBy = invitedBy;
+  }
+
+  /** A5-1: SYSTEM_ADMIN 이 임시 password 를 재발급한다. invitedBy 는 유지 (원 발급자 감사 보존). */
+  public void resetPasswordByAdmin(String encodedPassword) {
+    this.password = encodedPassword;
+    this.mustChangePassword = true;
+    this.passwordChangedAt = null;
   }
 
   public void updateProfile(
