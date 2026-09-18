@@ -3,10 +3,73 @@ name: youth-moa-java 신규 프로젝트 (Spring Boot 4 + Java 21 + Thymeleaf)
 description: 기존 youth-moa(Next.js)를 Java 풀스택으로 재작성하는 학습/전환 프로젝트. 진행 상황·DB·다음 작업·열린 PR 메모
 type: project
 originSessionId: 51da8e75-f7a2-4b05-b2b6-963ce41efb6a
-modified: 2026-09-16T00:00:00.000Z
+modified: 2026-09-18T00:00:00.000Z
 ---
 
-> **마지막 갱신**: 2026-09-16 (**admin 트랙 대공사 + PR 정리** — A1~A5 admin 트랙 12 PR 머지 · Dependabot 8 PR 머지 · 열린 PR 10→0 청산 · `/dev-cycle` skill 정착 · A5 Recovery #1~#5 패턴 축적).
+> **마지막 갱신**: 2026-09-18 (**admin 트랙 완결 페이즈 4 PR** — A6 stats · A7 header-live · A8 bulk/CSV · A5-1 staff-management. `/dev-cycle` 성숙 · Recovery 원인 패턴 축적).
+
+## 🟢 2026-09-17 ~ 2026-09-18 세션 — admin 트랙 완결 페이즈 (4 PR)
+
+### 머지 완료 (main 순서)
+
+| PR | 커밋 | 스코프 | Recovery |
+|---|---|---|---|
+| **#216** | `d87eba9` | **A6 admin-stats** — 통계 대시보드 (KPI · 방문자 라인/막대 · 성별/연령 도넛 · 프로그램별 · 마감임박) | 0회 · 첫 시도 GREEN |
+| **#217** | `b9017df` | **A7 admin-header-live** — 헤더 실시간 알림 벨 · HTMX polling 30s · NotificationRecipientResolver B-1→B-3 확장성 | 1회 (badge fragment id 중복) |
+| **#218** | `21fd503` | **A8 admin-bulk-csv** — 대량 처리 5 · CSV 3 · AdminUserSafeguard 추출 · Qn-P1 미도입 · Qn-App1 Approve만 | 1회 (list.html div 구조 → Playwright 셀렉터 회귀) |
+| **#219** | `15b2dcd` | **A5-1 admin-staff-management** — 관리자 계정 발급 · SecureRandomPasswordGenerator · PasswordChangeRequiredInterceptor · `/admin/users/new` 편입 | 1회 (danger-zone class 중복) |
+
+### admin 트랙 전체 현황 (13 PR 완료)
+
+**A1~A8 + A5-1**: shell · 공지 · 약관 · F0c 동적 필드 · F4 자격요건 · A2 프로그램 목록 · A3-1/2 폼/통합 · A4 신청 관리 · A5 사용자 관리 · **A6 통계** · **A7 알림 벨** · **A8 대량+CSV** · **A5-1 관리자 계정 발급**
+
+### 주요 학습·정착 (2026-09-17~18)
+
+1. **A6 서버 렌더 SVG 차트** — 외부 CDN 없이 prototype `createBarChart`/`createDonutChart` Java 이식 (CSP 안전 · 도넛/라인/바 3종)
+2. **A6 DailyVisit 인프라** — HandlerInterceptor in-memory 누적 + `@Scheduled(cron="0 0 2 * * *")` 심야 flush · `@ConditionalOnProperty` fallback · Interceptor p50 +2ms 이내
+3. **A6 AgeBucket enum 최초 신설** — 기존에 birthDate 저장만 있고 계산 로직 부재. `AgeBucket.of(birthDate, today)` 도메인 헬퍼로 첫 도입 (19-24 · 25-29 · 30-34 · 35-39 · 40+ · UNKNOWN)
+4. **A7 Thymeleaf fragment overloading 미지원** — 같은 이름 두 정의 시 arg 유무 구분 없이 둘 다 매치 → 이중 렌더. Spring MVC view spec 은 named parameter (`badge(count=${x})`) 만 허용. **계약 강화**: `kind: exists` 대신 `count === 1` assertion 필수
+5. **A7 NotificationRecipientResolver 인터페이스** — B-1 (organization 매칭 CENTER_ADMIN 자기 센터만 · SYSTEM_ADMIN 제외 · 성수기 발송량 3~5배 감소) → B-3 (Program.createdBy · watcher chain) 로드맵. 이벤트 리스너 코드 무변경 (SRP)
+6. **A7 @TransactionalEventListener(AFTER_COMMIT) + REQUIRES_NEW + try/catch** — apply/signUp 트랜잭션 완전 격리 · fan-out 실패해도 원본 flow 성공 유지
+7. **A8 AdminUserSafeguard 추출** — 개별+bulk 재사용 · SRP · A5 refactor 후에도 회귀 방어 확립
+8. **A8 opencsv 5.x 기본 라인 종결자 = LF only** · CRLF 필요 시 5-인자 CSVWriter 생성자에 명시. **UTF-8 BOM prefix** — Excel 한글 오픈 시 필수 (`﻿`)
+9. **A8 Qn-App1 A안** (Approve bulk 만 · Reject 개별) — 청년 정책 도메인 정합 · 반려 사유 개별성 · 감사·항의 대응. Zendesk/Jira 공통 사유는 청년몽땅 패턴과 상충
+10. **A8 Qn-P1 미도입** — `Program.getStatus()` 는 런타임 파생 (신청기간·정원) · UPDATE 대상 아님. bulk publish/unpublish endpoint 자체 없음
+11. **A5-1 QC 옵션 B** — prototype L1946~2045 정합. 별도 `/admin/staff` 화면 X · `/admin/users/new` 편입. prototype 검색 결과 `admin-staff`/`staff-list`/`관리자 관리` 매치 0건
+12. **A5-1 SecureRandomPasswordGenerator** — `java.security.SecureRandom` 사용 · 12자 · 4문자 클래스 (대·소·숫자·특수) 보장. Qn-11 원안 A→B 정정 (검증 유지 · 보안 우위 · AWS/GCP/Okta 실무 정합)
+13. **A5-1 PasswordChangeRequiredInterceptor** — flag=TRUE 유저만 발동 · 로그인 유저 flag=FALSE O(1) 즉시 통과. UserPrincipal 스냅샷 · DB hit 지양
+14. **Recovery 원인 3대 패턴 (반복 확인)**:
+    - **HTML/CSS 클래스 중복** — Playwright strict mode violation (A5-1 danger-zone · A7 fragment id)
+    - **DOM 구조 리팩토링 시 스펙 셀렉터 회귀** (A8 list.html `<a>` → `<div>`)
+    - **PR 병합 후 stale base** (Dependabot rebase 로 해소)
+
+### verify F1 이슈 → spec 정정 패턴 확립
+
+- 실 구현이 spec 원안보다 보안/UX 우위일 때: **spec 을 실 구현에 맞춰 정정** (코드 downgrade 지양)
+- A5-1 Qn-11 사례: A안 (검증 우회) → B안 (검증 유지 · 실 구현 유지)
+
+### 이월 항목 (A6~A8 + A5-1)
+
+**A6**: viewCount (A6-followup) · Excel export (A8) · Cohort · 실시간 대시보드 · Redis 캐시 · admin-stats.spec.ts
+**A7**: A7-rate-limit (5분 내 반복 알림 병합) · A7-createdBy-recipient (Program.createdBy + watcher · A9와 함께) · A7-realtime · A7-scheduler · A7-email · A7-search · A7-settings · A7-mypage · A7-e2e-suite
+**A8**: A8-reject-bulk (Applications reject bulk · 반려 사유 개별성) · A8-xlsx · A8-follow-async · A8-followup-403 (CENTER_ADMIN 타 센터 CSV UX) · A8-e2e-suite
+**A5-1**: A5-2 (사용자 프로필 편집 D1) · A5-1-e2e · SMTP invitation · 관리자 활동 로그 · MFA/SSO · 관리자 특화 컬럼
+
+### 다음 작업 큐 (top 5)
+
+1. **A5-2** 사용자 프로필 편집 (A5 D1 이월 · 사용자 스코프 완결)
+2. **A9 Program-Center FK 정식 도입** (organization 문자열 → FK · A7-createdBy-recipient B-3 확장 트리거)
+3. **A7-e2e-suite · A8-followup · A5-1-e2e** — Playwright 기능 E2E · 계약 파일 신설 통합 티켓
+4. **A6-followup** — `Program.viewCount` 엔티티 · admin-stats.spec.ts
+5. **A7-rate-limit** — 성수기 반복 알림 병합 (실무 관찰 후 판단)
+
+### 이전 이월 (변동 없음)
+
+- **D5 Q3**: CapacityBar `showLabel` 미니 모드 (admin/캘린더 트랙 착수 시)
+
+---
+
+## 🟢 2026-09-04 ~ 2026-09-16 세션 — admin 트랙 대공사 (12 PR) + PR 정리 (10건 청산)
 
 ## 🟢 2026-09-04 ~ 2026-09-16 세션 — admin 트랙 대공사 (12 PR) + PR 정리 (10건 청산)
 
