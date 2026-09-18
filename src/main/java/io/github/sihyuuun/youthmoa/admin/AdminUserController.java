@@ -1,7 +1,9 @@
 package io.github.sihyuuun.youthmoa.admin;
 
 import io.github.sihyuuun.youthmoa.application.Application;
+import io.github.sihyuuun.youthmoa.center.CenterRepository;
 import io.github.sihyuuun.youthmoa.user.User;
+import io.github.sihyuuun.youthmoa.user.UserGender;
 import io.github.sihyuuun.youthmoa.user.UserPrincipal;
 import io.github.sihyuuun.youthmoa.user.UserRepository;
 import io.github.sihyuuun.youthmoa.user.UserRole;
@@ -46,6 +48,7 @@ public class AdminUserController {
   private final AdminUserBulkService adminUserBulkService;
   private final AdminScope adminScope;
   private final UserRepository userRepository;
+  private final CenterRepository centerRepository;
 
   // ================= 목록 =================
 
@@ -79,9 +82,79 @@ public class AdminUserController {
     return "admin/user/list";
   }
 
+  // ================= A5-1 admin-staff-management (2026-09-18) — 신규 발급 폼 =================
+
+  /**
+   * SYSTEM_ADMIN 전용 · 신규 사용자/관리자 발급 폼.
+   *
+   * <p>prototype L1946~2045 정합 (옵션 B 편입) — 권한 radio: 사용자 · 관리자. 관리자 선택 시 role sub-radio
+   * (CENTER_ADMIN · SYSTEM_ADMIN). CENTER_ADMIN 선택 시 소속 센터 select.
+   *
+   * <p>route 우선순위: literal `/new` 는 `/{uid}` 보다 우선 매칭됨. 안전 확보 위해 `{uid}` 는 `\\d+` 로 제한.
+   */
+  @GetMapping("/new")
+  public String newForm(Model model) {
+    populateCommonModel(model);
+    model.addAttribute("centers", centerRepository.findAllByOrderByNameAsc());
+    return "admin/user/new";
+  }
+
+  /** SYSTEM_ADMIN 전용 · 신규 계정 발급. 초기 password 자동생성 · flash 1회 노출 · redirect /admin/users/{id}. */
+  @PostMapping
+  public String create(
+      @RequestParam String email,
+      @RequestParam String name,
+      @RequestParam(required = false) String gender,
+      @RequestParam String role,
+      @RequestParam(required = false) Long centerId,
+      @AuthenticationPrincipal UserPrincipal principal,
+      RedirectAttributes ra) {
+    try {
+      User admin = loadCurrentAdmin(principal);
+      UserRole newRole = UserRole.valueOf(role.toUpperCase());
+      UserGender newGender = null;
+      if (gender != null && !gender.isBlank()) {
+        try {
+          newGender = UserGender.valueOf(gender.toUpperCase());
+        } catch (IllegalArgumentException ignore) {
+          // 성별 값이 잘못돼도 발급은 진행 (성별은 선택 필드)
+        }
+      }
+      AdminUserService.CreatedStaff created =
+          adminUserService.createStaff(admin, email, name, newGender, newRole, centerId);
+      ra.addFlashAttribute("flashMessage", "계정을 발급했어요.");
+      ra.addFlashAttribute("flashInitialEmail", created.user().getEmail());
+      ra.addFlashAttribute("flashInitialPassword", created.plainPassword());
+      return "redirect:/admin/users/" + created.user().getId();
+    } catch (IllegalArgumentException e) {
+      ra.addFlashAttribute("flashError", e.getMessage());
+      return "redirect:/admin/users/new";
+    } catch (IllegalStateException e) {
+      ra.addFlashAttribute("flashError", e.getMessage());
+      return "redirect:/admin/users/new";
+    }
+  }
+
+  /** SYSTEM_ADMIN 전용 · 임시 password 재발급. */
+  @PostMapping("/{uid:\\d+}/reset-password")
+  public String resetPassword(
+      @PathVariable Long uid,
+      @AuthenticationPrincipal UserPrincipal principal,
+      RedirectAttributes ra) {
+    try {
+      User admin = loadCurrentAdmin(principal);
+      String newPassword = adminUserService.resetPassword(uid, admin);
+      ra.addFlashAttribute("flashMessage", "임시 비밀번호를 재발급했어요.");
+      ra.addFlashAttribute("flashInitialPassword", newPassword);
+    } catch (IllegalArgumentException | IllegalStateException e) {
+      ra.addFlashAttribute("flashError", e.getMessage());
+    }
+    return "redirect:/admin/users/" + uid;
+  }
+
   // ================= 상세 =================
 
-  @GetMapping("/{uid}")
+  @GetMapping("/{uid:\\d+}")
   public String detail(
       @PathVariable Long uid,
       @RequestParam(required = false, defaultValue = "ALL") String tab,

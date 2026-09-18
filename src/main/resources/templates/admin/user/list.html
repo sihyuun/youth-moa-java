@@ -27,11 +27,18 @@
                 <h2 class="admin-program-title">사용자 관리</h2>
                 <p class="admin-program-sub">가입한 사용자를 조회하고 권한 변경·차단·재활성화할 수 있어요.</p>
             </div>
-            <!-- A8: 상단 CSV 내보내기 (필터 결과 전체 · Qn-CSV1) -->
-            <a class="admin-btn--csv admin-btn-csv"
-               th:href="@{/admin/users/export.csv(q=${q}, role=${roleFilter})}"
-               data-testid="csv-export-btn"
-               aria-label="CSV 내보내기">📥 CSV 내보내기</a>
+            <div style="display:flex;gap:8px;align-items:center">
+                <!-- A5-1 (2026-09-18): 신규 사용자 등록 (SYSTEM_ADMIN 만) -->
+                <a sec:authorize="hasRole('SYSTEM_ADMIN')"
+                   class="admin-btn admin-btn--primary admin-btn--sm"
+                   th:href="@{/admin/users/new}"
+                   data-testid="admin-user-new-btn">+ 신규 사용자 등록</a>
+                <!-- A8: 상단 CSV 내보내기 (필터 결과 전체 · Qn-CSV1) -->
+                <a class="admin-btn--csv admin-btn-csv"
+                   th:href="@{/admin/users/export.csv(q=${q}, role=${roleFilter})}"
+                   data-testid="csv-export-btn"
+                   aria-label="CSV 내보내기">📥 CSV 내보내기</a>
+            </div>
         </section>
 
         <!-- Flash 메시지 -->

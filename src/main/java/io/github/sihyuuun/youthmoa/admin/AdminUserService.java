@@ -3,7 +3,10 @@ package io.github.sihyuuun.youthmoa.admin;
 import io.github.sihyuuun.youthmoa.application.Application;
 import io.github.sihyuuun.youthmoa.application.ApplicationRepository;
 import io.github.sihyuuun.youthmoa.application.ApplicationStatus;
+import io.github.sihyuuun.youthmoa.center.Center;
+import io.github.sihyuuun.youthmoa.center.CenterRepository;
 import io.github.sihyuuun.youthmoa.user.User;
+import io.github.sihyuuun.youthmoa.user.UserGender;
 import io.github.sihyuuun.youthmoa.user.UserRepository;
 import io.github.sihyuuun.youthmoa.user.UserRole;
 import jakarta.persistence.criteria.Predicate;
@@ -15,6 +18,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,6 +45,9 @@ public class AdminUserService {
   private final UserRepository userRepository;
   private final ApplicationRepository applicationRepository;
   private final AdminUserSafeguard safeguard;
+  private final CenterRepository centerRepository;
+  private final PasswordEncoder passwordEncoder;
+  private final SecureRandomPasswordGenerator passwordGenerator;
 
   // ================= 조회 =================
 
@@ -146,6 +153,81 @@ public class AdminUserService {
     User target = findById(userId);
     target.updateAdminNote(note);
   }
+
+  // ================= A5-1 admin-staff-management (2026-09-18) =================
+
+  /**
+   * SYSTEM_ADMIN 이 신규 계정을 발급한다.
+   *
+   * <ul>
+   *   <li>role=USER 도 발급 가능 (prototype L1996~2005 정합) — 관리자 발급 UI 이지만 옵션 B 편입으로 사용자 계정도 함께 발급.
+   *   <li>role=CENTER_ADMIN 이면 center 필수. 그 외 role 은 center=null.
+   *   <li>초기 password 는 {@link SecureRandomPasswordGenerator} 로 자동 생성. bcrypt 해시 저장.
+   *   <li>mustChangePassword=TRUE + invitedBy=admin.
+   *   <li>이메일 중복 시 400 (시드 계정 email 포함).
+   *   <li>Safeguard: {@link AdminUserSafeguard#assertCanCreateStaff(User, UserRole)}.
+   * </ul>
+   *
+   * @return {@link CreatedStaff} — 생성 유저 + plain-text 초기 password (flash 1회 노출용)
+   */
+  @Transactional
+  public CreatedStaff createStaff(
+      User admin, String email, String name, UserGender gender, UserRole role, Long centerId) {
+    safeguard.assertCanCreateStaff(admin, role);
+    if (email == null || email.isBlank()) {
+      throw new IllegalArgumentException("이메일을 입력해주세요.");
+    }
+    String normalizedEmail = email.trim().toLowerCase();
+    if (name == null || name.isBlank()) {
+      throw new IllegalArgumentException("이름을 입력해주세요.");
+    }
+    if (userRepository.existsByEmail(normalizedEmail)) {
+      throw new IllegalArgumentException("이미 사용 중인 이메일이에요.");
+    }
+    Center center = null;
+    if (role == UserRole.CENTER_ADMIN) {
+      if (centerId == null) {
+        throw new IllegalArgumentException("소속 센터를 선택해주세요.");
+      }
+      center =
+          centerRepository
+              .findById(centerId)
+              .orElseThrow(() -> new IllegalArgumentException("소속 센터를 찾을 수 없어요."));
+    }
+    String plainPassword = passwordGenerator.generate();
+    String encoded = passwordEncoder.encode(plainPassword);
+
+    User newUser =
+        User.builder()
+            .email(normalizedEmail)
+            .password(encoded)
+            .name(name.trim())
+            .gender(gender)
+            .role(role)
+            .center(center)
+            .build();
+    newUser.assignInitialPassword(encoded, admin);
+    User saved = userRepository.save(newUser);
+    return new CreatedStaff(saved, plainPassword);
+  }
+
+  /**
+   * SYSTEM_ADMIN 이 임시 password 를 재발급한다. mustChangePassword=TRUE 재설정. 자기 자신 리셋 금지 (Qn-5 A).
+   *
+   * @return plain-text 새 password (flash 1회 노출용)
+   */
+  @Transactional
+  public String resetPassword(Long userId, User admin) {
+    User target = findById(userId);
+    safeguard.assertCanResetPassword(admin, target);
+    String plainPassword = passwordGenerator.generate();
+    String encoded = passwordEncoder.encode(plainPassword);
+    target.resetPasswordByAdmin(encoded);
+    return plainPassword;
+  }
+
+  /** 신규 발급 결과 · flash 로 초기 password 1회 노출용. */
+  public record CreatedStaff(User user, String plainPassword) {}
 
   // ================= 헬퍼 =================
 

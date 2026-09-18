@@ -98,4 +98,46 @@ class AdminUserSafeguardTest {
     // no exception - actual role change 은 도메인 메서드가 담당
     assertThat(seedUser.getRole()).isEqualTo(UserRole.USER); // 여전히 원래 role
   }
+
+  // ─── A5-1 admin-staff-management (2026-09-18) ───
+
+  @Test
+  void assertCanCreateStaff_null_role_rejected() {
+    assertThatThrownBy(() -> safeguard.assertCanCreateStaff(sysadmin, null))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("권한");
+  }
+
+  @Test
+  void assertCanCreateStaff_null_admin_rejected() {
+    assertThatThrownBy(() -> safeguard.assertCanCreateStaff(null, UserRole.CENTER_ADMIN))
+        .isInstanceOf(IllegalStateException.class);
+  }
+
+  @Test
+  @SuppressWarnings("deprecation")
+  void assertCanCreateStaff_deprecated_admin_rejected() {
+    assertThatThrownBy(() -> safeguard.assertCanCreateStaff(sysadmin, UserRole.ADMIN))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("중단");
+  }
+
+  @Test
+  void assertCanCreateStaff_valid_roles_pass() {
+    safeguard.assertCanCreateStaff(sysadmin, UserRole.USER);
+    safeguard.assertCanCreateStaff(sysadmin, UserRole.CENTER_ADMIN);
+    safeguard.assertCanCreateStaff(sysadmin, UserRole.SYSTEM_ADMIN);
+  }
+
+  @Test
+  void assertCanResetPassword_self_rejected() {
+    assertThatThrownBy(() -> safeguard.assertCanResetPassword(sysadmin, sysadmin))
+        .isInstanceOf(IllegalStateException.class)
+        .hasMessageContaining("본인");
+  }
+
+  @Test
+  void assertCanResetPassword_others_pass() {
+    safeguard.assertCanResetPassword(sysadmin, seedUser);
+  }
 }

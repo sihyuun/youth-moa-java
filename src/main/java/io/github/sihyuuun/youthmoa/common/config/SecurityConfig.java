@@ -179,7 +179,11 @@ public class SecurityConfig {
                       "/mypage/**",
                       // F-signup-03: 온보딩 화면 — signup 자동 로그인 후 진입.
                       "/welcome",
-                      "/welcome/**")
+                      "/welcome/**",
+                      // A5-1 admin-staff-management (2026-09-18): 강제 password 변경 화면.
+                      // 관리자 발급 계정 · 임시 password 리셋 후 최초 로그인 시 진입.
+                      "/password/change",
+                      "/password/change/**")
                   .authenticated()
                   // 그 외 비인증 허용
                   .requestMatchers(

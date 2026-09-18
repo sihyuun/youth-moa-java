@@ -554,3 +554,31 @@ public class PasswordChangeRequiredInterceptor implements HandlerInterceptor {
 ### 다음 액션
 
 ym-impl 인계 프롬프트에 위 옵션 B 결정 반영. 특히 회귀 방어 3점 + prototype 정합 명시.
+
+---
+
+## §구현 매핑 (ym-impl 2026-09-18)
+
+| 명세 요구 | 구현 위치 |
+|---|---|
+| V19 마이그레이션 (3필드) | `src/main/resources/db/migration/V19__add_users_password_change_columns.sql` |
+| User 엔티티 mustChangePassword / passwordChangedAt / invitedBy | `user/User.java` (A5-1 섹션) |
+| User.assignInitialPassword / resetPasswordByAdmin / changePassword flag 해제 | `user/User.java` (도메인 메서드 3종) |
+| UserPrincipal.mustChangePassword 스냅샷 | `user/UserPrincipal.java` |
+| SecureRandomPasswordGenerator (12자 · 4 클래스) | `admin/SecureRandomPasswordGenerator.java` |
+| AdminUserSafeguard.assertCanCreateStaff / assertCanResetPassword | `admin/AdminUserSafeguard.java` |
+| AdminUserService.createStaff / resetPassword | `admin/AdminUserService.java` (A5-1 섹션) |
+| GET /admin/users/new · POST /admin/users · POST /admin/users/{uid}/reset-password | `admin/AdminUserController.java` (신규 발급 폼 섹션) |
+| admin/user/new.html — 이메일·이름·성별·권한 radio (사용자/관리자) · 관리자 sub-radio (CENTER/SYSTEM) · 소속 센터 | `templates/admin/user/new.html` |
+| admin/user/list.html — 신규 사용자 등록 CTA (SYSTEM_ADMIN 전용) | `templates/admin/user/list.html` |
+| admin/user/detail.html — 초기 password flash 카드 · 임시 password 재발급 CTA | `templates/admin/user/detail.html` |
+| PasswordChangeController + templates/user/password-change.html | `user/PasswordChangeController.java`, `templates/user/password-change.html` |
+| PasswordChangeRequiredInterceptor + WebMvcConfig 등록 | `user/PasswordChangeRequiredInterceptor.java`, `common/config/WebMvcConfig.java` |
+| SecurityConfig `/password/change` authenticated | `common/config/SecurityConfig.java` |
+| 테스트: password generator · service (createStaff+reset) · safeguard 확장 · interceptor · new render | `test/admin/SecureRandomPasswordGeneratorTest.java`, `test/admin/AdminUserServiceStaffTest.java`, `test/admin/AdminUserSafeguardTest.java`, `test/user/PasswordChangeRequiredInterceptorTest.java`, `test/admin/AdminUserNewRenderTest.java` |
+
+**회귀 방어 실증** (모두 PASS):
+- 일반 사용자 flow: SignupAutoLoginTest · SignupRenderTest · UserServiceSignUpTermsTest · MyPageRenderTest · SignupPhoneVerifiedTest
+- A5·A8 endpoint: AdminUserServiceTest · AdminUserSafeguardTest · AdminUserControllerRbacTest · AdminUserListRenderTest · AdminUserDetailRenderTest · AdminUserBulkServiceTest · UserPrincipalIsEnabledTest
+- JpaMappingTest (V19 컬럼 매핑 정합)
+

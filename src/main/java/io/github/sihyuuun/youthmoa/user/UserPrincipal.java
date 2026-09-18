@@ -23,6 +23,12 @@ public class UserPrincipal implements UserDetails {
    */
   private final boolean active;
 
+  /**
+   * A5-1 admin-staff-management (2026-09-18): 강제 password 변경 flag 스냅샷. UserDetailsService 가 매 요청
+   * 재로드 하므로 flag 해제 후 다음 요청에는 최신값 반영. false 인 유저에 대해서는 인터셉터가 즉시 통과 (O(1)).
+   */
+  private final boolean mustChangePassword;
+
   public UserPrincipal(User user) {
     this.id = user.getId();
     this.email = user.getEmail();
@@ -30,6 +36,7 @@ public class UserPrincipal implements UserDetails {
     this.password = user.getPassword();
     this.authorities = List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()));
     this.active = user.isActive();
+    this.mustChangePassword = user.isMustChangePassword();
   }
 
   @Override

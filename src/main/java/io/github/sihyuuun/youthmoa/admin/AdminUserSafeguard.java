@@ -73,4 +73,31 @@ public class AdminUserSafeguard {
       assertNotLastSystemAdmin(target);
     }
   }
+
+  /**
+   * A5-1 admin-staff-management (2026-09-18): 신규 계정 발급 사전 검증. role 이 null 금지 · Deprecated ADMIN 은
+   * 신규 발급 대상에서 제외.
+   *
+   * <p>SYSTEM_ADMIN 발급 자체는 컨트롤러 {@code @PreAuthorize("hasRole('SYSTEM_ADMIN')")} 로 방어되므로
+   * assertNotSelf 등 개별 규칙은 여기서 재검사 불필요. (email 중복이 자기자신 재발급을 자연 차단.)
+   */
+  public void assertCanCreateStaff(User admin, UserRole newRole) {
+    if (admin == null) {
+      throw new IllegalStateException("현재 관리자 정보를 확인할 수 없어요.");
+    }
+    if (newRole == null) {
+      throw new IllegalArgumentException("발급할 권한을 선택해주세요.");
+    }
+    if (newRole == UserRole.ADMIN) {
+      throw new IllegalArgumentException("사용이 중단된 권한이에요.");
+    }
+  }
+
+  /**
+   * A5-1 admin-staff-management (2026-09-18): 임시 password 재발급 사전 검증. 자기 자신 대상 금지 (Qn-5 A) — 본인은
+   * `/password/change` (마이페이지) 로 자체 변경한다.
+   */
+  public void assertCanResetPassword(User admin, User target) {
+    assertNotSelf(admin, target, "본인 계정의 비밀번호는 관리자 재발급 대상이 아니에요. 마이페이지에서 직접 변경해주세요.");
+  }
 }

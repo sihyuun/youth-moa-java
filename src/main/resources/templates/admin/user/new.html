@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>신규 사용자 등록 — 청년모아 관리자</title>
+    <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"
+          rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" th:href="@{/images/logo_symbol.png}">
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
+    <meta name="_csrf" th:content="${_csrf?.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf?.headerName}"/>
+</head>
+<body class="admin-shell-body">
+
+<div th:replace="~{admin/fragments/header :: header('users', ${centerScopeLabel}, ${isSystemAdmin})}"></div>
+
+<main class="admin-shell-main">
+    <div class="admin-program-page">
+
+        <!-- 헤더 -->
+        <section class="admin-program-header">
+            <div>
+                <h2 class="admin-program-title">신규 사용자 등록</h2>
+                <p class="admin-program-sub">사용자 또는 관리자 계정을 발급해요. 초기 비밀번호는 자동으로 생성되며, 발급 직후 이 화면에서만 1회 확인할 수 있어요.</p>
+            </div>
+        </section>
+
+        <!-- Flash 메시지 -->
+        <div th:if="${flashError}" class="admin-flash admin-flash--error" role="alert"
+             th:text="${flashError}" data-testid="admin-user-new-error"></div>
+
+        <!-- 폼 (prototype L1946~2045 정합 · 옵션 B 편입) -->
+        <section class="admin-user-form-card"
+                 style="background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.06);border:1px solid #F0EFF3;max-width:640px;margin:0 auto">
+            <div style="padding:18px 24px;border-bottom:1px solid #F0EFF3">
+                <h3 style="font-size:14px;font-weight:700;color:#2B2A3D;margin:0">계정 정보</h3>
+            </div>
+            <form method="post" th:action="@{/admin/users}" data-testid="admin-user-new-form">
+                <input type="hidden" th:name="${_csrf?.parameterName}" th:value="${_csrf?.token}"/>
+
+                <div style="padding:24px;display:flex;flex-direction:column;gap:16px">
+                    <!-- 이메일 -->
+                    <div>
+                        <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px">
+                            이메일 (아이디) <span style="color:#EF4444">*</span>
+                        </label>
+                        <input type="email" name="email" required
+                               data-testid="admin-user-new-email"
+                               style="width:100%;padding:9px 11px;border:1px solid #E3E1E8;border-radius:8px;font-size:13px;color:#2B2A3D;outline:none;box-sizing:border-box"
+                               placeholder="이메일을 입력해주세요"/>
+                    </div>
+
+                    <!-- 이름 + 성별 -->
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                        <div>
+                            <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px">
+                                이름 <span style="color:#EF4444">*</span>
+                            </label>
+                            <input type="text" name="name" required
+                                   data-testid="admin-user-new-name"
+                                   style="width:100%;padding:9px 11px;border:1px solid #E3E1E8;border-radius:8px;font-size:13px;color:#2B2A3D;outline:none;box-sizing:border-box"
+                                   placeholder="이름을 입력해주세요"/>
+                        </div>
+                        <div>
+                            <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:7px">성별</label>
+                            <div style="display:flex;gap:8px">
+                                <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:#2B2A3D;cursor:pointer">
+                                    <input type="radio" name="gender" value="MALE"/> 남
+                                </label>
+                                <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:#2B2A3D;cursor:pointer">
+                                    <input type="radio" name="gender" value="FEMALE"/> 여
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 권한 (prototype L1996~2011 정합 — 사용자·관리자 2옵션) -->
+                    <div>
+                        <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:7px">
+                            권한 <span style="color:#EF4444">*</span>
+                        </label>
+                        <div style="display:flex;gap:12px;flex-wrap:wrap" data-testid="admin-user-new-account-type">
+                            <label style="display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;background:#fff;cursor:pointer;font-size:13px;color:#2B2A3D">
+                                <input type="radio" name="accountType" value="USER" checked
+                                       data-testid="admin-user-new-account-type-user"/> 사용자
+                            </label>
+                            <label style="display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;background:#fff;cursor:pointer;font-size:13px;color:#2B2A3D">
+                                <input type="radio" name="accountType" value="ADMIN"
+                                       data-testid="admin-user-new-account-type-admin"/> 관리자
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- 관리자 세부 role (accountType=ADMIN 시 노출) -->
+                    <div id="adminRoleSection" style="display:none">
+                        <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:7px">
+                            관리자 종류 <span style="color:#EF4444">*</span>
+                        </label>
+                        <div style="display:flex;gap:12px;flex-wrap:wrap">
+                            <label style="display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;background:#fff;cursor:pointer;font-size:13px;color:#2B2A3D">
+                                <input type="radio" name="adminRole" value="CENTER_ADMIN"
+                                       data-testid="admin-user-new-role-center"/> 센터 관리자
+                            </label>
+                            <label style="display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;background:#fff;cursor:pointer;font-size:13px;color:#2B2A3D">
+                                <input type="radio" name="adminRole" value="SYSTEM_ADMIN"
+                                       data-testid="admin-user-new-role-system"/> 시스템 관리자
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- 소속 센터 (accountType=ADMIN + adminRole=CENTER_ADMIN 시 노출) -->
+                    <div id="centerSection" style="display:none">
+                        <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px">
+                            소속 센터 <span style="color:#EF4444">*</span>
+                        </label>
+                        <select name="centerId"
+                                data-testid="admin-user-new-center"
+                                style="width:100%;padding:9px 11px;border:1px solid #E3E1E8;border-radius:8px;font-size:13px;color:#2B2A3D;outline:none;box-sizing:border-box">
+                            <option value="">센터를 선택해주세요</option>
+                            <option th:each="c : ${centers}" th:value="${c.id}" th:text="${c.name}"></option>
+                        </select>
+                    </div>
+
+                    <!-- 실제 서버 전송용 role (accountType/adminRole 조합으로 JS 가 세팅) -->
+                    <input type="hidden" name="role" id="roleHidden" value="USER"/>
+
+                    <!-- 자동생성 password 안내 -->
+                    <div style="padding:12px 14px;background:#F0EFF3;border-radius:8px;border:1px solid #E3E1E8">
+                        <p style="margin:0;font-size:12px;color:#6E6B82;line-height:1.6">
+                            초기 비밀번호는 자동으로 생성돼요 (12자 · 영문 대소문자 · 숫자 · 특수문자).<br>
+                            등록 완료 화면에서 <strong style="color:#3F30E9">1회만 확인</strong>할 수 있으니, 안전한 채널로 대상자에게 전달해주세요.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div style="padding:16px 24px;border-top:1px solid #E3E1E8;display:flex;justify-content:center;gap:10px;background:#FAFAFA">
+                    <a class="admin-btn admin-btn--outline" th:href="@{/admin/users}">취소</a>
+                    <button type="submit" class="admin-btn admin-btn--primary"
+                            data-testid="admin-user-new-submit">등록하기</button>
+                </div>
+            </form>
+        </section>
+    </div>
+</main>
+
+<script>
+    (function () {
+        const form = document.querySelector('[data-testid="admin-user-new-form"]');
+        if (!form) return;
+        const accountTypeRadios = form.querySelectorAll('input[name="accountType"]');
+        const adminRoleSection = document.getElementById('adminRoleSection');
+        const centerSection = document.getElementById('centerSection');
+        const adminRoleRadios = form.querySelectorAll('input[name="adminRole"]');
+        const centerSelect = form.querySelector('select[name="centerId"]');
+        const roleHidden = document.getElementById('roleHidden');
+
+        function refresh() {
+            const accountType = form.querySelector('input[name="accountType"]:checked')?.value || 'USER';
+            const adminRole = form.querySelector('input[name="adminRole"]:checked')?.value || '';
+            if (accountType === 'ADMIN') {
+                adminRoleSection.style.display = '';
+                if (adminRole === 'CENTER_ADMIN') {
+                    centerSection.style.display = '';
+                    centerSelect.required = true;
+                    roleHidden.value = 'CENTER_ADMIN';
+                } else if (adminRole === 'SYSTEM_ADMIN') {
+                    centerSection.style.display = 'none';
+                    centerSelect.required = false;
+                    roleHidden.value = 'SYSTEM_ADMIN';
+                } else {
+                    centerSection.style.display = 'none';
+                    centerSelect.required = false;
+                    roleHidden.value = '';
+                }
+            } else {
+                adminRoleSection.style.display = 'none';
+                centerSection.style.display = 'none';
+                centerSelect.required = false;
+                roleHidden.value = 'USER';
+            }
+        }
+
+        accountTypeRadios.forEach(r => r.addEventListener('change', refresh));
+        adminRoleRadios.forEach(r => r.addEventListener('change', refresh));
+        refresh();
+    })();
+</script>
+</body>
+</html>
