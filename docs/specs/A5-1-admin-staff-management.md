@@ -515,7 +515,8 @@ public class PasswordChangeRequiredInterceptor implements HandlerInterceptor {
 | **QB** invitation vs 즉시 활성 | 즉시 활성 + flash 노출 (SMTP 인프라 A7 이월 상태) |
 | **QC** 별도 화면 vs A5 재활용 | **옵션 B — `/admin/users/new` 편입 (prototype 정합)** — 별도 `/admin/staff` 화면 없음. prototype L1946~2045 "신규 사용자 등록" 폼에 권한 radio (사용자·관리자) 통합 |
 | **QD** Bulk CSV 발급 | 이월 (A8-1 조건부) — 사용 빈도 낮음 · flash 다건 UX 복잡 |
-| Qn-1~11 · Qn-Δ | 모두 원안 A |
+| Qn-1~10 · Qn-Δ | 모두 원안 A |
+| **Qn-11 (예외 · B안)** | **이전 password 검증 유지** (spec 원안 A → B 로 정정 · 2026-09-18 verify F1 반영) — 초기 password 는 flash 로 1회 노출되어 스크린샷·어깨너머·세션 hijacking 유출 리스크 있음. 유출된 임시 password 로 로그인한 공격자가 검증 없이 password 변경 가능하면 계정 탈취 완결. 실무 정합 (AWS Console · GCP · Okta 등 임시 password 변경 시 재확인 필수). 실 구현 (`PasswordChangeController.java` L54~77) 은 보안 우위 방향으로 이미 검증 유지 |
 
 ### prototype 실측 근거 (QC 옵션 B)
 
