@@ -38,7 +38,7 @@ import org.springframework.web.bind.annotation.RequestParam;
  * <ul>
  *   <li>P-CSV-1 파일명 = {@code {domain}_{yyyyMMdd_HHmmss}.csv} (KST)
  *   <li>P-CSV-2 UTF-8 + BOM (Excel 한글 호환)
- *   <li>P-CSV-3 CRLF 라인 종결 (opencsv 기본 = CRLF)
+ *   <li>P-CSV-3 CRLF 라인 종결 (CSVWriter 생성자에 "\r\n" 명시 · opencsv 5.x 기본은 LF only)
  *   <li>Qn-CSV1 상단(필터 전체) · 하단(선택 건) 이중 진입 지원 — {@code ids} 파라미터 여부로 분기
  *   <li>Qn-CSV2 Users CSV = SYSTEM_ADMIN 전용 (개인정보)
  *   <li>Qn-7/CSV3 Content-Disposition = attachment (RFC 5987 병용)
@@ -306,7 +306,13 @@ public class AdminCsvController {
     try (Writer w = new OutputStreamWriter(response.getOutputStream(), StandardCharsets.UTF_8)) {
       // BOM prefix
       w.write(BOM);
-      try (CSVWriter csv = new CSVWriter(w)) {
+      try (CSVWriter csv =
+          new CSVWriter(
+              w,
+              CSVWriter.DEFAULT_SEPARATOR,
+              CSVWriter.DEFAULT_QUOTE_CHARACTER,
+              CSVWriter.DEFAULT_ESCAPE_CHARACTER,
+              "\r\n")) {
         csv.writeNext(header);
         int count = 0;
         for (T row : rows) {

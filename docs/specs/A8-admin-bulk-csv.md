@@ -351,6 +351,8 @@ curl -s -b cookies.txt -X POST -d "_csrf=$CSRF" -d "ids=100,101" -d "reason=테�
 | 관리자 신규 계정 대량 발급 UI | `deferred: A5-1 관리자 계정 관리 화면` (A5 §12 이월 승계) |
 | Bulk export progress bar | `deferred: A8-follow-async` (동기 방식 유지 시 불필요) |
 | 프로그램 bulk publish/unpublish | `deferred: 정책 재검토 필요` — prototype 명시적 금지지만 관리자 실무 유용성 제기 시 재검토 |
+| **CENTER_ADMIN 타 센터 applications CSV 500 → 403** | `deferred: A8-followup-403` (2026-09-18 QA 지적 · F-CSV-2 · 데이터 격리 자체는 정상 · UX 개선 항목 · bulkApprove 처럼 AccessDeniedException 변환 필요) |
+| **admin-*-bulk.ts 3종 계약 visual spec 참조** | `deferred: A8-e2e-suite` (2026-09-18 QA 지적 · F-Cov-1 · 실질 검증은 admin-users.ts · admin-programs.ts 확장 항목이 커버) |
 
 ### deviation
 
