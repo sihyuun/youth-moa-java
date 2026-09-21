@@ -36,7 +36,7 @@ dependencies {
 	implementation("net.nurigo:sdk:4.3.2")
 	// A-admin-notice-attachment (2026-09-03): SupabaseFileStorage REST 호출용 (Qn-6 파생 B).
 	// Supabase Java SDK 대신 표준 REST + OkHttp 로 직접 호출 (학습 목적 + 의존성 최소).
-	implementation("com.squareup.okhttp3:okhttp:4.12.0")
+	implementation("com.squareup.okhttp3:okhttp:5.5.0")
 	// A-admin-terms-crud (Qn-2 B, 2026-09-04): 관리자가 편집한 약관 본문(HTML) 을 저장 전 sanitize.
 	// FORMATTING·LINKS·BLOCKS·STYLES·TABLES 정책 조합으로 <script> 등 실행 코드 차단.
 	implementation("com.googlecode.owasp-java-html-sanitizer:owasp-java-html-sanitizer:20240325.1")
