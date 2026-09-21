@@ -206,8 +206,7 @@ public class AdminStatsService {
     Stream<Program> all = programRepository.findAll().stream();
     if (scopeCenterId != null) {
       // A9-a: Center FK 기반. center 미할당(null) 프로그램은 스코프에서 제외.
-      all =
-          all.filter(p -> p.getCenter() != null && scopeCenterId.equals(p.getCenter().getId()));
+      all = all.filter(p -> p.getCenter() != null && scopeCenterId.equals(p.getCenter().getId()));
     }
     return all.toList();
   }

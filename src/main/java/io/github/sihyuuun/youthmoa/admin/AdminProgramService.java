@@ -394,14 +394,19 @@ public class AdminProgramService {
   }
 
   /**
-   * A9-a (2026-09-21): centerId → Center 로드. CENTER_ADMIN 은 자기 센터가 아닌 id 선택 시도 시 예외 (URL 조작 방어). Center
-   * inactive/미존재 시에도 예외. 활성 센터만 admin form 에 노출되므로 select 기본 UX 는 안전.
+   * A9-a (2026-09-21): centerId → Center 로드. CENTER_ADMIN 은 자기 센터가 아닌 id 선택 시도 시 예외 (URL 조작 방어).
+   * Center inactive/미존재 시에도 예외. 활성 센터만 admin form 에 노출되므로 select 기본 UX 는 안전.
    */
   private Center loadCenter(Long centerId) {
     Center center =
         centerRepository
             .findById(centerId)
             .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 청년센터에요."));
+    // A9-a QA fix: URL/폼 조작으로 inactive centerId 전달 시 서버 방어. Admin form select 는
+    // 활성 센터만 노출하므로 정상 UX 경로에서는 발생 안 함.
+    if (!center.isActive()) {
+      throw new IllegalArgumentException("비활성 청년센터는 선택할 수 없어요: " + center.getName());
+    }
     Long scopeId = adminScope.effectiveCenterId();
     if (scopeId != null && !scopeId.equals(center.getId())) {
       throw new IllegalAccessError("자신의 센터 프로그램만 생성/수정할 수 있어요.");

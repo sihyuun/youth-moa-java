@@ -281,8 +281,8 @@ public class Program extends BaseTimeEntity {
   }
 
   /**
-   * A9-a Backfill 전용: center_id 만 채운다. organization 문자열은 손대지 않는다 (병행 유지). A9-b 이후 organization
-   * DROP 시 이 메서드도 정리 예정.
+   * A9-a Backfill 전용: center_id 만 채운다. organization 문자열은 손대지 않는다 (병행 유지). A9-b 이후 organization DROP
+   * 시 이 메서드도 정리 예정.
    */
   public void assignCenter(Center center) {
     this.center = center;

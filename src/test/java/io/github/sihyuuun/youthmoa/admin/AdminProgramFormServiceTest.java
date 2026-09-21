@@ -188,4 +188,31 @@ class AdminProgramFormServiceTest {
     Program updated = adminProgramService.update(saved.getId(), r);
     assertThat(updated.isActive()).isFalse();
   }
+
+  @Test
+  void create_inactive_centerId_거부_400() {
+    // A9-a QA fix: URL/폼 조작으로 inactive Center id 를 넘겨도 서버가 거부해야 함.
+    // Admin form select 는 활성 센터만 노출하므로 정상 UX 는 안전하나, 서버측 방어 확인.
+    var inactive = centerRepository.findByIsActiveTrueOrderByNameAsc().get(0);
+    inactive.deactivate();
+    centerRepository.saveAndFlush(inactive);
+    ProgramFormRequest r = validRequest("inactive-center");
+    r.setCenterId(inactive.getId());
+    assertThatThrownBy(() -> adminProgramService.create(r))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("비활성");
+  }
+
+  @Test
+  void update_inactive_centerId_거부_400() {
+    Program saved = adminProgramService.create(validRequest("upd-inact"));
+    var target = centerRepository.findByIsActiveTrueOrderByNameAsc().get(1);
+    target.deactivate();
+    centerRepository.saveAndFlush(target);
+    ProgramFormRequest r = validRequest("upd-inact");
+    r.setCenterId(target.getId());
+    assertThatThrownBy(() -> adminProgramService.update(saved.getId(), r))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("비활성");
+  }
 }

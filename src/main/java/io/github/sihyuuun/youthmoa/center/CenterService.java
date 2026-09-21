@@ -125,8 +125,8 @@ public class CenterService {
   }
 
   /**
-   * A9-a: 상세 패널의 "진행중인 프로그램 N건" 카드용 — Center FK 기반. 시그니처 centerName → centerId 로 전환. 호출부(레거시 centerName
-   * 만 알고 있는 View 등) 는 findByName 으로 id 획득 후 사용.
+   * A9-a: 상세 패널의 "진행중인 프로그램 N건" 카드용 — Center FK 기반. 시그니처 centerName → centerId 로 전환. 호출부(레거시
+   * centerName 만 알고 있는 View 등) 는 findByName 으로 id 획득 후 사용.
    */
   public int programCountFor(Long centerId) {
     if (centerId == null) return 0;

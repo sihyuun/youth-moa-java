@@ -11,8 +11,8 @@ import org.springframework.stereotype.Component;
 /**
  * A7 admin 헤더 알림 벨 QC (2026-09-17): NEW_APPLICATION 수신자 결정 전략.
  *
- * <p>A9-a (2026-09-21): B-1 (organization 문자열 매칭) → B-3 (Center FK 매칭) 전환. {@code event.centerId}
- * 와 {@code CENTER_ADMIN.center.id} 가 일치하는 활성 관리자에게만 fan-out. SYSTEM_ADMIN 은 QC B-1 결정 승계에 따라 알림에서 제외
+ * <p>A9-a (2026-09-21): B-1 (organization 문자열 매칭) → B-3 (Center FK 매칭) 전환. {@code event.centerId} 와
+ * {@code CENTER_ADMIN.center.id} 가 일치하는 활성 관리자에게만 fan-out. SYSTEM_ADMIN 은 QC B-1 결정 승계에 따라 알림에서 제외
  * (성수기 발송량 감소 + A6 대시보드로 커버).
  *
  * <h2>centerId 가 null 인 경우</h2>

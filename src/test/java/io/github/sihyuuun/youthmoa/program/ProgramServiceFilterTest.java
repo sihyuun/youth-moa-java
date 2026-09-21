@@ -45,8 +45,7 @@ class ProgramServiceFilterTest {
         centerRepository.save(
             Center.builder().name("비행지구").region("고양시").isFeatured(false).build());
     Center centerWonmi =
-        centerRepository.save(
-            Center.builder().name("원미").region("부천시").isFeatured(false).build());
+        centerRepository.save(Center.builder().name("원미").region("부천시").isFeatured(false).build());
 
     programRepository.save(
         Program.builder()

@@ -25,7 +25,8 @@ public interface ProgramRepository
   long countByIsActiveTrue();
 
   /**
-   * A9-a (2026-09-21): 센터별 진행중 프로그램 카운트 — Center FK 기반. Row = {@code (centerId: Long, count: Long)}.
+   * A9-a (2026-09-21): 센터별 진행중 프로그램 카운트 — Center FK 기반. Row = {@code (centerId: Long, count:
+   * Long)}.
    *
    * <p>center_id 가 null 인 row 는 제외 (backfill 이 채워 놓기 때문에 정상 상태에서는 없어야 함).
    *

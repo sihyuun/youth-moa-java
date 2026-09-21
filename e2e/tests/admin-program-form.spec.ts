@@ -42,7 +42,9 @@ test('신규 등록 → 편집 폼 prefilled 확인 (3탭 왕복)', async ({ pag
     const uniqueTitle = `e2e-prog-${Date.now()}`;
     // 탭 1
     await page.locator('input[name="title"]').fill(uniqueTitle);
-    await page.locator('input[name="organization"]').fill('e2e 센터');
+    // A9-a: organization text → centerId select. 첫 활성 센터 옵션 선택 (index 0 은 placeholder)
+    await page.locator('select[name="centerId"]').selectOption({ index: 1 });
+    const selectedCenterId = await page.locator('select[name="centerId"]').inputValue();
     await page.locator('textarea[name="content"]').fill('상세 내용 e2e');
     await page.locator('input[name="description"]').fill('짧은 설명 e2e');
 
@@ -68,7 +70,8 @@ test('신규 등록 → 편집 폼 prefilled 확인 (3탭 왕복)', async ({ pag
     // 편집 폼 prefill 확인
     await expect(page.locator('.admin-program-form-title')).toHaveText('프로그램 편집');
     await expect(page.locator('input[name="title"]')).toHaveValue(uniqueTitle);
-    await expect(page.locator('input[name="organization"]')).toHaveValue('e2e 센터');
+    // A9-a: select 는 저장된 centerId 값 유지 (option:checked 로 재확인)
+    await expect(page.locator('select[name="centerId"]')).toHaveValue(selectedCenterId);
     await expect(page.locator('input[name="description"]')).toHaveValue('짧은 설명 e2e');
 
     // 탭 2 값 유지
@@ -90,7 +93,8 @@ test('편집 → 제목 수정 → 저장 → 반영', async ({ page }) => {
     await page.goto('/admin/programs/new', { waitUntil: 'domcontentloaded' });
     const initial = `edit-src-${Date.now()}`;
     await page.locator('input[name="title"]').fill(initial);
-    await page.locator('input[name="organization"]').fill('센터A');
+    // A9-a: organization → centerId select
+    await page.locator('select[name="centerId"]').selectOption({ index: 1 });
     await page.locator('textarea[name="content"]').fill('본문');
     await page.locator('.admin-program-form-tab[data-tab-target="tab-apply"]').click();
     await page.locator('input[name="applyStartDate"]').fill('2026-09-01');
@@ -148,7 +152,8 @@ test('FK 없는 신규 프로그램 삭제 → 목록 리다이렉트', async ({
     await page.goto('/admin/programs/new', { waitUntil: 'domcontentloaded' });
     const t = `del-target-${Date.now()}`;
     await page.locator('input[name="title"]').fill(t);
-    await page.locator('input[name="organization"]').fill('센터B');
+    // A9-a: organization → centerId select
+    await page.locator('select[name="centerId"]').selectOption({ index: 1 });
     await page.locator('textarea[name="content"]').fill('본문');
     await page.locator('.admin-program-form-tab[data-tab-target="tab-apply"]').click();
     await page.locator('input[name="applyStartDate"]').fill('2026-09-01');
