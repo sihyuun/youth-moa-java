@@ -13,8 +13,13 @@
 -->
 <body>
 
-<div th:fragment="bar(domain, csvHrefBase, showRoleChange, approvePath)"
-     class="admin-bulk-action-bar"
+<!--
+  th:fragment 은 th:block 에 둔다. bar 만 감싸면 아래 모달/hidden form 이 형제라서
+  `:: bar(...)` include 에서 누락되고 (admin-bulk.js 의 modal/form 이 null → 제출 무동작),
+  대량 처리가 조용히 작동하지 않는다. th:block 은 출력 요소를 만들지 않으므로 렌더 결과는 동일하다.
+-->
+<th:block th:fragment="bar(domain, csvHrefBase, showRoleChange, approvePath)">
+<div class="admin-bulk-action-bar"
      th:data-bulk-domain="${domain}"
      th:data-csv-base="${csvHrefBase}"
      th:data-approve-path="${approvePath}"
@@ -86,6 +91,8 @@
     <input type="hidden" name="role" value=""/>
     <input th:if="${_csrf}" type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
 </form>
+
+</th:block>
 
 </body>
 </html>
