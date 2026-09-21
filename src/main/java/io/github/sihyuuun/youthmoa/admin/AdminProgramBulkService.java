@@ -39,14 +39,14 @@ public class AdminProgramBulkService {
   public BulkResult bulkDeactivate(List<Long> ids) {
     BulkResult result = new BulkResult();
     if (ids == null) return result;
-    String scope = adminScope.effectiveCenterName();
+    Long scopeId = adminScope.effectiveCenterId();
     TransactionTemplate tx = rowTx();
     for (Long id : ids) {
       try {
         tx.executeWithoutResult(
             status -> {
               Program p = loadTarget(id);
-              assertInScope(p, scope);
+              assertInScope(p, scopeId);
               if (!p.isActive()) return; // idempotent
               p.deactivate();
             });
@@ -63,14 +63,14 @@ public class AdminProgramBulkService {
   public BulkResult bulkReactivate(List<Long> ids) {
     BulkResult result = new BulkResult();
     if (ids == null) return result;
-    String scope = adminScope.effectiveCenterName();
+    Long scopeId = adminScope.effectiveCenterId();
     TransactionTemplate tx = rowTx();
     for (Long id : ids) {
       try {
         tx.executeWithoutResult(
             status -> {
               Program p = loadTarget(id);
-              assertInScope(p, scope);
+              assertInScope(p, scopeId);
               if (p.isActive()) return; // idempotent
               p.activate();
             });
@@ -88,8 +88,11 @@ public class AdminProgramBulkService {
     return p.orElseThrow(() -> new IllegalArgumentException("프로그램을 찾을 수 없어요: " + id));
   }
 
-  private void assertInScope(Program p, String scope) {
-    if (scope != null && !scope.equals(p.getOrganization())) {
+  /** A9-a: Center FK 기반 스코프 검증. */
+  private void assertInScope(Program p, Long scopeId) {
+    if (scopeId == null) return;
+    Long pCenterId = p.getCenter() != null ? p.getCenter().getId() : null;
+    if (!scopeId.equals(pCenterId)) {
       throw new IllegalStateException("자신의 센터 프로그램만 조작할 수 있어요.");
     }
   }

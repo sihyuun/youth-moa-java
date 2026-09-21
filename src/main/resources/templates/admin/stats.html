@@ -171,7 +171,7 @@
                        th:href="@{/admin/programs/{id}(id=${ps.id})}"
                        class="admin-stats-program-row admin-stats-program-row--link">
                         <span class="admin-stats-program-name" th:text="${ps.title}">프로그램명</span>
-                        <span class="admin-stats-program-center" th:text="${ps.organization}">청년센터</span>
+                        <span class="admin-stats-program-center" th:text="${ps.centerName}">청년센터</span>
                         <span class="admin-stats-program-period" th:text="${ps.period}">기간</span>
                         <span class="admin-stats-program-applied"
                               th:text="|${ps.applied}/${ps.capacity}|">0/0</span>

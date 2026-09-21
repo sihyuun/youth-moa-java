@@ -1,14 +1,18 @@
 package io.github.sihyuuun.youthmoa.program;
 
+import io.github.sihyuuun.youthmoa.center.Center;
 import io.github.sihyuuun.youthmoa.common.BaseTimeEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
@@ -32,8 +36,25 @@ public class Program extends BaseTimeEntity {
   @Column(nullable = false, length = 255)
   private String title;
 
+  /**
+   * @deprecated A9-a (2026-09-21) — Center FK 로 이관 중. 병행 유지 스텝. A9-b 에서 DROP 예정. 신규 코드는 {@link
+   *     #center} 를 사용하고, 이 값은 표시용 fallback 으로만 쓴다.
+   */
+  @Deprecated
   @Column(nullable = false, length = 100)
   private String organization;
+
+  /**
+   * A9-a (2026-09-21): 프로그램을 주관하는 청년센터. nullable — backfill 시점에는 null 이 존재할 수 있고,
+   * ProgramCenterBackfill 이 부팅 시 organization 문자열 매칭으로 채운다. A9-b 에서 NOT NULL 로 승격 예정.
+   *
+   * <p>{@link FetchType#EAGER}: open-in-view=false 환경에서 다수 템플릿 (list.html · stats.html ·
+   * detail.html) 이 렌더 컨텍스트에서 center.name/phone 을 접근하기 때문에 LazyInitializationException 방어 목적으로 EAGER
+   * 선택. Program 은 항상 단건 또는 페이지 사이즈 10건 규모라 성능 임팩트가 작다.
+   */
+  @ManyToOne(fetch = FetchType.EAGER)
+  @JoinColumn(name = "center_id")
+  private Center center;
 
   // ⏸ Q2 결정 (2026-06-30) — 카테고리 4종 보류 동안 nullable 로 변경.
   //   살릴 경우 nullable=false 로 복귀.
@@ -130,6 +151,7 @@ public class Program extends BaseTimeEntity {
   private Program(
       String title,
       String organization,
+      Center center,
       String category,
       String region,
       String imageUrl,
@@ -151,7 +173,9 @@ public class Program extends BaseTimeEntity {
       String description,
       Boolean hasCourses) {
     this.title = title;
-    this.organization = organization;
+    // A9-a: center 우선. organization 은 병행 유지 (표시용) — center 주어졌으면 name 으로 동기화.
+    this.center = center;
+    this.organization = center != null ? center.getName() : organization;
     this.category = category;
     this.region = region;
     this.imageUrl = imageUrl;
@@ -176,7 +200,7 @@ public class Program extends BaseTimeEntity {
 
   public void update(
       String title,
-      String organization,
+      Center center,
       String category,
       String region,
       String imageUrl,
@@ -187,7 +211,8 @@ public class Program extends BaseTimeEntity {
       String applyUrl,
       Integer capacity) {
     this.title = title;
-    this.organization = organization;
+    this.center = center;
+    this.organization = center != null ? center.getName() : this.organization;
     this.category = category;
     this.region = region;
     this.imageUrl = imageUrl;
@@ -205,7 +230,7 @@ public class Program extends BaseTimeEntity {
    */
   public void updateFromAdminForm(
       String title,
-      String organization,
+      Center center,
       String category,
       String region,
       String imageUrl,
@@ -226,7 +251,9 @@ public class Program extends BaseTimeEntity {
       boolean hasCourses,
       ProgramEligibility eligibility) {
     this.title = title;
-    this.organization = organization;
+    this.center = center;
+    // A9-a: organization 도 함께 갱신 (병행 유지 · A9-b DROP 대비 화면 fallback).
+    this.organization = center != null ? center.getName() : this.organization;
     this.category = category;
     this.region = region;
     this.imageUrl = imageUrl;
@@ -251,6 +278,14 @@ public class Program extends BaseTimeEntity {
   /** A3-2: imageUrl 만 개별 갱신 (파일 업로드 후 URL 반영용). */
   public void updateImageUrl(String imageUrl) {
     this.imageUrl = imageUrl;
+  }
+
+  /**
+   * A9-a Backfill 전용: center_id 만 채운다. organization 문자열은 손대지 않는다 (병행 유지). A9-b 이후 organization
+   * DROP 시 이 메서드도 정리 예정.
+   */
+  public void assignCenter(Center center) {
+    this.center = center;
   }
 
   public void activate() {

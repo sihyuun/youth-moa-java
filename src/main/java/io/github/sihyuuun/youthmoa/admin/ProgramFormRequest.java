@@ -26,7 +26,10 @@ public class ProgramFormRequest {
   private String title;
   private String imageUrl;
   private String category;
-  private String organization;
+
+  /** A9-a (2026-09-21): organization 문자열 → Center FK 로 전환. 폼의 select 로 활성 센터 하나를 선택. */
+  private Long centerId;
+
   private String region;
 
   @DateTimeFormat(pattern = "yyyy-MM-dd")

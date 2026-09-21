@@ -26,8 +26,8 @@ public class AdminStatsController {
   public String stats(
       @RequestParam(name = "chartMode", required = false, defaultValue = "month") String chartMode,
       Model model) {
-    String scope = adminScope.effectiveCenterName();
-    AdminStatsService.StatsModel data = statsService.load(scope, chartMode);
+    Long scopeId = adminScope.effectiveCenterId();
+    AdminStatsService.StatsModel data = statsService.load(scopeId, chartMode);
     model.addAttribute("stats", data);
     model.addAttribute("centerScopeLabel", adminScope.centerScopeLabel());
     model.addAttribute("isSystemAdmin", adminScope.isSystemAdmin());
@@ -40,8 +40,8 @@ public class AdminStatsController {
   public String chartFragment(
       @RequestParam(name = "mode", required = false, defaultValue = "month") String mode,
       Model model) {
-    String scope = adminScope.effectiveCenterName();
-    AdminStatsService.StatsModel data = statsService.load(scope, mode);
+    Long scopeId = adminScope.effectiveCenterId();
+    AdminStatsService.StatsModel data = statsService.load(scopeId, mode);
     model.addAttribute("stats", data);
     return "admin/stats :: chart";
   }

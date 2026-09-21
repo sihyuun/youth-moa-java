@@ -112,7 +112,8 @@ class AdminNotificationEventListenerTest {
         programRepository.save(
             Program.builder()
                 .title("A7 프로그램")
-                .organization("내일스퀘어")
+                // A9-a: Center FK 로 전환. organization 은 Builder 에서 center.name 으로 자동 동기화됨.
+                .center(centerA)
                 .category("취업")
                 .region("수원시")
                 .content("c")
@@ -124,7 +125,7 @@ class AdminNotificationEventListenerTest {
 
   @Test
   @DisplayName(
-      "apply 성공 시 program.organization 매칭 CENTER_ADMIN 에게만 NEW_APPLICATION 발행 (SYSTEM_ADMIN 제외)")
+      "A9-a: apply 성공 시 program.center 매칭 CENTER_ADMIN 에게만 NEW_APPLICATION 발행 (SYSTEM_ADMIN 제외)")
   void apply_creates_notification_for_matching_center_admin_only() {
     ApplyRequest req = new ApplyRequest();
     req.setApplyReason("잘 부탁드립니다");
@@ -217,9 +218,10 @@ class AdminNotificationEventListenerTest {
   }
 
   @Test
-  @DisplayName("organization 이 매칭되지 않는 프로그램 신청 시 알림 수신자 없음 (로그만 남고 apply 는 성공)")
+  @DisplayName("A9-a: center FK 미할당 프로그램 신청 시 알림 수신자 없음 (로그만 남고 apply 는 성공)")
   void apply_with_unmatched_organization_creates_no_notifications() {
     LocalDate today = LocalDate.now();
+    // center 미할당 (organization 문자열만 있는 상태 — A9-a 이전 형태 재현)
     Program orphan =
         programRepository.save(
             Program.builder()

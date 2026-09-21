@@ -9,28 +9,16 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 /**
- * A7 admin 헤더 알림 벨 QC (2026-09-17): NEW_APPLICATION 수신자 결정 전략 — B-1 구현.
+ * A7 admin 헤더 알림 벨 QC (2026-09-17): NEW_APPLICATION 수신자 결정 전략.
  *
- * <p>{@code program.organization} 문자열이 {@code CENTER_ADMIN.center.name} 과 일치하는 활성 관리자에게만 fan-out.
- * SYSTEM_ADMIN 은 QC B-1 결정에 따라 알림에서 제외 (성수기 발송량 감소 + A6 대시보드로 커버).
+ * <p>A9-a (2026-09-21): B-1 (organization 문자열 매칭) → B-3 (Center FK 매칭) 전환. {@code event.centerId}
+ * 와 {@code CENTER_ADMIN.center.id} 가 일치하는 활성 관리자에게만 fan-out. SYSTEM_ADMIN 은 QC B-1 결정 승계에 따라 알림에서 제외
+ * (성수기 발송량 감소 + A6 대시보드로 커버).
  *
- * <h2>B-1 → B-3 로드맵</h2>
+ * <h2>centerId 가 null 인 경우</h2>
  *
- * <p>후속 티켓 {@code A7-createdBy-recipient} 에서 다음이 확장될 예정:
- *
- * <ul>
- *   <li>{@code Program.createdBy} FK 신설 + backfill
- *   <li>{@code CreatedByRecipientResolver} — createdBy 있으면 그 사용자 우선, 없으면 이 클래스로 fallback
- *   <li>{@code WatcherRecipientResolver} — {@code ProgramWatcher} M:N 엔티티 기반 선택 알림
- *   <li>{@code CompositeRecipientResolver} — 여러 resolver 결과를 합치기 (중복 제거)
- * </ul>
- *
- * <p>이번 티켓에선 인터페이스만 정의해 후속 확장 시 이 클래스 수정 없이 새 구현체를 추가할 수 있도록 준비.
- *
- * <h2>Program.organization 이 비어 있는 경우</h2>
- *
- * <p>{@code organization} 이 {@code null} 또는 blank 인 프로그램은 매칭 대상이 없어 빈 리스트 반환. 시드 데이터 중 organization
- * 이 채워지지 않은 프로그램이 있을 수 있으므로 방어적으로 처리한다.
+ * <p>Program.center FK 가 미할당(backfill 이전 · 초기 상태) 이면 매칭 대상 없음 → 빈 리스트 반환. A9-a Backfill 이 부팅 시 모든
+ * 프로그램에 FK 를 채우므로 정상 상태에서는 발생하지 않는다.
  */
 @Component
 @RequiredArgsConstructor
@@ -41,11 +29,10 @@ public class ApplicationCreatedRecipientResolver
 
   @Override
   public List<User> resolve(ApplicationCreatedEvent event) {
-    String organization = event.programOrganization();
-    if (organization == null || organization.isBlank()) {
+    Long centerId = event.centerId();
+    if (centerId == null) {
       return List.of();
     }
-    return userRepository.findByRoleAndIsActiveTrueAndCenter_Name(
-        UserRole.CENTER_ADMIN, organization);
+    return userRepository.findByRoleAndIsActiveTrueAndCenter_Id(UserRole.CENTER_ADMIN, centerId);
   }
 }

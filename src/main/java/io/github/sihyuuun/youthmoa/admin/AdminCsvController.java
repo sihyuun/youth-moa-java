@@ -154,7 +154,8 @@ public class AdminCsvController {
             new String[] {
               String.valueOf(p.getId()),
               nvl(p.getTitle()),
-              nvl(p.getOrganization()),
+              // A9-a: organization 컬럼 병행 유지. 값은 Center.name 우선 (backfill 후 동기화).
+              nvl(p.getCenter() != null ? p.getCenter().getName() : p.getOrganization()),
               nvl(p.getCategory()),
               p.getApplyStartDate() == null ? "" : p.getApplyStartDate().toString(),
               p.getApplyEndDate() == null ? "" : p.getApplyEndDate().toString(),
@@ -168,19 +169,22 @@ public class AdminCsvController {
   }
 
   private List<Program> resolvePrograms(String q, String status, String ids) {
-    String scope = adminScope.effectiveCenterName();
+    // A9-a: Center FK 기반 격리
+    Long scopeId = adminScope.effectiveCenterId();
     Set<Long> idSet = parseIds(ids);
     if (!idSet.isEmpty()) {
       List<Program> found = programRepository.findAllById(idSet);
-      if (scope != null) {
-        return found.stream().filter(p -> scope.equals(p.getOrganization())).toList();
+      if (scopeId != null) {
+        return found.stream()
+            .filter(p -> p.getCenter() != null && scopeId.equals(p.getCenter().getId()))
+            .toList();
       }
       return found;
     }
     Specification<Program> spec = (root, query, cb) -> cb.conjunction();
-    if (scope != null) {
-      final String s = scope;
-      spec = spec.and((root, query, cb) -> cb.equal(root.get("organization"), s));
+    if (scopeId != null) {
+      final Long s = scopeId;
+      spec = spec.and((root, query, cb) -> cb.equal(root.get("center").get("id"), s));
     }
     if (q != null && !q.isBlank()) {
       String pattern = "%" + q.trim().toLowerCase() + "%";
@@ -189,7 +193,7 @@ public class AdminCsvController {
               (root, query, cb) ->
                   cb.or(
                       cb.like(cb.lower(root.get("title")), pattern),
-                      cb.like(cb.lower(root.get("organization")), pattern)));
+                      cb.like(cb.lower(root.get("center").get("name")), pattern)));
     }
     // status 는 파생 필드라 여기서는 isActive 로 근사 (SUSPENDED 만) — 나머지 상태는 런타임 파생
     if ("SUSPENDED".equalsIgnoreCase(status)) {
@@ -214,9 +218,13 @@ public class AdminCsvController {
         programRepository
             .findById(programId)
             .orElseThrow(() -> new IllegalArgumentException("프로그램을 찾을 수 없어요: " + programId));
-    String scope = adminScope.effectiveCenterName();
-    if (scope != null && !scope.equals(program.getOrganization())) {
-      throw new IllegalStateException("자신의 센터 프로그램만 조회할 수 있어요.");
+    // A9-a: Center FK 기반 스코프 검증
+    Long scopeId = adminScope.effectiveCenterId();
+    if (scopeId != null) {
+      Long pCenterId = program.getCenter() != null ? program.getCenter().getId() : null;
+      if (!scopeId.equals(pCenterId)) {
+        throw new IllegalStateException("자신의 센터 프로그램만 조회할 수 있어요.");
+      }
     }
     List<Application> apps = resolveApplications(programId, status, q, ids);
 

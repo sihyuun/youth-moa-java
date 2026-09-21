@@ -3,6 +3,7 @@ package io.github.sihyuuun.youthmoa.admin;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import io.github.sihyuuun.youthmoa.center.CenterRepository;
 import io.github.sihyuuun.youthmoa.program.ApprovalMode;
 import io.github.sihyuuun.youthmoa.program.Program;
 import io.github.sihyuuun.youthmoa.program.ProgramRepository;
@@ -26,6 +27,7 @@ class AdminProgramFormServiceTest {
 
   @Autowired AdminProgramService adminProgramService;
   @Autowired ProgramRepository programRepository;
+  @Autowired CenterRepository centerRepository;
 
   @AfterEach
   void clearAuth() {
@@ -35,7 +37,8 @@ class AdminProgramFormServiceTest {
   private ProgramFormRequest validRequest(String title) {
     ProgramFormRequest r = new ProgramFormRequest();
     r.setTitle(title);
-    r.setOrganization("e2e 센터");
+    // A9-a: organization → centerId. e2e 시드된 첫 활성 Center 사용.
+    r.setCenterId(centerRepository.findByIsActiveTrueOrderByNameAsc().get(0).getId());
     r.setContent("본문");
     r.setDescription("설명");
     r.setStartDate(LocalDate.of(2026, 10, 1));
@@ -70,9 +73,10 @@ class AdminProgramFormServiceTest {
   }
 
   @Test
-  void create_organization_누락_400() {
+  void create_centerId_누락_400() {
+    // A9-a: organization 문자열 필수 → centerId 필수로 전환
     ProgramFormRequest r = validRequest("y");
-    r.setOrganization("");
+    r.setCenterId(null);
     assertThatThrownBy(() -> adminProgramService.create(r))
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessageContaining("청년센터");

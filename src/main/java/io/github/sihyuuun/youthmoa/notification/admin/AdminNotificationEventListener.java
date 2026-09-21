@@ -60,9 +60,9 @@ public class AdminNotificationEventListener {
       List<User> recipients = applicationCreatedResolver.resolve(event);
       if (recipients.isEmpty()) {
         log.debug(
-            "[A7] NEW_APPLICATION 수신자 없음 applicationId={} organization={}",
+            "[A7] NEW_APPLICATION 수신자 없음 applicationId={} centerId={}",
             event.applicationId(),
-            event.programOrganization());
+            event.centerId());
         return;
       }
       String title = "새 신청이 접수됐어요";

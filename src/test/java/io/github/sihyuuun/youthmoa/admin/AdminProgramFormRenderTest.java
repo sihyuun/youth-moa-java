@@ -51,7 +51,8 @@ class AdminProgramFormRenderTest {
         .andExpect(content().string(containsString("data-tab-target=\"tab-terms\"")))
         // 탭 1 필드
         .andExpect(content().string(containsString("name=\"title\"")))
-        .andExpect(content().string(containsString("name=\"organization\"")))
+        // A9-a: organization text → centerId select
+        .andExpect(content().string(containsString("name=\"centerId\"")))
         .andExpect(content().string(containsString("name=\"content\"")))
         .andExpect(content().string(containsString("name=\"description\"")))
         .andExpect(content().string(containsString("name=\"imageUrl\"")))

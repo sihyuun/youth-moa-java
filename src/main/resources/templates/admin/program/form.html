@@ -123,12 +123,17 @@
                 </div>
 
                 <div class="admin-program-form-row">
-                    <label class="admin-program-form-label" for="organization">청년센터(운영기관)
+                    <label class="admin-program-form-label" for="centerId">청년센터(운영기관)
                         <span class="admin-program-form-required">*</span>
                     </label>
-                    <input type="text" id="organization" th:field="*{organization}" required maxlength="100"
-                           class="admin-program-form-input"
-                           placeholder="예: 내일스퀘어 양평"/>
+                    <!-- A9-a (2026-09-21): text input → select. Center FK 로 전환. 활성 센터만 노출. -->
+                    <select id="centerId" th:field="*{centerId}" required
+                            class="admin-program-form-input">
+                        <option value="">-- 청년센터 선택 --</option>
+                        <option th:each="c : ${activeCenters}"
+                                th:value="${c.id}"
+                                th:text="${c.name}">센터명</option>
+                    </select>
                 </div>
 
                 <div class="admin-program-form-row-split">

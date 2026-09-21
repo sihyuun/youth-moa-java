@@ -2,6 +2,8 @@ package io.github.sihyuuun.youthmoa.program;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.github.sihyuuun.youthmoa.center.Center;
+import io.github.sihyuuun.youthmoa.center.CenterRepository;
 import io.github.sihyuuun.youthmoa.common.config.JpaConfig;
 import java.time.LocalDate;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,16 +24,28 @@ import org.springframework.data.jpa.domain.Specification;
 class ProgramSearchTest {
 
   @Autowired ProgramRepository programRepository;
+  @Autowired CenterRepository centerRepository;
 
   @BeforeEach
   void seed() {
     LocalDate today = LocalDate.now();
 
+    // A9-a: withCenters(List<String>) 가 center.name join 이므로 Center 시드 필요.
+    Center centerNaeil =
+        centerRepository.save(
+            Center.builder().name("내일스퀘어").region("수원시").isActive(true).isFeatured(false).build());
+    Center centerBihaeng =
+        centerRepository.save(
+            Center.builder().name("비행지구").region("고양시").isActive(true).isFeatured(false).build());
+    Center centerWonmi =
+        centerRepository.save(
+            Center.builder().name("원미").region("부천시").isActive(true).isFeatured(false).build());
+
     // 진행중 (수원시, 취업)
     programRepository.save(
         Program.builder()
             .title("취업 워크숍")
-            .organization("내일스퀘어")
+            .center(centerNaeil)
             .category("취업")
             .region("수원시")
             .content("c")
@@ -44,7 +58,7 @@ class ProgramSearchTest {
     programRepository.save(
         Program.builder()
             .title("AI 교육")
-            .organization("비행지구")
+            .center(centerBihaeng)
             .category("교육")
             .region("고양시")
             .content("c")
@@ -57,7 +71,7 @@ class ProgramSearchTest {
     programRepository.save(
         Program.builder()
             .title("마케팅 종료")
-            .organization("원미")
+            .center(centerWonmi)
             .category("교육")
             .region("부천시")
             .content("c")

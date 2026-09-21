@@ -71,12 +71,12 @@ public class CenterService {
 
     List<Center> filtered = stream.toList();
 
-    // programCount 배치 조회 (organization 문자열 매칭 근사)
-    Map<String, Integer> countByOrg = new HashMap<>();
-    for (Object[] row : programRepository.countActiveGroupByOrganization()) {
-      String org = (String) row[0];
+    // A9-a: programCount 배치 조회 — Center FK 기반 (centerId → count)
+    Map<Long, Integer> countByCenterId = new HashMap<>();
+    for (Object[] row : programRepository.countActiveGroupByCenterId()) {
+      Long centerId = (Long) row[0];
       Long cnt = (Long) row[1];
-      countByOrg.put(org, cnt.intValue());
+      countByCenterId.put(centerId, cnt.intValue());
     }
 
     // F0h-center-desc-image: CenterContent 일괄 조회 (N+1 방어)
@@ -94,7 +94,7 @@ public class CenterService {
                 c ->
                     CenterListItem.of(
                         c,
-                        countByOrg.getOrDefault(c.getName(), 0),
+                        countByCenterId.getOrDefault(c.getId(), 0),
                         now,
                         isHoliday,
                         contentByCenterId.get(c.getId())))
@@ -124,11 +124,14 @@ public class CenterService {
     return centerContentRepository.findByCenterId(centerId);
   }
 
-  /** F0h gap fix: 상세 패널의 "진행중인 프로그램 N건" 카드용. organization 문자열 매칭. */
-  public int programCountFor(String centerName) {
-    if (centerName == null) return 0;
-    for (Object[] row : programRepository.countActiveGroupByOrganization()) {
-      if (centerName.equals(row[0])) {
+  /**
+   * A9-a: 상세 패널의 "진행중인 프로그램 N건" 카드용 — Center FK 기반. 시그니처 centerName → centerId 로 전환. 호출부(레거시 centerName
+   * 만 알고 있는 View 등) 는 findByName 으로 id 획득 후 사용.
+   */
+  public int programCountFor(Long centerId) {
+    if (centerId == null) return 0;
+    for (Object[] row : programRepository.countActiveGroupByCenterId()) {
+      if (centerId.equals(row[0])) {
         return ((Long) row[1]).intValue();
       }
     }

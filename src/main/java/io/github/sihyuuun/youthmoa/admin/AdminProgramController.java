@@ -62,6 +62,7 @@ public class AdminProgramController {
   private final AdminProgramAttachmentService adminProgramAttachmentService;
   private final CourseRepository courseRepository;
   private final ApplyQuestionRepository applyQuestionRepository;
+  private final io.github.sihyuuun.youthmoa.center.CenterRepository centerRepository;
   private final io.github.sihyuuun.youthmoa.common.storage.FileStorage fileStorage;
 
   @org.springframework.beans.factory.annotation.Value(
@@ -311,7 +312,8 @@ public class AdminProgramController {
   private ProgramFormRequest toForm(Program p) {
     ProgramFormRequest f = new ProgramFormRequest();
     f.setTitle(p.getTitle());
-    f.setOrganization(p.getOrganization());
+    // A9-a: FK 기반 프리필. center 미할당(backfill 이전) 이면 null → select 는 placeholder 상태.
+    f.setCenterId(p.getCenter() != null ? p.getCenter().getId() : null);
     f.setCategory(p.getCategory());
     f.setRegion(p.getRegion());
     f.setImageUrl(p.getImageUrl());
@@ -367,5 +369,7 @@ public class AdminProgramController {
     model.addAttribute("centerScopeLabel", adminScope.centerScopeLabel());
     model.addAttribute("isSystemAdmin", adminScope.isSystemAdmin());
     model.addAttribute("currentPage", "programs");
+    // A9-a: 프로그램 폼 select 옵션 (활성 센터 가나다순).
+    model.addAttribute("activeCenters", centerRepository.findByIsActiveTrueOrderByNameAsc());
   }
 }

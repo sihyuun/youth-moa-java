@@ -64,7 +64,8 @@ public class AdminProgramEligibilityService {
     }
     program.update(
         program.getTitle(),
-        program.getOrganization(),
+        // A9-a: Center FK 로 전환 (기존 center 유지)
+        program.getCenter(),
         program.getCategory(),
         program.getRegion(),
         program.getImageUrl(),

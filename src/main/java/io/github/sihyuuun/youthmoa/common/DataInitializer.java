@@ -618,6 +618,22 @@ public class DataInitializer implements ApplicationRunner {
     log.info("Seeded {} center contents", contents.size());
   }
 
+  /**
+   * A9-a (2026-09-21) fail-fast: Center 시드에 존재해야 하는 name 을 조회. 매칭 실패 시 IllegalStateException 을 던져
+   * 부팅 중단 (Program 시드에 오타·미등록 센터가 섞이면 조기 감지 목적). Program 시드의 24개 organization 은 centers.csv 와 100%
+   * 매칭됨을 사전 확인.
+   */
+  private Center resolveCenter(String name) {
+    return centerRepository
+        .findByName(name)
+        .orElseThrow(
+            () ->
+                new IllegalStateException(
+                    "[A9-a] Program seed 의 organization 이 Center 시드와 매칭되지 않습니다: '"
+                        + name
+                        + "'. centers.csv 를 확인하세요."));
+  }
+
   private void seedPrograms() {
     if (programRepository.count() > 0) {
       log.info("Programs already seeded (count={}), skip", programRepository.count());
@@ -629,7 +645,7 @@ public class DataInitializer implements ApplicationRunner {
         List.of(
             Program.builder()
                 .title("취업역량 강화 워크숍")
-                .organization("내일스퀘어 양평")
+                .center(resolveCenter("내일스퀘어 양평"))
                 .region("양평군")
                 .imageUrl(
                     "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=400&h=280&fit=crop")
@@ -646,7 +662,7 @@ public class DataInitializer implements ApplicationRunner {
                 .build(),
             Program.builder()
                 .title("청년 창업 아카데미")
-                .organization("안산시 청년센터 상상대로")
+                .center(resolveCenter("안산시 청년센터 상상대로"))
                 .region("안산시")
                 .imageUrl(
                     "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=400&h=280&fit=crop")
@@ -663,7 +679,7 @@ public class DataInitializer implements ApplicationRunner {
                 .build(),
             Program.builder()
                 .title("마음건강 힐링 캠프")
-                .organization("범계역 청년출구")
+                .center(resolveCenter("범계역 청년출구"))
                 .region("안양시")
                 .imageUrl(
                     "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=400&h=280&fit=crop")
@@ -680,7 +696,7 @@ public class DataInitializer implements ApplicationRunner {
                 .build(),
             Program.builder()
                 .title("디지털 마케팅 실전반")
-                .organization("원미청(년)정(점)구역")
+                .center(resolveCenter("원미청(년)정(점)구역"))
                 .region("부천시")
                 .imageUrl(
                     "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=400&h=280&fit=crop")
@@ -697,7 +713,7 @@ public class DataInitializer implements ApplicationRunner {
                 .build(),
             Program.builder()
                 .title("AI 활용 실무 교육")
-                .organization("과천시 청년공간 비행지구")
+                .center(resolveCenter("과천시 청년공간 비행지구"))
                 .region("과천시")
                 .imageUrl(
                     "https://images.unsplash.com/photo-1531482615713-2afd69097998?w=400&h=280&fit=crop")
@@ -714,7 +730,7 @@ public class DataInitializer implements ApplicationRunner {
                 .build(),
             Program.builder()
                 .title("소셜벤처 인큐베이팅")
-                .organization("양평청년공간 오름")
+                .center(resolveCenter("양평청년공간 오름"))
                 .region("양평군")
                 .imageUrl(
                     "https://images.unsplash.com/photo-1552664730-d307ca884978?w=400&h=280&fit=crop")
@@ -731,7 +747,7 @@ public class DataInitializer implements ApplicationRunner {
                 .build(),
             Program.builder()
                 .title("청년 문화예술 스쿨")
-                .organization("의왕청년발전소")
+                .center(resolveCenter("의왕청년발전소"))
                 .region("의왕시")
                 .imageUrl(
                     "https://images.unsplash.com/photo-1497366216548-37526070297c?w=460&h=340&fit=crop")
@@ -748,7 +764,7 @@ public class DataInitializer implements ApplicationRunner {
                 .build(),
             Program.builder()
                 .title("청년 네트워킹 데이")
-                .organization("오산청년일자리지원센터 이루잡")
+                .center(resolveCenter("오산청년일자리지원센터 이루잡"))
                 .region("오산시")
                 .imageUrl(
                     "https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=460&h=340&fit=crop")
@@ -766,7 +782,7 @@ public class DataInitializer implements ApplicationRunner {
             // F0f-fix-1: SUSPENDED (운영 중단, 관리자 조치) 시나리오 시드
             Program.builder()
                 .title("청년 목공 클래스")
-                .organization("청년이봄")
+                .center(resolveCenter("청년이봄"))
                 .region("성남시")
                 .imageUrl(
                     "https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=460&h=340&fit=crop")
@@ -785,7 +801,7 @@ public class DataInitializer implements ApplicationRunner {
             // F0f-fix-3: ENDED (기간 만료, 자연 종료) 시나리오 시드 — 종료 탭·그레이스케일 시각 검증용
             Program.builder()
                 .title("자소서 첨삭 카페")
-                .organization("광명시 청년동")
+                .center(resolveCenter("광명시 청년동"))
                 .region("광명시")
                 .imageUrl(
                     "https://images.unsplash.com/photo-1455390582262-044cdead277a?w=460&h=340&fit=crop")
@@ -803,7 +819,7 @@ public class DataInitializer implements ApplicationRunner {
             // ── gap-batch2 (2026-07-27): pagination 데모용 추가 시드 15건 ──
             Program.builder()
                 .title("포트폴리오 웹사이트 만들기")
-                .organization("청누리")
+                .center(resolveCenter("청누리"))
                 .region("수원시")
                 .imageUrl(
                     "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=400&h=280&fit=crop")
@@ -820,7 +836,7 @@ public class DataInitializer implements ApplicationRunner {
                 .build(),
             Program.builder()
                 .title("영상 편집 실전반")
-                .organization("내일꿈제작소")
+                .center(resolveCenter("내일꿈제작소"))
                 .region("고양시")
                 .imageUrl(
                     "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=400&h=280&fit=crop")
@@ -837,7 +853,7 @@ public class DataInitializer implements ApplicationRunner {
                 .build(),
             Program.builder()
                 .title("바리스타 자격증 취득 과정")
-                .organization("용인청년LAB 기흥")
+                .center(resolveCenter("용인청년LAB 기흥"))
                 .region("용인시")
                 .imageUrl(
                     "https://images.unsplash.com/photo-1442512595331-e89e73853f31?w=400&h=280&fit=crop")
@@ -854,7 +870,7 @@ public class DataInitializer implements ApplicationRunner {
                 .build(),
             Program.builder()
                 .title("청년 부트캠프 백엔드 트랙")
-                .organization("청년이봄 정자")
+                .center(resolveCenter("청년이봄 정자"))
                 .region("성남시")
                 .imageUrl(
                     "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=280&fit=crop")
@@ -871,7 +887,7 @@ public class DataInitializer implements ApplicationRunner {
                 .build(),
             Program.builder()
                 .title("도예 원데이 클래스")
-                .organization("청년일자리카페 '청년e-room'")
+                .center(resolveCenter("청년일자리카페 '청년e-room'"))
                 .region("이천시")
                 .imageUrl(
                     "https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=400&h=280&fit=crop")
@@ -890,7 +906,7 @@ public class DataInitializer implements ApplicationRunner {
                 .build(),
             Program.builder()
                 .title("청년 재테크 세미나")
-                .organization("김포시청년지원센터")
+                .center(resolveCenter("김포시청년지원센터"))
                 .region("김포시")
                 .imageUrl(
                     "https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=400&h=280&fit=crop")
@@ -907,7 +923,7 @@ public class DataInitializer implements ApplicationRunner {
                 .build(),
             Program.builder()
                 .title("스피치·발표 트레이닝")
-                .organization("청춘곳간")
+                .center(resolveCenter("청춘곳간"))
                 .region("광명시")
                 .imageUrl(
                     "https://images.unsplash.com/photo-1475721027785-f74eccf877e2?w=400&h=280&fit=crop")
@@ -924,7 +940,7 @@ public class DataInitializer implements ApplicationRunner {
                 .build(),
             Program.builder()
                 .title("데이터 분석 입문 캠프")
-                .organization("화성시청년지원센터 H.E.Y")
+                .center(resolveCenter("화성시청년지원센터 H.E.Y"))
                 .region("화성시")
                 .imageUrl(
                     "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=280&fit=crop")
@@ -941,7 +957,7 @@ public class DataInitializer implements ApplicationRunner {
                 .build(),
             Program.builder()
                 .title("UX·UI 디자인 워크숍")
-                .organization("파주시청년공간 GP1939")
+                .center(resolveCenter("파주시청년공간 GP1939"))
                 .region("파주시")
                 .imageUrl(
                     "https://images.unsplash.com/photo-1541462608143-67571c6738dd?w=400&h=280&fit=crop")
@@ -958,7 +974,7 @@ public class DataInitializer implements ApplicationRunner {
                 .build(),
             Program.builder()
                 .title("청년 요가·명상 클래스")
-                .organization("의정부시 청년공감터")
+                .center(resolveCenter("의정부시 청년공감터"))
                 .region("의정부시")
                 .imageUrl(
                     "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400&h=280&fit=crop")
@@ -975,7 +991,7 @@ public class DataInitializer implements ApplicationRunner {
                 .build(),
             Program.builder()
                 .title("청년 사진 워크숍")
-                .organization("남양주시 청년창업센터 / 청년꽃간")
+                .center(resolveCenter("남양주시 청년창업센터 / 청년꽃간"))
                 .region("남양주시")
                 .imageUrl(
                     "https://images.unsplash.com/photo-1502920917128-1aa500764cbd?w=400&h=280&fit=crop")
@@ -992,7 +1008,7 @@ public class DataInitializer implements ApplicationRunner {
                 .build(),
             Program.builder()
                 .title("독서 모임 · 인문학 살롱")
-                .organization("청년협업마을")
+                .center(resolveCenter("청년협업마을"))
                 .region("시흥시")
                 .imageUrl(
                     "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=400&h=280&fit=crop")
@@ -1009,7 +1025,7 @@ public class DataInitializer implements ApplicationRunner {
                 .build(),
             Program.builder()
                 .title("보컬 트레이닝 심화반")
-                .organization("청년쉼표")
+                .center(resolveCenter("청년쉼표"))
                 .region("평택시")
                 .imageUrl(
                     "https://images.unsplash.com/photo-1516280440614-37939bbacd81?w=400&h=280&fit=crop")
@@ -1026,7 +1042,7 @@ public class DataInitializer implements ApplicationRunner {
                 .build(),
             Program.builder()
                 .title("친환경 도시농부 프로젝트")
-                .organization("하남시청년지원센터")
+                .center(resolveCenter("하남시청년지원센터"))
                 .region("하남시")
                 .imageUrl(
                     "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=400&h=280&fit=crop")
