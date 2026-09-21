@@ -355,13 +355,12 @@ public class TestFixtureController {
    * A8 admin-bulk-csv (2026-09-21 · A8-e2e-suite): 신청 일괄 승인 시나리오 정밀 격리 endpoint.
    *
    * <p>배경: {@link #resetBulkFixtures()} 는 {@code program_id <= SEED_PROGRAM_COUNT} 전체의 APPROVED 를
-   * PENDING 으로 되돌린다. 그러나 시드 규약상 programs[0](id=1) 는 seed1~28 이 APPROVED 상태여야 하며 (apply /
-   * mypage spec 이 이 불변식에 의존), reset-bulk-fixtures 를 bulk-approve 후 호출하면 programs[0] 의 APPROVED 시드까지
+   * PENDING 으로 되돌린다. 그러나 시드 규약상 programs[0](id=1) 는 seed1~28 이 APPROVED 상태여야 하며 (apply / mypage
+   * spec 이 이 불변식에 의존), reset-bulk-fixtures 를 bulk-approve 후 호출하면 programs[0] 의 APPROVED 시드까지
    * PENDING 으로 오염시켜 후속 spec 을 깨뜨린다.
    *
    * <p>이 endpoint 는 <b>지정한 programId 한 건</b>의 APPROVED 신청만 PENDING 으로 원복한다. bulk-approve 테스트가 시드
-   * 규약상 전부 PENDING 인 programs[2](id=3) 를 대상으로 승인한 뒤, 그 프로그램만 정밀 복원하는 용도. 다른 프로그램의 시드 상태는
-   * 건드리지 않는다.
+   * 규약상 전부 PENDING 인 programs[2](id=3) 를 대상으로 승인한 뒤, 그 프로그램만 정밀 복원하는 용도. 다른 프로그램의 시드 상태는 건드리지 않는다.
    *
    * @return 204 No Content (idempotent)
    */
