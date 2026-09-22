@@ -115,15 +115,22 @@ class HomeServiceTest {
                 .createdBy(noticeAuthor)
                 .build()));
     // Center
-    centerRepository.save(
-        Center.builder().name("C1").region("서울").address("A").phone("0").isFeatured(true).build());
+    Center center =
+        centerRepository.save(
+            Center.builder()
+                .name("C1")
+                .region("서울")
+                .address("A")
+                .phone("0")
+                .isFeatured(true)
+                .build());
     // Program
     LocalDate today = LocalDate.now();
     programRepository.saveAll(
         List.of(
             Program.builder()
                 .title("P1")
-                .organization("O")
+                .center(center)
                 .category("취업")
                 .region("서울")
                 .content("c")
@@ -132,7 +139,7 @@ class HomeServiceTest {
                 .build(),
             Program.builder()
                 .title("P2")
-                .organization("O")
+                .center(center)
                 .category("창업")
                 .region("경기")
                 .content("c")
@@ -141,7 +148,7 @@ class HomeServiceTest {
                 .build(),
             Program.builder()
                 .title("P3")
-                .organization("O")
+                .center(center)
                 .category("힐링")
                 .region("서울")
                 .content("c")
@@ -150,7 +157,7 @@ class HomeServiceTest {
                 .build(),
             Program.builder()
                 .title("P4-inactive")
-                .organization("O")
+                .center(center)
                 .category("교육")
                 .region("서울")
                 .content("c")

@@ -3,6 +3,7 @@ package io.github.sihyuuun.youthmoa.admin;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import io.github.sihyuuun.youthmoa.center.Center;
 import io.github.sihyuuun.youthmoa.program.Program;
 import io.github.sihyuuun.youthmoa.program.ProgramEligibility;
 import io.github.sihyuuun.youthmoa.program.ProgramRepository;
@@ -23,12 +24,15 @@ class AdminProgramEligibilityServiceTest {
   private AdminProgramEligibilityService service;
   private Program program;
 
+  private static final Center CENTER =
+      Center.builder().name("의왕청년발전소").region("의왕시").isFeatured(false).build();
+
   @BeforeEach
   void setup() {
     program =
         Program.builder()
             .title("청년 문화예술 스쿨")
-            .organization("의왕청년발전소")
+            .center(CENTER)
             .content("본문")
             .isActive(true)
             .eligibility(
@@ -160,7 +164,12 @@ class AdminProgramEligibilityServiceTest {
   @Test
   void update_onProgramWithoutEligibility_setsFreshEligibility() {
     Program noElig =
-        Program.builder().title("t").organization("o").content("c").isActive(true).build();
+        Program.builder()
+            .title("t")
+            .center(Center.builder().name("o").region("수원시").isFeatured(false).build())
+            .content("c")
+            .isActive(true)
+            .build();
     setField(noElig, "id", 8L);
     AdminProgramEligibilityService s2 =
         new AdminProgramEligibilityService(inMemoryProgramRepo(noElig));

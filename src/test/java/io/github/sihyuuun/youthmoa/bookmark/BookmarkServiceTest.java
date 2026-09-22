@@ -3,6 +3,8 @@ package io.github.sihyuuun.youthmoa.bookmark;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import io.github.sihyuuun.youthmoa.center.Center;
+import io.github.sihyuuun.youthmoa.center.CenterRepository;
 import io.github.sihyuuun.youthmoa.common.config.JpaConfig;
 import io.github.sihyuuun.youthmoa.program.Program;
 import io.github.sihyuuun.youthmoa.program.ProgramRepository;
@@ -27,12 +29,17 @@ class BookmarkServiceTest {
   @Autowired BookmarkRepository bookmarkRepository;
   @Autowired UserRepository userRepository;
   @Autowired ProgramRepository programRepository;
+  @Autowired CenterRepository centerRepository;
 
   private User user;
   private Program program;
+  private Center center;
 
   @BeforeEach
   void seed() {
+    center =
+        centerRepository.save(
+            Center.builder().name("내일스퀘어").region("수원시").isActive(true).build());
     user =
         userRepository.save(
             User.builder()
@@ -46,7 +53,7 @@ class BookmarkServiceTest {
         programRepository.save(
             Program.builder()
                 .title("샘플 프로그램")
-                .organization("내일스퀘어")
+                .center(center)
                 .category("취업")
                 .region("수원시")
                 .content("c")
@@ -138,7 +145,7 @@ class BookmarkServiceTest {
         programRepository.save(
             Program.builder()
                 .title("샘플 2")
-                .organization("내일스퀘어")
+                .center(center)
                 .category("취업")
                 .region("수원시")
                 .content("c")
@@ -149,7 +156,7 @@ class BookmarkServiceTest {
         programRepository.save(
             Program.builder()
                 .title("샘플 3")
-                .organization("내일스퀘어")
+                .center(center)
                 .category("교육")
                 .region("부천시")
                 .content("c")
@@ -190,7 +197,7 @@ class BookmarkServiceTest {
           programRepository.save(
               Program.builder()
                   .title("샘플 " + i)
-                  .organization("내일스퀘어")
+                  .center(center)
                   .region("수원시")
                   .content("c")
                   .startDate(LocalDate.now().minusDays(3))
@@ -207,7 +214,7 @@ class BookmarkServiceTest {
         programRepository.save(
             Program.builder()
                 .title("오버플로우")
-                .organization("내일스퀘어")
+                .center(center)
                 .region("수원시")
                 .content("c")
                 .startDate(LocalDate.now().minusDays(3))

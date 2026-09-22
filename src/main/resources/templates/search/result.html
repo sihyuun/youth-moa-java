@@ -93,7 +93,7 @@
                                 <img th:if="${dto.imageUrl != null}" th:src="${dto.imageUrl}" alt=""
                                      th:style="${dto.status.name() == 'ENDED'} ? 'filter:grayscale(1) brightness(0.82)' : ''">
                                 <div th:if="${dto.imageUrl == null}" class="program-card-placeholder">
-                                    <span th:text="${dto.organization}">기관</span>
+                                    <span th:text="${dto.centerName}">기관</span>
                                 </div>
                                 <span class="dday-chip"
                                       th:if="${!#strings.isEmpty(dto.ddayLabel)}"
@@ -102,7 +102,7 @@
                             </div>
                             <div class="program-card-body">
                                 <h3 class="program-card-title" th:text="${dto.title}">프로그램 제목</h3>
-                                <p class="program-card-org" th:text="${dto.organization}">주관 기관</p>
+                                <p class="program-card-org" th:text="${dto.centerName}">주관 기관</p>
                                 <p class="program-card-date"
                                    th:if="${dto.dateLabel != null}"
                                    th:text="${dto.dateLabel}">2024-08-01~08-31</p>

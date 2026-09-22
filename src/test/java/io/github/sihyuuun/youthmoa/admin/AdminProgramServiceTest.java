@@ -85,9 +85,9 @@ class AdminProgramServiceTest {
     String centerName = centerUser.getCenter().getName();
 
     Page<Program> page = adminProgramService.list(null, null, 0);
-    // 모든 결과가 해당 센터 organization 이어야 함
+    // 모든 결과가 해당 센터 이어야 함
     for (Program p : page.getContent()) {
-      assertThat(p.getOrganization()).isEqualTo(centerName);
+      assertThat(p.getCenter().getName()).isEqualTo(centerName);
     }
   }
 
@@ -169,10 +169,10 @@ class AdminProgramServiceTest {
     Page<Program> allPrograms = adminProgramService.list(null, null, 0);
     Program other =
         allPrograms.getContent().stream()
-            .filter(p -> !p.getOrganization().equals(centerName))
+            .filter(p -> !p.getCenter().getName().equals(centerName))
             .findFirst()
             .orElse(null);
-    // 다른 organization 프로그램이 없다면 검증 스킵 (시드 특성상 여러 organization 존재해야 함)
+    // 다른 center 프로그램이 없다면 검증 스킵 (시드 특성상 여러 center 존재해야 함)
     if (other == null) return;
 
     // 다시 CENTER_ADMIN 로 접근

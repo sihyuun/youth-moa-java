@@ -3,6 +3,7 @@ package io.github.sihyuuun.youthmoa.program;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
+import io.github.sihyuuun.youthmoa.center.Center;
 import java.time.LocalDate;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -41,10 +42,13 @@ class CapacityBarFragmentRenderTest {
     return engine.process("fragments/capacity-bar", java.util.Set.of("capacityBar"), c);
   }
 
+  private static final Center CENTER =
+      Center.builder().name("o").region("수원시").isFeatured(false).build();
+
   private Program activeProgram(Integer capacity) {
     return Program.builder()
         .title("t")
-        .organization("o")
+        .center(CENTER)
         .content("c")
         .startDate(LocalDate.now().minusDays(1))
         .endDate(LocalDate.now().plusDays(10))
@@ -55,7 +59,7 @@ class CapacityBarFragmentRenderTest {
   private Program upcomingProgram(LocalDate startDate) {
     return Program.builder()
         .title("t")
-        .organization("o")
+        .center(CENTER)
         .content("c")
         .startDate(startDate)
         .endDate(startDate.plusDays(20))
@@ -66,7 +70,7 @@ class CapacityBarFragmentRenderTest {
   private Program closedProgram() {
     return Program.builder()
         .title("t")
-        .organization("o")
+        .center(CENTER)
         .content("c")
         .startDate(LocalDate.now().minusDays(20))
         .endDate(LocalDate.now().minusDays(1))

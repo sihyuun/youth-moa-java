@@ -5,6 +5,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.github.sihyuuun.youthmoa.application.Application;
 import io.github.sihyuuun.youthmoa.application.ApplicationRepository;
 import io.github.sihyuuun.youthmoa.application.ApplicationStatus;
+import io.github.sihyuuun.youthmoa.center.Center;
+import io.github.sihyuuun.youthmoa.center.CenterRepository;
 import io.github.sihyuuun.youthmoa.common.config.JpaConfig;
 import io.github.sihyuuun.youthmoa.user.User;
 import io.github.sihyuuun.youthmoa.user.UserRepository;
@@ -37,15 +39,25 @@ class ProgramCalendarServiceTest {
   @Autowired ProgramRepository programRepository;
   @Autowired ApplicationRepository applicationRepository;
   @Autowired UserRepository userRepository;
+  @Autowired CenterRepository centerRepository;
   @Autowired ProgramCalendarService service;
 
   // ─────────── 헬퍼 ───────────
+
+  private Center defaultCenter() {
+    return centerRepository
+        .findByName("org")
+        .orElseGet(
+            () ->
+                centerRepository.save(
+                    Center.builder().name("org").region("수원시").isFeatured(false).build()));
+  }
 
   private Program saveProgram(String title, LocalDate start, LocalDate end, Integer capacity) {
     return programRepository.save(
         Program.builder()
             .title(title)
-            .organization("org")
+            .center(defaultCenter())
             .category("c")
             .region("수원시")
             .content("c")

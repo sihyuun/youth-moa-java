@@ -236,8 +236,9 @@ public class ProgramCardDto {
     return program.getTitle();
   }
 
-  public String getOrganization() {
-    return program.getOrganization();
+  /** A9-b (2026-09-22): organization 폐기 → center.name 반환 (Q-A9-b-5). */
+  public String getCenterName() {
+    return program.getCenter() != null ? program.getCenter().getName() : null;
   }
 
   public String getRegion() {

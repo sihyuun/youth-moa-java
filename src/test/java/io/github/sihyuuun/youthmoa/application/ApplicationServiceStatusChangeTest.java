@@ -6,6 +6,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import io.github.sihyuuun.youthmoa.application.event.ApplicationApprovedEvent;
 import io.github.sihyuuun.youthmoa.application.event.ApplicationCancelledEvent;
 import io.github.sihyuuun.youthmoa.application.event.ApplicationRejectedEvent;
+import io.github.sihyuuun.youthmoa.center.Center;
+import io.github.sihyuuun.youthmoa.center.CenterRepository;
 import io.github.sihyuuun.youthmoa.program.Program;
 import io.github.sihyuuun.youthmoa.program.ProgramRepository;
 import io.github.sihyuuun.youthmoa.user.User;
@@ -41,6 +43,7 @@ class ApplicationServiceStatusChangeTest {
   @Autowired ApplicationRepository applicationRepository;
   @Autowired UserRepository userRepository;
   @Autowired ProgramRepository programRepository;
+  @Autowired CenterRepository centerRepository;
   @Autowired ApplicationEvents events;
 
   private User user;
@@ -68,11 +71,22 @@ class ApplicationServiceStatusChangeTest {
                 .build());
 
     LocalDate today = LocalDate.now();
+    Center center =
+        centerRepository
+            .findByName("내일스퀘어 양평")
+            .orElseGet(
+                () ->
+                    centerRepository.save(
+                        Center.builder()
+                            .name("내일스퀘어 양평")
+                            .region("양평군")
+                            .isActive(true)
+                            .build()));
     program =
         programRepository.save(
             Program.builder()
                 .title("F2b 테스트 프로그램")
-                .organization("내일스퀘어")
+                .center(center)
                 .category("취업")
                 .region("수원시")
                 .content("c")

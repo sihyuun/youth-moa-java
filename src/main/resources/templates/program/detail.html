@@ -56,7 +56,7 @@
                 <!-- Title -->
                 <h1 class="detail-title" th:text="${program.title}">프로그램 제목</h1>
                 <p class="detail-subtitle"
-                   th:text="${program.organization + ' · ' + program.region}">기관 · 지역</p>
+                   th:text="${program.center?.name + ' · ' + program.region}">기관 · 지역</p>
 
                 <!-- 모집 상태 카드 — prototype.tsx L945~951 (배경 강조 + 상단 헤드라인/카운트 + bar + 부가 안내) -->
                 <div th:replace="~{fragments/capacity-bar :: detailCapacityBar(
@@ -100,7 +100,7 @@
                         <div class="detail-meta-body">
                             <div class="detail-meta-key">진행 장소</div>
                             <div class="detail-meta-value detail-meta-place">
-                                <span th:text="${program.organization + ' (' + program.region + ')'}">기관 (지역)</span>
+                                <span th:text="${program.center?.name + ' (' + program.region + ')'}">기관 (지역)</span>
                                 <button type="button" class="detail-map-btn" data-map-toggle>
                                     <svg th:replace="~{fragments/icons :: pin(12, 'var(--color-primary)')}"></svg>
                                     <span>지도</span>
@@ -315,12 +315,12 @@
                         <circle cx="12" cy="10" r="3"/>
                     </svg>
                 </div>
-                <span class="detail-map-pin-label" th:text="${program.organization}">기관</span>
+                <span class="detail-map-pin-label" th:text="${program.center?.name}">기관</span>
             </div>
             <span class="detail-map-watermark">지도 이미지 (카카오/네이버 지도 SDK 연동 예정)</span>
         </div>
         <div class="detail-map-body">
-            <div class="detail-map-center-name" th:text="${program.organization}">기관</div>
+            <div class="detail-map-center-name" th:text="${program.center?.name}">기관</div>
             <div class="detail-map-address" th:text="'경기도 ' + ${program.region} + ' 청년로 123, 3층'">
                 경기도 ○○시 청년로 123, 3층
             </div>

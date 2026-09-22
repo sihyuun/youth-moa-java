@@ -619,9 +619,8 @@ public class DataInitializer implements ApplicationRunner {
   }
 
   /**
-   * A9-a (2026-09-21) fail-fast: Center 시드에 존재해야 하는 name 을 조회. 매칭 실패 시 IllegalStateException 을 던져
-   * 부팅 중단 (Program 시드에 오타·미등록 센터가 섞이면 조기 감지 목적). Program 시드의 24개 organization 은 centers.csv 와 100%
-   * 매칭됨을 사전 확인.
+   * A9-b (2026-09-22) fail-fast: Center 시드에 존재해야 하는 name 을 조회. Program.center 는 NOT NULL 이므로 시드
+   * 시점에 반드시 실 Center 를 주입해야 한다. 매칭 실패 시 IllegalStateException 을 던져 부팅 중단.
    */
   private Center resolveCenter(String name) {
     return centerRepository
@@ -629,7 +628,7 @@ public class DataInitializer implements ApplicationRunner {
         .orElseThrow(
             () ->
                 new IllegalStateException(
-                    "[A9-a] Program seed 의 organization 이 Center 시드와 매칭되지 않습니다: '"
+                    "[A9-b] Program seed 의 center name 이 Center 시드와 매칭되지 않습니다: '"
                         + name
                         + "'. centers.csv 를 확인하세요."));
   }

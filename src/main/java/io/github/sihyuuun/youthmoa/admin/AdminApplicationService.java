@@ -31,7 +31,7 @@ import org.springframework.transaction.annotation.Transactional;
  * A4 admin-program-detail (2026-09-15 · Qn 24건 모두 A): 관리자 신청 관리 서비스.
  *
  * <ul>
- *   <li>Qn-A A — SYSTEM_ADMIN + CENTER_ADMIN (organization 문자열 매칭 · AdminScope 재활용)
+ *   <li>Qn-A A — SYSTEM_ADMIN + CENTER_ADMIN (A9-b 이후 Center FK id 매칭 · AdminScope 재활용)
  *   <li>Qn-C A — 관리자 강제 CANCELLED 지원 · {@link Application#forceCancelByAdmin} 재활용 · {@link
  *       ApplicationCancelledEvent} 발행
  *   <li>Qn-1 A — {@code adminNote} 단일 컬럼 (V15)

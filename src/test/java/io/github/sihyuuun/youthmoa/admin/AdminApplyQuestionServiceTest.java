@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.github.sihyuuun.youthmoa.application.ApplyAnswerRepository;
+import io.github.sihyuuun.youthmoa.center.Center;
 import io.github.sihyuuun.youthmoa.program.ApplyQuestion;
 import io.github.sihyuuun.youthmoa.program.ApplyQuestionRepository;
 import io.github.sihyuuun.youthmoa.program.Program;
@@ -204,7 +205,7 @@ class AdminApplyQuestionServiceTest {
     Program p =
         Program.builder()
             .title(title)
-            .organization("test org")
+            .center(Center.builder().name("test org").region("수원시").isFeatured(false).build())
             .content("test")
             .isActive(true)
             .build();

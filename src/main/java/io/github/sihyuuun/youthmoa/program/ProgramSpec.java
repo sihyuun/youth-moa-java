@@ -12,8 +12,11 @@ public class ProgramSpec {
   }
 
   /**
-   * 통합 검색 키워드 매칭 — title / organization / region / content 4개 컬럼 OR LIKE. 대소문자 무시. q 가 null/빈 문자열이면
-   * 조건 없음(cb.conjunction) 반환하여 다른 Specification 과 안전하게 결합.
+   * 통합 검색 키워드 매칭 — title / center.name / region / content 4개 컬럼 OR LIKE. 대소문자 무시. q 가 null/빈
+   * 문자열이면 조건 없음(cb.conjunction) 반환하여 다른 Specification 과 안전하게 결합.
+   *
+   * <p>A9-b (2026-09-22): organization 컬럼 DROP → center.name join 으로 대체. Program.center 는 NOT NULL 이므로
+   * inner join 안전.
    *
    * <p>260826 chore/content-lob-to-text: content 를 @Lob 에서 @JdbcTypeCode(LONGVARCHAR) 로 이관 → PG
    * text · H2 VARCHAR(MAX). Hibernate 6 SQM 이 STRING 타입으로 확정해 lower() 정상 사용 가능. 별도 summary 필드 우회는
@@ -25,7 +28,7 @@ public class ProgramSpec {
       String pattern = "%" + q.toLowerCase() + "%";
       return cb.or(
           cb.like(cb.lower(root.get("title")), pattern),
-          cb.like(cb.lower(root.get("organization")), pattern),
+          cb.like(cb.lower(root.get("center").get("name")), pattern),
           cb.like(cb.lower(root.get("region")), pattern),
           cb.like(cb.lower(root.get("content")), pattern));
     };

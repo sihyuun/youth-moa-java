@@ -2,6 +2,8 @@ package io.github.sihyuuun.youthmoa.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.github.sihyuuun.youthmoa.center.Center;
+import io.github.sihyuuun.youthmoa.center.CenterRepository;
 import io.github.sihyuuun.youthmoa.common.config.JpaConfig;
 import io.github.sihyuuun.youthmoa.program.Program;
 import io.github.sihyuuun.youthmoa.program.ProgramRepository;
@@ -32,6 +34,7 @@ class ApplicationRepositoryCountTest {
   @Autowired ApplicationRepository applicationRepository;
   @Autowired ProgramRepository programRepository;
   @Autowired UserRepository userRepository;
+  @Autowired CenterRepository centerRepository;
 
   private Program programA;
   private Program programB;
@@ -42,11 +45,14 @@ class ApplicationRepositoryCountTest {
 
   @BeforeEach
   void setUp() {
+    Center center =
+        centerRepository.save(
+            Center.builder().name("기관").region("서울").isActive(true).build());
     programA =
         programRepository.save(
             Program.builder()
                 .title("프로그램 A")
-                .organization("기관")
+                .center(center)
                 .content("내용")
                 .startDate(LocalDate.now().minusDays(1))
                 .endDate(LocalDate.now().plusDays(10))
@@ -57,7 +63,7 @@ class ApplicationRepositoryCountTest {
         programRepository.save(
             Program.builder()
                 .title("프로그램 B")
-                .organization("기관")
+                .center(center)
                 .content("내용")
                 .startDate(LocalDate.now().minusDays(1))
                 .endDate(LocalDate.now().plusDays(10))
@@ -68,7 +74,7 @@ class ApplicationRepositoryCountTest {
         programRepository.save(
             Program.builder()
                 .title("프로그램 C")
-                .organization("기관")
+                .center(center)
                 .content("내용")
                 .startDate(LocalDate.now().minusDays(1))
                 .endDate(LocalDate.now().plusDays(10))

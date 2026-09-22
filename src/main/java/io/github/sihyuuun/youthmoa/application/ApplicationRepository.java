@@ -20,8 +20,10 @@ public interface ApplicationRepository
   /**
    * D1b 완료 페이지용: program·user 를 fetch join 하여 OSIV=false 환경에서 템플릿 렌더링 시 LazyInitializationException
    * 방지. @EntityGraph 는 JPA 표준으로, JPQL 없이 지정한 연관을 즉시 로딩한다.
+   *
+   * <p>A9-b (2026-09-22): program.center 추가. 상세/완료 페이지가 program.center.name 을 접근한다.
    */
-  @EntityGraph(attributePaths = {"program", "user"})
+  @EntityGraph(attributePaths = {"program", "program.center", "user"})
   Optional<Application> findWithProgramAndUserById(Long id);
 
   boolean existsByUserAndProgramAndStatusIn(
@@ -32,8 +34,10 @@ public interface ApplicationRepository
   /**
    * D5 마이페이지 신청 내역용. OSIV=false 환경에서 템플릿이 program 을 접근하므로 fetch join. status/appliedAt 을 카드에 렌더하기
    * 위해 최신순 정렬.
+   *
+   * <p>A9-b (2026-09-22): program.center 추가. 신청 내역 카드가 program.center.name 을 접근한다.
    */
-  @EntityGraph(attributePaths = {"program"})
+  @EntityGraph(attributePaths = {"program", "program.center"})
   List<Application> findAllByUserOrderByAppliedAtDesc(User user);
 
   long countByProgramAndStatusIn(Program program, List<ApplicationStatus> statuses);

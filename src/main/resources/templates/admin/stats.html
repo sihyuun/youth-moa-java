@@ -252,7 +252,7 @@
                     <div class="admin-stats-list-item-body">
                         <div class="admin-stats-list-item-title" th:text="${up.title}">프로그램명</div>
                         <div class="admin-stats-list-item-sub">
-                            <span th:text="${up.organization}">청년센터</span>
+                            <span th:text="${up.center?.name}">청년센터</span>
                             <span> · </span>
                             <span th:if="${up.applyEndDate != null}"
                                   th:text="|${#temporals.format(up.applyEndDate, 'yyyy-MM-dd')} 마감|">마감일</span>

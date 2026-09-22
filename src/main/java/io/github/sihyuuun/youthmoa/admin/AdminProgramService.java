@@ -34,14 +34,14 @@ import org.springframework.transaction.annotation.Transactional;
  * A2 (2026-09-09 · Qn-1~9 모두 A): 관리자 프로그램 목록·상세 조회 서비스.
  *
  * <ul>
- *   <li>Qn-1 A — Program-Center FK 미도입, {@link AdminScope} organization 문자열 매칭
- *   <li>Qn-3 A — 필터 5종 (전체/OPEN/UPCOMING/ENDED/SUSPENDED) + 검색 (title + organization)
+ *   <li>Qn-1 A — A9-b (2026-09-22) 이후 Program.center FK (NOT NULL) 기반 격리
+ *   <li>Qn-3 A — 필터 5종 (전체/OPEN/UPCOMING/ENDED/SUSPENDED) + 검색 (title + center.name)
  *   <li>Qn-4 A — 페이지당 10건 (AdminNoticeController 와 일관 — 20건 대신 10건: 프로그램은 카드 정보량이 더 커서 시각적 부담)
  *   <li>Qn-5 A — 최신순 createdAt DESC
- *   <li>Qn-6 A — LIKE %q% title / organization OR (lower 매칭)
+ *   <li>Qn-6 A — LIKE %q% title / center.name OR (lower 매칭)
  * </ul>
  *
- * <p>RBAC (Qn-1 A): SYSTEM_ADMIN 전체, CENTER_ADMIN 은 organization = 자기 센터명 매칭. 미매칭 프로그램 상세 접근은
+ * <p>RBAC (Qn-1 A): SYSTEM_ADMIN 전체, CENTER_ADMIN 은 center.id = 자기 소속 센터 id 매칭. 미매칭 프로그램 상세 접근은
  * IllegalAccessError 로 신호하여 Controller 에서 AccessDeniedException 으로 승격.
  */
 @Service
@@ -66,7 +66,7 @@ public class AdminProgramService {
   /**
    * 목록 조회.
    *
-   * @param q 검색어 (title/organization LIKE, null/blank 허용)
+   * @param q 검색어 (title/center.name LIKE, null/blank 허용)
    * @param status 상태 필터 ("OPEN"|"UPCOMING"|"ENDED"|"SUSPENDED"|null|"") - null/blank/ALL 은 미적용
    * @param page 0-based 페이지 인덱스
    */
@@ -86,7 +86,7 @@ public class AdminProgramService {
         programRepository
             .findById(id)
             .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 프로그램이에요: " + id));
-    // A9-a: center FK 기반 격리. 병행 유지 중이지만 이 경로는 FK 를 우선 사용한다.
+    // A9-b (2026-09-22): center FK (NOT NULL) 기반 격리. organization 문자열 매칭 폐기 완료.
     Long scopeId = adminScope.effectiveCenterId();
     if (scopeId != null) {
       Long pCenterId = p.getCenter() != null ? p.getCenter().getId() : null;
@@ -429,14 +429,14 @@ public class AdminProgramService {
   private Specification<Program> scopeSpec() {
     Long scopeId = adminScope.effectiveCenterId();
     if (scopeId == null) return (root, query, cb) -> cb.conjunction();
-    // A9-a: Center FK 기반. organization 문자열 매칭 폐기.
+    // A9-b (2026-09-22): Center FK (NOT NULL) 기반. 병행 상태 종료.
     return (root, query, cb) -> cb.equal(root.get("center").get("id"), scopeId);
   }
 
   private Specification<Program> keywordSpec(String q) {
     if (q == null || q.isBlank()) return (root, query, cb) -> cb.conjunction();
     String pattern = "%" + q.toLowerCase() + "%";
-    // A9-a: 검색 키워드는 title + center.name 대상. organization 은 병행 유지 중이지만 검색 대상에서는 제외 (관리자 UX 단순화).
+    // A9-b (2026-09-22): 검색 키워드는 title + center.name 대상.
     return (root, query, cb) ->
         cb.or(
             cb.like(cb.lower(root.get("title")), pattern),

@@ -87,7 +87,7 @@ class JpaMappingTest {
         programRepository.save(
             Program.builder()
                 .title("취업 부트캠프")
-                .organization("청년재단")
+                .center(center)
                 .category("취업")
                 .region("서울")
                 .content("내용")

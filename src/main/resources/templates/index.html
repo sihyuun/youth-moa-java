@@ -138,7 +138,7 @@
                 </div>
                 <div class="program-card-body">
                     <div class="program-card-title" th:text="${pg.title}">프로그램 제목</div>
-                    <div class="program-card-org" th:text="${pg.organization}">주관 기관</div>
+                    <div class="program-card-org" th:text="${pg.centerName}">주관 기관</div>
                 </div>
             </a>
         </div>
@@ -167,7 +167,7 @@
                     </div>
                     <div class="program-card-body">
                         <div class="program-card-title" th:text="${dto.title}">프로그램 제목</div>
-                        <div class="program-card-org" th:text="${dto.organization}">주관 기관</div>
+                        <div class="program-card-org" th:text="${dto.centerName}">주관 기관</div>
                         <div class="program-card-date"
                              th:if="${dto.dateLabel != null}"
                              th:text="${dto.dateLabel}">2024-08-01~08-31</div>

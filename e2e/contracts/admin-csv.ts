@@ -13,7 +13,7 @@
  *
  * 도메인별 CSV 헤더 (구현: AdminCsvController):
  *  - users:        id,email,name,phone,role,isActive,lastAccessAt,createdAt
- *  - programs:     id,title,organization,category,applyStartDate,applyEndDate,
+ *  - programs:     id,title,centerName,category,applyStartDate,applyEndDate,
  *                  startDate,endDate,capacity,isActive,status,createdAt
  *  - applications: id,applicantEmail,applicantName,phone,status,appliedAt,
  *                  processedAt,processedBy,rejectReason,adminNote

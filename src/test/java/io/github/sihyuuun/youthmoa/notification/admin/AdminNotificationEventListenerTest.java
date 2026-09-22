@@ -217,33 +217,8 @@ class AdminNotificationEventListenerTest {
             });
   }
 
-  @Test
-  @DisplayName("A9-a: center FK 미할당 프로그램 신청 시 알림 수신자 없음 (로그만 남고 apply 는 성공)")
-  void apply_with_unmatched_organization_creates_no_notifications() {
-    LocalDate today = LocalDate.now();
-    // center 미할당 (organization 문자열만 있는 상태 — A9-a 이전 형태 재현)
-    Program orphan =
-        programRepository.save(
-            Program.builder()
-                .title("orphan")
-                .organization("없는센터명")
-                .category("취업")
-                .region("수원시")
-                .content("c")
-                .startDate(today.minusDays(1))
-                .endDate(today.plusDays(30))
-                .capacity(30)
-                .build());
-
-    ApplyRequest req = new ApplyRequest();
-    req.setApplyReason("test");
-    Application saved = applicationService.apply(applicant.getEmail(), orphan.getId(), req);
-
-    assertThat(saved.getId()).isNotNull();
-    long newAppCount =
-        notificationRepository.findAll().stream()
-            .filter(n -> n.getType() == NotificationType.NEW_APPLICATION)
-            .count();
-    assertThat(newAppCount).isZero();
-  }
+  // A9-b (2026-09-22): center FK NOT NULL 승격으로 "center 미할당 프로그램" 시나리오는 스키마상 성립 불가 →
+  // 기존 apply_with_unmatched_organization_creates_no_notifications 케이스 폐기. 미매칭 CENTER_ADMIN
+  // 계정 시나리오 (Program.center.id 는 있으나 그 센터의 CENTER_ADMIN 이 0명) 는 기본 케이스
+  // apply_creates_notification_for_matching_center_admin_only 의 부정 assertion 이 이미 커버한다.
 }

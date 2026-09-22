@@ -98,7 +98,7 @@
                                               : (app.status.name() == 'REJECTED' ? '반려' : '취소'))}">승인</span>
                             </a>
                             <div class="history-card-sub">
-                                <span th:text="${app.program.organization}">기관</span>
+                                <span th:text="${app.program.center?.name}">기관</span>
                                 <span th:if="${app.program.startDate != null and app.program.endDate != null}"
                                       th:text="' · ' + ${#temporals.format(app.program.startDate, 'yyyy-MM-dd')} + '~' + ${#temporals.format(app.program.endDate, 'yyyy-MM-dd')}"> · 2026-08-01~08-31</span>
                             </div>

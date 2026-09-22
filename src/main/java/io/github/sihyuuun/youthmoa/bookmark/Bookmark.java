@@ -41,7 +41,13 @@ public class Bookmark {
   @JoinColumn(name = "user_id", nullable = false)
   private User user;
 
-  @ManyToOne(fetch = FetchType.LAZY, optional = false)
+  /**
+   * A9-b (2026-09-22): EAGER 승격. 이유는 {@link
+   * io.github.sihyuuun.youthmoa.application.Application#program} 과 동일 — mypage/favorites 렌더가
+   * {@code dto.centerName} 을 통해 program.center 를 접근하는데 open-in-view=false 환경에서 프록시 Program 을 통한
+   * center EAGER fetch 가 트리거되지 않아 LazyInitializationException 을 유발.
+   */
+  @ManyToOne(fetch = FetchType.EAGER, optional = false)
   @JoinColumn(name = "program_id", nullable = false)
   private Program program;
 

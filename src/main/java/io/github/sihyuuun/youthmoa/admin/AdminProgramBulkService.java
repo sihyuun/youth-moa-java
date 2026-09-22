@@ -17,8 +17,8 @@ import org.springframework.transaction.support.TransactionTemplate;
  * <p>Qn-P1 결정: 프로그램 status 는 신청기간·정원 파생이라 UPDATE 불가 (prototype.tsx L507 명시). bulk publish/unpublish
  * 는 미도입. Bulk deactivate/reactivate 로 대체 (soft delete 정책).
  *
- * <p>CENTER_ADMIN 격리 (R6): AdminScope.effectiveCenterName() 이 null 이 아니면 organization 문자열 매칭으로 필터.
- * 하나라도 다른 센터 row 가 섞이면 개별 skip (per-row 정책 정합).
+ * <p>CENTER_ADMIN 격리 (R6): A9-b (2026-09-22) 이후 AdminScope.effectiveCenterId() 로 Program.center FK
+ * id 매칭 필터. 다른 센터 row 는 개별 skip (per-row 정책 정합).
  */
 @Slf4j
 @Service
