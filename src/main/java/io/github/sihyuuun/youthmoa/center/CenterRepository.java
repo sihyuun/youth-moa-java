@@ -20,4 +20,7 @@ public interface CenterRepository extends JpaRepository<Center, Long> {
 
   /** Program.organization → Center 정확 매칭. 프로그램 상세의 문의처 전화 조회용. */
   Optional<Center> findByName(String name);
+
+  /** A9-a (2026-09-21): 활성 센터 가나다순 — admin 프로그램 폼 select 옵션 데이터 소스. */
+  List<Center> findByIsActiveTrueOrderByNameAsc();
 }

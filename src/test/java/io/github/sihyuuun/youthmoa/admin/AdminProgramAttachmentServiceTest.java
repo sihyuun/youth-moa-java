@@ -3,6 +3,7 @@ package io.github.sihyuuun.youthmoa.admin;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import io.github.sihyuuun.youthmoa.center.CenterRepository;
 import io.github.sihyuuun.youthmoa.program.ApprovalMode;
 import io.github.sihyuuun.youthmoa.program.Program;
 import io.github.sihyuuun.youthmoa.program.ProgramAttachment;
@@ -31,6 +32,7 @@ import org.springframework.transaction.annotation.Transactional;
 class AdminProgramAttachmentServiceTest {
 
   @Autowired AdminProgramService adminProgramService;
+  @Autowired CenterRepository centerRepository;
   @Autowired AdminProgramAttachmentService adminProgramAttachmentService;
   @Autowired ProgramAttachmentRepository programAttachmentRepository;
 
@@ -42,7 +44,7 @@ class AdminProgramAttachmentServiceTest {
   private Program newProgram(String title) {
     ProgramFormRequest r = new ProgramFormRequest();
     r.setTitle(title);
-    r.setOrganization("e2e 센터");
+    r.setCenterId(centerRepository.findByIsActiveTrueOrderByNameAsc().get(0).getId());
     r.setContent("본문");
     r.setStartDate(LocalDate.of(2026, 10, 1));
     r.setEndDate(LocalDate.of(2026, 10, 31));

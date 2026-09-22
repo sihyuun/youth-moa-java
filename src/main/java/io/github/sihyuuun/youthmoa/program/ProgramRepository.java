@@ -25,15 +25,18 @@ public interface ProgramRepository
   long countByIsActiveTrue();
 
   /**
-   * F0h-c2: 특정 센터(organization 매칭) 의 진행중 프로그램 카운트.
+   * A9-a (2026-09-21): 센터별 진행중 프로그램 카운트 — Center FK 기반. Row = {@code (centerId: Long, count:
+   * Long)}.
    *
-   * <p>Program 은 Center FK 를 갖지 않으므로 organization 문자열 매칭으로 근사. isActive=true 이고 endDate 가 오늘 이후(포함)
-   * 인 프로그램만 카운트.
+   * <p>center_id 가 null 인 row 는 제외 (backfill 이 채워 놓기 때문에 정상 상태에서는 없어야 함).
+   *
+   * <p>사용처: F0h-c2 센터 카드 "진행중 프로그램 N건" 배지.
    */
-  @org.springframework.data.jpa.repository.Query(
-      "SELECT p.organization, COUNT(p) FROM Program p "
+  @Query(
+      "SELECT p.center.id, COUNT(p) FROM Program p "
           + "WHERE p.isActive = true "
+          + "AND p.center IS NOT NULL "
           + "AND (p.endDate IS NULL OR p.endDate >= CURRENT_DATE) "
-          + "GROUP BY p.organization")
-  java.util.List<Object[]> countActiveGroupByOrganization();
+          + "GROUP BY p.center.id")
+  List<Object[]> countActiveGroupByCenterId();
 }

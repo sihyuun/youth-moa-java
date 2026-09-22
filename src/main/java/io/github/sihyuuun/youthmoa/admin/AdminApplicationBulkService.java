@@ -50,9 +50,13 @@ public class AdminApplicationBulkService {
         programRepository
             .findById(programId)
             .orElseThrow(() -> new IllegalArgumentException("프로그램을 찾을 수 없어요: " + programId));
-    String scope = adminScope.effectiveCenterName();
-    if (scope != null && !scope.equals(program.getOrganization())) {
-      throw new IllegalStateException("자신의 센터 프로그램만 조작할 수 있어요.");
+    // A9-a: Center FK 기반 스코프 검증
+    Long scopeId = adminScope.effectiveCenterId();
+    if (scopeId != null) {
+      Long pCenterId = program.getCenter() != null ? program.getCenter().getId() : null;
+      if (!scopeId.equals(pCenterId)) {
+        throw new IllegalStateException("자신의 센터 프로그램만 조작할 수 있어요.");
+      }
     }
     User admin =
         userRepository

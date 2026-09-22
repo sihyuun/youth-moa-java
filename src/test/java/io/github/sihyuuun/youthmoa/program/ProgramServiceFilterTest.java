@@ -38,13 +38,19 @@ class ProgramServiceFilterTest {
     regionRepository.save(Region.builder().name("고양시").isFeatured(true).build());
     regionRepository.save(Region.builder().name("부천시").isFeatured(false).build());
 
-    centerRepository.save(Center.builder().name("내일스퀘어").region("수원시").isFeatured(true).build());
-    centerRepository.save(Center.builder().name("비행지구").region("고양시").isFeatured(false).build());
+    Center centerNaeil =
+        centerRepository.save(
+            Center.builder().name("내일스퀘어").region("수원시").isFeatured(true).build());
+    Center centerBihaeng =
+        centerRepository.save(
+            Center.builder().name("비행지구").region("고양시").isFeatured(false).build());
+    Center centerWonmi =
+        centerRepository.save(Center.builder().name("원미").region("부천시").isFeatured(false).build());
 
     programRepository.save(
         Program.builder()
             .title("취업 워크숍")
-            .organization("내일스퀘어")
+            .center(centerNaeil)
             .region("수원시")
             .content("c")
             .startDate(today.minusDays(5))
@@ -55,7 +61,7 @@ class ProgramServiceFilterTest {
     programRepository.save(
         Program.builder()
             .title("AI 교육")
-            .organization("비행지구")
+            .center(centerBihaeng)
             .region("고양시")
             .content("c")
             .startDate(today.plusDays(10))
@@ -66,7 +72,7 @@ class ProgramServiceFilterTest {
     programRepository.save(
         Program.builder()
             .title("마케팅 종료")
-            .organization("원미")
+            .center(centerWonmi)
             .region("부천시")
             .content("c")
             .startDate(today.minusDays(30))

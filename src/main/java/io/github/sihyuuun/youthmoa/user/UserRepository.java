@@ -37,4 +37,10 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
    * <p>SYSTEM_ADMIN 은 스코프 상 모든 신청을 볼 수 있으나 QC B-1 결정에 따라 NEW_APPLICATION 알림에서는 제외. 대시보드(A6)로 커버.
    */
   List<User> findByRoleAndIsActiveTrueAndCenter_Name(UserRole role, String centerName);
+
+  /**
+   * A9-a (2026-09-21) B-3: role + Center FK id 매칭. B-1 (Center_Name) 대체. Program.center_id 가 도입되면
+   * 문자열 매칭 대신 FK 매칭으로 명확도·성능 향상.
+   */
+  List<User> findByRoleAndIsActiveTrueAndCenter_Id(UserRole role, Long centerId);
 }

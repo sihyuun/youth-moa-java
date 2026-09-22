@@ -10,13 +10,10 @@ package io.github.sihyuuun.youthmoa.application.event;
  * {@code @TransactionalEventListener(AFTER_COMMIT)} 리스너가 안전하게 사용하도록 한다. 엔티티 참조는
  * LazyInitializationException 위험이 있어 담지 않는다.
  *
- * <p>{@code programOrganization} 필드는 A7 QC (B-1) 수신자 결정에 사용된다: {@code
- * ApplicationCreatedRecipientResolver} 가 이 값과 {@code CENTER_ADMIN.effectiveCenterName()} 문자열을 매칭해
- * fan-out 대상을 결정.
+ * <p>A9-a (2026-09-21): {@code programOrganization: String} → {@code centerId: Long} 로 전환 (B-1 →
+ * B-3). {@code ApplicationCreatedRecipientResolver} 가 {@link
+ * io.github.sihyuuun.youthmoa.user.UserRepository#findByRoleAndIsActiveTrueAndCenter_Id} 로 fan-out
+ * 대상을 결정한다. centerId 가 null (backfill 미완 · 초기 상태) 이면 수신자 없음 = 빈 리스트.
  */
 public record ApplicationCreatedEvent(
-    Long applicationId,
-    Long userId,
-    Long programId,
-    String programTitle,
-    String programOrganization) {}
+    Long applicationId, Long userId, Long programId, String programTitle, Long centerId) {}

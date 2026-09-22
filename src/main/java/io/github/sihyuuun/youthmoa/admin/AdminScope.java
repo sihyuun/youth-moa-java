@@ -50,6 +50,25 @@ public class AdminScope {
     return null;
   }
 
+  /**
+   * A9-a (2026-09-21): 유효 센터 ID — Program.center FK 기반 필터에 사용. null 이면 전체 스코프.
+   *
+   * <p>{@link #effectiveCenterName()} 은 라벨/CSV export 헤더 등 표시 용도로 유지, 실 격리 필터는 FK id 로 전환.
+   */
+  public Long effectiveCenterId() {
+    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    if (auth == null || !auth.isAuthenticated()) return null;
+    Object principal = auth.getPrincipal();
+    if (!(principal instanceof UserPrincipal up)) return null;
+    User user = userRepository.findById(up.getId()).orElse(null);
+    if (user == null) return null;
+    if (user.getRole() == UserRole.SYSTEM_ADMIN) return null;
+    if (user.getRole() == UserRole.CENTER_ADMIN && user.getCenter() != null) {
+      return user.getCenter().getId();
+    }
+    return null;
+  }
+
   /** 현재 관리자의 표시용 센터 라벨 (SYSTEM_ADMIN 은 "전체", CENTER_ADMIN 은 센터명). */
   public String centerScopeLabel() {
     String name = effectiveCenterName();

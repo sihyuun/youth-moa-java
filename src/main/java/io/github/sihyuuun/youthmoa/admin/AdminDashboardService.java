@@ -36,25 +36,25 @@ public class AdminDashboardService {
   private final UserRepository userRepository;
 
   @Transactional(readOnly = true)
-  public DashboardModel load(String scopeCenterName) {
-    List<Program> scoped = scopedPrograms(scopeCenterName);
+  public DashboardModel load(Long scopeCenterId) {
+    List<Program> scoped = scopedPrograms(scopeCenterId);
 
     long active = scoped.stream().filter(p -> p.getStatus() == ProgramStatus.OPEN).count();
     long closed = scoped.stream().filter(p -> p.getStatus() == ProgramStatus.ENDED).count();
     long upcoming = scoped.stream().filter(p -> p.getStatus() == ProgramStatus.UPCOMING).count();
 
     long totalUsers;
-    if (scopeCenterName == null) {
+    if (scopeCenterId == null) {
       // SYSTEM_ADMIN: 전체 USER 수
       totalUsers =
           userRepository.findAll().stream().filter(u -> u.getRole() == UserRole.USER).count();
     } else {
-      // CENTER_ADMIN: 자기 센터 소속 USER 만 (Q8 근사 — User.center.name 매칭).
-      final String cn = scopeCenterName;
+      // A9-a: CENTER_ADMIN 은 User.center.id 매칭
+      final Long cid = scopeCenterId;
       totalUsers =
           userRepository.findAll().stream()
               .filter(u -> u.getRole() == UserRole.USER)
-              .filter(u -> u.getCenter() != null && cn.equals(u.getCenter().getName()))
+              .filter(u -> u.getCenter() != null && cid.equals(u.getCenter().getId()))
               .count();
     }
 
@@ -90,11 +90,12 @@ public class AdminDashboardService {
         .build();
   }
 
-  private List<Program> scopedPrograms(String scopeCenterName) {
+  private List<Program> scopedPrograms(Long scopeCenterId) {
     Stream<Program> all = programRepository.findAll().stream();
-    if (scopeCenterName != null) {
-      final String cn = scopeCenterName;
-      all = all.filter(p -> cn.equals(p.getOrganization()));
+    if (scopeCenterId != null) {
+      final Long cid = scopeCenterId;
+      // A9-a: Center FK 기반. center 미할당(null) 프로그램은 스코프에서 제외.
+      all = all.filter(p -> p.getCenter() != null && cid.equals(p.getCenter().getId()));
     }
     return all.toList();
   }

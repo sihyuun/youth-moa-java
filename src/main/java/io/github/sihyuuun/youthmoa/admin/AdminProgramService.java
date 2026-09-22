@@ -2,6 +2,8 @@ package io.github.sihyuuun.youthmoa.admin;
 
 import io.github.sihyuuun.youthmoa.application.ApplicationRepository;
 import io.github.sihyuuun.youthmoa.application.ApplicationStatus;
+import io.github.sihyuuun.youthmoa.center.Center;
+import io.github.sihyuuun.youthmoa.center.CenterRepository;
 import io.github.sihyuuun.youthmoa.program.ApplyQuestion;
 import io.github.sihyuuun.youthmoa.program.ApplyQuestionRepository;
 import io.github.sihyuuun.youthmoa.program.ApprovalMode;
@@ -59,6 +61,7 @@ public class AdminProgramService {
   private final CourseRepository courseRepository;
   private final ApplyQuestionRepository applyQuestionRepository;
   private final AdminApplyQuestionService adminApplyQuestionService;
+  private final CenterRepository centerRepository;
 
   /**
    * 목록 조회.
@@ -83,9 +86,13 @@ public class AdminProgramService {
         programRepository
             .findById(id)
             .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 프로그램이에요: " + id));
-    String scope = adminScope.effectiveCenterName();
-    if (scope != null && !scope.equals(p.getOrganization())) {
-      throw new IllegalAccessError("자신의 센터 프로그램만 조회할 수 있어요.");
+    // A9-a: center FK 기반 격리. 병행 유지 중이지만 이 경로는 FK 를 우선 사용한다.
+    Long scopeId = adminScope.effectiveCenterId();
+    if (scopeId != null) {
+      Long pCenterId = p.getCenter() != null ? p.getCenter().getId() : null;
+      if (!scopeId.equals(pCenterId)) {
+        throw new IllegalAccessError("자신의 센터 프로그램만 조회할 수 있어요.");
+      }
     }
     return p;
   }
@@ -118,10 +125,11 @@ public class AdminProgramService {
   @Transactional
   public Program create(ProgramFormRequest req) {
     validate(req);
+    Center center = loadCenter(req.getCenterId());
     Program program =
         Program.builder()
             .title(req.getTitle().trim())
-            .organization(req.getOrganization().trim())
+            .center(center)
             .category(trimToNull(req.getCategory()))
             .region(trimToNull(req.getRegion()))
             .imageUrl(trimToNull(req.getImageUrl()))
@@ -157,9 +165,10 @@ public class AdminProgramService {
         programRepository
             .findById(id)
             .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 프로그램이에요: " + id));
+    Center center = loadCenter(req.getCenterId());
     program.updateFromAdminForm(
         req.getTitle().trim(),
-        req.getOrganization().trim(),
+        center,
         trimToNull(req.getCategory()),
         trimToNull(req.getRegion()),
         trimToNull(req.getImageUrl()),
@@ -362,8 +371,8 @@ public class AdminProgramService {
     if (req.getTitle().trim().length() > 255) {
       throw new IllegalArgumentException("프로그램 제목은 255자 이하여야 합니다.");
     }
-    if (isBlank(req.getOrganization())) {
-      throw new IllegalArgumentException("청년센터(운영기관) 를 입력해주세요.");
+    if (req.getCenterId() == null) {
+      throw new IllegalArgumentException("청년센터(운영기관) 를 선택해주세요.");
     }
     if (isBlank(req.getContent())) {
       throw new IllegalArgumentException("상세 내용을 입력해주세요.");
@@ -384,6 +393,27 @@ public class AdminProgramService {
     }
   }
 
+  /**
+   * A9-a (2026-09-21): centerId → Center 로드. CENTER_ADMIN 은 자기 센터가 아닌 id 선택 시도 시 예외 (URL 조작 방어).
+   * Center inactive/미존재 시에도 예외. 활성 센터만 admin form 에 노출되므로 select 기본 UX 는 안전.
+   */
+  private Center loadCenter(Long centerId) {
+    Center center =
+        centerRepository
+            .findById(centerId)
+            .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 청년센터에요."));
+    // A9-a QA fix: URL/폼 조작으로 inactive centerId 전달 시 서버 방어. Admin form select 는
+    // 활성 센터만 노출하므로 정상 UX 경로에서는 발생 안 함.
+    if (!center.isActive()) {
+      throw new IllegalArgumentException("비활성 청년센터는 선택할 수 없어요: " + center.getName());
+    }
+    Long scopeId = adminScope.effectiveCenterId();
+    if (scopeId != null && !scopeId.equals(center.getId())) {
+      throw new IllegalAccessError("자신의 센터 프로그램만 생성/수정할 수 있어요.");
+    }
+    return center;
+  }
+
   private static boolean isBlank(String s) {
     return s == null || s.trim().isEmpty();
   }
@@ -397,18 +427,20 @@ public class AdminProgramService {
   // ================= Specifications =================
 
   private Specification<Program> scopeSpec() {
-    String scope = adminScope.effectiveCenterName();
-    if (scope == null) return (root, query, cb) -> cb.conjunction();
-    return (root, query, cb) -> cb.equal(root.get("organization"), scope);
+    Long scopeId = adminScope.effectiveCenterId();
+    if (scopeId == null) return (root, query, cb) -> cb.conjunction();
+    // A9-a: Center FK 기반. organization 문자열 매칭 폐기.
+    return (root, query, cb) -> cb.equal(root.get("center").get("id"), scopeId);
   }
 
   private Specification<Program> keywordSpec(String q) {
     if (q == null || q.isBlank()) return (root, query, cb) -> cb.conjunction();
     String pattern = "%" + q.toLowerCase() + "%";
+    // A9-a: 검색 키워드는 title + center.name 대상. organization 은 병행 유지 중이지만 검색 대상에서는 제외 (관리자 UX 단순화).
     return (root, query, cb) ->
         cb.or(
             cb.like(cb.lower(root.get("title")), pattern),
-            cb.like(cb.lower(root.get("organization")), pattern));
+            cb.like(cb.lower(root.get("center").get("name")), pattern));
   }
 
   /**

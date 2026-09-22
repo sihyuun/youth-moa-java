@@ -14,8 +14,8 @@ public class AdminDashboardController {
 
   @GetMapping("/admin")
   public String dashboard(Model model) {
-    String scopeCenter = adminScope.effectiveCenterName();
-    AdminDashboardService.DashboardModel data = dashboardService.load(scopeCenter);
+    Long scopeCenterId = adminScope.effectiveCenterId();
+    AdminDashboardService.DashboardModel data = dashboardService.load(scopeCenterId);
     model.addAttribute("dashboard", data);
     model.addAttribute("centerScopeLabel", adminScope.centerScopeLabel());
     model.addAttribute("isSystemAdmin", adminScope.isSystemAdmin());

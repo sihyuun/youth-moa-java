@@ -102,11 +102,11 @@ class AdminApplicationServiceTest {
     // center1 은 centers[0] 소속. seed 데이터의 program 1 (organization="내일스퀘어 양평") 는 centers[0] 와 무관.
     // program 이 center1 조직과 매칭되지 않으면 IllegalAccessError.
     User centerAdmin = userRepository.findByEmail("center1@youth-moa.test").orElseThrow();
-    String centerName = centerAdmin.getCenter().getName();
-    // 다른 organization 인 program 을 찾아 검증
+    // A9-a: Center FK 기반으로 격리 검증
+    Long centerId = centerAdmin.getCenter().getId();
     Program otherProgram =
         programRepository.findAll().stream()
-            .filter(p -> !centerName.equals(p.getOrganization()))
+            .filter(p -> p.getCenter() == null || !centerId.equals(p.getCenter().getId()))
             .findFirst()
             .orElseThrow();
     assertThatThrownBy(() -> adminApplicationService.assertProgramInScope(otherProgram.getId()))

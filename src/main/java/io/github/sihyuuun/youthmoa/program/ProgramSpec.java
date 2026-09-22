@@ -88,10 +88,15 @@ public class ProgramSpec {
     return (root, query, cb) -> root.get("region").in(regions);
   }
 
-  /** 다중 청년센터(=organization) IN 절. null/빈 리스트 → 조건 없음 */
+  /**
+   * A9-a (2026-09-21): 다중 청년센터 IN 절 — Center FK 기반 (center.name). null/빈 리스트 → 조건 없음.
+   *
+   * <p>이전에는 organization 문자열 매칭. 병행 유지 중이지만 필터는 Center 신뢰 대상만 노출하도록 center.name join 으로 승격.
+   * center_id 가 null 인 프로그램은 자연히 매칭 실패로 제외됨 (backfill 이 채워 놓기 때문에 정상 상태에서는 없어야 함).
+   */
   public static Specification<Program> withCenters(List<String> centers) {
     if (centers == null || centers.isEmpty()) return null;
-    return (root, query, cb) -> root.get("organization").in(centers);
+    return (root, query, cb) -> root.get("center").get("name").in(centers);
   }
 
   /**

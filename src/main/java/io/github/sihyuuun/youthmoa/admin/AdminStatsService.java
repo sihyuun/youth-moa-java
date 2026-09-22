@@ -57,13 +57,13 @@ public class AdminStatsService {
   private final SvgChartRenderer chartRenderer;
 
   @Transactional(readOnly = true)
-  public StatsModel load(String scopeCenterName, String chartMode) {
+  public StatsModel load(Long scopeCenterId, String chartMode) {
     LocalDate today = LocalDate.now();
     boolean yearMode = "year".equalsIgnoreCase(chartMode);
 
     // ── scoped 프로그램·사용자 ────────────────────────────────
-    List<Program> scoped = scopedPrograms(scopeCenterName);
-    List<User> scopedUsers = scopedUsers(scopeCenterName);
+    List<Program> scoped = scopedPrograms(scopeCenterId);
+    List<User> scopedUsers = scopedUsers(scopeCenterId);
 
     // ── KPI ──────────────────────────────────────────────────
     long totalPrograms = scoped.size();
@@ -202,19 +202,20 @@ public class AdminStatsService {
   //   helpers
   // ─────────────────────────────────────────────────────────────
 
-  private List<Program> scopedPrograms(String scopeCenterName) {
+  private List<Program> scopedPrograms(Long scopeCenterId) {
     Stream<Program> all = programRepository.findAll().stream();
-    if (scopeCenterName != null) {
-      all = all.filter(p -> scopeCenterName.equals(p.getOrganization()));
+    if (scopeCenterId != null) {
+      // A9-a: Center FK 기반. center 미할당(null) 프로그램은 스코프에서 제외.
+      all = all.filter(p -> p.getCenter() != null && scopeCenterId.equals(p.getCenter().getId()));
     }
     return all.toList();
   }
 
-  private List<User> scopedUsers(String scopeCenterName) {
+  private List<User> scopedUsers(Long scopeCenterId) {
     List<User> all = userRepository.findAll();
-    if (scopeCenterName == null) return all;
+    if (scopeCenterId == null) return all;
     return all.stream()
-        .filter(u -> u.getCenter() != null && scopeCenterName.equals(u.getCenter().getName()))
+        .filter(u -> u.getCenter() != null && scopeCenterId.equals(u.getCenter().getId()))
         .toList();
   }
 
@@ -316,7 +317,8 @@ public class AdminStatsService {
     return ProgramStatRow.builder()
         .id(p.getId())
         .title(p.getTitle())
-        .organization(p.getOrganization())
+        // A9-a: DTO 필드명 organization → centerName. 값은 Center FK 우선, 없으면 organization fallback.
+        .centerName(p.getCenter() != null ? p.getCenter().getName() : p.getOrganization())
         .period(period)
         .applied(applied)
         .capacity(cap == null ? 0 : cap)
@@ -363,7 +365,8 @@ public class AdminStatsService {
   public static class ProgramStatRow {
     private Long id;
     private String title;
-    private String organization;
+    // A9-a (2026-09-21): organization → centerName 리네임 (Q-A9-5 결정)
+    private String centerName;
     private String period;
     private long applied;
     private int capacity;

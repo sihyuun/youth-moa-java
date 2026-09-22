@@ -176,13 +176,17 @@ public class ApplicationService {
    * 시 이벤트는 소비되지 않으므로 데이터 정합성 유지. 신규/재신청 두 경로에서 동일하게 호출된다.
    */
   private void publishApplicationCreated(Application app) {
+    // A9-a: programOrganization → centerId. Center FK 미할당(backfill 이전) 프로그램은 centerId=null 로 넘어가고
+    // resolver 에서 빈 수신자 리스트로 처리.
+    Long centerId =
+        app.getProgram().getCenter() != null ? app.getProgram().getCenter().getId() : null;
     eventPublisher.publishEvent(
         new ApplicationCreatedEvent(
             app.getId(),
             app.getUser().getId(),
             app.getProgram().getId(),
             app.getProgram().getTitle(),
-            app.getProgram().getOrganization()));
+            centerId));
   }
 
   /**

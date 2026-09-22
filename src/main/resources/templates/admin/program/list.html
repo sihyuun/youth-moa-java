@@ -120,7 +120,9 @@
                 </a>
                 <span class="admin-program-col-category"
                       th:text="${p.category != null ? p.category : '-'}">-</span>
-                <span class="admin-program-col-org" th:text="${p.organization}">청년센터</span>
+                <!-- A9-a: Center FK 우선, 없으면 organization fallback (병행 유지) -->
+                <span class="admin-program-col-org"
+                      th:text="${p.center != null ? p.center.name : p.organization}">청년센터</span>
                 <span class="admin-program-col-status">
                     <span class="admin-status-badge"
                           th:classappend="${'admin-status-badge--' + p.status.name().toLowerCase()}"

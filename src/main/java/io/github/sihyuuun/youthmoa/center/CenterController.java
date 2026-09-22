@@ -53,7 +53,7 @@ public class CenterController {
               .orElseThrow(
                   () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "청년센터를 찾을 수 없습니다."));
       detailContent = centerService.findContentByCenterId(detailId).orElse(null);
-      detailProgramCount = centerService.programCountFor(detailCenter.getName());
+      detailProgramCount = centerService.programCountFor(detailCenter.getId());
       detailIsOpenNow = detailCenter.isCurrentlyOpen(now, isHoliday);
       detailHasSchedule = detailCenter.hasSchedule();
     }
@@ -92,7 +92,7 @@ public class CenterController {
             .orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "청년센터를 찾을 수 없습니다."));
     CenterContent detailContent = centerService.findContentByCenterId(id).orElse(null);
-    Integer detailProgramCount = centerService.programCountFor(detailCenter.getName());
+    Integer detailProgramCount = centerService.programCountFor(detailCenter.getId());
     LocalDateTime now = LocalDateTime.now();
     boolean isHoliday = holidayRegistry.isHoliday(now.toLocalDate());
 

@@ -161,14 +161,20 @@ public class ProgramController {
     // fragment 파라미터를 모델 attribute 로 노출 (홈/목록/검색과 동일 fragment 호출).
     ProgramCardDto capacityCard = new ProgramCardDto(program, appliedCount);
 
-    // 문의처 전화 — Program.organization → Center.phone 조회 (centers.csv 실 데이터).
-    // 매칭 실패 시 null → 뷰에서 "문의처 미등록" fallback.
-    String contactPhone =
-        centerRepository
-            .findByName(program.getOrganization())
-            .map(io.github.sihyuuun.youthmoa.center.Center::getPhone)
-            .filter(p -> p != null && !p.isBlank())
-            .orElse(null);
+    // A9-a: 문의처 전화 — Program.center FK 로 직접 조회. FK 미할당 시 organization 문자열 fallback (병행 유지).
+    String contactPhone = null;
+    if (program.getCenter() != null
+        && program.getCenter().getPhone() != null
+        && !program.getCenter().getPhone().isBlank()) {
+      contactPhone = program.getCenter().getPhone();
+    } else if (program.getOrganization() != null) {
+      contactPhone =
+          centerRepository
+              .findByName(program.getOrganization())
+              .map(io.github.sihyuuun.youthmoa.center.Center::getPhone)
+              .filter(p -> p != null && !p.isBlank())
+              .orElse(null);
+    }
 
     model.addAttribute("currentPage", "programs");
     model.addAttribute("program", program);

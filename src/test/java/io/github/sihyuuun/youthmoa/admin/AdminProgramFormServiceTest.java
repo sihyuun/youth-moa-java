@@ -3,6 +3,7 @@ package io.github.sihyuuun.youthmoa.admin;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import io.github.sihyuuun.youthmoa.center.CenterRepository;
 import io.github.sihyuuun.youthmoa.program.ApprovalMode;
 import io.github.sihyuuun.youthmoa.program.Program;
 import io.github.sihyuuun.youthmoa.program.ProgramRepository;
@@ -26,6 +27,7 @@ class AdminProgramFormServiceTest {
 
   @Autowired AdminProgramService adminProgramService;
   @Autowired ProgramRepository programRepository;
+  @Autowired CenterRepository centerRepository;
 
   @AfterEach
   void clearAuth() {
@@ -35,7 +37,8 @@ class AdminProgramFormServiceTest {
   private ProgramFormRequest validRequest(String title) {
     ProgramFormRequest r = new ProgramFormRequest();
     r.setTitle(title);
-    r.setOrganization("e2e 센터");
+    // A9-a: organization → centerId. e2e 시드된 첫 활성 Center 사용.
+    r.setCenterId(centerRepository.findByIsActiveTrueOrderByNameAsc().get(0).getId());
     r.setContent("본문");
     r.setDescription("설명");
     r.setStartDate(LocalDate.of(2026, 10, 1));
@@ -70,9 +73,10 @@ class AdminProgramFormServiceTest {
   }
 
   @Test
-  void create_organization_누락_400() {
+  void create_centerId_누락_400() {
+    // A9-a: organization 문자열 필수 → centerId 필수로 전환
     ProgramFormRequest r = validRequest("y");
-    r.setOrganization("");
+    r.setCenterId(null);
     assertThatThrownBy(() -> adminProgramService.create(r))
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessageContaining("청년센터");
@@ -183,5 +187,32 @@ class AdminProgramFormServiceTest {
     r.setActive(false);
     Program updated = adminProgramService.update(saved.getId(), r);
     assertThat(updated.isActive()).isFalse();
+  }
+
+  @Test
+  void create_inactive_centerId_거부_400() {
+    // A9-a QA fix: URL/폼 조작으로 inactive Center id 를 넘겨도 서버가 거부해야 함.
+    // Admin form select 는 활성 센터만 노출하므로 정상 UX 는 안전하나, 서버측 방어 확인.
+    var inactive = centerRepository.findByIsActiveTrueOrderByNameAsc().get(0);
+    inactive.deactivate();
+    centerRepository.saveAndFlush(inactive);
+    ProgramFormRequest r = validRequest("inactive-center");
+    r.setCenterId(inactive.getId());
+    assertThatThrownBy(() -> adminProgramService.create(r))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("비활성");
+  }
+
+  @Test
+  void update_inactive_centerId_거부_400() {
+    Program saved = adminProgramService.create(validRequest("upd-inact"));
+    var target = centerRepository.findByIsActiveTrueOrderByNameAsc().get(1);
+    target.deactivate();
+    centerRepository.saveAndFlush(target);
+    ProgramFormRequest r = validRequest("upd-inact");
+    r.setCenterId(target.getId());
+    assertThatThrownBy(() -> adminProgramService.update(saved.getId(), r))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("비활성");
   }
 }

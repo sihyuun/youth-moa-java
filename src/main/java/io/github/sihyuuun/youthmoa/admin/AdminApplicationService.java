@@ -61,9 +61,13 @@ public class AdminApplicationService {
         programRepository
             .findById(programId)
             .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 프로그램이에요: " + programId));
-    String scope = adminScope.effectiveCenterName();
-    if (scope != null && !scope.equals(p.getOrganization())) {
-      throw new IllegalAccessError("자신의 센터 프로그램만 조회할 수 있어요.");
+    // A9-a: Center FK 기반 스코프 검증
+    Long scopeId = adminScope.effectiveCenterId();
+    if (scopeId != null) {
+      Long pCenterId = p.getCenter() != null ? p.getCenter().getId() : null;
+      if (!scopeId.equals(pCenterId)) {
+        throw new IllegalAccessError("자신의 센터 프로그램만 조회할 수 있어요.");
+      }
     }
     return p;
   }
