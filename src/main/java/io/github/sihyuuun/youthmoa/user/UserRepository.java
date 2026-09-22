@@ -30,8 +30,8 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
   List<User> findByRoleAndIsActiveTrue(UserRole role);
 
   /**
-   * A9-b (2026-09-22): role + Center FK id 매칭. Program.center FK 로부터 얻은 centerId 로 NEW_APPLICATION 알림
-   * 수신자 (CENTER_ADMIN) 조회. 이전의 Center_Name 문자열 매칭은 A9-b 에서 삭제됨 (Q-A9-b 채택안 A).
+   * A9-b (2026-09-22): role + Center FK id 매칭. Program.center FK 로부터 얻은 centerId 로 NEW_APPLICATION
+   * 알림 수신자 (CENTER_ADMIN) 조회. 이전의 Center_Name 문자열 매칭은 A9-b 에서 삭제됨 (Q-A9-b 채택안 A).
    *
    * <p>SYSTEM_ADMIN 은 스코프 상 모든 신청을 볼 수 있으나 QC B-1 결정에 따라 NEW_APPLICATION 알림에서는 제외. 대시보드(A6)로 커버.
    */

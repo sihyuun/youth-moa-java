@@ -46,8 +46,7 @@ class ApplicationRepositoryCountTest {
   @BeforeEach
   void setUp() {
     Center center =
-        centerRepository.save(
-            Center.builder().name("기관").region("서울").isActive(true).build());
+        centerRepository.save(Center.builder().name("기관").region("서울").isActive(true).build());
     programA =
         programRepository.save(
             Program.builder()

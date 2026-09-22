@@ -45,9 +45,9 @@ public class Application {
   private User user;
 
   /**
-   * A9-b (2026-09-22): EAGER 승격. 이전에는 LAZY 였고 템플릿이 {@code program.organization} (String) 만
-   * 참조해 프록시 초기화가 필요 없었다. A9-b 후 templates/mypage/history · favorites · application/complete 이
-   * {@code app.program.center?.name} 로 전환되면서 open-in-view=false 환경에서 프록시를 통한 center 접근이
+   * A9-b (2026-09-22): EAGER 승격. 이전에는 LAZY 였고 템플릿이 {@code program.organization} (String) 만 참조해 프록시
+   * 초기화가 필요 없었다. A9-b 후 templates/mypage/history · favorites · application/complete 이 {@code
+   * app.program.center?.name} 로 전환되면서 open-in-view=false 환경에서 프록시를 통한 center 접근이
    * LazyInitializationException 을 유발. Program.center 자체는 이미 EAGER 이라 부모 Program 만 non-proxy 로 만들면
    * 함께 안전하게 fetch 된다. 렌더 지점이 늘 program+center 를 함께 표시하므로 성능 영향도 자연스럽다.
    */

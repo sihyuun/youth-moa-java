@@ -365,8 +365,10 @@ public class AdminStatsService {
   public static class ProgramStatRow {
     private Long id;
     private String title;
+
     /** A9-b (2026-09-22): organization 병행 종료 · 이 필드가 유일한 표시 소스. */
     private String centerName;
+
     private String period;
     private long applied;
     private int capacity;

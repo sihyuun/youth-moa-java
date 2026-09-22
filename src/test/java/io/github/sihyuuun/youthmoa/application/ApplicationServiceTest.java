@@ -109,8 +109,7 @@ class ApplicationServiceTest {
     LocalDate today = LocalDate.now();
 
     Center center =
-        centerRepository.save(
-            Center.builder().name("내일스퀘어").region("수원시").isActive(true).build());
+        centerRepository.save(Center.builder().name("내일스퀘어").region("수원시").isActive(true).build());
 
     activeProgram =
         programRepository.save(

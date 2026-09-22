@@ -619,8 +619,8 @@ public class DataInitializer implements ApplicationRunner {
   }
 
   /**
-   * A9-b (2026-09-22) fail-fast: Center 시드에 존재해야 하는 name 을 조회. Program.center 는 NOT NULL 이므로 시드
-   * 시점에 반드시 실 Center 를 주입해야 한다. 매칭 실패 시 IllegalStateException 을 던져 부팅 중단.
+   * A9-b (2026-09-22) fail-fast: Center 시드에 존재해야 하는 name 을 조회. Program.center 는 NOT NULL 이므로 시드 시점에
+   * 반드시 실 Center 를 주입해야 한다. 매칭 실패 시 IllegalStateException 을 던져 부팅 중단.
    */
   private Center resolveCenter(String name) {
     return centerRepository

@@ -38,8 +38,7 @@ class BookmarkServiceTest {
   @BeforeEach
   void seed() {
     center =
-        centerRepository.save(
-            Center.builder().name("내일스퀘어").region("수원시").isActive(true).build());
+        centerRepository.save(Center.builder().name("내일스퀘어").region("수원시").isActive(true).build());
     user =
         userRepository.save(
             User.builder()

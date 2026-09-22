@@ -77,11 +77,7 @@ class ApplicationServiceStatusChangeTest {
             .orElseGet(
                 () ->
                     centerRepository.save(
-                        Center.builder()
-                            .name("내일스퀘어 양평")
-                            .region("양평군")
-                            .isActive(true)
-                            .build()));
+                        Center.builder().name("내일스퀘어 양평").region("양평군").isActive(true).build()));
     program =
         programRepository.save(
             Program.builder()

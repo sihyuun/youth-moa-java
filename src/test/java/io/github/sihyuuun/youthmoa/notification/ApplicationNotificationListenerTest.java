@@ -73,11 +73,7 @@ class ApplicationNotificationListenerTest {
             .orElseGet(
                 () ->
                     centerRepository.save(
-                        Center.builder()
-                            .name("내일스퀘어")
-                            .region("수원시")
-                            .isFeatured(false)
-                            .build()));
+                        Center.builder().name("내일스퀘어").region("수원시").isFeatured(false).build()));
     program =
         programRepository.save(
             Program.builder()
