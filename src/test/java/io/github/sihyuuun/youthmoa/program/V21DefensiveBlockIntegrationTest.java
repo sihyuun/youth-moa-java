@@ -76,17 +76,23 @@ class V21DefensiveBlockIntegrationTest {
                 POSTGRES.getJdbcUrl(), POSTGRES.getUsername(), POSTGRES.getPassword());
         Statement stmt = conn.createStatement()) {
 
-      // program 테이블 필수 컬럼 최소 세트로 INSERT (center_id 만 NULL)
+      // program 테이블 필수 컬럼 최소 세트로 INSERT (center_id 만 NULL).
+      // V20 시점 컬럼: V1 baseline(organization NOT NULL, title NOT NULL, is_active NOT NULL,
+      // content NOT NULL, created_at/updated_at NOT NULL) + V12 (approval_mode NOT NULL DEFAULT
+      // MANUAL,
+      // description/venue/contact/apply_*/terms_* nullable) + V13 (has_courses NOT NULL DEFAULT
+      // FALSE)
+      // + V20 (center_id nullable). program 에는 view_count 컬럼 없음 (notice 전용).
       stmt.executeUpdate(
           "INSERT INTO program "
               + "(title, organization, category, region, description, content, "
               + " start_date, end_date, apply_start_date, apply_end_date, venue, contact, "
-              + " capacity, approval_mode, is_active, has_courses, view_count, center_id, "
+              + " capacity, approval_mode, is_active, has_courses, center_id, "
               + " created_at, updated_at) "
               + "VALUES "
               + "('orphan-A9-b-test', 'A9-b test 센터', 'CULTURE', '양평군', '설명', '내용', "
               + " CURRENT_DATE, CURRENT_DATE, CURRENT_DATE, CURRENT_DATE, '장소', '02-000-0000', "
-              + " 10, 'MANUAL', TRUE, FALSE, 0, NULL, "
+              + " 10, 'MANUAL', TRUE, FALSE, NULL, "
               + " CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)");
 
       try (ResultSet rs =
