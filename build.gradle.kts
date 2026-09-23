@@ -80,9 +80,9 @@ tasks.withType<Test> {
 	useJUnitPlatform()
 	// A9-b verify #13 대응: CI 로그에서 개별 test method PASS/FAIL 을 grep 로 확인 가능.
 	// Docker 미기동 등 로컬 검증 제약 상황에서 CI 실행 결과를 직접 확인하기 위한 안전판.
+	// showStandardStreams=false 유지 — Playwright 병렬 잡의 I/O 부하 최소화 (System.out 은 test XML 에 이미 기록).
 	testLogging {
 		events("passed", "failed", "skipped")
-		showStandardStreams = true
 	}
 }
 
