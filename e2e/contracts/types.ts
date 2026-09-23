@@ -20,7 +20,11 @@ export type CheckKind =
     /** 셀렉터 매칭 개수가 expected 이상 */
     | 'count-min'
     /** 존재 여부 (expected: true/false) */
-    | 'exists';
+    | 'exists'
+    /** 부재 여부 (expected: true 시 count===0 요구). exists 의 반대 — admin-notice 신규 폼 첨부 섹션 미노출 등 */
+    | 'not-exists'
+    /** attr 값 비어있지 않음 (prop 지정 필수 — 예: prop='value' → input.value != '') */
+    | 'attr-not-empty';
 
 export type Severity = 'P0' | 'P1' | 'P2';
 
@@ -37,6 +41,8 @@ export interface Check {
     kind: CheckKind;
     /** kind='box' → 'width'|'height' / kind='css' → CSS 속성명 */
     prop?: string;
+    /** kind='attr-not-empty' → HTML 속성명 (예: 'value', 'href') */
+    attr?: string;
     expected: string | number | boolean;
     /** box 검사 허용 오차 (px). 기본 1 */
     tolerance?: number;

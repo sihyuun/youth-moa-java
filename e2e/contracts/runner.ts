@@ -39,11 +39,21 @@ async function measure(page: Page, check: Check): Promise<string> {
         return String((await locator.count()) > 0);
     }
 
+    if (check.kind === 'not-exists') {
+        return String((await locator.count()) === 0);
+    }
+
     if ((await locator.count()) === 0) {
         return '(요소 없음)';
     }
 
     const first = locator.first();
+
+    if (check.kind === 'attr-not-empty') {
+        const attrName = check.attr!;
+        const value = await first.getAttribute(attrName);
+        return String(value != null && value !== '');
+    }
 
     if (check.kind === 'box') {
         const box = await first.boundingBox();
