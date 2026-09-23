@@ -83,7 +83,9 @@ class AdminEagerFetchN1Test {
    * AdminApplicationService.list — Page<Application> 10 건 로드 시 쿼리 수가 상한 이내인지 검증.
    *
    * <p>기대 쿼리: (1) applications page + (2) count + (3) program 배치/join + (4) center 배치/join + (5)
-   * user 배치/join · 여유분 = 상한 12. N+1 발생 시 10 개 row 마다 program/center 각각 SELECT → 20+ 쿼리로 초과.
+   * user 배치/join. N+1 발생 시 10 개 row 마다 program/center 각각 SELECT → 20+ 쿼리로 초과.
+   *
+   * <p>verify #14 대응: baseline 실측 3 · 상한 6 (실측 + 100% 여유). 소폭 회귀도 즉시 감지.
    */
   /** 실측 쿼리 수를 System.out 으로 노출해 baseline 을 문서화. verify #16.3 대응. */
   private long measureAndReport(String label) {
@@ -115,9 +117,10 @@ class AdminEagerFetchN1Test {
     long executedQueries = measureAndReport("AdminApplicationService.list(programId=1)");
     assertThat(executedQueries)
         .as(
-            "AdminApplicationService.list 는 program·center EAGER 로드 시에도 쿼리 12 개 이하여야 한다. "
-                + "초과 시 N+1 신호 → ApplicationRepository.findAll(Specification, Pageable) 에 @EntityGraph 추가 필요.")
-        .isLessThanOrEqualTo(12L);
+            "AdminApplicationService.list 는 program·center EAGER 로드 시에도 쿼리 6 개 이하여야 한다 "
+                + "(baseline 3 + 100% 여유). 초과 시 N+1 신호 → "
+                + "ApplicationRepository.findAll(Specification, Pageable) 에 @EntityGraph 추가 필요.")
+        .isLessThanOrEqualTo(6L);
   }
 
   /**
@@ -136,9 +139,10 @@ class AdminEagerFetchN1Test {
     long executedQueries = measureAndReport("ApplicationRepository.findAll()");
     assertThat(executedQueries)
         .as(
-            "ApplicationRepository.findAll() 은 program·center EAGER 로드 시에도 쿼리 20 개 이하여야 한다. "
-                + "초과 시 N+1 신호 → default_batch_fetch_size 또는 @EntityGraph 도입 검토.")
-        .isLessThanOrEqualTo(20L);
+            "ApplicationRepository.findAll() 은 program·center EAGER 로드 시에도 쿼리 8 개 이하여야 한다 "
+                + "(baseline 4 + 100% 여유). 초과 시 N+1 신호 → default_batch_fetch_size 또는 "
+                + "@EntityGraph 도입 검토.")
+        .isLessThanOrEqualTo(8L);
   }
 
   /**
@@ -155,9 +159,9 @@ class AdminEagerFetchN1Test {
     long executedQueries = measureAndReport("BookmarkRepository.findAll()");
     assertThat(executedQueries)
         .as(
-            "BookmarkRepository.findAll() 은 program·center EAGER 로드 시에도 쿼리 10 개 이하여야 한다. "
-                + "초과 시 N+1 신호 → @EntityGraph 도입 검토. (seed Bookmark 는 상대적으로 소량)")
-        .isLessThanOrEqualTo(10L);
+            "BookmarkRepository.findAll() 은 program·center EAGER 로드 시에도 쿼리 8 개 이하여야 한다 "
+                + "(baseline 4 + 100% 여유). 초과 시 N+1 신호 → @EntityGraph 도입 검토.")
+        .isLessThanOrEqualTo(8L);
   }
 
   /**
@@ -175,8 +179,10 @@ class AdminEagerFetchN1Test {
     assertThat(model).isNotNull();
     long executedQueries = measureAndReport("AdminDashboardService.load(scopeCenterId=null)");
     assertThat(executedQueries)
-        .as("AdminDashboardService.load 는 EAGER 승격 후에도 쿼리 50 개 이하여야 한다.")
-        .isLessThanOrEqualTo(50L);
+        .as(
+            "AdminDashboardService.load 는 EAGER 승격 후에도 쿼리 35 개 이하여야 한다 "
+                + "(baseline 27 + 30% 여유).")
+        .isLessThanOrEqualTo(35L);
   }
 
   /**
@@ -195,7 +201,7 @@ class AdminEagerFetchN1Test {
     long executedQueries =
         measureAndReport("AdminStatsService.load(scopeCenterId=null, mode=daily)");
     assertThat(executedQueries)
-        .as("AdminStatsService.load 는 EAGER 승격 후에도 쿼리 60 개 이하여야 한다.")
-        .isLessThanOrEqualTo(60L);
+        .as("AdminStatsService.load 는 EAGER 승격 후에도 쿼리 48 개 이하여야 한다 " + "(baseline 37 + 30% 여유).")
+        .isLessThanOrEqualTo(48L);
   }
 }
