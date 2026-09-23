@@ -60,7 +60,7 @@ class AdminEagerFetchN1Test {
   void enableAndResetStats() {
     stats = entityManager.getEntityManagerFactory().unwrap(SessionFactory.class).getStatistics();
     stats.setStatisticsEnabled(true);
-    stats.clear();
+    resetSessionAndStats();
   }
 
   @AfterEach
@@ -92,10 +92,21 @@ class AdminEagerFetchN1Test {
     return q;
   }
 
+  /**
+   * 배포 환경 (요청당 신규 Session) 재현. verify #16.5 대응.
+   *
+   * <p>{@code @Transactional} 테스트는 단일 Session 유지로 1차 캐시 hit 하여 실 배포 대비 쿼리 수가 낮게 측정될 수 있다. 각 시나리오 실행
+   * 전 {@link EntityManager#clear()} 로 1차 캐시를 비워 재현성 확보.
+   */
+  private void resetSessionAndStats() {
+    entityManager.clear();
+    stats.clear();
+  }
+
   @Test
   void adminApplicationService_list_쿼리_상한_12_이내() {
     loginAsSysadmin();
-    stats.clear();
+    resetSessionAndStats();
 
     // 시드 program 1 (내일스퀘어 양평) 에 28 건 APPROVED 존재 · 페이지당 10 건 노출
     Page<Application> page = adminApplicationService.list(1L, null, null, 0);
@@ -117,7 +128,7 @@ class AdminEagerFetchN1Test {
    */
   @Test
   void applicationRepository_findAll_전체_쿼리_상한_20_이내() {
-    stats.clear();
+    resetSessionAndStats();
 
     List<Application> all = applicationRepository.findAll();
 
@@ -137,7 +148,7 @@ class AdminEagerFetchN1Test {
    */
   @Test
   void bookmarkRepository_findAll_전체_쿼리_상한_10_이내() {
-    stats.clear();
+    resetSessionAndStats();
 
     List<Bookmark> all = bookmarkRepository.findAll();
 
@@ -157,7 +168,7 @@ class AdminEagerFetchN1Test {
    */
   @Test
   void adminDashboardService_load_쿼리_상한_50_이내() {
-    stats.clear();
+    resetSessionAndStats();
 
     AdminDashboardService.DashboardModel model = adminDashboardService.load(null);
 
@@ -176,7 +187,7 @@ class AdminEagerFetchN1Test {
    */
   @Test
   void adminStatsService_load_쿼리_상한_60_이내() {
-    stats.clear();
+    resetSessionAndStats();
 
     AdminStatsService.StatsModel model = adminStatsService.load(null, "daily");
 
