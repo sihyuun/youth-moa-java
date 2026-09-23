@@ -4,6 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.github.sihyuuun.youthmoa.application.Application;
 import io.github.sihyuuun.youthmoa.application.ApplicationRepository;
+import io.github.sihyuuun.youthmoa.bookmark.Bookmark;
+import io.github.sihyuuun.youthmoa.bookmark.BookmarkRepository;
 import io.github.sihyuuun.youthmoa.user.User;
 import io.github.sihyuuun.youthmoa.user.UserPrincipal;
 import io.github.sihyuuun.youthmoa.user.UserRepository;
@@ -45,7 +47,10 @@ import org.springframework.transaction.annotation.Transactional;
 class AdminEagerFetchN1Test {
 
   @Autowired AdminApplicationService adminApplicationService;
+  @Autowired AdminDashboardService adminDashboardService;
+  @Autowired AdminStatsService adminStatsService;
   @Autowired ApplicationRepository applicationRepository;
+  @Autowired BookmarkRepository bookmarkRepository;
   @Autowired UserRepository userRepository;
   @Autowired EntityManager entityManager;
 
@@ -80,6 +85,13 @@ class AdminEagerFetchN1Test {
    * <p>기대 쿼리: (1) applications page + (2) count + (3) program 배치/join + (4) center 배치/join + (5)
    * user 배치/join · 여유분 = 상한 12. N+1 발생 시 10 개 row 마다 program/center 각각 SELECT → 20+ 쿼리로 초과.
    */
+  /** 실측 쿼리 수를 System.out 으로 노출해 baseline 을 문서화. verify #16.3 대응. */
+  private long measureAndReport(String label) {
+    long q = stats.getPrepareStatementCount();
+    System.out.printf("[N1-baseline] %s: %d PreparedStatements%n", label, q);
+    return q;
+  }
+
   @Test
   void adminApplicationService_list_쿼리_상한_12_이내() {
     loginAsSysadmin();
@@ -89,7 +101,7 @@ class AdminEagerFetchN1Test {
     Page<Application> page = adminApplicationService.list(1L, null, null, 0);
 
     assertThat(page.getContent()).isNotEmpty();
-    long executedQueries = stats.getPrepareStatementCount();
+    long executedQueries = measureAndReport("AdminApplicationService.list(programId=1)");
     assertThat(executedQueries)
         .as(
             "AdminApplicationService.list 는 program·center EAGER 로드 시에도 쿼리 12 개 이하여야 한다. "
@@ -110,11 +122,69 @@ class AdminEagerFetchN1Test {
     List<Application> all = applicationRepository.findAll();
 
     assertThat(all).isNotEmpty();
-    long executedQueries = stats.getPrepareStatementCount();
+    long executedQueries = measureAndReport("ApplicationRepository.findAll()");
     assertThat(executedQueries)
         .as(
             "ApplicationRepository.findAll() 은 program·center EAGER 로드 시에도 쿼리 20 개 이하여야 한다. "
                 + "초과 시 N+1 신호 → default_batch_fetch_size 또는 @EntityGraph 도입 검토.")
         .isLessThanOrEqualTo(20L);
+  }
+
+  /**
+   * BookmarkRepository.findAll() — Bookmark 도 A9-b 에서 program LAZY→EAGER 승격. N+1 회귀 감시.
+   *
+   * <p>verify #16.4 커버리지 확장 — Bookmark 진입점 미커버 지적 대응.
+   */
+  @Test
+  void bookmarkRepository_findAll_전체_쿼리_상한_10_이내() {
+    stats.clear();
+
+    List<Bookmark> all = bookmarkRepository.findAll();
+
+    long executedQueries = measureAndReport("BookmarkRepository.findAll()");
+    assertThat(executedQueries)
+        .as(
+            "BookmarkRepository.findAll() 은 program·center EAGER 로드 시에도 쿼리 10 개 이하여야 한다. "
+                + "초과 시 N+1 신호 → @EntityGraph 도입 검토. (seed Bookmark 는 상대적으로 소량)")
+        .isLessThanOrEqualTo(10L);
+  }
+
+  /**
+   * AdminDashboardService.load — 대시보드 진입 시 Application/Program 다중 조회 통합 쿼리 수 상한.
+   *
+   * <p>verify #16.4 커버리지 확장 — Dashboard 진입점 미커버 지적 대응. Dashboard 는 여러 findAll · countBy 조합이므로 상한을
+   * 여유 있게 (50) 잡아 EAGER 승격으로 인한 폭발적 증가만 감지.
+   */
+  @Test
+  void adminDashboardService_load_쿼리_상한_50_이내() {
+    stats.clear();
+
+    AdminDashboardService.DashboardModel model = adminDashboardService.load(null);
+
+    assertThat(model).isNotNull();
+    long executedQueries = measureAndReport("AdminDashboardService.load(scopeCenterId=null)");
+    assertThat(executedQueries)
+        .as("AdminDashboardService.load 는 EAGER 승격 후에도 쿼리 50 개 이하여야 한다.")
+        .isLessThanOrEqualTo(50L);
+  }
+
+  /**
+   * AdminStatsService.load — 통계 페이지 진입 시 통합 쿼리 수 상한.
+   *
+   * <p>verify #16.4 커버리지 확장 — Stats 진입점 미커버 지적 대응. Stats 는 Application 전체 조회 + 집계 로직이라 상한을 60 으로 여유
+   * 있게 잡음.
+   */
+  @Test
+  void adminStatsService_load_쿼리_상한_60_이내() {
+    stats.clear();
+
+    AdminStatsService.StatsModel model = adminStatsService.load(null, "daily");
+
+    assertThat(model).isNotNull();
+    long executedQueries =
+        measureAndReport("AdminStatsService.load(scopeCenterId=null, mode=daily)");
+    assertThat(executedQueries)
+        .as("AdminStatsService.load 는 EAGER 승격 후에도 쿼리 60 개 이하여야 한다.")
+        .isLessThanOrEqualTo(60L);
   }
 }
