@@ -3,6 +3,8 @@ package io.github.sihyuuun.youthmoa.program;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import io.github.sihyuuun.youthmoa.center.Center;
+import io.github.sihyuuun.youthmoa.center.CenterRepository;
 import io.github.sihyuuun.youthmoa.common.config.JpaConfig;
 import java.time.LocalDate;
 import org.junit.jupiter.api.DisplayName;
@@ -19,12 +21,16 @@ class ProgramServiceTest {
 
   @Autowired ProgramService programService;
   @Autowired ProgramRepository programRepository;
+  @Autowired CenterRepository centerRepository;
 
   private Program persistSample() {
+    Center center =
+        centerRepository.save(
+            Center.builder().name("내일스퀘어").region("수원시").isFeatured(false).build());
     return programRepository.save(
         Program.builder()
             .title("취업 워크숍")
-            .organization("내일스퀘어")
+            .center(center)
             .category("취업")
             .region("수원시")
             .content("8주 부트캠프 과정")
@@ -43,7 +49,7 @@ class ProgramServiceTest {
 
     assertThat(found.getId()).isEqualTo(saved.getId());
     assertThat(found.getTitle()).isEqualTo("취업 워크숍");
-    assertThat(found.getOrganization()).isEqualTo("내일스퀘어");
+    assertThat(found.getCenter().getName()).isEqualTo("내일스퀘어");
     assertThat(found.getCapacity()).isEqualTo(30);
   }
 

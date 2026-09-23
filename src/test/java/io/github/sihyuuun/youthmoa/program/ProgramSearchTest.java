@@ -26,18 +26,22 @@ class ProgramSearchTest {
   @Autowired ProgramRepository programRepository;
   @Autowired CenterRepository centerRepository;
 
+  private Center centerNaeil;
+  private Center centerBihaeng;
+  private Center centerWonmi;
+
   @BeforeEach
   void seed() {
     LocalDate today = LocalDate.now();
 
     // A9-a: withCenters(List<String>) 가 center.name join 이므로 Center 시드 필요.
-    Center centerNaeil =
+    centerNaeil =
         centerRepository.save(
             Center.builder().name("내일스퀘어").region("수원시").isActive(true).isFeatured(false).build());
-    Center centerBihaeng =
+    centerBihaeng =
         centerRepository.save(
             Center.builder().name("비행지구").region("고양시").isActive(true).isFeatured(false).build());
-    Center centerWonmi =
+    centerWonmi =
         centerRepository.save(
             Center.builder().name("원미").region("부천시").isActive(true).isFeatured(false).build());
 
@@ -156,7 +160,7 @@ class ProgramSearchTest {
         programRepository.findAll(
             spec, PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "createdAt")));
     assertThat(result.getContent())
-        .extracting(Program::getOrganization)
+        .extracting(p -> p.getCenter().getName())
         .containsExactlyInAnyOrder("내일스퀘어", "비행지구");
   }
 
@@ -175,7 +179,7 @@ class ProgramSearchTest {
         programRepository.save(
             Program.builder()
                 .title("t")
-                .organization("o")
+                .center(centerNaeil)
                 .category("c")
                 .content("c")
                 .startDate(today)
@@ -187,7 +191,7 @@ class ProgramSearchTest {
         programRepository.save(
             Program.builder()
                 .title("t")
-                .organization("o")
+                .center(centerNaeil)
                 .category("c")
                 .content("c")
                 .startDate(today.plusDays(5))
@@ -199,7 +203,7 @@ class ProgramSearchTest {
         programRepository.save(
             Program.builder()
                 .title("t")
-                .organization("o")
+                .center(centerNaeil)
                 .category("c")
                 .content("c")
                 .startDate(today.minusDays(10))

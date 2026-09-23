@@ -103,7 +103,9 @@ class ProgramServiceFilterTest {
     Page<Program> result =
         programService.search(
             "", Collections.emptyList(), List.of("내일스퀘어"), "newest", 0, Collections.emptySet());
-    assertThat(result.getContent()).extracting(Program::getOrganization).containsExactly("내일스퀘어");
+    assertThat(result.getContent())
+        .extracting(p -> p.getCenter().getName())
+        .containsExactly("내일스퀘어");
   }
 
   @Test

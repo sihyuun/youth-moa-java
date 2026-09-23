@@ -69,7 +69,7 @@
                       th:text="${program.status.label}">진행중</span>
                 <div class="apply-summary-title" th:text="${program.title}">프로그램 제목</div>
                 <div class="apply-summary-sub">
-                    <span th:text="${program.organization}">기관</span>
+                    <span th:text="${program.center?.name}">기관</span>
                     <span th:if="${program.startDate != null and program.endDate != null}"
                           th:text="' · ' + ${#temporals.format(program.startDate, 'yyyy.MM.dd')} + ' ~ ' + ${#temporals.format(program.endDate, 'yyyy.MM.dd')}">
                         · 기간

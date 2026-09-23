@@ -82,7 +82,8 @@ class AdminCsvControllerTest {
     String content =
         result.getResponse().getContentAsString(java.nio.charset.StandardCharsets.UTF_8);
     assertThat(content).contains("title");
-    assertThat(content).contains("organization");
+    // A9-b (2026-09-22): CSV 헤더 organization → centerName (Q-A9-b-4)
+    assertThat(content).contains("centerName");
     assertThat(content).contains("capacity");
   }
 

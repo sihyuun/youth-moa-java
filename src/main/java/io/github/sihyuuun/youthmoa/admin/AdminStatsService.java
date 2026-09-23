@@ -317,8 +317,8 @@ public class AdminStatsService {
     return ProgramStatRow.builder()
         .id(p.getId())
         .title(p.getTitle())
-        // A9-a: DTO 필드명 organization → centerName. 값은 Center FK 우선, 없으면 organization fallback.
-        .centerName(p.getCenter() != null ? p.getCenter().getName() : p.getOrganization())
+        // A9-b (2026-09-22): center NOT NULL 승격 → center.name 직접 사용 (organization fallback 폐기).
+        .centerName(p.getCenter() != null ? p.getCenter().getName() : null)
         .period(period)
         .applied(applied)
         .capacity(cap == null ? 0 : cap)
@@ -365,8 +365,10 @@ public class AdminStatsService {
   public static class ProgramStatRow {
     private Long id;
     private String title;
-    // A9-a (2026-09-21): organization → centerName 리네임 (Q-A9-5 결정)
+
+    /** A9-b (2026-09-22): organization 병행 종료 · 이 필드가 유일한 표시 소스. */
     private String centerName;
+
     private String period;
     private long applied;
     private int capacity;

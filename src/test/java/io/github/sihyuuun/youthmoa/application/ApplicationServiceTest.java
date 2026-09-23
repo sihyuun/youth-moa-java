@@ -3,6 +3,8 @@ package io.github.sihyuuun.youthmoa.application;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import io.github.sihyuuun.youthmoa.center.Center;
+import io.github.sihyuuun.youthmoa.center.CenterRepository;
 import io.github.sihyuuun.youthmoa.common.config.JpaConfig;
 import io.github.sihyuuun.youthmoa.common.storage.FileStorage;
 import io.github.sihyuuun.youthmoa.common.storage.StoredFile;
@@ -85,6 +87,7 @@ class ApplicationServiceTest {
   @Autowired ApplicationRepository applicationRepository;
   @Autowired UserRepository userRepository;
   @Autowired ProgramRepository programRepository;
+  @Autowired CenterRepository centerRepository;
 
   private User user;
   private Program activeProgram;
@@ -105,11 +108,14 @@ class ApplicationServiceTest {
 
     LocalDate today = LocalDate.now();
 
+    Center center =
+        centerRepository.save(Center.builder().name("내일스퀘어").region("수원시").isActive(true).build());
+
     activeProgram =
         programRepository.save(
             Program.builder()
                 .title("진행중 프로그램")
-                .organization("내일스퀘어")
+                .center(center)
                 .category("취업")
                 .region("수원시")
                 .content("c")
@@ -122,7 +128,7 @@ class ApplicationServiceTest {
         programRepository.save(
             Program.builder()
                 .title("진행예정 프로그램")
-                .organization("내일스퀘어")
+                .center(center)
                 .category("취업")
                 .region("수원시")
                 .content("c")
@@ -135,7 +141,7 @@ class ApplicationServiceTest {
         programRepository.save(
             Program.builder()
                 .title("마감 프로그램")
-                .organization("내일스퀘어")
+                .center(center)
                 .category("취업")
                 .region("수원시")
                 .content("c")
@@ -148,7 +154,7 @@ class ApplicationServiceTest {
         programRepository.save(
             Program.builder()
                 .title("비활성 프로그램")
-                .organization("내일스퀘어")
+                .center(center)
                 .category("취업")
                 .region("수원시")
                 .content("c")

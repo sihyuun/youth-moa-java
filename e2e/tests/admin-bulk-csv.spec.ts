@@ -203,7 +203,8 @@ test('CSV 내보내기 — 프로그램 목록 다운로드 + 파일명·헤더 
 
     const content = readFileSync(await download.path(), 'utf8');
     expect(content).toContain('title');
-    expect(content).toContain('organization');
+    // A9-b: CSV 헤더 organization → centerName 리네임
+    expect(content).toContain('centerName');
 });
 
 test('CSV 내보내기 — 사용자 목록 (SYSTEM_ADMIN) 다운로드 + 헤더 검증', async ({ page }) => {

@@ -162,7 +162,7 @@
                                 + (${card.status.name() == 'UPCOMING'} ? 'upcoming'
                                   : (${card.status.name() == 'ENDED'} ? 'ended' : 'open'))"></span>
                 <span class="program-calendar-panel-card-org"
-                      th:text="${card.organization}">청년센터</span>
+                      th:text="${card.centerName}">청년센터</span>
                 <!-- 상태별 chip (dc.html §5a 매핑 · DTO 위임):
                      upcoming ("M/D 오픈", orange) · urgent (D-3↓, red) · ended ("마감"/"종료", grey) · open ("D-N", dark) -->
                 <span th:if="${card.calendarChipLabel != null and !#strings.isEmpty(card.calendarChipLabel)}"

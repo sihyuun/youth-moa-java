@@ -18,7 +18,7 @@ public interface CenterRepository extends JpaRepository<Center, Long> {
 
   List<Center> findByRegionAndIsActiveTrue(String region);
 
-  /** Program.organization → Center 정확 매칭. 프로그램 상세의 문의처 전화 조회용. */
+  /** Center 이름 정확 매칭. 시드 매핑 · 테스트 유틸리티 · 이름 기반 조회 지점에서 사용. */
   Optional<Center> findByName(String name);
 
   /** A9-a (2026-09-21): 활성 센터 가나다순 — admin 프로그램 폼 select 옵션 데이터 소스. */

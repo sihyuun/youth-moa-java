@@ -139,7 +139,7 @@
                    th:href="@{/admin/programs/{id}(id=${rp.id})}"
                    class="admin-recent-programs-row admin-recent-programs-row--link">
                     <span class="admin-recent-programs-name" th:text="${rp.title}">프로그램명</span>
-                    <span class="admin-recent-programs-center" th:text="${rp.organization}">청년센터</span>
+                    <span class="admin-recent-programs-center" th:text="${rp.center?.name}">청년센터</span>
                     <span class="admin-recent-programs-applied"
                           th:text="${rp.capacity != null ? rp.capacity + '명' : '-'}">-</span>
                     <div class="admin-recent-programs-status-wrap">
@@ -245,7 +245,7 @@
                         2026-01-01 마감
                     </div>
                 </div>
-                <span class="admin-urgent-programs-center" th:text="${up.organization}">청년센터</span>
+                <span class="admin-urgent-programs-center" th:text="${up.center?.name}">청년센터</span>
                 <span class="admin-urgent-programs-applied"
                       th:text="${up.capacity != null ? up.capacity + '명' : '-'}">-</span>
                 <div>

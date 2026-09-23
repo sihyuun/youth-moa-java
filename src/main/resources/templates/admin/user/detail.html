@@ -245,7 +245,7 @@
                                           th:text="${app.status.name() == 'PENDING' ? '대기' : (app.status.name() == 'APPROVED' ? '승인' : (app.status.name() == 'REJECTED' ? '반려' : '취소'))}">대기</span>
                                 </div>
                                 <div class="admin-user-app-org"
-                                     th:text="${app.program.organization != null ? app.program.organization : '-'}">-</div>
+                                     th:text="${app.program.center != null ? app.program.center.name : '-'}">-</div>
                                 <div class="admin-user-app-date"
                                      th:text="${app.appliedAt != null ? #temporals.format(app.appliedAt, 'yyyy-MM-dd HH:mm') : '-'}">-</div>
                             </div>

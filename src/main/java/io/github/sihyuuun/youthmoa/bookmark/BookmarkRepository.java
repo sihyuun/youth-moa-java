@@ -18,8 +18,13 @@ public interface BookmarkRepository extends JpaRepository<Bookmark, Long> {
 
   Page<Bookmark> findAllByUser(User user, Pageable pageable);
 
-  /** D5 마이페이지 즐겨찾기 탭용. Program fetch join + 최신순. */
-  @EntityGraph(attributePaths = {"program"})
+  /**
+   * D5 마이페이지 즐겨찾기 탭용. Program fetch join + 최신순.
+   *
+   * <p>A9-b (2026-09-22): program.center 추가. 즐겨찾기 카드가 program.center.name (via
+   * ProgramCardDto.centerName) 을 접근한다.
+   */
+  @EntityGraph(attributePaths = {"program", "program.center"})
   List<Bookmark> findAllByUserOrderByCreatedAtDesc(User user);
 
   void deleteByUserAndProgram(User user, Program program);

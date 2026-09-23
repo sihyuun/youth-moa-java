@@ -49,7 +49,7 @@ public class AdminNotificationEventListener {
   private final UserCreatedRecipientResolver userCreatedResolver;
 
   /**
-   * 신청 생성 시 (신규 or 재신청) admin 알림 발행. 수신자는 B-1: program.organization 매칭 CENTER_ADMIN 만.
+   * 신청 생성 시 (신규 or 재신청) admin 알림 발행. 수신자는 B-3 (A9-b): program.center.id 매칭 CENTER_ADMIN 만.
    *
    * <p>Qn-8 링크: {@code /admin/programs/{programId}/applications} (A4 신청 현황 화면).
    */

@@ -138,7 +138,7 @@ public class AdminCsvController {
         new String[] {
           "id",
           "title",
-          "organization",
+          "centerName",
           "category",
           "applyStartDate",
           "applyEndDate",
@@ -154,8 +154,8 @@ public class AdminCsvController {
             new String[] {
               String.valueOf(p.getId()),
               nvl(p.getTitle()),
-              // A9-a: organization 컬럼 병행 유지. 값은 Center.name 우선 (backfill 후 동기화).
-              nvl(p.getCenter() != null ? p.getCenter().getName() : p.getOrganization()),
+              // A9-b (2026-09-22): organization DROP → center.name 직접 사용 (Q-A9-b-4).
+              nvl(p.getCenter() != null ? p.getCenter().getName() : null),
               nvl(p.getCategory()),
               p.getApplyStartDate() == null ? "" : p.getApplyStartDate().toString(),
               p.getApplyEndDate() == null ? "" : p.getApplyEndDate().toString(),

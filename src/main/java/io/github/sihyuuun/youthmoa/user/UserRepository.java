@@ -30,17 +30,10 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
   List<User> findByRoleAndIsActiveTrue(UserRole role);
 
   /**
-   * A7 admin 헤더 알림 벨 (2026-09-17) NEW_APPLICATION B-1: role 이 CENTER_ADMIN 이고 소속 center.name 이 특정
-   * organization 문자열과 일치하는 활성 사용자. A9 이전까지 Program.organization ↔ Center.name 문자열 매칭이 사실상 유일한 조인
-   * 경로.
+   * A9-b (2026-09-22): role + Center FK id 매칭. Program.center FK 로부터 얻은 centerId 로 NEW_APPLICATION
+   * 알림 수신자 (CENTER_ADMIN) 조회. 이전의 Center_Name 문자열 매칭은 A9-b 에서 삭제됨 (Q-A9-b 채택안 A).
    *
    * <p>SYSTEM_ADMIN 은 스코프 상 모든 신청을 볼 수 있으나 QC B-1 결정에 따라 NEW_APPLICATION 알림에서는 제외. 대시보드(A6)로 커버.
-   */
-  List<User> findByRoleAndIsActiveTrueAndCenter_Name(UserRole role, String centerName);
-
-  /**
-   * A9-a (2026-09-21) B-3: role + Center FK id 매칭. B-1 (Center_Name) 대체. Program.center_id 가 도입되면
-   * 문자열 매칭 대신 FK 매칭으로 명확도·성능 향상.
    */
   List<User> findByRoleAndIsActiveTrueAndCenter_Id(UserRole role, Long centerId);
 }

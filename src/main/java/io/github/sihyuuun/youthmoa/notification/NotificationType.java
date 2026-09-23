@@ -11,7 +11,7 @@ public enum NotificationType {
   // ── A7 admin 헤더 알림 벨 (2026-09-17) ─────────────────────────────────
   // admin 트랙 전용 이벤트 타입. Notification 엔티티는 user FK 기반 fan-out INSERT.
   // 사용자 알림 flow (PR #143) 완전 무영향 — 기존 값 6종은 그대로 유지.
-  /** 사용자가 프로그램 신청 시 발행. 수신자: 해당 프로그램의 organization 매칭 CENTER_ADMIN (Qn-C B-1). */
+  /** 사용자가 프로그램 신청 시 발행. 수신자: 해당 프로그램의 center.id 매칭 CENTER_ADMIN (A9-b · Qn-C B-3). */
   NEW_APPLICATION,
   /** 신규 회원가입 시 발행. 수신자: SYSTEM_ADMIN 전체 (Qn-E). */
   NEW_USER;

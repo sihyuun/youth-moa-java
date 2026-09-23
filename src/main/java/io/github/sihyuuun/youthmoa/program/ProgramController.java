@@ -3,7 +3,6 @@ package io.github.sihyuuun.youthmoa.program;
 import io.github.sihyuuun.youthmoa.application.ApplicationRepository;
 import io.github.sihyuuun.youthmoa.application.ApplicationStatus;
 import io.github.sihyuuun.youthmoa.bookmark.BookmarkService;
-import io.github.sihyuuun.youthmoa.center.CenterRepository;
 import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -31,7 +30,6 @@ public class ProgramController {
   private final ProgramCalendarService programCalendarService;
   private final BookmarkService bookmarkService;
   private final ApplicationRepository applicationRepository;
-  private final CenterRepository centerRepository;
 
   @GetMapping("/programs")
   public String list(
@@ -161,19 +159,13 @@ public class ProgramController {
     // fragment 파라미터를 모델 attribute 로 노출 (홈/목록/검색과 동일 fragment 호출).
     ProgramCardDto capacityCard = new ProgramCardDto(program, appliedCount);
 
-    // A9-a: 문의처 전화 — Program.center FK 로 직접 조회. FK 미할당 시 organization 문자열 fallback (병행 유지).
+    // A9-b (2026-09-22): 문의처 전화 — Program.center FK 로 직접 조회.
+    // center 는 NOT NULL 이므로 null 체크는 방어적 코드로만 유지 (V21 승격 이후 이론적으로 발생 불가).
     String contactPhone = null;
     if (program.getCenter() != null
         && program.getCenter().getPhone() != null
         && !program.getCenter().getPhone().isBlank()) {
       contactPhone = program.getCenter().getPhone();
-    } else if (program.getOrganization() != null) {
-      contactPhone =
-          centerRepository
-              .findByName(program.getOrganization())
-              .map(io.github.sihyuuun.youthmoa.center.Center::getPhone)
-              .filter(p -> p != null && !p.isBlank())
-              .orElse(null);
     }
 
     model.addAttribute("currentPage", "programs");

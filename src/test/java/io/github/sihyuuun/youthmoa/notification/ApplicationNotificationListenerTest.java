@@ -5,6 +5,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.github.sihyuuun.youthmoa.application.Application;
 import io.github.sihyuuun.youthmoa.application.ApplicationRepository;
 import io.github.sihyuuun.youthmoa.application.ApplicationService;
+import io.github.sihyuuun.youthmoa.center.Center;
+import io.github.sihyuuun.youthmoa.center.CenterRepository;
 import io.github.sihyuuun.youthmoa.program.Program;
 import io.github.sihyuuun.youthmoa.program.ProgramRepository;
 import io.github.sihyuuun.youthmoa.user.User;
@@ -37,6 +39,7 @@ class ApplicationNotificationListenerTest {
   @Autowired ApplicationRepository applicationRepository;
   @Autowired UserRepository userRepository;
   @Autowired ProgramRepository programRepository;
+  @Autowired CenterRepository centerRepository;
   @Autowired NotificationRepository notificationRepository;
 
   private User user;
@@ -64,11 +67,18 @@ class ApplicationNotificationListenerTest {
                 .build());
 
     LocalDate today = LocalDate.now();
+    Center center =
+        centerRepository
+            .findByName("내일스퀘어")
+            .orElseGet(
+                () ->
+                    centerRepository.save(
+                        Center.builder().name("내일스퀘어").region("수원시").isFeatured(false).build()));
     program =
         programRepository.save(
             Program.builder()
                 .title("리스너테스트 프로그램")
-                .organization("내일스퀘어")
+                .center(center)
                 .category("취업")
                 .region("수원시")
                 .content("c")

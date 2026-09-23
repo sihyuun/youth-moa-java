@@ -6,6 +6,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
+import io.github.sihyuuun.youthmoa.center.Center;
 import io.github.sihyuuun.youthmoa.notification.NotificationChannel;
 import io.github.sihyuuun.youthmoa.notification.NotificationChannelResolver;
 import io.github.sihyuuun.youthmoa.program.ApplyQuestionRepository;
@@ -65,10 +66,11 @@ class ApplicationCompleteControllerTest {
     setId(owner, 1L);
     other = User.builder().email("other@t.com").name("남").role(UserRole.USER).build();
     setId(other, 2L);
+    Center center = Center.builder().name("센터").region("수원시").isActive(true).build();
     program =
         Program.builder()
             .title("테스트 프로그램")
-            .organization("센터")
+            .center(center)
             .region("수원시")
             .content("c")
             .startDate(LocalDate.of(2024, 7, 1))

@@ -2,6 +2,7 @@ package io.github.sihyuuun.youthmoa.program;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.github.sihyuuun.youthmoa.center.Center;
 import java.time.LocalDate;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -13,10 +14,13 @@ import org.junit.jupiter.api.Test;
  */
 class ProgramCardDtoTest {
 
+  private static final Center CENTER =
+      Center.builder().name("테스트 기관").region("수원시").isFeatured(false).build();
+
   private Program activeProgram(Integer capacity) {
     return Program.builder()
         .title("테스트 프로그램")
-        .organization("테스트 기관")
+        .center(CENTER)
         .content("내용")
         .startDate(LocalDate.now().minusDays(1))
         .endDate(LocalDate.now().plusDays(10))
@@ -27,7 +31,7 @@ class ProgramCardDtoTest {
   private Program upcomingProgram() {
     return Program.builder()
         .title("예정 프로그램")
-        .organization("테스트 기관")
+        .center(CENTER)
         .content("내용")
         .startDate(LocalDate.now().plusDays(5))
         .endDate(LocalDate.now().plusDays(20))
@@ -37,7 +41,7 @@ class ProgramCardDtoTest {
   private Program closedProgram() {
     return Program.builder()
         .title("마감 프로그램")
-        .organization("테스트 기관")
+        .center(CENTER)
         .content("내용")
         .startDate(LocalDate.now().minusDays(20))
         .endDate(LocalDate.now().minusDays(1))
@@ -187,7 +191,7 @@ class ProgramCardDtoTest {
     Program p =
         Program.builder()
             .title("중단 프로그램")
-            .organization("기관")
+            .center(CENTER)
             .content("내용")
             .startDate(LocalDate.now().plusDays(3))
             .endDate(LocalDate.now().plusDays(30))

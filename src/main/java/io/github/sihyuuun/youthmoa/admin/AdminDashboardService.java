@@ -25,7 +25,8 @@ import org.springframework.transaction.annotation.Transactional;
  * 필터 쿼리가 불가능하다. A1 은 학습 단계라 findAll() 로드 후 Java 스트림으로 필터한다. 프로그램 규모가 커지면 A2/A6 에서 상태 컬럼 도입·인덱스 최적화
  * 필요 (deferred).
  *
- * <p>센터 격리는 {@code Program.organization = Center.name} 문자열 매칭 (Q7 근사). scope==null 이면 전체.
+ * <p>A9-b (2026-09-22) 이후: 센터 격리는 Program.center FK (NOT NULL) id 매칭. scope==null 이면 전체
+ * (SYSTEM_ADMIN).
  */
 @Service
 @RequiredArgsConstructor
