@@ -21,6 +21,9 @@ export default defineConfig({
     expect: { timeout: 5_000 },
     fullyParallel: false,               // 5 worker 동시 진입 시 DB 부담 → 순차 실행
     workers: 1,
+    // A9-b verify #10 대응: CI 에서만 1회 재시도. GitHub Actions runner variability / 로그 I/O 부담 등
+    // 환경 요인으로 인한 일회성 timeout 을 자동 완화. 로컬은 재시도 없이 즉시 fail (진짜 회귀 조기 감지).
+    retries: process.env.CI ? 1 : 0,
     reporter: [['list'], ['html', { open: 'never' }]],
     use: {
         baseURL,

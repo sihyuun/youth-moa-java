@@ -106,7 +106,7 @@ class AdminEagerFetchN1Test {
   }
 
   @Test
-  void adminApplicationService_list_쿼리_상한_12_이내() {
+  void adminApplicationService_list_쿼리_상한_6_이내() {
     loginAsSysadmin();
     resetSessionAndStats();
 
@@ -127,10 +127,11 @@ class AdminEagerFetchN1Test {
    * ApplicationRepository.findAll() (Dashboard/Stats 진입점) — 전체 로드 시 쿼리 수 상한.
    *
    * <p>{@link AdminDashboardService}, {@link AdminStatsService} 가 findAll() 을 호출해 List<Application>
-   * 을 받는다. 시드 데이터 50+ 건에서 N+1 발생 시 100 쿼리 이상 발화. 상한 20 은 여유 있게 잡아 EAGER JOIN 최적화만 확인.
+   * 을 받는다. 시드 데이터 50+ 건에서 N+1 발생 시 100 쿼리 이상 발화. verify #14 대응: baseline 실측 4 · 상한 8 (실측 + 100% 여유)
+   * 로 tight 감시.
    */
   @Test
-  void applicationRepository_findAll_전체_쿼리_상한_20_이내() {
+  void applicationRepository_findAll_전체_쿼리_상한_8_이내() {
     resetSessionAndStats();
 
     List<Application> all = applicationRepository.findAll();
@@ -151,7 +152,7 @@ class AdminEagerFetchN1Test {
    * <p>verify #16.4 커버리지 확장 — Bookmark 진입점 미커버 지적 대응.
    */
   @Test
-  void bookmarkRepository_findAll_전체_쿼리_상한_10_이내() {
+  void bookmarkRepository_findAll_전체_쿼리_상한_8_이내() {
     resetSessionAndStats();
 
     List<Bookmark> all = bookmarkRepository.findAll();
@@ -167,11 +168,11 @@ class AdminEagerFetchN1Test {
   /**
    * AdminDashboardService.load — 대시보드 진입 시 Application/Program 다중 조회 통합 쿼리 수 상한.
    *
-   * <p>verify #16.4 커버리지 확장 — Dashboard 진입점 미커버 지적 대응. Dashboard 는 여러 findAll · countBy 조합이므로 상한을
-   * 여유 있게 (50) 잡아 EAGER 승격으로 인한 폭발적 증가만 감지.
+   * <p>verify #16.4 커버리지 확장 — Dashboard 진입점 미커버 지적 대응. Dashboard 는 여러 findAll · countBy 조합. verify
+   * #14 대응: baseline 실측 27 · 상한 35 (실측 + 30% 여유) 로 소폭 회귀도 감지.
    */
   @Test
-  void adminDashboardService_load_쿼리_상한_50_이내() {
+  void adminDashboardService_load_쿼리_상한_35_이내() {
     resetSessionAndStats();
 
     AdminDashboardService.DashboardModel model = adminDashboardService.load(null);
@@ -188,11 +189,11 @@ class AdminEagerFetchN1Test {
   /**
    * AdminStatsService.load — 통계 페이지 진입 시 통합 쿼리 수 상한.
    *
-   * <p>verify #16.4 커버리지 확장 — Stats 진입점 미커버 지적 대응. Stats 는 Application 전체 조회 + 집계 로직이라 상한을 60 으로 여유
-   * 있게 잡음.
+   * <p>verify #16.4 커버리지 확장 — Stats 진입점 미커버 지적 대응. Stats 는 Application 전체 조회 + 집계 로직. verify #14
+   * 대응: baseline 실측 37 · 상한 48 (실측 + 30% 여유) 로 소폭 회귀도 감지.
    */
   @Test
-  void adminStatsService_load_쿼리_상한_60_이내() {
+  void adminStatsService_load_쿼리_상한_48_이내() {
     resetSessionAndStats();
 
     AdminStatsService.StatsModel model = adminStatsService.load(null, "daily");
