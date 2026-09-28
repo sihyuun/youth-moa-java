@@ -57,4 +57,34 @@ class AdminSeedInitializerTest {
     assertThat(u.getCenter()).isNotNull();
     assertThat(u.getCenterScope()).isNotBlank();
   }
+
+  /**
+   * A7-e2e-suite 사전 시드 (2026-09-28): admin_center2 는 centers[2] 소속 CENTER_ADMIN. center1/center2
+   * 시드와 다른 센터에 배치되어 organization 축과 createdBy/watcher 축 분리 검증에 사용된다.
+   */
+  @Test
+  void ADMIN_CENTER2_시드_확인() {
+    Optional<User> found = userRepository.findByEmail("admin_center2@youth-moa.test");
+    assertThat(found).isPresent();
+    User u = found.get();
+    assertThat(u.getRole()).isEqualTo(UserRole.CENTER_ADMIN);
+    assertThat(u.getCenter()).isNotNull();
+    assertThat(u.getCenterScope()).isNotBlank();
+    assertThat(u.isActive()).isTrue();
+  }
+
+  /**
+   * A7-e2e-suite 사전 시드 (2026-09-28): admin_inactive 는 CENTER_ADMIN 이지만 isActive=false. 알림 fan-out
+   * 단계에서 비활성 admin 을 skip 하는 로직 검증에 사용된다.
+   */
+  @Test
+  void ADMIN_INACTIVE_시드_확인() {
+    Optional<User> found = userRepository.findByEmail("admin_inactive@youth-moa.test");
+    assertThat(found).isPresent();
+    User u = found.get();
+    assertThat(u.getRole()).isEqualTo(UserRole.CENTER_ADMIN);
+    assertThat(u.getCenter()).isNotNull();
+    assertThat(u.getCenterScope()).isNotBlank();
+    assertThat(u.isActive()).isFalse();
+  }
 }
