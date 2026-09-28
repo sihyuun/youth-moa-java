@@ -1,12 +1,16 @@
 /**
- * A7-watcher-ui (2026-09-28) — 지켜보기 토글 + Composite 3축 fan-out E2E.
+ * A7-watcher-ui (2026-09-28) — 지켜보기 토글 UI E2E.
  *
- * 시나리오:
- *   1. CENTER_ADMIN 목록 → 눈 아이콘 클릭 → is-watched 클래스 부여 (outerHTML swap)
- *   2. 재클릭 → is-watched 해제
- *   3. 편집 폼 헤더 눈 아이콘 → styleClass=form-watch-btn 유지
- *   4. 대시보드 지켜보는 프로그램 카드에 등록 프로그램 노출
- *   5. USER 세션이 신청 → admin 헤더 벨 카운트 증가 (Composite B-3-B watcher 축 fan-out 확인)
+ * 시나리오 (구현):
+ *   1. CENTER_ADMIN 목록 → 눈 아이콘 클릭 → is-watched 클래스 부여 (outerHTML swap) · 재클릭 → is-watched 해제
+ *   2. 편집 폼 헤더 눈 아이콘 → styleClass=form-watch-btn 유지 (hx-vals 왕복)
+ *   3. 대시보드 지켜보는 프로그램 카드 렌더 (empty/rows 상태)
+ *
+ * 이월 (별도 티켓 후속):
+ *   - USER 세션 신청 → admin 헤더 벨 카운트 증가 (Composite B-3-B watcher 축 fan-out end-to-end 검증).
+ *     현재 fan-out 로직 자체는 CompositeApplicationCreatedResolverTest 3 TC (b3b_only ·
+ *     order_three_axes_disjoint · distinct_union_across_three_axes) + WatcherRecipientResolverTest 로
+ *     JVM 단위 검증됨. E2E 헤더 벨 연쇄 검증은 A7-notification-e2e 통합 티켓에서 처리.
  *
  * 회사 PC 검증 필수 (인터랙션 규칙 · CLAUDE.md).
  *

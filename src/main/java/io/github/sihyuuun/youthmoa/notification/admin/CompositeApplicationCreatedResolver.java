@@ -31,9 +31,15 @@ import org.springframework.stereotype.Component;
  *   <li>Q-B3-3 A (distinct union) — {@link User#getId()} 기준 중복 제거. 여러 축이 같은 admin 을 반환해도 알림은 1건만 발행
  *   <li>Q-B3-6 A (축 균등) — 모두 알림. 우선순위/억제 없음
  *   <li>Q-A7W-5 A (삽입 순서) — B-2 → B-3-A → B-3-B. {@link LinkedHashMap} 가 순서 유지, 알림 발행 순서도 동일
- *   <li>{@link Primary} 지정 이유 — 기존 코드에서 {@code ApplicationCreatedRecipientResolver} 를 직접 주입하는
- *       리스너/테스트가 남아있어도 컨텍스트 유일성이 필요한 경우 Composite 를 우선하도록 함
+ *   <li>{@link Primary} 지정 이유 — {@link NotificationRecipientResolver} 구현체가 4개 (Composite ·
+ *       ApplicationCreatedRecipient(B-2) · CreatedByRecipient(B-3-A) · WatcherRecipient(B-3-B)) 존재.
+ *       인터페이스 타입으로 주입하는 코드가 있으면 Spring 이 {@code NoUniqueBeanDefinitionException} 을 던진다.
+ *       {@code @Primary} 로 Composite 를 기본 선택하게 하여 실수 방어. 현재 실 주입점은 {@link
+ *       AdminNotificationEventListener} 뿐이며 concrete 타입으로 주입하므로 이 어노테이션이 없어도 동작하지만, 미래 확장성을 위한 안전판.
  * </ul>
+ *
+ * <p>A7-watcher-ui verify UNVERIFIED #3 재검토 (2026-09-28): 실 주입점 grep 결과 concrete 타입 주입만
+ * 존재. @Primary 는 defensive · 부작용 없음.
  */
 @Slf4j
 @Component
