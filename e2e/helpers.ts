@@ -197,6 +197,96 @@ export async function resetApplyQuestions(page: Page): Promise<void> {
 }
 
 /**
+ * A7-e2e-suite (2026-09-28): 3단계 apply 위저드를 한 번에 완주하는 헬퍼.
+ * fan-out spec 이 여러 프로그램에 반복 신청할 때 반복 코드를 줄이기 위해.
+ *
+ * 전제: 이미 로그인 상태. 프로그램은 신청 가능(모집 중 등) 상태.
+ * 완료 후 /apply/complete 로 리다이렉트.
+ */
+export async function applyProgram(
+    page: Page,
+    programId: number,
+    reason: string = 'A7 e2e fan-out 시나리오 신청 사유입니다.',
+): Promise<void> {
+    await page.goto(`/programs/${programId}/apply`, { waitUntil: 'domcontentloaded' });
+    await applyNextStep(page, 2);
+    await page.locator('#applyReason').fill(reason);
+    await applyNextStep(page, 3);
+    await page.locator('input[name="privacyAgreed"]').check({ force: true });
+    await Promise.all([
+        page.waitForURL(/\/apply\/complete/),
+        page.locator('#applyNavSubmit').click(),
+    ]);
+}
+
+/**
+ * A7-e2e-suite (2026-09-28): admin 계정 unread 알림 초기화 (fan-out spec seed pollution 방지).
+ *
+ * fan-out spec 은 "신청 전 배지 값" → "신청 후 배지 값 = +1" 을 검증하므로 관측 기준선이 필요.
+ * 이 헬퍼는 로그인 페이지 세션을 훔치지 않고 request context 만 사용해 mark-all-read POST 를 보낸다.
+ *
+ * 절차: admin login (별도 페이지) → POST /admin/notifications/mark-all-read → logout.
+ * spec 내부 페이지는 사용자 세션이라 이 헬퍼 호출 이후에도 오염되지 않는다.
+ */
+export async function resetAdminNotifications(
+    browser: import('@playwright/test').Browser,
+    adminEmail: string,
+    adminPassword: string = ADMIN_SEED_PASS,
+): Promise<void> {
+    const ctx = await browser.newContext();
+    try {
+        const page = await ctx.newPage();
+        await page.goto('/admin/login', { waitUntil: 'domcontentloaded' });
+        await page.locator('input[name="username"]').fill(adminEmail);
+        await page.locator('input[name="password"]').fill(adminPassword);
+        await page.locator('#adminLoginForm button[type="submit"]').click();
+        await page.waitForURL('**/admin');
+        // 헤더에 mark-all POST — HTMX 헤더 없이 폼-스타일 POST 시 302 redirect
+        await page.request.post('/admin/notifications/mark-all-read');
+    } finally {
+        await ctx.close();
+    }
+}
+
+/**
+ * A7-e2e-suite (2026-09-28): 특정 admin 계정으로 프로그램 watch 를 등록한다 (fan-out watcher 축 검증용).
+ * `POST /admin/programs/{programId}/watch/toggle` 는 상태 토글이라 이미 등록된 상태면 해제하므로,
+ * 최종 상태를 등록으로 보장하기 위해 응답 fragment 의 클래스명으로 확인 후 필요 시 재호출한다.
+ */
+export async function ensureAdminWatches(
+    browser: import('@playwright/test').Browser,
+    adminEmail: string,
+    programId: number,
+    adminPassword: string = ADMIN_SEED_PASS,
+): Promise<void> {
+    const ctx = await browser.newContext();
+    try {
+        const page = await ctx.newPage();
+        await page.goto('/admin/login', { waitUntil: 'domcontentloaded' });
+        await page.locator('input[name="username"]').fill(adminEmail);
+        await page.locator('input[name="password"]').fill(adminPassword);
+        await page.locator('#adminLoginForm button[type="submit"]').click();
+        await page.waitForURL('**/admin');
+
+        // toggle 1회 → 응답 fragment 에 is-watched 여부 확인
+        const first = await page.request.post(
+            `/admin/programs/${programId}/watch/toggle`,
+            { form: { styleClass: 'list-watch-btn' } },
+        );
+        const firstBody = await first.text();
+        if (!firstBody.includes('is-watched')) {
+            // 첫 호출이 해제였으므로 다시 눌러 등록 상태로 복귀
+            await page.request.post(
+                `/admin/programs/${programId}/watch/toggle`,
+                { form: { styleClass: 'list-watch-btn' } },
+            );
+        }
+    } finally {
+        await ctx.close();
+    }
+}
+
+/**
  * A3-1 admin-program-form (Qn-6 A, 2026-09-10): admin-program-form E2E 가 신규 프로그램을 생성 후
  * 정리하지 않으면 admin-programs-list 개수 기대 · apply flow 시드가 오염된다.
  * `TestFixtureController.resetPrograms()` = id > SEED_PROGRAM_COUNT (23) 인 프로그램 + FK cascade 삭제.
