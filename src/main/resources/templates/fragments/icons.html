@@ -71,6 +71,26 @@
           th:attr="fill=${color},stroke=${color}"/>
 </svg>
 
+<!-- A7-watcher-ui (2026-09-28) — 지켜보기 눈 아이콘 (idle: outline / watched: fill). Lucide "eye" 기반. -->
+<svg th:fragment="eye(size, color)"
+     th:attr="width=${size},height=${size}"
+     viewBox="0 0 24 24" fill="none"
+     stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+     th:attrappend="style='flex-shrink:0;'">
+    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" th:attr="stroke=${color}"/>
+    <circle cx="12" cy="12" r="3" th:attr="stroke=${color}"/>
+</svg>
+
+<svg th:fragment="eyeFill(size, color)"
+     th:attr="width=${size},height=${size}"
+     viewBox="0 0 24 24"
+     stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+     th:attrappend="style='flex-shrink:0;'">
+    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"
+          th:attr="fill=${color},stroke=${color}"/>
+    <circle cx="12" cy="12" r="3" fill="#ffffff" th:attr="stroke=${color}"/>
+</svg>
+
 <svg th:fragment="edit(size, color)"
      th:attr="width=${size},height=${size}"
      viewBox="0 0 24 24" fill="none"

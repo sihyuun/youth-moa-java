@@ -1,5 +1,6 @@
 package io.github.sihyuuun.youthmoa.admin;
 
+import io.github.sihyuuun.youthmoa.notification.watch.ProgramWatchService;
 import io.github.sihyuuun.youthmoa.program.ApplyQuestion;
 import io.github.sihyuuun.youthmoa.program.ApplyQuestionRepository;
 import io.github.sihyuuun.youthmoa.program.ApprovalMode;
@@ -24,6 +25,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
@@ -64,6 +67,7 @@ public class AdminProgramController {
   private final ApplyQuestionRepository applyQuestionRepository;
   private final io.github.sihyuuun.youthmoa.center.CenterRepository centerRepository;
   private final io.github.sihyuuun.youthmoa.common.storage.FileStorage fileStorage;
+  private final ProgramWatchService programWatchService;
 
   @org.springframework.beans.factory.annotation.Value(
       "${youthmoa.storage.supabase.program-attachment-bucket:program-attachments}")
@@ -74,6 +78,7 @@ public class AdminProgramController {
       @RequestParam(required = false) String q,
       @RequestParam(required = false) String status,
       @RequestParam(required = false, defaultValue = "0") int page,
+      @AuthenticationPrincipal UserDetails principal,
       Model model) {
     Page<Program> programs = adminProgramService.list(q, status, page);
     populateCommonModel(model);
@@ -82,8 +87,14 @@ public class AdminProgramController {
     List<Long> ids = programs.getContent().stream().map(Program::getId).toList();
     Map<Long, Long> appliedCounts = adminProgramService.countAppliedByProgramIds(ids);
 
+    // A7-watcher-ui (2026-09-28): row 눈 아이콘 활성 여부 batch 조회.
+    java.util.Set<Long> watchedProgramIds =
+        programWatchService.getWatchedProgramIds(
+            principal != null ? principal.getUsername() : null);
+
     model.addAttribute("programs", programs);
     model.addAttribute("appliedCounts", appliedCounts);
+    model.addAttribute("watchedProgramIds", watchedProgramIds);
     model.addAttribute("q", q == null ? "" : q);
     model.addAttribute("statusFilter", status == null ? "" : status);
     model.addAttribute("statusOptions", ProgramStatus.values());
@@ -152,7 +163,8 @@ public class AdminProgramController {
   // ================= A3-1 편집 (Qn-A A: 상세 = 편집 폼) =================
 
   @GetMapping("/{id}")
-  public String editForm(@PathVariable Long id, Model model) {
+  public String editForm(
+      @PathVariable Long id, @AuthenticationPrincipal UserDetails principal, Model model) {
     Program program;
     try {
       program = adminProgramService.find(id);
@@ -176,6 +188,10 @@ public class AdminProgramController {
     model.addAttribute("courses", courses);
     model.addAttribute("questions", questions);
     model.addAttribute("attachments", attachments);
+    // A7-watcher-ui (2026-09-28 · Q-A7W-2 c): 편집 폼 헤더 지켜보기 초기 상태.
+    boolean watched =
+        principal != null && programWatchService.isWatched(principal.getUsername(), id);
+    model.addAttribute("watched", watched);
     return "admin/program/form";
   }
 

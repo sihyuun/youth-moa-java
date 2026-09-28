@@ -13,6 +13,9 @@
     <link rel="stylesheet" th:href="@{/css/admin.css}">
     <meta name="_csrf" th:content="${_csrf?.token}"/>
     <meta name="_csrf_header" th:content="${_csrf?.headerName}"/>
+    <!-- A7-watcher-ui (2026-09-28): watch 토글 HTMX 요청용 -->
+    <script th:src="@{/webjars/htmx.org/2.0.4/dist/htmx.min.js}"></script>
+    <script th:src="@{/js/htmx-csrf.js}" defer></script>
 </head>
 <body class="admin-shell-body">
 
@@ -34,6 +37,8 @@
                         프로그램 편집</p>
                 </div>
                 <div class="admin-program-form-header-meta" th:if="${mode == 'edit'}">
+                    <!-- A7-watcher-ui (2026-09-28 · Q-A7W-2 c): 편집 폼 헤더 지켜보기 토글. mode='new' 는 program 미존재 → 숨김. -->
+                    <div th:replace="~{admin/fragments/watch-button :: button(${program.id}, ${watched != null and watched}, 'form-watch-btn')}"></div>
                     <span class="admin-status-badge"
                           th:classappend="${'admin-status-badge--' + program.status.name().toLowerCase()}"
                           th:text="${program.status.label}">모집중</span>
