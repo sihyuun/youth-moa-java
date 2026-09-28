@@ -5,6 +5,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.github.sihyuuun.youthmoa.center.Center;
 import io.github.sihyuuun.youthmoa.center.CenterRepository;
 import io.github.sihyuuun.youthmoa.common.config.JpaConfig;
+import io.github.sihyuuun.youthmoa.user.User;
+import io.github.sihyuuun.youthmoa.user.UserRepository;
+import io.github.sihyuuun.youthmoa.user.UserRole;
 import java.time.LocalDate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -25,14 +28,25 @@ class ProgramSearchTest {
 
   @Autowired ProgramRepository programRepository;
   @Autowired CenterRepository centerRepository;
+  @Autowired UserRepository userRepository;
 
   private Center centerNaeil;
   private Center centerBihaeng;
   private Center centerWonmi;
+  private User creator;
 
   @BeforeEach
   void seed() {
     LocalDate today = LocalDate.now();
+    // A7-createdBy-recipient: Program.createdBy NOT NULL — 공용 소유자 시드.
+    creator =
+        userRepository.save(
+            User.builder()
+                .email("creator-search@t.com")
+                .password("hashed")
+                .name("작성자")
+                .role(UserRole.SYSTEM_ADMIN)
+                .build());
 
     // A9-a: withCenters(List<String>) 가 center.name join 이므로 Center 시드 필요.
     centerNaeil =
@@ -56,6 +70,7 @@ class ProgramSearchTest {
             .startDate(today.minusDays(5))
             .endDate(today.plusDays(5))
             .capacity(30)
+            .createdBy(creator)
             .build());
 
     // 진행예정 (고양시, 교육)
@@ -69,6 +84,7 @@ class ProgramSearchTest {
             .startDate(today.plusDays(10))
             .endDate(today.plusDays(30))
             .capacity(20)
+            .createdBy(creator)
             .build());
 
     // 마감 (부천시, 교육)
@@ -82,6 +98,7 @@ class ProgramSearchTest {
             .startDate(today.minusDays(30))
             .endDate(today.minusDays(5))
             .capacity(15)
+            .createdBy(creator)
             .build());
   }
 
@@ -184,6 +201,7 @@ class ProgramSearchTest {
                 .content("c")
                 .startDate(today)
                 .endDate(today.plusDays(1))
+                .createdBy(creator)
                 .build());
     assertThat(p1.getStatus()).isEqualTo(ProgramStatus.OPEN);
 
@@ -196,6 +214,7 @@ class ProgramSearchTest {
                 .content("c")
                 .startDate(today.plusDays(5))
                 .endDate(today.plusDays(10))
+                .createdBy(creator)
                 .build());
     assertThat(p2.getStatus()).isEqualTo(ProgramStatus.UPCOMING);
 
@@ -208,6 +227,7 @@ class ProgramSearchTest {
                 .content("c")
                 .startDate(today.minusDays(10))
                 .endDate(today.minusDays(1))
+                .createdBy(creator)
                 .build());
     assertThat(p3.getStatus()).isEqualTo(ProgramStatus.ENDED);
   }

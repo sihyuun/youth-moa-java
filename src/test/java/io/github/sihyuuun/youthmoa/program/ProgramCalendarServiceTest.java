@@ -53,6 +53,21 @@ class ProgramCalendarServiceTest {
                     Center.builder().name("org").region("수원시").isFeatured(false).build()));
   }
 
+  private User defaultCreator() {
+    // A7-createdBy-recipient: Program.createdBy NOT NULL — 공용 소유자 시드.
+    return userRepository
+        .findByEmail("creator-cal@t.com")
+        .orElseGet(
+            () ->
+                userRepository.save(
+                    User.builder()
+                        .email("creator-cal@t.com")
+                        .password("pw")
+                        .name("작성자")
+                        .role(UserRole.SYSTEM_ADMIN)
+                        .build()));
+  }
+
   private Program saveProgram(String title, LocalDate start, LocalDate end, Integer capacity) {
     return programRepository.save(
         Program.builder()
@@ -64,6 +79,7 @@ class ProgramCalendarServiceTest {
             .startDate(start)
             .endDate(end)
             .capacity(capacity)
+            .createdBy(defaultCreator())
             .build());
   }
 

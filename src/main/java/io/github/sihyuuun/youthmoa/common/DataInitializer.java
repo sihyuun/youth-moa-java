@@ -109,12 +109,12 @@ public class DataInitializer implements ApplicationRunner {
   @Transactional
   public void run(ApplicationArguments args) {
     seedRegionsAndCenters();
+    // A7-createdBy-recipient (2026-09-28 · V23): Program.createdBy NOT NULL FK 이므로 sysadmin 시드가
+    // seedPrograms 보다 먼저 실행되어야 한다. 기존 seedNotices 도 sysadmin 을 요구하므로 seedAdmins 를 최상단으로 이동.
+    seedAdmins();
     seedPrograms();
     seedApplyQuestions();
     seedSiteImages();
-    // A-admin-notice-attachment (2026-09-03 · Qn-8 Custom): Notice.createdBy 가 NOT NULL 이므로
-    // sysadmin 시드가 반드시 seedNotices 보다 먼저 실행되어야 한다. seedAdmins 를 seedNotices 앞으로 이동.
-    seedAdmins();
     seedNotices();
     seedApplications();
     seedBookmarks();
@@ -639,6 +639,15 @@ public class DataInitializer implements ApplicationRunner {
       return;
     }
 
+    // A7-createdBy-recipient (2026-09-28 · V23): Program.createdBy NOT NULL FK. 시드 프로그램 전량은
+    // sysadmin
+    // 소유로 부착 (V23 백필 정책과 일관). seedAdmins 가 상단에서 먼저 실행되므로 조회 안전.
+    User sysadmin =
+        userRepository
+            .findByEmail("sysadmin@youth-moa.test")
+            .orElseThrow(
+                () -> new IllegalStateException("sysadmin seed must exist before seedPrograms"));
+
     LocalDate today = LocalDate.now();
     List<Program> seeds =
         List.of(
@@ -658,6 +667,7 @@ public class DataInitializer implements ApplicationRunner {
                 .startDate(today.minusDays(10))
                 .endDate(today.plusDays(3))
                 .capacity(30)
+                .createdBy(sysadmin)
                 .build(),
             Program.builder()
                 .title("청년 창업 아카데미")
@@ -675,6 +685,7 @@ public class DataInitializer implements ApplicationRunner {
                 .startDate(today.minusDays(5))
                 .endDate(today.plusDays(12))
                 .capacity(25)
+                .createdBy(sysadmin)
                 .build(),
             Program.builder()
                 .title("마음건강 힐링 캠프")
@@ -692,6 +703,7 @@ public class DataInitializer implements ApplicationRunner {
                 .startDate(today.minusDays(2))
                 .endDate(today.plusDays(6))
                 .capacity(20)
+                .createdBy(sysadmin)
                 .build(),
             Program.builder()
                 .title("디지털 마케팅 실전반")
@@ -709,6 +721,7 @@ public class DataInitializer implements ApplicationRunner {
                 .startDate(today.minusDays(30))
                 .endDate(today.minusDays(5))
                 .capacity(15)
+                .createdBy(sysadmin)
                 .build(),
             Program.builder()
                 .title("AI 활용 실무 교육")
@@ -726,6 +739,7 @@ public class DataInitializer implements ApplicationRunner {
                 .startDate(today.plusDays(14))
                 .endDate(today.plusDays(45))
                 .capacity(30)
+                .createdBy(sysadmin)
                 .build(),
             Program.builder()
                 .title("소셜벤처 인큐베이팅")
@@ -743,6 +757,7 @@ public class DataInitializer implements ApplicationRunner {
                 .startDate(today.plusDays(21))
                 .endDate(today.plusDays(180))
                 .capacity(20)
+                .createdBy(sysadmin)
                 .build(),
             Program.builder()
                 .title("청년 문화예술 스쿨")
@@ -760,6 +775,7 @@ public class DataInitializer implements ApplicationRunner {
                 .startDate(today.minusDays(7))
                 .endDate(today.plusDays(30))
                 .capacity(40)
+                .createdBy(sysadmin)
                 .build(),
             Program.builder()
                 .title("청년 네트워킹 데이")
@@ -777,6 +793,7 @@ public class DataInitializer implements ApplicationRunner {
                 .startDate(today.minusDays(1))
                 .endDate(today.plusDays(2))
                 .capacity(60)
+                .createdBy(sysadmin)
                 .build(),
             // F0f-fix-1: SUSPENDED (운영 중단, 관리자 조치) 시나리오 시드
             Program.builder()
@@ -796,6 +813,7 @@ public class DataInitializer implements ApplicationRunner {
                 .endDate(today.plusDays(30))
                 .capacity(16)
                 .isActive(false)
+                .createdBy(sysadmin)
                 .build(),
             // F0f-fix-3: ENDED (기간 만료, 자연 종료) 시나리오 시드 — 종료 탭·그레이스케일 시각 검증용
             Program.builder()
@@ -814,6 +832,7 @@ public class DataInitializer implements ApplicationRunner {
                 .startDate(today.minusDays(90))
                 .endDate(today.minusDays(30))
                 .capacity(20)
+                .createdBy(sysadmin)
                 .build(),
             // ── gap-batch2 (2026-07-27): pagination 데모용 추가 시드 15건 ──
             Program.builder()
@@ -832,6 +851,7 @@ public class DataInitializer implements ApplicationRunner {
                 .startDate(today.minusDays(3))
                 .endDate(today.plusDays(28))
                 .capacity(25)
+                .createdBy(sysadmin)
                 .build(),
             Program.builder()
                 .title("영상 편집 실전반")
@@ -849,6 +869,7 @@ public class DataInitializer implements ApplicationRunner {
                 .startDate(today.minusDays(1))
                 .endDate(today.plusDays(35))
                 .capacity(20)
+                .createdBy(sysadmin)
                 .build(),
             Program.builder()
                 .title("바리스타 자격증 취득 과정")
@@ -866,6 +887,7 @@ public class DataInitializer implements ApplicationRunner {
                 .startDate(today.minusDays(2))
                 .endDate(today.plusDays(56))
                 .capacity(16)
+                .createdBy(sysadmin)
                 .build(),
             Program.builder()
                 .title("청년 부트캠프 백엔드 트랙")
@@ -883,6 +905,7 @@ public class DataInitializer implements ApplicationRunner {
                 .startDate(today.plusDays(7))
                 .endDate(today.plusDays(90))
                 .capacity(24)
+                .createdBy(sysadmin)
                 .build(),
             Program.builder()
                 .title("도예 원데이 클래스")
@@ -902,6 +925,7 @@ public class DataInitializer implements ApplicationRunner {
                 .startDate(today.plusDays(0))
                 .endDate(today.plusDays(10))
                 .capacity(12)
+                .createdBy(sysadmin)
                 .build(),
             Program.builder()
                 .title("청년 재테크 세미나")
@@ -919,6 +943,7 @@ public class DataInitializer implements ApplicationRunner {
                 .startDate(today.minusDays(4))
                 .endDate(today.plusDays(24))
                 .capacity(40)
+                .createdBy(sysadmin)
                 .build(),
             Program.builder()
                 .title("스피치·발표 트레이닝")
@@ -936,6 +961,7 @@ public class DataInitializer implements ApplicationRunner {
                 .startDate(today.minusDays(6))
                 .endDate(today.plusDays(15))
                 .capacity(18)
+                .createdBy(sysadmin)
                 .build(),
             Program.builder()
                 .title("데이터 분석 입문 캠프")
@@ -953,6 +979,7 @@ public class DataInitializer implements ApplicationRunner {
                 .startDate(today.plusDays(14))
                 .endDate(today.plusDays(50))
                 .capacity(20)
+                .createdBy(sysadmin)
                 .build(),
             Program.builder()
                 .title("UX·UI 디자인 워크숍")
@@ -970,6 +997,7 @@ public class DataInitializer implements ApplicationRunner {
                 .startDate(today.minusDays(2))
                 .endDate(today.plusDays(19))
                 .capacity(22)
+                .createdBy(sysadmin)
                 .build(),
             Program.builder()
                 .title("청년 요가·명상 클래스")
@@ -987,6 +1015,7 @@ public class DataInitializer implements ApplicationRunner {
                 .startDate(today.minusDays(3))
                 .endDate(today.plusDays(53))
                 .capacity(30)
+                .createdBy(sysadmin)
                 .build(),
             Program.builder()
                 .title("청년 사진 워크숍")
@@ -1004,6 +1033,7 @@ public class DataInitializer implements ApplicationRunner {
                 .startDate(today.plusDays(10))
                 .endDate(today.plusDays(52))
                 .capacity(15)
+                .createdBy(sysadmin)
                 .build(),
             Program.builder()
                 .title("독서 모임 · 인문학 살롱")
@@ -1021,6 +1051,7 @@ public class DataInitializer implements ApplicationRunner {
                 .startDate(today.minusDays(30))
                 .endDate(today.minusDays(2))
                 .capacity(20)
+                .createdBy(sysadmin)
                 .build(),
             Program.builder()
                 .title("보컬 트레이닝 심화반")
@@ -1038,6 +1069,7 @@ public class DataInitializer implements ApplicationRunner {
                 .startDate(today.minusDays(60))
                 .endDate(today.minusDays(10))
                 .capacity(12)
+                .createdBy(sysadmin)
                 .build(),
             Program.builder()
                 .title("친환경 도시농부 프로젝트")
@@ -1057,6 +1089,7 @@ public class DataInitializer implements ApplicationRunner {
                 .startDate(today.plusDays(35))
                 .endDate(today.plusDays(105))
                 .capacity(18)
+                .createdBy(sysadmin)
                 .build());
 
     programRepository.saveAll(seeds);

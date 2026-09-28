@@ -75,6 +75,7 @@ class ApplicationCompleteControllerTest {
             .content("c")
             .startDate(LocalDate.of(2024, 7, 1))
             .endDate(LocalDate.of(2024, 7, 31))
+            .createdBy(owner)
             .build();
     setId(program, 10L);
     application = Application.builder().user(owner).program(program).build();

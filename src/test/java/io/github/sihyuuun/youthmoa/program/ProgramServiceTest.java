@@ -6,6 +6,9 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import io.github.sihyuuun.youthmoa.center.Center;
 import io.github.sihyuuun.youthmoa.center.CenterRepository;
 import io.github.sihyuuun.youthmoa.common.config.JpaConfig;
+import io.github.sihyuuun.youthmoa.user.User;
+import io.github.sihyuuun.youthmoa.user.UserRepository;
+import io.github.sihyuuun.youthmoa.user.UserRole;
 import java.time.LocalDate;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -22,11 +25,21 @@ class ProgramServiceTest {
   @Autowired ProgramService programService;
   @Autowired ProgramRepository programRepository;
   @Autowired CenterRepository centerRepository;
+  @Autowired UserRepository userRepository;
 
   private Program persistSample() {
     Center center =
         centerRepository.save(
             Center.builder().name("내일스퀘어").region("수원시").isFeatured(false).build());
+    // A7-createdBy-recipient: Program.createdBy NOT NULL — 테스트용 소유자 시드.
+    User creator =
+        userRepository.save(
+            User.builder()
+                .email("creator-pst@t.com")
+                .password("hashed")
+                .name("작성자")
+                .role(UserRole.SYSTEM_ADMIN)
+                .build());
     return programRepository.save(
         Program.builder()
             .title("취업 워크숍")
@@ -37,6 +50,7 @@ class ProgramServiceTest {
             .startDate(LocalDate.now().minusDays(5))
             .endDate(LocalDate.now().plusDays(20))
             .capacity(30)
+            .createdBy(creator)
             .build());
   }
 

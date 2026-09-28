@@ -8,10 +8,12 @@ import io.github.sihyuuun.youthmoa.program.ApprovalMode;
 import io.github.sihyuuun.youthmoa.program.Course;
 import io.github.sihyuuun.youthmoa.program.CourseRepository;
 import io.github.sihyuuun.youthmoa.program.Program;
+import io.github.sihyuuun.youthmoa.user.UserRepository;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -30,7 +32,13 @@ class AdminProgramCourseUpsertTest {
 
   @Autowired AdminProgramService adminProgramService;
   @Autowired CenterRepository centerRepository;
+  @Autowired UserRepository userRepository;
   @Autowired CourseRepository courseRepository;
+
+  @BeforeEach
+  void authAsSysAdmin() {
+    AdminAuthTestSupport.loginAsSysAdmin(userRepository);
+  }
 
   @AfterEach
   void clearAuth() {

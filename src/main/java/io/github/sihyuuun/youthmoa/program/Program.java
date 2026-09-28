@@ -2,6 +2,7 @@ package io.github.sihyuuun.youthmoa.program;
 
 import io.github.sihyuuun.youthmoa.center.Center;
 import io.github.sihyuuun.youthmoa.common.BaseTimeEntity;
+import io.github.sihyuuun.youthmoa.user.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
@@ -139,6 +140,19 @@ public class Program extends BaseTimeEntity {
   @Column(name = "has_courses", nullable = false)
   private boolean hasCourses;
 
+  // ============== A7-createdBy-recipient (2026-09-28 · V23) ==============
+
+  /**
+   * 프로그램 작성자. A7 알림 fan-out B-3-A 축의 근거 (Q-B3-1 A). NOT NULL FK — 기존 시드/운영 프로그램은 V23 3단계 마이그레이션으로
+   * sysadmin 소유로 일괄 백필 (Q-B3-A A · Notice V9 선례).
+   *
+   * <p>{@link Q-B3-B}: createdBy 는 생성 이후 불변. {@code updateFromAdminForm} 은 이 필드를 건드리지 않으며 이관 UI 도
+   * 제공하지 않는다. LAZY — Resolver 만 접근하며 화면 렌더 경로에서는 참조되지 않음.
+   */
+  @ManyToOne(fetch = FetchType.LAZY, optional = false)
+  @JoinColumn(name = "created_by", nullable = false)
+  private User createdBy;
+
   @Builder
   private Program(
       String title,
@@ -162,7 +176,8 @@ public class Program extends BaseTimeEntity {
       String termsPrivacy,
       String termsMarketing,
       String description,
-      Boolean hasCourses) {
+      Boolean hasCourses,
+      User createdBy) {
     this.title = title;
     this.center = center;
     this.category = category;
@@ -185,6 +200,7 @@ public class Program extends BaseTimeEntity {
     this.termsMarketing = termsMarketing;
     this.description = description;
     this.hasCourses = hasCourses != null && hasCourses;
+    this.createdBy = createdBy;
   }
 
   public void update(

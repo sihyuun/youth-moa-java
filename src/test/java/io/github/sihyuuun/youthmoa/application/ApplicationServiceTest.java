@@ -122,6 +122,7 @@ class ApplicationServiceTest {
                 .startDate(today.minusDays(5))
                 .endDate(today.plusDays(10))
                 .capacity(30)
+                .createdBy(user)
                 .build());
 
     upcomingProgram =
@@ -135,6 +136,7 @@ class ApplicationServiceTest {
                 .startDate(today.plusDays(10))
                 .endDate(today.plusDays(30))
                 .capacity(30)
+                .createdBy(user)
                 .build());
 
     closedProgram =
@@ -148,6 +150,7 @@ class ApplicationServiceTest {
                 .startDate(today.minusDays(30))
                 .endDate(today.minusDays(5))
                 .capacity(30)
+                .createdBy(user)
                 .build());
 
     inactiveProgram =
@@ -162,6 +165,7 @@ class ApplicationServiceTest {
                 .endDate(today.plusDays(10))
                 .capacity(30)
                 .isActive(false)
+                .createdBy(user)
                 .build());
   }
 

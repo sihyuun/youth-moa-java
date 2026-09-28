@@ -59,6 +59,7 @@ class BookmarkServiceTest {
                 .startDate(LocalDate.now().minusDays(5))
                 .endDate(LocalDate.now().plusDays(10))
                 .capacity(30)
+                .createdBy(user)
                 .build());
   }
 
@@ -150,6 +151,7 @@ class BookmarkServiceTest {
                 .content("c")
                 .startDate(LocalDate.now().minusDays(3))
                 .endDate(LocalDate.now().plusDays(10))
+                .createdBy(user)
                 .build());
     Program program3 =
         programRepository.save(
@@ -161,6 +163,7 @@ class BookmarkServiceTest {
                 .content("c")
                 .startDate(LocalDate.now().minusDays(3))
                 .endDate(LocalDate.now().plusDays(10))
+                .createdBy(user)
                 .build());
 
     bookmarkService.toggle(user.getEmail(), program.getId());
@@ -201,6 +204,7 @@ class BookmarkServiceTest {
                   .content("c")
                   .startDate(LocalDate.now().minusDays(3))
                   .endDate(LocalDate.now().plusDays(10))
+                  .createdBy(user)
                   .build());
       bookmarkService.toggle(user.getEmail(), p.getId());
     }
@@ -218,6 +222,7 @@ class BookmarkServiceTest {
                 .content("c")
                 .startDate(LocalDate.now().minusDays(3))
                 .endDate(LocalDate.now().plusDays(10))
+                .createdBy(user)
                 .build());
     boolean added = bookmarkService.toggle(user.getEmail(), overflow.getId());
 

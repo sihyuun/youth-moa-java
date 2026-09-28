@@ -98,6 +98,7 @@ class JpaMappingTest {
                         .etc("전 회차 참석 가능자")
                         .build())
                 .capacity(20)
+                .createdBy(admin)
                 .build());
 
     Application application =
