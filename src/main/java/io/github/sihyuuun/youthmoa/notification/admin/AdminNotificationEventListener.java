@@ -45,7 +45,14 @@ public class AdminNotificationEventListener {
   private static final int MESSAGE_MAX = 500;
 
   private final NotificationService notificationService;
-  private final ApplicationCreatedRecipientResolver applicationCreatedResolver;
+
+  /**
+   * A7-createdBy-recipient (2026-09-28): B-2 (센터 CENTER_ADMIN) + B-3-A (프로그램 작성자) distinct union.
+   * 기존 {@link ApplicationCreatedRecipientResolver} 는 Composite 의 축 하나로 유지되며 삭제하지 않는다 (독립 테스트 · 향후 축
+   * 재조합 여지). 오케스트레이션 코드는 무변경.
+   */
+  private final CompositeApplicationCreatedResolver applicationCreatedResolver;
+
   private final UserCreatedRecipientResolver userCreatedResolver;
 
   /**

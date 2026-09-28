@@ -7,6 +7,9 @@ import io.github.sihyuuun.youthmoa.center.CenterRepository;
 import io.github.sihyuuun.youthmoa.common.config.JpaConfig;
 import io.github.sihyuuun.youthmoa.region.Region;
 import io.github.sihyuuun.youthmoa.region.RegionRepository;
+import io.github.sihyuuun.youthmoa.user.User;
+import io.github.sihyuuun.youthmoa.user.UserRepository;
+import io.github.sihyuuun.youthmoa.user.UserRole;
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
@@ -29,10 +32,22 @@ class ProgramServiceFilterTest {
   @Autowired ProgramRepository programRepository;
   @Autowired RegionRepository regionRepository;
   @Autowired CenterRepository centerRepository;
+  @Autowired UserRepository userRepository;
+
+  private User creator;
 
   @BeforeEach
   void seed() {
     LocalDate today = LocalDate.now();
+    // A7-createdBy-recipient: Program.createdBy NOT NULL — 공용 소유자 시드.
+    creator =
+        userRepository.save(
+            User.builder()
+                .email("creator-filter@t.com")
+                .password("hashed")
+                .name("작성자")
+                .role(UserRole.SYSTEM_ADMIN)
+                .build());
 
     regionRepository.save(Region.builder().name("수원시").isFeatured(true).build());
     regionRepository.save(Region.builder().name("고양시").isFeatured(true).build());
@@ -56,6 +71,7 @@ class ProgramServiceFilterTest {
             .startDate(today.minusDays(5))
             .endDate(today.plusDays(5))
             .capacity(30)
+            .createdBy(creator)
             .build());
 
     programRepository.save(
@@ -67,6 +83,7 @@ class ProgramServiceFilterTest {
             .startDate(today.plusDays(10))
             .endDate(today.plusDays(30))
             .capacity(20)
+            .createdBy(creator)
             .build());
 
     programRepository.save(
@@ -78,6 +95,7 @@ class ProgramServiceFilterTest {
             .startDate(today.minusDays(30))
             .endDate(today.minusDays(5))
             .capacity(15)
+            .createdBy(creator)
             .build());
   }
 

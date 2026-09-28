@@ -136,6 +136,7 @@ class HomeServiceTest {
                 .content("c")
                 .endDate(today.plusDays(1))
                 .isActive(true)
+                .createdBy(noticeAuthor)
                 .build(),
             Program.builder()
                 .title("P2")
@@ -145,6 +146,7 @@ class HomeServiceTest {
                 .content("c")
                 .endDate(today.plusDays(10))
                 .isActive(true)
+                .createdBy(noticeAuthor)
                 .build(),
             Program.builder()
                 .title("P3")
@@ -154,6 +156,7 @@ class HomeServiceTest {
                 .content("c")
                 .endDate(today.plusDays(20))
                 .isActive(true)
+                .createdBy(noticeAuthor)
                 .build(),
             Program.builder()
                 .title("P4-inactive")
@@ -163,6 +166,7 @@ class HomeServiceTest {
                 .content("c")
                 .endDate(today.plusDays(3))
                 .isActive(false)
+                .createdBy(noticeAuthor)
                 .build()));
   }
 

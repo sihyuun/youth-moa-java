@@ -120,6 +120,7 @@ class AdminNotificationEventListenerTest {
                 .startDate(today.minusDays(1))
                 .endDate(today.plusDays(30))
                 .capacity(30)
+                .createdBy(centerAdminA)
                 .build());
   }
 

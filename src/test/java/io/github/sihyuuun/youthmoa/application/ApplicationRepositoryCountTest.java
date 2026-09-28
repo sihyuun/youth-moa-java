@@ -47,6 +47,15 @@ class ApplicationRepositoryCountTest {
   void setUp() {
     Center center =
         centerRepository.save(Center.builder().name("기관").region("서울").isActive(true).build());
+    // A7-createdBy-recipient: Program.createdBy NOT NULL — user1 을 program 생성 앞에서 미리 저장.
+    user1 =
+        userRepository.save(
+            User.builder()
+                .email("u1@test.com")
+                .password("pw")
+                .name("유저1")
+                .role(UserRole.USER)
+                .build());
     programA =
         programRepository.save(
             Program.builder()
@@ -56,6 +65,7 @@ class ApplicationRepositoryCountTest {
                 .startDate(LocalDate.now().minusDays(1))
                 .endDate(LocalDate.now().plusDays(10))
                 .capacity(10)
+                .createdBy(user1)
                 .build());
 
     programB =
@@ -67,6 +77,7 @@ class ApplicationRepositoryCountTest {
                 .startDate(LocalDate.now().minusDays(1))
                 .endDate(LocalDate.now().plusDays(10))
                 .capacity(5)
+                .createdBy(user1)
                 .build());
 
     programC =
@@ -78,16 +89,9 @@ class ApplicationRepositoryCountTest {
                 .startDate(LocalDate.now().minusDays(1))
                 .endDate(LocalDate.now().plusDays(10))
                 .capacity(20)
+                .createdBy(user1)
                 .build());
 
-    user1 =
-        userRepository.save(
-            User.builder()
-                .email("u1@test.com")
-                .password("pw")
-                .name("유저1")
-                .role(UserRole.USER)
-                .build());
     user2 =
         userRepository.save(
             User.builder()

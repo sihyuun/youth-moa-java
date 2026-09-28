@@ -14,6 +14,7 @@ import io.github.sihyuuun.youthmoa.program.ProgramEligibility;
 import io.github.sihyuuun.youthmoa.program.ProgramRepository;
 import io.github.sihyuuun.youthmoa.program.ProgramStatus;
 import io.github.sihyuuun.youthmoa.program.QuestionType;
+import io.github.sihyuuun.youthmoa.user.User;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -126,6 +127,12 @@ public class AdminProgramService {
   public Program create(ProgramFormRequest req) {
     validate(req);
     Center center = loadCenter(req.getCenterId());
+    // A7-createdBy-recipient (2026-09-28 · Q-B3-1 A): 현재 admin 을 createdBy 로 주입. NOT NULL FK 이므로
+    // principal 조회 실패 시 즉시 예외 (안전 실패). 정상 관리자 요청 경로에서는 SecurityContext 가 반드시 존재.
+    User creator = adminScope.currentUser();
+    if (creator == null) {
+      throw new IllegalStateException("인증된 사용자만 프로그램을 생성할 수 있어요.");
+    }
     Program program =
         Program.builder()
             .title(req.getTitle().trim())
@@ -150,6 +157,7 @@ public class AdminProgramService {
             .isActive(req.isActive())
             .hasCourses(req.isHasCourses())
             .eligibility(buildEligibility(req))
+            .createdBy(creator)
             .build();
     Program saved = programRepository.save(program);
     upsertCourses(saved, req.getCourses(), req.isHasCourses());

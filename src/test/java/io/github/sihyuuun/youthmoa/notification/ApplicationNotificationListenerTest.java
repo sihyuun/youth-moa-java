@@ -85,6 +85,7 @@ class ApplicationNotificationListenerTest {
                 .startDate(today.minusDays(5))
                 .endDate(today.plusDays(10))
                 .capacity(30)
+                .createdBy(admin)
                 .build());
 
     pending =

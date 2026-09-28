@@ -75,6 +75,21 @@ public class AdminScope {
     return name == null ? "전체" : name;
   }
 
+  /**
+   * A7-createdBy-recipient (2026-09-28): SecurityContext 의 현재 인증 사용자 엔티티. principal 이 {@link
+   * UserPrincipal} 이 아니거나 (익명 · 시스템 컨텍스트) DB 에 없으면 {@code null}.
+   *
+   * <p>{@link io.github.sihyuuun.youthmoa.admin.AdminProgramService#create} 에서 Program.createdBy
+   * 주입에 사용. 컨트롤러에서 principal 을 별도 파라미터로 전달하지 않고 서비스 내부에서 자체 획득 (기존 AdminScope 패턴 일관성).
+   */
+  public User currentUser() {
+    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    if (auth == null || !auth.isAuthenticated()) return null;
+    Object principal = auth.getPrincipal();
+    if (!(principal instanceof UserPrincipal up)) return null;
+    return userRepository.findById(up.getId()).orElse(null);
+  }
+
   /** 현재 관리자가 SYSTEM_ADMIN 인지 여부 (헤더 배지·드롭다운 노출 판단). */
   public boolean isSystemAdmin() {
     Authentication auth = SecurityContextHolder.getContext().getAuthentication();
