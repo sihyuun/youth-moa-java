@@ -12,9 +12,18 @@
  *   centers[2] = 과천시 청년공간 비행지구 → CENTER_ADMIN: admin_center2@youth-moa.test
  *   centers[3] = 청춘곳간(광명시)     → CENTER_ADMIN: admin_inactive@youth-moa.test (isActive=false)
  *
- *   programId=11 = "청년 크리에이터 프로그램" (center=내일꿈제작소, centers[0], createdBy=sysadmin)
- *   programId=5  = "AI 활용 실무 교육" (center=과천시 청년공간 비행지구, centers[2], createdBy=sysadmin)
- *   programId=17 = "청춘곳간" 소속 프로그램 (centers[3])
+ *   programId=12 = "영상 편집 실전반" (center=내일꿈제작소, centers[0], createdBy=sysadmin, 현재 OPEN)
+ *   programId=13 = "바리스타 자격증 취득 과정" (center=용인청년LAB 기흥, centers[36], createdBy=sysadmin, 현재 OPEN)
+ *                  → centers[0..3] admin 과 조직 축이 겹치지 않는 OPEN 프로그램. (d) distinct 시나리오 sysadmin watcher+createdBy 축 격리에 사용.
+ *
+ *   ※ QA FAIL-2 fix (2026-09-28):
+ *     - PROG_CENTER0 을 11 → 12 로 정정. 시드 리스트상 인덱스 10(=id 11) 은
+ *       "포트폴리오 웹사이트 만들기(청누리, 수원시)" 이며 centers[0](내일꿈제작소) 매칭이 아니었기에
+ *       organization 축이 성립하지 않아 fan-out center1 배지 증가가 일어나지 않았다.
+ *     - PROG_CENTER2 를 5 → 13 로 정정. programId=5 (AI 활용 실무 교육) 은 startDate=today+14 로 UPCOMING 이라
+ *       ApplicationService 가 "현재 모집 중인 프로그램이 아닙니다" 로 신청 자체를 거부해 (d) apply URL 도달 실패.
+ *       (d) 시나리오의 목적은 sysadmin(=createdBy) + sysadmin(=watcher) 두 축이 distinct union 되어도 배지 +1 1건이라는
+ *       확인이므로 organization 축과 겹치지 않는 OPEN 프로그램이면 충분. bariista(id 13) 는 centers[36](용인청년LAB) 소속.
  *
  * fan-out 로직 자체 (distinct union · axis order · inactive filter) 는 JVM 유닛에서 검증됨:
  *   - CompositeApplicationCreatedResolverTest — b3b_only, distinct_union_across_three_axes 등
@@ -50,9 +59,12 @@ import {
 test.describe.configure({ mode: 'serial' });
 
 // centers[0] 소속 · createdBy=sysadmin 프로그램 (organization + createdBy 축 겹침 검증에 사용).
-const PROG_CENTER0 = 11;
-// centers[2] 소속 · createdBy=sysadmin (watcher 축 순수 격리 검증에 사용).
-const PROG_CENTER2 = 5;
+// "영상 편집 실전반" (내일꿈제작소, 고양시). 시드 리스트 12번째 = programId 12.
+const PROG_CENTER0 = 12;
+// centers[0..3] 과 조직 축이 겹치지 않는 OPEN 프로그램 (watcher 축 순수 격리 · distinct union 검증에 사용).
+// "바리스타 자격증 취득 과정" (용인청년LAB 기흥, centers[36]). 시드 리스트 13번째 = programId 13.
+// (기존 5 = AI 활용 실무 교육은 UPCOMING 이라 신청 자체가 거부되어 (d) TC 가 apply 단계에서 실패했음.)
+const PROG_CENTER2 = 13;
 
 const USER_30 = seedEmail(30);
 const USER_29 = seedEmail(29);

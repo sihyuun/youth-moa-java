@@ -20,7 +20,14 @@
  *   .admin-notif-badge 의 data-notif-badge 속성값을 parseInt 로 파싱. hidden 상태는 [hidden] 셀렉터.
  */
 import { expect, test } from '@playwright/test';
-import { abortExternal, loginAdmin } from '../helpers';
+import {
+    abortExternal,
+    applyProgram,
+    login,
+    loginAdmin,
+    resetApplications,
+    seedEmail,
+} from '../helpers';
 
 test.describe.configure({ mode: 'serial' });
 
@@ -34,6 +41,38 @@ async function openDropdown(page: import('@playwright/test').Page): Promise<void
     await page.locator('.admin-header-bell').click();
     await page.locator('.admin-notif-panel').waitFor({ state: 'visible', timeout: 5000 });
 }
+
+/**
+ * QA FAIL-2 fix (2026-09-28): 시드된 Application 은 DataInitializer.applicationRepository.saveAll() 로
+ * 직접 저장되어 ApplicationCreatedEvent 가 발행되지 않는다 (실제 ApplicationService.apply() 를 경유하지 않음).
+ * 그 결과 sysadmin(=시드 프로그램 전량의 createdBy) 계정에도 초기 unread 알림이 0 건이라
+ * (a)(b)(c)(d) 4개 TC 의 "최근 알림 최소 1건 · unread >= 1" 전제가 성립하지 않는다.
+ *
+ * 이 spec 이 시나리오를 시작하기 전에 seed30 이 실제 apply 위저드를 통해 여러 프로그램에 신청하도록 하여
+ * sysadmin unread 최소 3건을 확보한다. 각 신청은 sysadmin 에게 NEW_APPLICATION 알림 1건씩을 발생시킨다.
+ * seed30 은 helpers 규약상 "어떤 프로그램에도 미신청" 이라 재신청 이슈 없음. resetApplications 로 방어.
+ */
+async function ensureAdminUnread(page: import('@playwright/test').Page): Promise<void> {
+    const userEmail = seedEmail(30);
+    await login(page, userEmail);
+    await resetApplications(page, { userEmail });
+    // OPEN 상태 프로그램 3건 (DataInitializer 시드 확인 기준):
+    //   id 1 = 취업역량 강화 워크숍, id 2 = 청년 창업 아카데미, id 3 = 마음건강 힐링 캠프
+    for (const programId of [1, 2, 3]) {
+        await applyProgram(page, programId, `admin-header 시나리오 seed apply (id=${programId})`);
+    }
+}
+
+test.beforeAll(async ({ browser }) => {
+    const ctx = await browser.newContext();
+    try {
+        const page = await ctx.newPage();
+        await abortExternal(page);
+        await ensureAdminUnread(page);
+    } finally {
+        await ctx.close();
+    }
+});
 
 test.beforeEach(async ({ page }) => {
     await abortExternal(page);
@@ -64,6 +103,8 @@ test('(b) 항목 클릭 → HX-Redirect · unread class 제거 · 배지 -1', as
     expect(itemId).toBeTruthy();
 
     // 클릭 → POST /admin/notifications/{id}/read 응답 status 200 (HTMX 인 경우 HX-Redirect) 대기.
+    // QA FAIL-2 fix (2026-09-28): HX-Redirect 로 네비게이션이 시작되는 시점을 명시적으로 대기하지 않으면
+    // readBadgeCount 가 (이동 전) 이전 페이지의 badge 를 읽는다. 이동 후 새 페이지 URL 도달 + load 대기.
     await Promise.all([
         page.waitForResponse(
             (res) =>
@@ -73,9 +114,10 @@ test('(b) 항목 클릭 → HX-Redirect · unread class 제거 · 배지 -1', as
         firstUnread.locator('.admin-notif-item-link').click(),
     ]);
 
-    // HX-Redirect 로 페이지 이동 발생. 이동 후 헤더 배지 재읽기 (초기 렌더 스냅샷 기준 -1)
-    // link 대상은 seed 알림별로 다르므로 waitForURL 대신 배지 감소만 검증.
-    await page.waitForLoadState('domcontentloaded');
+    // HX-Redirect 로 페이지 이동 발생. /admin 이 아닌 어떤 상세 페이지로 이동하므로
+    // URL 이 /admin 를 벗어날 때까지 대기 후 load 완료 대기.
+    await page.waitForURL((url) => !url.pathname.endsWith('/admin'), { timeout: 10_000 });
+    await page.waitForLoadState('load');
     const after = await readBadgeCount(page);
     expect(after).toBe(before - 1);
 });

@@ -16,7 +16,34 @@
 import { test } from '@playwright/test';
 import { adminHeaderNotificationsContract } from '../contracts/admin-header-notifications';
 import { runContract, writeGapReport } from '../contracts/runner';
-import { abortExternal, loginAdmin } from '../helpers';
+import {
+    abortExternal,
+    applyProgram,
+    login,
+    loginAdmin,
+    resetApplications,
+    seedEmail,
+} from '../helpers';
+
+/**
+ * QA FAIL-2 fix (2026-09-28): DataInitializer 는 seed application 을 applicationRepository.saveAll() 로
+ * 직접 저장하여 ApplicationCreatedEvent 가 발행되지 않는다. 결과적으로 sysadmin (createdBy 축) 초기 unread 는 0.
+ * 이 spec 은 오픈 후 dropdown 항목 존재를 전제로 계약을 검사하므로 최소 1건 이상의 실 알림이 필요하다.
+ * seed30 (미신청 계정) 이 실제 apply 위저드를 완료하도록 하여 sysadmin unread 를 발생시킨다.
+ */
+test.beforeAll(async ({ browser }) => {
+    const ctx = await browser.newContext();
+    try {
+        const page = await ctx.newPage();
+        await abortExternal(page);
+        const userEmail = seedEmail(30);
+        await login(page, userEmail);
+        await resetApplications(page, { userEmail, programId: 1 });
+        await applyProgram(page, 1, 'visual-admin-header seed apply');
+    } finally {
+        await ctx.close();
+    }
+});
 
 test('admin 헤더 알림 벨 디자인 계약 (초기 hidden + 오픈 후)', async ({ page }) => {
     await abortExternal(page);

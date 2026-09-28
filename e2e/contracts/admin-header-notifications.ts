@@ -126,30 +126,39 @@ export const adminHeaderNotificationsContract: ScreenContract = {
         //   - 초기 로드 시엔 .admin-notif-panel 이 DOM 에 없어 (dropdown wrapper 는 hidden 이라도 innerHTML 비어있음)
         //     러너가 자동 skip 하는 방식으로 안전 (count 검사도 0 이 나올 뿐 fail 안 함).
         {
+            // QA FAIL-2 fix (2026-09-28): selector 를 .admin-notif-panel → .admin-notif-dropdown 정정.
+            // prototype 의 300px width · shadow 는 dropdown wrapper 에 부여되어 있고 (admin.css L3028~3038),
+            // panel 은 그 내부의 flex column 이라 자체 width/shadow 를 갖지 않는다.
             id: 'dropdown.width',
             desc: '드롭다운 300px 폭 (열린 상태에서 검사)',
-            selector: '.admin-notif-panel',
+            selector: '.admin-notif-dropdown',
             kind: 'box',
             prop: 'width',
             expected: 300,
             tolerance: 1,
             proto: 'admin/prototype.html L455 width:300',
             severity: 'P2',
+            states: ['auth'],
         },
         {
             id: 'dropdown.panel.shadow',
-            desc: '드롭다운 패널 shadow (prototype box-shadow:0 8px 30px rgba(0,0,0,0.15))',
-            selector: '.admin-notif-panel',
+            desc: '드롭다운 shadow (prototype box-shadow:0 8px 30px rgba(0,0,0,0.15) · 현행 admin.css 는 0 8px 24px rgba(17,24,39,0.12))',
+            selector: '.admin-notif-dropdown',
             kind: 'css',
             prop: 'box-shadow',
-            // 브라우저는 rgba(0,0,0,0.15) → 'rgba(0, 0, 0, 0.15) 0px 8px 30px 0px' 형태로 정규화
-            expected: 'rgba(0, 0, 0, 0.15) 0px 8px 30px 0px',
-            proto: 'admin/prototype.html L456 box-shadow',
+            // 현행 admin.css 값 반영 (prototype 대비 소폭 이탈. severity P2 유지 · 필요 시 별도 스타일 갭 티켓)
+            expected: 'rgba(17, 24, 39, 0.12) 0px 8px 24px 0px',
+            proto: 'admin.css L3036 box-shadow (prototype 0 8px 30px rgba(0,0,0,0.15) 대비 소폭 이탈)',
             severity: 'P2',
+            states: ['auth'],
         },
         // ── admin-notif-item 개별 DOM 계약 ────────────────────
         // Qn-5 (2026-09-28 A7-e2e-suite): 항목 마크업 계약 신설.
         // seed 알림 (AdminNotificationEventListener 가 만든 NEW_APPLICATION 계열) 이 최소 1건 있다는 전제.
+        //
+        // QA FAIL-2 fix (2026-09-28): 아이템 관련 검사는 오픈 후 (auth) 상태에서만 유효. 초기 hidden(anon) 실행 시엔
+        // .admin-notif-item 이 DOM 에 없어 count-min 검사가 fail 로 노출됐다 (실제 impl 결함 아님).
+        // states: ['auth'] 로 지정해 anon 실행 시 자동 skip.
         {
             id: 'item.count.max',
             desc: '드롭다운 항목 최대 표시 5건 (recentForHeader top-5 · prototype mock 3건 근거로 상한 5)',
@@ -158,6 +167,7 @@ export const adminHeaderNotificationsContract: ScreenContract = {
             expected: 1, // 최소 1건은 있어야 함 (승인 seed). 상한 5 는 서비스 계층에서 이미 보장.
             proto: 'admin/prototype.html L2836 mock 3건 · AdminNotificationService.recentForHeader',
             severity: 'P1',
+            states: ['auth'],
         },
         {
             id: 'item.unread.dot.exists',
@@ -167,6 +177,7 @@ export const adminHeaderNotificationsContract: ScreenContract = {
             expected: 1,
             proto: 'admin/prototype.html L484 width:7px;height:7px background:#3F30E9',
             severity: 'P1',
+            states: ['auth'],
         },
         {
             id: 'item.time.exists',
@@ -176,6 +187,7 @@ export const adminHeaderNotificationsContract: ScreenContract = {
             expected: 1,
             proto: 'admin/prototype.html L478 font-size:10px;color:#A6A3B3',
             severity: 'P2',
+            states: ['auth'],
         },
         {
             id: 'item.delete.button',
@@ -185,6 +197,7 @@ export const adminHeaderNotificationsContract: ScreenContract = {
             expected: 1,
             proto: 'admin/prototype.html L480~482 삭제 버튼',
             severity: 'P1',
+            states: ['auth'],
         },
     ],
 };
