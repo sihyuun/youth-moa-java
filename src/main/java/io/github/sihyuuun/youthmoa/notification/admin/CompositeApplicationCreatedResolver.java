@@ -14,21 +14,26 @@ import org.springframework.stereotype.Component;
 /**
  * A7-createdBy-recipient (2026-09-28): NEW_APPLICATION 수신자 결정 Composite.
  *
- * <p>B-2 (센터 CENTER_ADMIN) + B-3-A (프로그램 작성자) 두 축을 distinct union 하여 반환. {@link
- * AdminNotificationEventListener} 는 본 Composite 만 참조하도록 리팩터되었으며 하위 Resolver 는 유지 (독립 테스트 · 향후 축 확장
- * 시 재사용).
+ * <p>A7-watcher-ui (2026-09-28 · 확장): 3축 (B-2 + B-3-A + B-3-B) distinct union.
+ *
+ * <ul>
+ *   <li>B-2 = {@link ApplicationCreatedRecipientResolver} — 프로그램 소속 센터 CENTER_ADMIN
+ *   <li>B-3-A = {@link CreatedByRecipientResolver} — 프로그램 작성자
+ *   <li>B-3-B = {@link WatcherRecipientResolver} — 프로그램을 지켜보기 등록한 admin
+ * </ul>
+ *
+ * <p>{@link AdminNotificationEventListener} 는 본 Composite 만 참조. 하위 Resolver 는 독립 테스트 + 향후 축 재조합 여지를
+ * 위해 유지.
  *
  * <h2>정책</h2>
  *
  * <ul>
- *   <li>Q-B3-3 A (distinct union) — {@link User#getId()} 기준 중복 제거. B-2 와 B-3-A 가 같은 관리자를 반환해도 알림은
- *       1건만 발행
- *   <li>Q-B3-6 A (3축 균등) — 모두 알림. 우선순위/억제 없음. Watcher 축은 후속 티켓
+ *   <li>Q-B3-3 A (distinct union) — {@link User#getId()} 기준 중복 제거. 여러 축이 같은 admin 을 반환해도 알림은 1건만 발행
+ *   <li>Q-B3-6 A (축 균등) — 모두 알림. 우선순위/억제 없음
+ *   <li>Q-A7W-5 A (삽입 순서) — B-2 → B-3-A → B-3-B. {@link LinkedHashMap} 가 순서 유지, 알림 발행 순서도 동일
  *   <li>{@link Primary} 지정 이유 — 기존 코드에서 {@code ApplicationCreatedRecipientResolver} 를 직접 주입하는
  *       리스너/테스트가 남아있어도 컨텍스트 유일성이 필요한 경우 Composite 를 우선하도록 함
  * </ul>
- *
- * <p>순서 보장: B-2 결과 순 → B-3-A 결과 순 ({@link LinkedHashMap} 유지). 알림 발행 순서 = 이 순서.
  */
 @Slf4j
 @Component
@@ -39,16 +44,20 @@ public class CompositeApplicationCreatedResolver
 
   private final ApplicationCreatedRecipientResolver centerAdminResolver;
   private final CreatedByRecipientResolver createdByResolver;
+  private final WatcherRecipientResolver watcherResolver;
 
   @Override
   public List<User> resolve(ApplicationCreatedEvent event) {
     List<User> centerAdmins = safeResolve("B-2", () -> centerAdminResolver.resolve(event));
     List<User> creators = safeResolve("B-3-A", () -> createdByResolver.resolve(event));
+    List<User> watchers = safeResolve("B-3-B", () -> watcherResolver.resolve(event));
 
     // Q-B3-3 A: distinct union by user.id. LinkedHashMap 으로 삽입 순서 유지.
+    // Q-A7W-5 A: B-2 → B-3-A → B-3-B 순서 보장.
     Map<Long, User> unique = new LinkedHashMap<>();
     for (User u : centerAdmins) unique.putIfAbsent(u.getId(), u);
     for (User u : creators) unique.putIfAbsent(u.getId(), u);
+    for (User u : watchers) unique.putIfAbsent(u.getId(), u);
     return new ArrayList<>(unique.values());
   }
 

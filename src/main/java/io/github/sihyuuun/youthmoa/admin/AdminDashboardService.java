@@ -123,5 +123,11 @@ public class AdminDashboardService {
     private long pendingCount;
     private List<Program> recentPrograms;
     private List<Program> urgentPrograms;
+
+    /**
+     * A7-watcher-ui (2026-09-28 · Q-A7W-3 b): 현재 admin 이 지켜보는 프로그램 최근 5개. 컨트롤러가
+     * ProgramWatchService.findWatchedPrograms 결과를 flatten 하여 주입. 로그인 컨텍스트가 없을 경우 빈 리스트.
+     */
+    private List<Program> watchedPrograms;
   }
 }

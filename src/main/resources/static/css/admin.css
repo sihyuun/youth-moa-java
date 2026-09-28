@@ -3339,3 +3339,78 @@ body.admin-shell-body {
     justify-content: flex-end;
     gap: 8px;
 }
+
+/* ================================================================
+   A7-watcher-ui (2026-09-28)  Watch 눈 아이콘 토글 + 대시보드 카드
+   ================================================================ */
+.watch-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: var(--radius-md, 8px);
+    cursor: pointer;
+    color: var(--color-text-tri, #94a3b8);
+    transition: color .12s ease, background .12s ease, border-color .12s ease;
+}
+.watch-btn:hover {
+    background: rgba(63, 48, 233, .06);
+    border-color: var(--color-border-light, #e5e7eb);
+}
+.watch-btn.is-watched {
+    color: var(--color-primary, #3F30E9);
+}
+.watch-btn-label {
+    font-size: 12px;
+    line-height: 1;
+}
+.list-watch-btn {
+    /* 목록 row 액션 열 안에서 컴팩트 */
+    padding: 2px 6px;
+}
+.list-watch-btn .watch-btn-label {
+    display: none;
+}
+.form-watch-btn {
+    /* 편집 폼 헤더 우측 — 라벨 노출 */
+    font-size: 13px;
+}
+
+/* 대시보드 지켜보는 프로그램 카드 (Q-A7W-3 b) */
+.admin-watched-card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: var(--shadow-sm, 0 1px 2px rgba(0,0,0,.04));
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.admin-watched-empty {
+    color: var(--color-text-tri, #94a3b8);
+    font-size: 13px;
+    line-height: 1.5;
+    padding: 8px 0;
+}
+.admin-watched-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--color-border-light, #f1f5f9);
+    text-decoration: none;
+    color: inherit;
+}
+.admin-watched-row:last-child {
+    border-bottom: none;
+}
+.admin-watched-name {
+    font-size: 13px;
+    color: var(--color-text, #0f172a);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}

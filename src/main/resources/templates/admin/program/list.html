@@ -13,6 +13,9 @@
     <link rel="stylesheet" th:href="@{/css/admin.css}">
     <meta name="_csrf" th:content="${_csrf?.token}"/>
     <meta name="_csrf_header" th:content="${_csrf?.headerName}"/>
+    <!-- A7-watcher-ui (2026-09-28): watch 토글 HTMX 요청용 -->
+    <script th:src="@{/webjars/htmx.org/2.0.4/dist/htmx.min.js}"></script>
+    <script th:src="@{/js/htmx-csrf.js}" defer></script>
 </head>
 <body class="admin-shell-body">
 
@@ -137,6 +140,8 @@
                 <span class="admin-program-col-created"
                       th:text="${#temporals.format(p.createdAt, 'yyyy-MM-dd')}">2026-09-09</span>
                 <div class="admin-program-col-actions">
+                    <!-- A7-watcher-ui (2026-09-28): 지켜보기 눈 아이콘. list-watch-btn 스타일. -->
+                    <div th:replace="~{admin/fragments/watch-button :: button(${p.id}, ${watchedProgramIds != null and watchedProgramIds.contains(p.id)}, 'list-watch-btn')}"></div>
                     <a th:href="@{/admin/programs/{id}(id=${p.id})}"
                        class="admin-btn admin-btn--sm admin-btn--outline">편집</a>
                 </div>

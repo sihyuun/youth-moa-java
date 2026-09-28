@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+
+<!--
+  A7-watcher-ui (2026-09-28) watch-button fragment
+  ─────────────────────────────────────────────────
+  변수:
+    - programId (Long, 필수)
+    - watched (boolean, 필수): 현재 admin 이 이 프로그램을 지켜보고 있는지
+    - styleClass (String, 필수):
+        · 목록 각 row  → 'list-watch-btn'
+        · 편집 폼 헤더 → 'form-watch-btn'
+  동작:
+    - CENTER_ADMIN / SYSTEM_ADMIN 만 렌더 (SecurityConfig 로 진입 전 필터되지만 이중 방어).
+    - HTMX POST /admin/programs/{id}/watch/toggle → outerHTML 자기 자신 교체
+    - hx-vals 로 styleClass 왕복 전달 → 재렌더 시 카드/폼 위치별 스타일 유지
+      (누락 시 응답이 class="null watch-btn ..." 로 렌더되어 스타일 깨짐 · Bookmark F0h-c2 재발 방지)
+
+  ⚠️ HTMX 함정 (CLAUDE.md 체크리스트):
+    - fragment root id 를 wrapper 와 다르게 유지 → outerHTML swap 후 중복 id 회귀 방지
+    - th:if 는 th:block 으로 감싸 fragment 병치 문제 회피 (F0h-c2)
+-->
+
+<th:block th:fragment="button(programId, watched, styleClass)">
+
+    <button sec:authorize="hasAnyRole('CENTER_ADMIN','SYSTEM_ADMIN')"
+            type="button"
+            th:hx-post="@{/admin/programs/{id}/watch/toggle(id=${programId})}"
+            hx-swap="outerHTML"
+            th:attr="hx-vals=|{&quot;styleClass&quot;:&quot;${styleClass}&quot;}|"
+            th:class="${styleClass + ' watch-btn' + (watched ? ' is-watched' : '')}"
+            th:aria-label="${watched} ? '지켜보기 해제' : '지켜보기 등록'"
+            th:title="${watched} ? '지켜보기 해제' : '지켜보기 등록'">
+        <th:block th:if="${watched}">
+            <svg th:replace="~{fragments/icons :: eyeFill(20, 'var(--color-primary)')}"></svg>
+        </th:block>
+        <th:block th:unless="${watched}">
+            <svg th:replace="~{fragments/icons :: eye(20, 'var(--color-text-tri)')}"></svg>
+        </th:block>
+        <span class="watch-btn-label">지켜보기</span>
+    </button>
+
+</th:block>
+
+</body>
+</html>
