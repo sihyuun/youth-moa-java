@@ -6,15 +6,16 @@
  *   2. 편집 폼 헤더 눈 아이콘 → styleClass=form-watch-btn 유지 (hx-vals 왕복)
  *   3. 대시보드 지켜보는 프로그램 카드 렌더 (empty/rows 상태)
  *
- * 이월 (별도 티켓 후속):
- *   - USER 세션 신청 → admin 헤더 벨 카운트 증가 (Composite B-3-B watcher 축 fan-out end-to-end 검증).
- *     현재 fan-out 로직 자체는 CompositeApplicationCreatedResolverTest 3 TC (b3b_only ·
- *     order_three_axes_disjoint · distinct_union_across_three_axes) + WatcherRecipientResolverTest 로
- *     JVM 단위 검증됨. E2E 헤더 벨 연쇄 검증은 A7-notification-e2e 통합 티켓에서 처리.
+ * fan-out E2E 이관 완료 (2026-09-28 A7-e2e-suite):
+ *   USER 세션 신청 → admin 헤더 벨 카운트 증가 시나리오는 tests/admin-notification-fanout.spec.ts (b3b watcher 축) 로
+ *   이관됨. 본 spec 은 watch 토글 UI 자체만 담당한다.
  *
  * 회사 PC 검증 필수 (인터랙션 규칙 · CLAUDE.md).
  *
- * seed-pollution 방지: afterAll 에서 등록해둔 watch 를 해제 (재클릭 토글).
+ * seed-pollution 방지:
+ *   - 각 TC 는 클릭 → 상태 확인 → 재클릭 으로 초기 상태 복귀 (toggle idempotent 방어).
+ *   - 병렬 admin-notification-fanout spec 이 sysadmin/admin_center2 계정의 watch 를 등록/해제하므로 상호 오염 가능.
+ *     본 spec 은 ADMIN_CENTER1_EMAIL 위주로 사용하여 fan-out spec (sysadmin/admin_center2) 과 분리.
  */
 import { expect, test } from '@playwright/test';
 import {
@@ -22,10 +23,14 @@ import {
     ADMIN_SYSTEM_EMAIL,
     abortExternal,
     loginAdmin,
+    resetAdminNotifications,
 } from '../helpers';
 
-test.beforeEach(async ({ page }) => {
+test.beforeEach(async ({ page, browser }) => {
     await abortExternal(page);
+    // fan-out spec 병렬 실행 시 center1 배지에 쌓인 알림 카운트가 UI 렌더에 영향 주지 않도록 배지 클린업.
+    // watch 토글 자체는 배지와 무관하지만, 향후 UI 회귀 추가 시 안전판.
+    await resetAdminNotifications(browser, ADMIN_CENTER1_EMAIL);
 });
 
 test('CENTER_ADMIN — 프로그램 목록 눈 아이콘 클릭 → is-watched 토글 (outerHTML swap)', async ({ page }) => {
