@@ -64,6 +64,17 @@ public class DataInitializer implements ApplicationRunner {
   @Value("${admin.seed.password.center2:Admin!234}")
   private String adminSeedPasswordCenter2;
 
+  // A7-e2e-suite (2026-09-28): fan-out 3축 검증용 시드 확장 계정 비밀번호.
+  //   - admin_center2@youth-moa.test — centers[2] 소속 CENTER_ADMIN (createdBy/watcher 축과
+  // organization 축 분리 검증)
+  //   - admin_inactive@youth-moa.test — centers[3] 소속 CENTER_ADMIN, isActive=false (비활성 admin skip
+  // 검증)
+  @Value("${admin.seed.password.center3:Admin!234}")
+  private String adminSeedPasswordCenter3;
+
+  @Value("${admin.seed.password.inactive:Admin!234}")
+  private String adminSeedPasswordInactive;
+
   /**
    * seedNotices() 가 생성하는 공지 개수. TestFixtureController#resetNotices() 가 id > SEED_NOTICE_COUNT 인 row
    * 만 삭제하기 위해 참조. seedNotices() 를 수정하면 이 상수도 동기화한다. (E2E: sysadmin 세션으로 생성된 오염 notice 도 id 기준으로 잡기
@@ -165,7 +176,18 @@ public class DataInitializer implements ApplicationRunner {
   public static final long SEED_TERM_COUNT = 2L;
 
   /**
-   * P0-2: 관리자 계정 시드. 재기동 시 멱등 (existsByEmail 체크). 시스템관리자 1명 + 센터관리자 2명 (centers[0], centers[1] 매칭).
+   * P0-2 + A7-e2e-suite 사전 시드 (2026-09-28): 관리자 계정 시드. 재기동 시 멱등 (existsByEmail 체크).
+   *
+   * <ul>
+   *   <li>sysadmin@youth-moa.test — SYSTEM_ADMIN
+   *   <li>center1@youth-moa.test — CENTER_ADMIN, centers[0]
+   *   <li>center2@youth-moa.test — CENTER_ADMIN, centers[1]
+   *   <li>admin_center2@youth-moa.test — CENTER_ADMIN, centers[2] (A7 fan-out 3축 E2E · organization
+   *       축과 분리된 createdBy/watcher 축 검증용)
+   *   <li>admin_inactive@youth-moa.test — CENTER_ADMIN, centers[3], isActive=false (비활성 admin skip
+   *       검증용)
+   * </ul>
+   *
    * center 시드 이후 실행되므로 centerRepository 조회 안전.
    */
   private void seedAdmins() {
@@ -183,17 +205,43 @@ public class DataInitializer implements ApplicationRunner {
       log.info("SYSTEM_ADMIN already seeded, skip");
     }
 
-    // 센터 관리자 2명 — centers[0], centers[1] 매칭
+    // 센터 관리자 4명 — centers[0..3] 매칭. A7-e2e-suite 는 [2] (다른 센터) 와 [3] (비활성) 을 필요로 함.
     List<Center> centers = centerRepository.findAll();
     if (centers.size() < 2) {
       log.warn("Not enough centers to seed CENTER_ADMIN (need >= 2, got {})", centers.size());
       return;
     }
-    seedCenterAdmin("center1@youth-moa.test", "센터1관리자", centers.get(0), adminSeedPasswordCenter1);
-    seedCenterAdmin("center2@youth-moa.test", "센터2관리자", centers.get(1), adminSeedPasswordCenter2);
+    seedCenterAdmin(
+        "center1@youth-moa.test", "센터1관리자", centers.get(0), adminSeedPasswordCenter1, true);
+    seedCenterAdmin(
+        "center2@youth-moa.test", "센터2관리자", centers.get(1), adminSeedPasswordCenter2, true);
+
+    // A7-e2e-suite (2026-09-28): 다른 센터 CENTER_ADMIN + 비활성 admin.
+    // centers 수가 4 미만이면 skip (부분 부팅 환경 대응). 정상 부팅에서는 centers.csv 48행 로드됨.
+    if (centers.size() >= 3) {
+      seedCenterAdmin(
+          "admin_center2@youth-moa.test", "센터3관리자", centers.get(2), adminSeedPasswordCenter3, true);
+    } else {
+      log.warn(
+          "Not enough centers to seed admin_center2@youth-moa.test (need >= 3, got {})",
+          centers.size());
+    }
+    if (centers.size() >= 4) {
+      seedCenterAdmin(
+          "admin_inactive@youth-moa.test",
+          "비활성관리자",
+          centers.get(3),
+          adminSeedPasswordInactive,
+          false);
+    } else {
+      log.warn(
+          "Not enough centers to seed admin_inactive@youth-moa.test (need >= 4, got {})",
+          centers.size());
+    }
   }
 
-  private void seedCenterAdmin(String email, String name, Center center, String rawPassword) {
+  private void seedCenterAdmin(
+      String email, String name, Center center, String rawPassword, boolean isActive) {
     if (userRepository.existsByEmail(email)) {
       log.info("CENTER_ADMIN already seeded: {} , skip", email);
       return;
@@ -206,8 +254,13 @@ public class DataInitializer implements ApplicationRunner {
             .role(UserRole.USER) // 임시 세팅 후 assignRole() 로 CENTER_ADMIN + center + scope 부여
             .build();
     admin.assignRole(UserRole.CENTER_ADMIN, center, center.getName());
+    // A7-e2e-suite (2026-09-28): User.@Builder 생성자에는 isActive 파라미터가 없으므로
+    // 도메인 메서드 deactivate() 를 사용해 비활성 상태를 표현한다 (admin=null, reason 은 시드 사유 기록).
+    if (!isActive) {
+      admin.deactivate(null, "A7-e2e-suite seed: 비활성 admin skip 검증용");
+    }
     userRepository.save(admin);
-    log.info("Seeded CENTER_ADMIN: {} (center={})", email, center.getName());
+    log.info("Seeded CENTER_ADMIN: {} (center={}, isActive={})", email, center.getName(), isActive);
   }
 
   /** F2 헤더 종 UX 검증용 — seed1, seed30 에 알림 각 4건 시드. */

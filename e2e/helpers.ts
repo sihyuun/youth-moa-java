@@ -60,6 +60,11 @@ export async function login(
  */
 export const ADMIN_SYSTEM_EMAIL = 'sysadmin@youth-moa.test';
 export const ADMIN_CENTER1_EMAIL = 'center1@youth-moa.test';
+// A7-e2e-suite 사전 시드 (2026-09-28): fan-out 3축 검증용 확장 계정.
+//   - ADMIN_CENTER2_EMAIL — centers[2] 소속 CENTER_ADMIN. organization 축과 createdBy/watcher 축 분리 검증용.
+//   - ADMIN_INACTIVE_EMAIL — centers[3] 소속 CENTER_ADMIN, isActive=false. 비활성 admin skip 검증용.
+export const ADMIN_CENTER2_EMAIL = 'admin_center2@youth-moa.test';
+export const ADMIN_INACTIVE_EMAIL = 'admin_inactive@youth-moa.test';
 export const ADMIN_SEED_PASS = 'Admin!234';
 
 /**
