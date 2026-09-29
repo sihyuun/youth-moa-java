@@ -23,8 +23,11 @@
  * 갭 예상 (mypage-gap-backlog T9 등):
  *   P0: 없음 — 폼 골격은 완성
  *   P1: 관심 지역·분야 편집 UI 부재 (T9 · Q2 결정 대기) → deferred
- *        gender 편집 UI (prototype 은 남/여 선택 · 구현은 readonly pill)
  *   P2: 폼 grid 폭 · 라벨 폰트 등 미세 조정
+ *
+ * 이력:
+ *   2026-09-29 (A5-2 R1): DataInitializer 가 seed 유저에 gender 결정적 분배 →
+ *     `gender.pill.active.svg` deferred 해제 (seed1=MALE).
  *
  * 함께: `docs/design-contracts/mypage-profile-edit.md` — 아키텍처·상태머신·CTA·POLICY 매핑·§8 결정 Q.
  */
@@ -224,7 +227,6 @@ export const mypageProfileEditContract: ScreenContract = {
             proto: 'tsx L1528 Icon n="check" size:15 (on 상태만)',
             states: ['auth'],
             severity: 'P2',
-            deferred: 'seed 계정에 gender 시드 부재 — DataInitializer 갱신 후 검사 활성. 렌더 자체는 Q-5 구현 완료 (JS 클릭 시 SVG 삽입)',
         },
         {
             id: 'birthdate.input.exists',

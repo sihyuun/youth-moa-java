@@ -1245,6 +1245,13 @@ public class DataInitializer implements ApplicationRunner {
             (i == 1)
                 ? new java.util.HashSet<>(java.util.List.of("취업", "창업"))
                 : new java.util.HashSet<>();
+        // A5-2 R1 (2026-09-29): seed 유저에 gender 결정적 분배 —
+        //   mypage-profile-edit 계약 `gender.pill.active.svg` (seed1 로 auth) 활성화 목적.
+        //   홀수 idx → MALE, 짝수 idx → FEMALE (재현성 유지 · seed1=MALE 확정).
+        io.github.sihyuuun.youthmoa.user.UserGender gender =
+            (i % 2 == 1)
+                ? io.github.sihyuuun.youthmoa.user.UserGender.MALE
+                : io.github.sihyuuun.youthmoa.user.UserGender.FEMALE;
         seedUsers.add(
             userRepository.save(
                 User.builder()
@@ -1252,6 +1259,7 @@ public class DataInitializer implements ApplicationRunner {
                     .password(passwordEncoder.encode("Test1234!"))
                     .name("시드유저" + i)
                     .phone(phone)
+                    .gender(gender)
                     .role(UserRole.USER)
                     .interestRegions(regions)
                     .interestCategories(cats)
