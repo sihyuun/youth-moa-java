@@ -31,18 +31,22 @@ test('프로그램 상세 기본 렌더 — 타이틀·상태 뱃지·기관·�
     await expect(page.locator('.detail-badges .status-badge')).toBeVisible();
 });
 
-test('CapacityBar 가 신청 비율에 맞는 width 로 채워진다 (id=1, 28/30 ≈ 93%)', async ({ page }) => {
+test('CapacityBar 가 신청 비율에 맞는 width 로 채워진다 (id=1, 28~30/30 ≈ 93%+)', async ({ page }) => {
     await gotoDetail(page, 1);
     // #90 CapacityBar 개편 (2026-07-13): 클래스명 detail-capacity-bar-fill → capacity-bar-fill,
     // 카운트 표시 컨테이너는 .detail-capacity-count (28/30).
+    //
+    // 260929 CI fix: 시드는 28/30 이지만, admin-header-notifications.spec.ts (alphabetical
+    // 앞순서) beforeAll 이 seed30 으로 program 1 에 apply 하여 29/30 이 됨. 다른 spec 이
+    // 순서 개입할 때마다 값이 변하므로 하드코딩 대신 "28~30 범위 + 30 정원" 으로 검증.
     const fill = page.locator('.capacity-bar-fill');
     await expect(fill).toBeVisible();
     const style = await fill.getAttribute('style');
-    // width 는 정수 % 로 렌더 (문자열 매칭)
-    expect(style).toMatch(/width:\s*9[0-9]%/);
-    // 신청/정원 표기 (.detail-capacity-count 안에 <strong>28</strong> · <span>30</span>)
+    // width 는 정수 % 로 렌더 — 93%(28/30) ~ 100%(30/30) 사이
+    expect(style).toMatch(/width:\s*(9[3-9]|100)%/);
+    // 신청/정원 표기 (.detail-capacity-count 안에 <strong>28~30</strong> · <span>30</span>)
     const count = page.locator('.detail-capacity-count');
-    await expect(count).toContainText('28');
+    await expect(count).toContainText(/2[89]|30/);
     await expect(count).toContainText('30');
 });
 

@@ -291,12 +291,15 @@ public class TestFixtureController {
   @PostMapping("/reset-bulk-fixtures")
   @Transactional
   public ResponseEntity<Void> resetBulkFixtures() {
-    // Users 활성화 · 감사 컬럼 초기화 (reset-users 정합)
+    // Users 활성화 · 감사 컬럼 초기화 (reset-users 정합).
+    // 260929 CI fix: admin_inactive@youth-moa.test 는 A7-e2e-suite 시드 규약상 항상 비활성
+    // (admin-notification-fanout.spec.ts (e) 시나리오가 로그인 실패를 검증) 이므로 제외.
     int users =
         entityManager
             .createNativeQuery(
                 "UPDATE users SET is_active = TRUE, deactivated_at = NULL,"
-                    + " deactivated_by = NULL, deactivation_reason = NULL, admin_note = NULL")
+                    + " deactivated_by = NULL, deactivation_reason = NULL, admin_note = NULL"
+                    + " WHERE email <> 'admin_inactive@youth-moa.test'")
             .executeUpdate();
     // Programs 활성화 (bulk deactivate 시나리오 반복 지원)
     int programs =
@@ -338,11 +341,16 @@ public class TestFixtureController {
   @PostMapping("/reset-users")
   @Transactional
   public ResponseEntity<Void> resetUsers() {
+    // 260929 CI fix: admin_inactive@youth-moa.test 는 A7-e2e-suite 시드 규약상 항상 비활성 상태를
+    // 유지해야 한다 (admin-notification-fanout.spec.ts (e) 시나리오가 이 시드 정합에 의존해 로그인
+    // 실패를 검증). reset-users 를 호출하는 다른 spec (admin-users-actions · admin-bulk-csv) 이
+    // 이 계정까지 재활성화하면 CI 실행 순서에 따라 (e) 가 로그인 성공으로 오탐 (2026-09-28 run 506).
     int reset =
         entityManager
             .createNativeQuery(
                 "UPDATE users SET is_active = TRUE, deactivated_at = NULL,"
-                    + " deactivated_by = NULL, deactivation_reason = NULL, admin_note = NULL")
+                    + " deactivated_by = NULL, deactivation_reason = NULL, admin_note = NULL"
+                    + " WHERE email <> 'admin_inactive@youth-moa.test'")
             .executeUpdate();
     log.info("[test-fixture] reset-users updatedRows={}", reset);
     return ResponseEntity.noContent().build();

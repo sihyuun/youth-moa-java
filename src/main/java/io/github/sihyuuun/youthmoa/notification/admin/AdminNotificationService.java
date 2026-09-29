@@ -46,17 +46,27 @@ public class AdminNotificationService {
     return notificationService.unreadCount(user);
   }
 
-  /** 개별 읽음 처리. NotificationService 가 소유자 검증 (다른 유저 알림 → 404). */
+  /**
+   * 개별 읽음 처리. NotificationService 가 소유자 검증 (다른 유저 알림 → 404).
+   *
+   * <p>QA FAIL-3 fix (2026-09-28): 클래스 레벨 {@code readOnly=true} 를 이 write 메서드에서 반드시 override 해야 한다.
+   * override 없이 위임하면 위임 대상 {@code NotificationService.markAsRead} 의 {@code @Transactional} 이 Spring
+   * REQUIRED propagation 으로 outer 트랜잭션에 "참여"하면서 outer 의 readOnly=true 를 상속받아 dirty write 가
+   * Hibernate flush 시 무시된다. 배지 -1 미반영 증상의 근본 원인.
+   */
+  @Transactional
   public Notification markAsRead(Long notificationId, Long userId) {
     return notificationService.markAsRead(notificationId, userId);
   }
 
   /** 모두 읽음. */
+  @Transactional
   public int markAllAsRead(Long userId) {
     return notificationService.markAllAsRead(userId);
   }
 
   /** 개별 삭제. */
+  @Transactional
   public void delete(Long notificationId, Long userId) {
     notificationService.delete(notificationId, userId);
   }

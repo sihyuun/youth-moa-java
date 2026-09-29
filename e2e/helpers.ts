@@ -197,6 +197,137 @@ export async function resetApplyQuestions(page: Page): Promise<void> {
 }
 
 /**
+ * A7-e2e-suite (2026-09-28): 3단계 apply 위저드를 한 번에 완주하는 헬퍼.
+ * fan-out spec 이 여러 프로그램에 반복 신청할 때 반복 코드를 줄이기 위해.
+ *
+ * 전제: 이미 로그인 상태. 프로그램은 신청 가능(모집 중 등) 상태.
+ * 완료 후 /apply/complete 로 리다이렉트.
+ */
+export async function applyProgram(
+    page: Page,
+    programId: number,
+    reason: string = 'A7 e2e fan-out 시나리오 신청 사유입니다.',
+): Promise<void> {
+    await page.goto(`/programs/${programId}/apply`, { waitUntil: 'domcontentloaded' });
+    await applyNextStep(page, 2);
+    await page.locator('#applyReason').fill(reason);
+    await applyNextStep(page, 3);
+    await page.locator('input[name="privacyAgreed"]').check({ force: true });
+    await Promise.all([
+        page.waitForURL(/\/apply\/complete/),
+        page.locator('#applyNavSubmit').click(),
+    ]);
+}
+
+/**
+ * A7-e2e-suite (2026-09-28): admin 계정 unread 알림 초기화 (fan-out spec seed pollution 방지).
+ *
+ * fan-out spec 은 "신청 전 배지 값" → "신청 후 배지 값 = +1" 을 검증하므로 관측 기준선이 필요.
+ * 이 헬퍼는 로그인 페이지 세션을 훔치지 않고 request context 만 사용해 mark-all-read POST 를 보낸다.
+ *
+ * 절차: admin login (별도 페이지) → POST /admin/notifications/mark-all-read → logout.
+ * spec 내부 페이지는 사용자 세션이라 이 헬퍼 호출 이후에도 오염되지 않는다.
+ */
+export async function resetAdminNotifications(
+    browser: import('@playwright/test').Browser,
+    adminEmail: string,
+    adminPassword: string = ADMIN_SEED_PASS,
+): Promise<void> {
+    const ctx = await browser.newContext();
+    try {
+        const page = await ctx.newPage();
+        await page.goto('/admin/login', { waitUntil: 'domcontentloaded' });
+        await page.locator('input[name="username"]').fill(adminEmail);
+        await page.locator('input[name="password"]').fill(adminPassword);
+        await page.locator('#adminLoginForm button[type="submit"]').click();
+        await page.waitForURL('**/admin');
+        // QA FAIL-2 fix (2026-09-28): Spring Security CSRF 활성 → 토큰 없이 POST 하면 403 + mark-all 미적용.
+        // /admin 페이지의 meta[name="_csrf"] 값을 헤더로 부착.
+        const csrfToken = await page.locator('meta[name="_csrf"]').getAttribute('content');
+        const csrfHeader =
+            (await page.locator('meta[name="_csrf_header"]').getAttribute('content')) ??
+            'X-CSRF-TOKEN';
+        if (!csrfToken) {
+            throw new Error(
+                'resetAdminNotifications: CSRF meta 태그 미확보. 로그인/렌더 상태 확인 필요',
+            );
+        }
+        const resp = await page.request.post('/admin/notifications/mark-all-read', {
+            headers: { [csrfHeader]: csrfToken },
+        });
+        if (resp.status() >= 400) {
+            throw new Error(
+                `resetAdminNotifications failed: status=${resp.status()} body=${await resp.text()}`,
+            );
+        }
+    } finally {
+        await ctx.close();
+    }
+}
+
+/**
+ * A7-e2e-suite (2026-09-28): 특정 admin 계정으로 프로그램 watch 를 등록한다 (fan-out watcher 축 검증용).
+ * `POST /admin/programs/{programId}/watch/toggle` 는 상태 토글이라 이미 등록된 상태면 해제하므로,
+ * 최종 상태를 등록으로 보장하기 위해 응답 fragment 의 클래스명으로 확인 후 필요 시 재호출한다.
+ *
+ * QA FAIL-2 fix (2026-09-28): Spring Security CSRF 활성 상태이므로 request.post 만으로는 토큰 부재로 403 이 되고
+ * watch 가 등록되지 않았다 (증상: fanout (c) 배지 +1 실패). 로그인 후 임의 admin 페이지에서 meta[name="_csrf"] 를 읽어
+ * X-CSRF-TOKEN 헤더로 넣어야 통과한다. 동일 세션 컨텍스트를 사용하므로 쿠키 세션은 request context 에도 전달된다.
+ */
+export async function ensureAdminWatches(
+    browser: import('@playwright/test').Browser,
+    adminEmail: string,
+    programId: number,
+    adminPassword: string = ADMIN_SEED_PASS,
+): Promise<void> {
+    const ctx = await browser.newContext();
+    try {
+        const page = await ctx.newPage();
+        await page.goto('/admin/login', { waitUntil: 'domcontentloaded' });
+        await page.locator('input[name="username"]').fill(adminEmail);
+        await page.locator('input[name="password"]').fill(adminPassword);
+        await page.locator('#adminLoginForm button[type="submit"]').click();
+        await page.waitForURL('**/admin');
+
+        // CSRF 토큰 확보 — /admin 대시보드는 meta[name="_csrf"] 를 항상 렌더한다.
+        const csrfToken = await page.locator('meta[name="_csrf"]').getAttribute('content');
+        const csrfHeader =
+            (await page.locator('meta[name="_csrf_header"]').getAttribute('content')) ??
+            'X-CSRF-TOKEN';
+        if (!csrfToken) {
+            throw new Error('ensureAdminWatches: CSRF meta 태그 미확보. 로그인/렌더 상태 확인 필요');
+        }
+        const headers = { [csrfHeader]: csrfToken };
+
+        // toggle 1회 → 응답 fragment 에 is-watched 여부 확인
+        const first = await page.request.post(
+            `/admin/programs/${programId}/watch/toggle`,
+            { form: { styleClass: 'list-watch-btn' }, headers },
+        );
+        if (first.status() !== 200) {
+            throw new Error(
+                `ensureAdminWatches toggle #1 failed: status=${first.status()} body=${await first.text()}`,
+            );
+        }
+        const firstBody = await first.text();
+        if (!firstBody.includes('is-watched')) {
+            // 첫 호출이 해제였으므로 다시 눌러 등록 상태로 복귀
+            const second = await page.request.post(
+                `/admin/programs/${programId}/watch/toggle`,
+                { form: { styleClass: 'list-watch-btn' }, headers },
+            );
+            if (second.status() !== 200) {
+                throw new Error(
+                    `ensureAdminWatches toggle #2 failed: status=${second.status()} body=${await second.text()}`,
+                );
+            }
+        }
+    } finally {
+        await ctx.close();
+    }
+}
+
+/**
  * A3-1 admin-program-form (Qn-6 A, 2026-09-10): admin-program-form E2E 가 신규 프로그램을 생성 후
  * 정리하지 않으면 admin-programs-list 개수 기대 · apply flow 시드가 오염된다.
  * `TestFixtureController.resetPrograms()` = id > SEED_PROGRAM_COUNT (23) 인 프로그램 + FK cascade 삭제.
