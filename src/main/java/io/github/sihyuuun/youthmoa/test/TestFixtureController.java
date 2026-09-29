@@ -3,6 +3,7 @@ package io.github.sihyuuun.youthmoa.test;
 import io.github.sihyuuun.youthmoa.application.Application;
 import io.github.sihyuuun.youthmoa.application.ApplicationRepository;
 import io.github.sihyuuun.youthmoa.common.DataInitializer;
+import io.github.sihyuuun.youthmoa.notification.NotificationRepository;
 import io.github.sihyuuun.youthmoa.user.User;
 import io.github.sihyuuun.youthmoa.user.UserRepository;
 import jakarta.persistence.EntityManager;
@@ -41,6 +42,7 @@ public class TestFixtureController {
 
   private final ApplicationRepository applicationRepository;
   private final UserRepository userRepository;
+  private final NotificationRepository notificationRepository;
 
   @PersistenceContext private EntityManager entityManager;
 
@@ -358,6 +360,71 @@ public class TestFixtureController {
 
   /** 특정 프로그램 신청 상태 원복 요청 바디. */
   public record ResetApplicationStatusRequest(Long programId) {}
+
+  /** 알림 하드 리셋 요청 바디. */
+  public record ResetNotificationsRequest(@NotBlank String userEmail) {}
+
+  /**
+   * A7-rate-limit E2E FAIL fix (2026-09-29): 특정 사용자의 Notification row 를 전량 삭제한다.
+   *
+   * <p>배경: 기존 mark-all-read (읽음 마킹만) + advance-clock (시각 이동만) 조합으로는 admin-notification-rate-limit
+   * spec TC(b) window 밖 재신청 시나리오를 격리할 수 없다. TC(a) 실행 후 남은 병합 row 가 TC(b) beforeEach 를 지나
+   * findTop5ByUserOrderByLastOccurredAtDesc 결과에 여전히 노출되어 예상 2 rows → 실측 3 rows 오검출.
+   *
+   * <p>정책: user_id 기준 hard DELETE. 기존 {@code resetAdminNotifications} (mark-all-read) 는 다른 spec 이
+   * 이미 참조 중이므로 유지 (회귀 방어). 이 endpoint 는 rate-limit spec 전용의 강한 격리 수단으로 병행 존재.
+   *
+   * @return 204 No Content (idempotent — 대상 없어도 성공)
+   */
+  @PostMapping("/reset-notifications")
+  @Transactional
+  public ResponseEntity<Void> resetNotifications(@RequestBody ResetNotificationsRequest request) {
+    User user =
+        userRepository
+            .findByEmail(request.userEmail())
+            .orElseThrow(
+                () ->
+                    new IllegalArgumentException(
+                        "test fixture: user not found email=" + request.userEmail()));
+    int deleted = notificationRepository.deleteAllByUserId(user.getId());
+    log.info(
+        "[test-fixture] reset-notifications userEmail={} deletedRows={}",
+        request.userEmail(),
+        deleted);
+    return ResponseEntity.noContent().build();
+  }
+
+  /**
+   * A7-rate-limit (2026-09-29): 병합 window 밖으로 알림 시각을 강제로 이동시켜 "새 row 생성" 시나리오를 E2E 에서 재현한다.
+   *
+   * <p>정책: 모든 Notification 의 {@code last_occurred_at} · {@code created_at} 을 지정한 minutes 만큼 과거로
+   * UPDATE. 요청 예: {@code {"minutes": 6}} → 5분 window 밖으로 이동해 다음 신청은 새 row 생성.
+   *
+   * <p>H2 (e2e 프로파일) 문법: {@code DATEADD('MINUTE', -N, col)} 사용. PostgreSQL 문법과 다르지만 이 endpoint 는
+   * e2e 프로파일에서만 활성이라 H2 전용으로 작성.
+   *
+   * @return 204 No Content (idempotent)
+   */
+  @PostMapping("/advance-notification-clock")
+  @Transactional
+  public ResponseEntity<Void> advanceNotificationClock(
+      @RequestBody AdvanceNotificationClockRequest req) {
+    int minutes = req.minutes() == null ? 6 : req.minutes();
+    int updated =
+        entityManager
+            .createNativeQuery(
+                "UPDATE notification"
+                    + " SET last_occurred_at = DATEADD('MINUTE', -:minutes, last_occurred_at),"
+                    + "     created_at       = DATEADD('MINUTE', -:minutes, created_at)")
+            .setParameter("minutes", minutes)
+            .executeUpdate();
+    log.info(
+        "[test-fixture] advance-notification-clock minutes={} updatedRows={}", minutes, updated);
+    return ResponseEntity.noContent().build();
+  }
+
+  /** 알림 시각 강제 이동 요청 바디. minutes null 이면 6분 (기본 window=5 초과). */
+  public record AdvanceNotificationClockRequest(Integer minutes) {}
 
   /**
    * A8 admin-bulk-csv (2026-09-21 · A8-e2e-suite): 신청 일괄 승인 시나리오 정밀 격리 endpoint.

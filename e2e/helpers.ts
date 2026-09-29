@@ -149,6 +149,28 @@ export async function resetApplications(
 }
 
 /**
+ * A7-rate-limit (2026-09-29): 알림 병합 window 밖으로 시각을 강제 이동.
+ *
+ * TestFixtureController.advanceNotificationClock 호출. 모든 Notification 의 last_occurred_at·created_at 을
+ * 지정한 minutes 만큼 과거로 UPDATE. 기본 6분 (5분 window 초과).
+ *
+ * 시나리오: 병합 → 시각 이동 → 재신청 → 신규 row 생성 검증.
+ */
+export async function advanceNotificationClock(
+    page: Page,
+    minutes: number = 6,
+): Promise<void> {
+    const response = await page.request.post('/__test__/advance-notification-clock', {
+        data: { minutes },
+    });
+    if (response.status() !== 204) {
+        throw new Error(
+            `advanceNotificationClock failed: status=${response.status()} body=${await response.text()}`,
+        );
+    }
+}
+
+/**
  * A-admin-notice-attachment seed-pollution 해소: 관리자 계정으로 생성된 임시 공지를 정리한다.
  *
  * 배경: admin-notice-form / admin-notice-upload / admin-notice-rbac spec 이 POST /admin/notices 로
@@ -262,6 +284,33 @@ export async function resetAdminNotifications(
         }
     } finally {
         await ctx.close();
+    }
+}
+
+/**
+ * A7-rate-limit E2E FAIL fix (2026-09-29): admin 계정의 Notification row 를 DB 에서 하드 삭제한다.
+ *
+ * 배경: 기존 `resetAdminNotifications` 는 mark-all-read 만 수행 → row 자체는 남아 있어
+ * admin-notification-rate-limit spec TC(b) window 밖 재신청 시나리오에서 TC(a) 잔존 병합 row 가
+ * findTop5ByUserOrderByLastOccurredAtDesc 결과에 남아 예상 2 rows → 실측 3 rows 오검출.
+ *
+ * 이 헬퍼는 `TestFixtureController.resetNotifications` 로 user_id 기준 DELETE. 다른 spec 은 기존
+ * mark-all-read 경로를 유지 (회귀 방어). rate-limit spec 전용 강한 격리 수단.
+ *
+ * @param page Playwright Page (request context 재사용). 로그인 불필요 (e2e 프로파일 fixture endpoint 는 permitAll).
+ * @param userEmail 알림을 정리할 admin 이메일
+ */
+export async function resetAdminNotificationsHard(
+    page: Page,
+    userEmail: string,
+): Promise<void> {
+    const response = await page.request.post('/__test__/reset-notifications', {
+        data: { userEmail },
+    });
+    if (response.status() !== 204) {
+        throw new Error(
+            `resetAdminNotificationsHard failed: status=${response.status()} body=${await response.text()}`,
+        );
     }
 }
 

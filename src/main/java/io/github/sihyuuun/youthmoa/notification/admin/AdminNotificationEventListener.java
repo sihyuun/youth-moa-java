@@ -75,11 +75,13 @@ public class AdminNotificationEventListener {
       String title = "새 신청이 접수됐어요";
       String message = truncate(String.format("'%s' 프로그램에 새 신청이 들어왔어요.", event.programTitle()));
       String link = "/admin/programs/" + event.programId() + "/applications";
+      // A7-rate-limit (2026-09-29): Q3 그룹기준 = type + sourceId. sourceId = programId.
+      String dedupKey = "NEW_APPLICATION:" + event.programId();
       for (User admin : recipients) {
         // 개별 실패가 다른 수신자에게 전파되지 않도록 try 안에서 각각 저장.
         try {
-          notificationService.create(
-              admin.getId(), NotificationType.NEW_APPLICATION, title, message, link);
+          notificationService.createOrMerge(
+              admin.getId(), NotificationType.NEW_APPLICATION, dedupKey, title, message, link);
         } catch (RuntimeException e) {
           log.error(
               "[A7] NEW_APPLICATION 개별 INSERT 실패 adminId={} applicationId={}",
@@ -112,10 +114,13 @@ public class AdminNotificationEventListener {
       String message =
           truncate(String.format("%s(%s) 님이 회원가입 했어요.", event.userName(), event.userEmail()));
       String link = "/admin/users/" + event.userId();
+      // A7-rate-limit (2026-09-29): 신규 가입은 프로그램 축이 없으므로 sourceId = "global".
+      // 같은 window 안 여러 가입도 admin 인박스에서 1건으로 병합.
+      String dedupKey = "NEW_USER:global";
       for (User admin : recipients) {
         try {
-          notificationService.create(
-              admin.getId(), NotificationType.NEW_USER, title, message, link);
+          notificationService.createOrMerge(
+              admin.getId(), NotificationType.NEW_USER, dedupKey, title, message, link);
         } catch (RuntimeException e) {
           log.error(
               "[A7] NEW_USER 개별 INSERT 실패 adminId={} userId={}", admin.getId(), event.userId(), e);

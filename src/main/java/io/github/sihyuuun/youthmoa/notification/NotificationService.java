@@ -7,7 +7,10 @@ import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
  * <p>{@code @Service} — Spring bean 등록. {@code @Transactional(readOnly=true)} 클래스 레벨 부착 → 조회 메서드는
  * read-only 트랜잭션에서 동작. 쓰기 메서드는 개별 {@code @Transactional} 로 오버라이드.
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -25,9 +29,20 @@ public class NotificationService {
   private final NotificationRepository notificationRepository;
   private final UserRepository userRepository;
 
-  /** 헤더 종용 — 최근 5건. */
+  /**
+   * A7-rate-limit (2026-09-29): 병합 window 길이 (분). properties override 가능 — {@code
+   * youthmoa.notification.merge-window-minutes}. 미설정 시 5분.
+   */
+  @Value("${youthmoa.notification.merge-window-minutes:5}")
+  private long mergeWindowMinutes;
+
+  /**
+   * 헤더 종용 — 최근 5건.
+   *
+   * <p>A7-rate-limit (2026-09-29): 정렬 기준 = lastOccurredAt DESC. 병합된 알림이 최신 발생 시점 기준으로 상단 노출.
+   */
   public List<Notification> recentForHeader(User user) {
-    return notificationRepository.findTop5ByUserOrderByCreatedAtDesc(user);
+    return notificationRepository.findTop5ByUserOrderByLastOccurredAtDesc(user);
   }
 
   public long unreadCount(User user) {
@@ -82,6 +97,10 @@ public class NotificationService {
    *
    * <p>userId 로 User 프록시(getReferenceById)를 사용해 SELECT 1회 절약. 유저가 실제로 존재하지 않으면 flush 시점에 FK 위반이 나므로
    * 호출자는 유효한 userId 를 넘겨야 한다.
+   *
+   * <p>A7-rate-limit (2026-09-29): 이 메서드는 사용자 트랙(APPROVED/REJECTED/CANCELLED/WELCOME) 전용으로 유지된다.
+   * admin fan-out(NEW_APPLICATION/NEW_USER) 은 병합이 적용되는 {@link #createOrMerge} 를 호출해야 한다. dedupKey =
+   * null 로 저장되므로 병합 후보 조회에서 제외되어 사용자 트랙 flow 는 불변.
    */
   @Transactional
   public Notification create(
@@ -94,6 +113,61 @@ public class NotificationService {
             .title(title)
             .message(message)
             .link(link)
+            .build();
+    return notificationRepository.save(n);
+  }
+
+  /**
+   * A7-rate-limit (2026-09-29): dedupKey 기반 병합 발행.
+   *
+   * <p>절차:
+   *
+   * <ol>
+   *   <li>{@code since = now - mergeWindowMinutes} 안에서 (userId, type, dedupKey) 매칭 최신 후보 조회
+   *   <li>후보 있음 → {@code mergeOccurrence} (count++ · lastOccurredAt=now · isRead=false 리셋) + {@code
+   *       updateContent(title, message, link)}
+   *   <li>후보 없음 → 새 row 저장 (dedupKey 부착)
+   * </ol>
+   *
+   * <p>쿼리 수: SELECT 1회 (findMergeCandidate) + UPDATE 1회 (merge) or INSERT 1회 (신규) = 총 2회. A9-c N+1
+   * baseline 안전. Q5 사용자 트랙 무영향 — dedupKey null 인 사용자 알림은 조회에서 제외되어 병합 대상 아님.
+   *
+   * <p>동시성: 낙관적 접근. 같은 dedupKey 에 대해 두 스레드 동시 실행 시 window 안이면 최악 2 row 생성 (허용). fan-out 은 저용량이며
+   * unique constraint 는 window 밖 신규 row 도 막아버려 부적절.
+   */
+  @Transactional
+  public Notification createOrMerge(
+      Long userId,
+      NotificationType type,
+      String dedupKey,
+      String title,
+      String message,
+      String link) {
+    LocalDateTime now = LocalDateTime.now();
+    LocalDateTime since = now.minusMinutes(mergeWindowMinutes);
+    Optional<Notification> candidate =
+        notificationRepository.findMergeCandidate(userId, type, dedupKey, since);
+    if (candidate.isPresent()) {
+      Notification n = candidate.get();
+      n.mergeOccurrence(now);
+      n.updateContent(title, message, link);
+      log.info(
+          "[A7-rate-limit] merged notification userId={} type={} dedupKey={} count={}",
+          userId,
+          type,
+          dedupKey,
+          n.getOccurrenceCount());
+      return n;
+    }
+    User user = userRepository.getReferenceById(userId);
+    Notification n =
+        Notification.builder()
+            .user(user)
+            .type(type)
+            .title(title)
+            .message(message)
+            .link(link)
+            .dedupKey(dedupKey)
             .build();
     return notificationRepository.save(n);
   }
