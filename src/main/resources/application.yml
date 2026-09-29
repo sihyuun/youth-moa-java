@@ -92,6 +92,10 @@ security:
 #   - 이 경우 지도 영역엔 fallback 문구 표시되고 리스트/필터는 정상 동작.
 #   - 발급: https://developers.kakao.com → 애플리케이션 → JavaScript 키
 youthmoa:
+  # A7-rate-limit (2026-09-29): admin fan-out 알림 병합 window (분). 기본 5분.
+  # createOrMerge 는 (userId, type, dedupKey) 매칭 알림이 이 window 안에 존재하면 병합, 아니면 신규 row 생성.
+  notification:
+    merge-window-minutes: ${YOUTHMOA_NOTIFICATION_MERGE_WINDOW_MINUTES:5}
   kakao:
     map-app-key: ${KAKAO_MAP_APP_KEY:}
   # A-admin-notice-attachment (2026-09-03 · Qn-1 C):

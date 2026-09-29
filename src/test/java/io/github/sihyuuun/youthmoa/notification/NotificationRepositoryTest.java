@@ -51,7 +51,7 @@ class NotificationRepositoryTest {
   }
 
   @Test
-  @DisplayName("findTop5ByUserOrderByCreatedAtDesc — user 기준 최근 5건, 다른 유저 알림 제외")
+  @DisplayName("findTop5ByUserOrderByLastOccurredAtDesc — user 기준 최근 5건, 다른 유저 알림 제외")
   void findTop5_orders_by_recency_and_filters_by_user() throws InterruptedException {
     // 다른 유저 알림 (필터되어야 함)
     save(other, NotificationType.WELCOME, "타인 알림");
@@ -62,7 +62,7 @@ class NotificationRepositoryTest {
       Thread.sleep(2); // @CreatedDate ordering 안정화
     }
 
-    List<Notification> top5 = notificationRepository.findTop5ByUserOrderByCreatedAtDesc(user);
+    List<Notification> top5 = notificationRepository.findTop5ByUserOrderByLastOccurredAtDesc(user);
     assertThat(top5).hasSize(5);
     // 최근 생성된 (알림 6, 5, 4, 3, 2) 순
     assertThat(top5.get(0).getTitle()).isEqualTo("알림 6");
