@@ -6,6 +6,8 @@ import io.github.sihyuuun.youthmoa.application.Application;
 import io.github.sihyuuun.youthmoa.application.ApplicationRepository;
 import io.github.sihyuuun.youthmoa.bookmark.Bookmark;
 import io.github.sihyuuun.youthmoa.bookmark.BookmarkRepository;
+import io.github.sihyuuun.youthmoa.common.N1BaselineReporter;
+import io.github.sihyuuun.youthmoa.program.Program;
 import io.github.sihyuuun.youthmoa.user.User;
 import io.github.sihyuuun.youthmoa.user.UserPrincipal;
 import io.github.sihyuuun.youthmoa.user.UserRepository;
@@ -49,6 +51,7 @@ class AdminEagerFetchN1Test {
   @Autowired AdminApplicationService adminApplicationService;
   @Autowired AdminDashboardService adminDashboardService;
   @Autowired AdminStatsService adminStatsService;
+  @Autowired AdminProgramService adminProgramService;
   @Autowired ApplicationRepository applicationRepository;
   @Autowired BookmarkRepository bookmarkRepository;
   @Autowired UserRepository userRepository;
@@ -94,6 +97,14 @@ class AdminEagerFetchN1Test {
     return q;
   }
 
+  /** A9-c: 실측값 + 상한을 JSON artifact 에도 기록 (build/reports/n1-baseline.json). */
+  private long measureAndReport(String methodName, long limit) {
+    long q = stats.getPrepareStatementCount();
+    System.out.printf("[N1-baseline] %s: %d PreparedStatements (limit %d)%n", methodName, q, limit);
+    N1BaselineReporter.record(getClass().getName(), methodName, q, limit);
+    return q;
+  }
+
   /**
    * 배포 환경 (요청당 신규 Session) 재현. verify #16.5 대응.
    *
@@ -114,7 +125,7 @@ class AdminEagerFetchN1Test {
     Page<Application> page = adminApplicationService.list(1L, null, null, 0);
 
     assertThat(page.getContent()).isNotEmpty();
-    long executedQueries = measureAndReport("AdminApplicationService.list(programId=1)");
+    long executedQueries = measureAndReport("adminApplicationService_list_쿼리_상한_6_이내", 6L);
     assertThat(executedQueries)
         .as(
             "AdminApplicationService.list 는 program·center EAGER 로드 시에도 쿼리 6 개 이하여야 한다 "
@@ -137,7 +148,7 @@ class AdminEagerFetchN1Test {
     List<Application> all = applicationRepository.findAll();
 
     assertThat(all).isNotEmpty();
-    long executedQueries = measureAndReport("ApplicationRepository.findAll()");
+    long executedQueries = measureAndReport("applicationRepository_findAll_전체_쿼리_상한_8_이내", 8L);
     assertThat(executedQueries)
         .as(
             "ApplicationRepository.findAll() 은 program·center EAGER 로드 시에도 쿼리 8 개 이하여야 한다 "
@@ -157,7 +168,7 @@ class AdminEagerFetchN1Test {
 
     List<Bookmark> all = bookmarkRepository.findAll();
 
-    long executedQueries = measureAndReport("BookmarkRepository.findAll()");
+    long executedQueries = measureAndReport("bookmarkRepository_findAll_전체_쿼리_상한_8_이내", 8L);
     assertThat(executedQueries)
         .as(
             "BookmarkRepository.findAll() 은 program·center EAGER 로드 시에도 쿼리 8 개 이하여야 한다 "
@@ -178,7 +189,7 @@ class AdminEagerFetchN1Test {
     AdminDashboardService.DashboardModel model = adminDashboardService.load(null);
 
     assertThat(model).isNotNull();
-    long executedQueries = measureAndReport("AdminDashboardService.load(scopeCenterId=null)");
+    long executedQueries = measureAndReport("adminDashboardService_load_쿼리_상한_35_이내", 35L);
     assertThat(executedQueries)
         .as(
             "AdminDashboardService.load 는 EAGER 승격 후에도 쿼리 35 개 이하여야 한다 "
@@ -199,10 +210,53 @@ class AdminEagerFetchN1Test {
     AdminStatsService.StatsModel model = adminStatsService.load(null, "daily");
 
     assertThat(model).isNotNull();
-    long executedQueries =
-        measureAndReport("AdminStatsService.load(scopeCenterId=null, mode=daily)");
+    long executedQueries = measureAndReport("adminStatsService_load_쿼리_상한_48_이내", 48L);
     assertThat(executedQueries)
         .as("AdminStatsService.load 는 EAGER 승격 후에도 쿼리 48 개 이하여야 한다 " + "(baseline 37 + 30% 여유).")
         .isLessThanOrEqualTo(48L);
+  }
+
+  /**
+   * A9-c A6: AdminProgramService.list — 관리자 프로그램 목록 (검색·정렬 조합) 쿼리 상한.
+   *
+   * <p>기대: page 쿼리 + count 쿼리. Program 자체는 center EAGER 이므로 join. 검색어(q) 는 center.name LIKE 로
+   * center join 추가 유발. baseline 실측 후 +30% 여유 상한 설정.
+   */
+  @Test
+  void adminProgramService_list_쿼리_상한_이내() {
+    loginAsSysadmin();
+    resetSessionAndStats();
+
+    Page<Program> page = adminProgramService.list("청년", "OPEN", 0);
+
+    assertThat(page).isNotNull();
+    long executedQueries = measureAndReport("adminProgramService_list_쿼리_상한_이내", 15L);
+    assertThat(executedQueries)
+        .as(
+            "AdminProgramService.list(q, status) 는 center EAGER 로드 시에도 쿼리 15 개 이하여야 한다 "
+                + "(baseline 실측 11 + 30% 여유). 초과 시 N+1 → Program.center 페치 전략 확인 필요.")
+        .isLessThanOrEqualTo(15L);
+  }
+
+  /**
+   * A9-c A7: AdminProgramService.find — 프로그램 상세 조회 시 통합 쿼리 상한.
+   *
+   * <p>기대: program + center (EAGER) 조인. 상세 페이지에서 course/attachment/question 은 별도 서비스 호출이므로 find 자체는
+   * 매우 lean 해야 함. baseline 실측 후 +30% 여유.
+   */
+  @Test
+  void adminProgramService_find_쿼리_상한_이내() {
+    loginAsSysadmin();
+    resetSessionAndStats();
+
+    Program p = adminProgramService.find(1L);
+
+    assertThat(p).isNotNull();
+    long executedQueries = measureAndReport("adminProgramService_find_쿼리_상한_이내", 3L);
+    assertThat(executedQueries)
+        .as(
+            "AdminProgramService.find(id) 는 center EAGER 로드 시에도 쿼리 3 개 이하여야 한다 "
+                + "(baseline 실측 2 + 30% 여유, ceil).")
+        .isLessThanOrEqualTo(3L);
   }
 }
