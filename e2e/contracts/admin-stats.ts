@@ -144,6 +144,15 @@ export const adminStatsContract: ScreenContract = {
             proto: 'html L829~836',
             severity: 'P0',
         },
+        {
+            id: 'program.views.cell.exists',
+            desc: '프로그램별 참여 현황 조회수 셀 렌더 (A6-followup 2026-09-29)',
+            selector: '.admin-stats-program-row--link .admin-stats-program-views',
+            kind: 'count-min',
+            expected: 1,
+            proto: 'A6-followup Q4 · Program.viewCount 도입 · V25',
+            severity: 'P0',
+        },
         // ── Gender / Age donuts ─────────────────────────────
         {
             id: 'donut.row.count',
