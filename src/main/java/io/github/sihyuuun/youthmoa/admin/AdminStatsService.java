@@ -143,12 +143,24 @@ public class AdminStatsService {
 
     // ── 프로그램별 참여 현황 (상위 6, A6-followup Q4: 신청수 DESC) ─
     // A6 초기엔 createdAt DESC 였으나 실 사용성 낮음(최신순=참여저조 프로그램이 상단).
-    // A6-followup: 신청수 많은 순으로 정렬. 신청수 계산은 toProgramStatRow 에서 이미 수행하므로 pre-compute.
+    // A6-followup: 신청수 많은 순으로 정렬.
+    // A6-followup QA fix (2026-09-29): 이전 구현은 scoped 전체(12+개)에 toProgramStatRow 를 map 하며
+    // countByProgramId 를 개별 실행 → N+1 (55 queries, 상한 48 초과). batch 쿼리 1회로 Map 확보 후
+    // 정렬 → 상위 6 에만 toProgramStatRow 실행하여 쿼리 수 원상 복구.
+    Map<Long, Long> appliedCountMap = new HashMap<>();
+    if (!scoped.isEmpty()) {
+      List<Long> scopedIds = scoped.stream().map(Program::getId).toList();
+      for (Object[] row : applicationRepository.countByProgramIdIn(scopedIds)) {
+        appliedCountMap.put((Long) row[0], (Long) row[1]);
+      }
+    }
     List<ProgramStatRow> programStats =
         scoped.stream()
-            .map(this::toProgramStatRow)
-            .sorted(Comparator.comparingLong(ProgramStatRow::getApplied).reversed())
+            .sorted(
+                Comparator.comparingLong((Program p) -> appliedCountMap.getOrDefault(p.getId(), 0L))
+                    .reversed())
             .limit(6)
+            .map(p -> toProgramStatRow(p, appliedCountMap.getOrDefault(p.getId(), 0L)))
             .toList();
 
     // ── 마감 임박 (applyEndDate 우선 · Qn-10) ─────────────────
@@ -299,8 +311,7 @@ public class AdminStatsService {
     return out;
   }
 
-  private ProgramStatRow toProgramStatRow(Program p) {
-    long applied = applicationRepository.countByProgramId(p.getId());
+  private ProgramStatRow toProgramStatRow(Program p, long applied) {
     Integer cap = p.getCapacity();
     int pct = 0;
     if (cap != null && cap > 0) {
