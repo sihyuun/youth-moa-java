@@ -105,6 +105,21 @@ public class ProgramService {
         .orElseThrow(() -> new IllegalArgumentException("프로그램을 찾을 수 없습니다: " + id));
   }
 
+  /**
+   * A6-followup (2026-09-29): 프로그램 상세 조회수 +1. Controller 세션 dedup 통과 후 진입.
+   *
+   * <p>Notice.detailAndIncreaseView 패턴 답습 — write @Transactional 로 dirty checking 을 통해 UPDATE. 별도
+   * save() 호출 없이 flush 시 반영.
+   */
+  @Transactional
+  public void incrementViewCount(Long id) {
+    Program program =
+        programRepository
+            .findById(id)
+            .orElseThrow(() -> new IllegalArgumentException("프로그램을 찾을 수 없습니다: " + id));
+    program.incrementViewCount();
+  }
+
   /** Program 목록을 ProgramCardDto 로 변환 (IN 쿼리 1회로 N+1 방지). 카드 목록 표시 시 사용. */
   public List<ProgramCardDto> toCardDtos(List<Program> programs) {
     if (programs.isEmpty()) return List.of();
