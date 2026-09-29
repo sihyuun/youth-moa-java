@@ -80,4 +80,27 @@ public interface ApplicationRepository
   @Query(
       "SELECT a.program.id, COUNT(a) FROM Application a WHERE a.program.id IN :programIds GROUP BY a.program.id")
   List<Object[]> countByProgramIdIn(@Param("programIds") List<Long> programIds);
+
+  /** A9-followup (2026-09-29): AdminStatsService 승인대기 카운트 paged 전환. findAll+stream 대비 DB 집계로 이동. */
+  @Query(
+      "SELECT COUNT(a) FROM Application a WHERE a.program.id IN :programIds AND a.status = :status")
+  long countByProgramIdInAndStatus(
+      @Param("programIds") List<Long> programIds, @Param("status") ApplicationStatus status);
+
+  /**
+   * A9-followup (2026-09-29): AdminStatsService 최근 승인대기 목록 paged 전환. findAll+stream 대비 DB
+   * LIMIT+ORDER BY 로 이동. 템플릿(stats.html L280-285) 접근 필드 = program.title, user.name → JOIN FETCH 로
+   * program·user 만 로드 (center 미접근이므로 fetch 제외). ORDER BY appliedAt DESC NULLS LAST 로 기존
+   * Comparator.nullsLast(reverseOrder()) 정렬 재현.
+   */
+  @Query(
+      "SELECT a FROM Application a "
+          + "JOIN FETCH a.program p "
+          + "JOIN FETCH a.user u "
+          + "WHERE a.program.id IN :programIds AND a.status = :status "
+          + "ORDER BY a.appliedAt DESC NULLS LAST")
+  List<Application> findTopPendingByProgramIds(
+      @Param("programIds") List<Long> programIds,
+      @Param("status") ApplicationStatus status,
+      org.springframework.data.domain.Pageable pageable);
 }

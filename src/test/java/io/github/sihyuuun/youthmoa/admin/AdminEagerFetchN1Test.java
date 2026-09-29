@@ -200,22 +200,25 @@ class AdminEagerFetchN1Test {
   /**
    * AdminStatsService.load — 통계 페이지 진입 시 통합 쿼리 수 상한.
    *
-   * <p>verify #16.4 커버리지 확장 — Stats 진입점 미커버 지적 대응. Stats 는 Application 전체 조회 + 집계 로직. verify #14
-   * 대응: baseline 실측 37 · 상한 48 (실측 + 30% 여유) 로 소폭 회귀도 감지.
+   * <p>verify #16.4 커버리지 확장 — Stats 진입점 미커버 지적 대응. Stats 는 Application 전체 조회 + 집계 로직.
+   *
+   * <p>A9-followup-pending-paged (2026-09-29): pendingList / countPending 을 findAll+stream 에서 paged
+   * 쿼리로 전환. findAll 1건 → JPQL 2건 (list + count) 이므로 순 쿼리 수 변화 없이 baseline 32 유지. 상한을 48→40 으로 tight
+   * 하게 좁혀 회귀 감지력 강화 (32 + 25% 여유).
    */
   @Test
-  void adminStatsService_load_쿼리_상한_48_이내() {
+  void adminStatsService_load_쿼리_상한_40_이내() {
     resetSessionAndStats();
 
     AdminStatsService.StatsModel model = adminStatsService.load(null, "daily");
 
     assertThat(model).isNotNull();
-    long executedQueries = measureAndReport("adminStatsService_load_쿼리_상한_48_이내", 48L);
+    long executedQueries = measureAndReport("adminStatsService_load_쿼리_상한_40_이내", 40L);
     assertThat(executedQueries)
         .as(
-            "AdminStatsService.load 는 EAGER 승격 후에도 쿼리 48 개 이하여야 한다 "
-                + "(baseline 32 · A9-b 유산 tight 유지 — A6-followup #233 로 55→32 복구).")
-        .isLessThanOrEqualTo(48L);
+            "AdminStatsService.load 는 EAGER 승격 후에도 쿼리 40 개 이하여야 한다 "
+                + "(baseline 32 · A9-followup-pending-paged 로 findAll → paged 전환 · 48→40 tight).")
+        .isLessThanOrEqualTo(40L);
   }
 
   /**
