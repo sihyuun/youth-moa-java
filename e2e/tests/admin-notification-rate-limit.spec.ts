@@ -27,6 +27,7 @@ import {
     applyProgram,
     login,
     resetAdminNotifications,
+    resetAdminNotificationsHard,
     resetApplications,
     seedEmail,
 } from '../helpers';
@@ -65,10 +66,11 @@ async function applyAsSeed30(browser: Browser, reason: string): Promise<void> {
 }
 
 test.beforeEach(async ({ browser, page }) => {
-    // fresh state: center1 알림 mark-all + 기존 알림 시각 이동 (이후 신청은 새 window 로 인식)
+    // fresh state (QA FAIL fix 2026-09-29): center1 알림 row 하드 삭제 → 이전 TC 병합 row 잔존으로 인한
+    // TC(b) 오검출(3 rows) 차단. mark-all-read + advance-clock 조합은 row 를 남기므로
+    // findTop5ByUserOrderByLastOccurredAtDesc 결과가 오염됐음.
     await abortExternal(page);
-    await resetAdminNotifications(browser, ADMIN_CENTER1_EMAIL);
-    await advanceNotificationClock(page, 60);
+    await resetAdminNotificationsHard(page, ADMIN_CENTER1_EMAIL);
     // seed30 의 programId=12 기존 신청 정리
     const ctx = await browser.newContext();
     try {

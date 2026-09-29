@@ -33,6 +33,16 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
   int markAllAsRead(@Param("user") User user);
 
   /**
+   * A7-rate-limit E2E fix (2026-09-29): 특정 사용자의 알림 row 를 전량 삭제한다.
+   *
+   * <p>e2e {@code TestFixtureController.resetNotifications} 전용. mark-all-read 만 하는 헬퍼로는
+   * admin-notification-rate-limit spec 의 TC(b) window 밖 재신청 시나리오를 격리할 수 없다 (TC(a) 잔존 병합 row 가 Top5
+   * 결과에 남아 예상 2 rows → 실측 3 rows 로 오검출). Spring Data 파생 쿼리 → bulk DELETE.
+   */
+  @Modifying
+  int deleteAllByUserId(Long userId);
+
+  /**
    * A7-rate-limit (2026-09-29): 동일 (user, type, dedupKey) 그룹의 window 내 최신 후보 조회.
    *
    * <p>Q3 그룹기준 = type + sourceId (dedupKey 에 인코딩됨). since = now - mergeWindow. 여러 row 가 걸리면

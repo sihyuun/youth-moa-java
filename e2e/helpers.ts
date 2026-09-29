@@ -288,6 +288,33 @@ export async function resetAdminNotifications(
 }
 
 /**
+ * A7-rate-limit E2E FAIL fix (2026-09-29): admin 계정의 Notification row 를 DB 에서 하드 삭제한다.
+ *
+ * 배경: 기존 `resetAdminNotifications` 는 mark-all-read 만 수행 → row 자체는 남아 있어
+ * admin-notification-rate-limit spec TC(b) window 밖 재신청 시나리오에서 TC(a) 잔존 병합 row 가
+ * findTop5ByUserOrderByLastOccurredAtDesc 결과에 남아 예상 2 rows → 실측 3 rows 오검출.
+ *
+ * 이 헬퍼는 `TestFixtureController.resetNotifications` 로 user_id 기준 DELETE. 다른 spec 은 기존
+ * mark-all-read 경로를 유지 (회귀 방어). rate-limit spec 전용 강한 격리 수단.
+ *
+ * @param page Playwright Page (request context 재사용). 로그인 불필요 (e2e 프로파일 fixture endpoint 는 permitAll).
+ * @param userEmail 알림을 정리할 admin 이메일
+ */
+export async function resetAdminNotificationsHard(
+    page: Page,
+    userEmail: string,
+): Promise<void> {
+    const response = await page.request.post('/__test__/reset-notifications', {
+        data: { userEmail },
+    });
+    if (response.status() !== 204) {
+        throw new Error(
+            `resetAdminNotificationsHard failed: status=${response.status()} body=${await response.text()}`,
+        );
+    }
+}
+
+/**
  * A7-e2e-suite (2026-09-28): 특정 admin 계정으로 프로그램 watch 를 등록한다 (fan-out watcher 축 검증용).
  * `POST /admin/programs/{programId}/watch/toggle` 는 상태 토글이라 이미 등록된 상태면 해제하므로,
  * 최종 상태를 등록으로 보장하기 위해 응답 fragment 의 클래스명으로 확인 후 필요 시 재호출한다.
