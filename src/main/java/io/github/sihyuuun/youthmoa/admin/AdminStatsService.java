@@ -174,17 +174,17 @@ public class AdminStatsService {
             .toList();
 
     // ── 승인 대기 (상위 5) ────────────────────────────────────
+    // A9-followup (2026-09-29): findAll+stream 필터/정렬 → Repository paged 쿼리로 전환.
+    // JOIN FETCH program·user 로 템플릿 렌더링 시 LazyInitializationException 방지.
+    // scoped 프로그램 없으면 IN () SQL 오류 방어 — 빈 리스트 반환.
     List<Long> ids = scoped.stream().map(Program::getId).toList();
-    List<Application> allApp = applicationRepository.findAll();
     List<Application> pendingList =
-        allApp.stream()
-            .filter(a -> a.getStatus() == ApplicationStatus.PENDING)
-            .filter(a -> a.getProgram() != null && ids.contains(a.getProgram().getId()))
-            .sorted(
-                Comparator.comparing(
-                    Application::getAppliedAt, Comparator.nullsLast(Comparator.reverseOrder())))
-            .limit(5)
-            .toList();
+        ids.isEmpty()
+            ? List.of()
+            : applicationRepository.findTopPendingByProgramIds(
+                ids,
+                ApplicationStatus.PENDING,
+                org.springframework.data.domain.PageRequest.of(0, 5));
 
     return StatsModel.builder()
         .chartMode(yearMode ? "year" : "month")
@@ -233,11 +233,9 @@ public class AdminStatsService {
 
   private long countPendingApplications(List<Program> scoped) {
     if (scoped.isEmpty()) return 0L;
+    // A9-followup (2026-09-29): findAll+stream 카운트 → DB COUNT 로 전환.
     List<Long> ids = scoped.stream().map(Program::getId).toList();
-    return applicationRepository.findAll().stream()
-        .filter(a -> a.getStatus() == ApplicationStatus.PENDING)
-        .filter(a -> a.getProgram() != null && ids.contains(a.getProgram().getId()))
-        .count();
+    return applicationRepository.countByProgramIdInAndStatus(ids, ApplicationStatus.PENDING);
   }
 
   private LocalDate deadlineOf(Program p) {
