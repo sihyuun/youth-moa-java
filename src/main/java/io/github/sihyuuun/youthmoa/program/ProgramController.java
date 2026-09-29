@@ -3,19 +3,21 @@ package io.github.sihyuuun.youthmoa.program;
 import io.github.sihyuuun.youthmoa.application.ApplicationRepository;
 import io.github.sihyuuun.youthmoa.application.ApplicationStatus;
 import io.github.sihyuuun.youthmoa.bookmark.BookmarkService;
+import jakarta.servlet.http.HttpSession;
 import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -132,13 +134,19 @@ public class ProgramController {
   }
 
   // ym-verify (2026-07-09 전체화면 검증 FAIL #2): open-in-view: false 환경에서 Program.content 접근이
-  // auto-commit 오류로 렌더 실패할 잠재 위험 → 컨트롤러 트랜잭션 부착으로 안전 확보.
-  // 260826 chore/content-lob-to-text: content 는 이제 @JdbcTypeCode(LONGVARCHAR) 매핑 (PG text · H2
-  // VARCHAR(MAX)) 이라 @Lob oid 스트리밍 케이스는 사라졌지만 lazy 관계·다른 fetch 사고 방어 목적으로 readOnly 트랜잭션 유지.
+  // auto-commit 오류로 렌더 실패할 잠재 위험 → 이전엔 readOnly 트랜잭션 유지.
+  // A6-followup (2026-09-29): 조회수 증가(write) 를 위해 controller-level readOnly 제거.
+  // Program.center 는 EAGER 이고 content 는 LONGVARCHAR 매핑이라 auto-commit 사고 재발 위험 소멸.
+  // 조회수 증가는 programService.incrementViewCount 내부 @Transactional 이 담당.
   @GetMapping("/programs/{id}")
-  @Transactional(readOnly = true)
   public String detail(
-      @PathVariable Long id, @AuthenticationPrincipal UserDetails principal, Model model) {
+      @PathVariable Long id,
+      @AuthenticationPrincipal UserDetails principal,
+      HttpSession session,
+      Model model) {
+    // A6-followup: 세션 dedup + Role skip 후 조회수 증가.
+    trackView(id, principal, session);
+
     Program program = programService.findById(id);
     boolean bookmarked =
         principal != null && bookmarkService.isBookmarked(principal.getUsername(), id);
@@ -182,5 +190,47 @@ public class ProgramController {
     model.addAttribute("detailSubtext", capacityCard.getDetailSubtext());
     model.addAttribute("detailEmphasized", capacityCard.isDetailEmphasized());
     return "program/detail";
+  }
+
+  // ────────────────────────────────────────────────────────────────
+  //   A6-followup (2026-09-29) — 조회수 트래킹 helpers
+  // ────────────────────────────────────────────────────────────────
+
+  private static final String VIEWED_SESSION_KEY = "viewedPrograms";
+
+  /**
+   * Q2 결정: 관리자(CENTER_ADMIN / SYSTEM_ADMIN) 는 조회수에서 제외. USER/anon 만 카운트. Q3 결정: 세션 {@code
+   * Set<Long>} dedup 으로 F5 반복·재진입 흡수. 재로그인/세션 만료 시 자연 리셋.
+   */
+  private void trackView(Long programId, UserDetails principal, HttpSession session) {
+    if (isAdmin(principal)) {
+      return;
+    }
+    @SuppressWarnings("unchecked")
+    Set<Long> viewed = (Set<Long>) session.getAttribute(VIEWED_SESSION_KEY);
+    if (viewed == null) {
+      viewed = new HashSet<>();
+      session.setAttribute(VIEWED_SESSION_KEY, viewed);
+    }
+    if (viewed.contains(programId)) {
+      return;
+    }
+    viewed.add(programId);
+    // 세션 재직렬화 트리거 (Set 내부 변경만으론 일부 세션 구현이 감지 못 함 방어).
+    session.setAttribute(VIEWED_SESSION_KEY, viewed);
+    programService.incrementViewCount(programId);
+  }
+
+  private static boolean isAdmin(UserDetails principal) {
+    if (principal == null) return false;
+    for (GrantedAuthority authority : principal.getAuthorities()) {
+      String role = authority.getAuthority();
+      if ("ROLE_CENTER_ADMIN".equals(role)
+          || "ROLE_SYSTEM_ADMIN".equals(role)
+          || "ROLE_ADMIN".equals(role)) {
+        return true;
+      }
+    }
+    return false;
   }
 }

@@ -1145,8 +1145,18 @@ public class DataInitializer implements ApplicationRunner {
                 .createdBy(sysadmin)
                 .build());
 
+    // A6-followup (2026-09-29 · Q5): 시드 프로그램에 랜덤 조회수 30~200 부여. admin-stats 프로그램별 참여 현황 "조회수" 셀
+    // 실 수치 시각 확인용. ThreadLocalRandom (재현 가능성보다 시드 스팸 회피 목적 · Random 대안).
+    java.util.concurrent.ThreadLocalRandom rng = java.util.concurrent.ThreadLocalRandom.current();
+    for (Program p : seeds) {
+      int target = rng.nextInt(30, 201);
+      for (int i = 0; i < target; i++) {
+        p.incrementViewCount();
+      }
+    }
+
     programRepository.saveAll(seeds);
-    log.info("Seeded {} programs", seeds.size());
+    log.info("Seeded {} programs with randomized viewCounts", seeds.size());
   }
 
   /**

@@ -153,6 +153,15 @@ public class Program extends BaseTimeEntity {
   @JoinColumn(name = "created_by", nullable = false)
   private User createdBy;
 
+  // ============== A6-followup (2026-09-29 · V25) ==============
+
+  /**
+   * 프로그램 상세 조회수. USER/anon 세션에서 최초 1회 진입 시 +1 (관리자 조회는 skip). admin-stats ProgramStatRow.views 셀 렌더
+   * 소스. Q3: 세션 dedup Set&lt;Long&gt; 으로 재로그인 전까지 F5 반복 조회를 흡수.
+   */
+  @Column(nullable = false)
+  private int viewCount;
+
   @Builder
   private Program(
       String title,
@@ -177,7 +186,8 @@ public class Program extends BaseTimeEntity {
       String termsMarketing,
       String description,
       Boolean hasCourses,
-      User createdBy) {
+      User createdBy,
+      Integer viewCount) {
     this.title = title;
     this.center = center;
     this.category = category;
@@ -201,6 +211,15 @@ public class Program extends BaseTimeEntity {
     this.description = description;
     this.hasCourses = hasCourses != null && hasCourses;
     this.createdBy = createdBy;
+    this.viewCount = viewCount != null ? viewCount : 0;
+  }
+
+  /**
+   * A6-followup (2026-09-29): 상세 진입 시 조회수 +1. Notice.increaseViewCount 와 동일 패턴. ProgramService
+   * 가 @Transactional 로 감쌈.
+   */
+  public void incrementViewCount() {
+    this.viewCount++;
   }
 
   public void update(

@@ -39,7 +39,7 @@
 
 | 항목 | 종류 | 사유 |
 |---|---|---|
-| Program.viewCount (조회수) | `deferred: A6-followup` | Program 엔티티에 컬럼 미도입 → 화면은 0 표시 |
+| ~~Program.viewCount (조회수)~~ | ✅ 완료 (A6-followup 2026-09-29 · V25) | `GET /programs/{id}` 진입 시 USER/anon 세션 dedup(`Set<Long>`) 후 +1. CENTER_ADMIN·SYSTEM_ADMIN skip. `ProgramStatRow.views` 셀 렌더. 시드 랜덤 30~200. 정렬 기준도 신청수 DESC 로 변경 (Q4) |
 | 실시간 chart hover 툴팁 | `deferred: A8-polish` | 서버 SVG 정적 렌더. hover 는 JS 로 후속 |
 | Excel export | `deferred: A8` | |
 | Cohort 분석 | `deferred: A6-followup` | |

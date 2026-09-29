@@ -72,4 +72,12 @@ public interface ApplicationRepository
   List<Object[]> countByProgramIdsAndStatuses(
       @Param("programIds") List<Long> programIds,
       @Param("statuses") List<ApplicationStatus> statuses);
+
+  /**
+   * A6-followup (2026-09-29): 프로그램 ID 목록의 status 무관 전체 신청 수를 batch 조회. AdminStatsService 프로그램별 참여
+   * 정렬 pre-compute 용 (N+1 fix).
+   */
+  @Query(
+      "SELECT a.program.id, COUNT(a) FROM Application a WHERE a.program.id IN :programIds GROUP BY a.program.id")
+  List<Object[]> countByProgramIdIn(@Param("programIds") List<Long> programIds);
 }
