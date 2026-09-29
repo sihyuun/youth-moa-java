@@ -86,6 +86,17 @@ jobs:
       - name: Coverage gate (jacocoTestCoverageVerification)
         run: ./gradlew jacocoTestCoverageVerification --no-daemon
 
+      # A9-c: N+1 baseline artifact. AdminEagerFetchN1Test / UserEagerFetchN1Test 가
+      # 각 TC 의 실측 쿼리 수 + 상한을 build/reports/n1-baseline.json 에 append.
+      # 실패한 run 에서도 baseline 은 보존되도록 if: always().
+      - name: Upload N+1 baseline report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: n1-baseline-${{ github.run_number }}
+          path: build/reports/n1-baseline.json
+          retention-days: 14
+
       - name: Upload test report (실패 시에만)
         if: failure()
         uses: actions/upload-artifact@v7
