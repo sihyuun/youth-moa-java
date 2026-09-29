@@ -58,11 +58,20 @@
                     </svg>
                 </span>
                 <div class="admin-notif-body">
-                    <div class="admin-notif-title" th:text="${n.title}">알림 제목</div>
+                    <!--/*
+                      A7-rate-limit (2026-09-29): occurrenceCount > 1 일 때 "[n건] title" 부기 (Q4).
+                      count == 1 이면 순수 title 만 렌더 (기존 UX 유지). data-count 속성으로 E2E 관측 가능.
+                      시간은 lastOccurredAt 기준 — 병합된 알림은 최신 발생 시각을 노출.
+                    */-->
+                    <div class="admin-notif-title"
+                         th:attr="data-count=${n.occurrenceCount}"
+                         th:text="${n.occurrenceCount > 1} ? ('[' + ${n.occurrenceCount} + '건] ' + ${n.title}) : ${n.title}">
+                        알림 제목
+                    </div>
                     <div class="admin-notif-message" th:text="${n.message}">알림 메시지</div>
                     <time class="admin-notif-time"
-                          th:datetime="${#temporals.format(n.createdAt, 'yyyy-MM-dd''T''HH:mm')}"
-                          th:text="${#temporals.format(n.createdAt, 'MM.dd HH:mm')}">09.17 12:34</time>
+                          th:datetime="${#temporals.format(n.lastOccurredAt, 'yyyy-MM-dd''T''HH:mm')}"
+                          th:text="${#temporals.format(n.lastOccurredAt, 'MM.dd HH:mm')}">09.17 12:34</time>
                 </div>
                 <div class="admin-notif-actions">
                     <button type="button"
