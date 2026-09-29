@@ -360,6 +360,38 @@ public class TestFixtureController {
   public record ResetApplicationStatusRequest(Long programId) {}
 
   /**
+   * A7-rate-limit (2026-09-29): 병합 window 밖으로 알림 시각을 강제로 이동시켜 "새 row 생성" 시나리오를 E2E 에서 재현한다.
+   *
+   * <p>정책: 모든 Notification 의 {@code last_occurred_at} · {@code created_at} 을 지정한 minutes 만큼 과거로
+   * UPDATE. 요청 예: {@code {"minutes": 6}} → 5분 window 밖으로 이동해 다음 신청은 새 row 생성.
+   *
+   * <p>H2 (e2e 프로파일) 문법: {@code DATEADD('MINUTE', -N, col)} 사용. PostgreSQL 문법과 다르지만 이 endpoint 는
+   * e2e 프로파일에서만 활성이라 H2 전용으로 작성.
+   *
+   * @return 204 No Content (idempotent)
+   */
+  @PostMapping("/advance-notification-clock")
+  @Transactional
+  public ResponseEntity<Void> advanceNotificationClock(
+      @RequestBody AdvanceNotificationClockRequest req) {
+    int minutes = req.minutes() == null ? 6 : req.minutes();
+    int updated =
+        entityManager
+            .createNativeQuery(
+                "UPDATE notification"
+                    + " SET last_occurred_at = DATEADD('MINUTE', -:minutes, last_occurred_at),"
+                    + "     created_at       = DATEADD('MINUTE', -:minutes, created_at)")
+            .setParameter("minutes", minutes)
+            .executeUpdate();
+    log.info(
+        "[test-fixture] advance-notification-clock minutes={} updatedRows={}", minutes, updated);
+    return ResponseEntity.noContent().build();
+  }
+
+  /** 알림 시각 강제 이동 요청 바디. minutes null 이면 6분 (기본 window=5 초과). */
+  public record AdvanceNotificationClockRequest(Integer minutes) {}
+
+  /**
    * A8 admin-bulk-csv (2026-09-21 · A8-e2e-suite): 신청 일괄 승인 시나리오 정밀 격리 endpoint.
    *
    * <p>배경: {@link #resetBulkFixtures()} 는 {@code program_id <= SEED_PROGRAM_COUNT} 전체의 APPROVED 를

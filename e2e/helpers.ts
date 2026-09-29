@@ -149,6 +149,28 @@ export async function resetApplications(
 }
 
 /**
+ * A7-rate-limit (2026-09-29): 알림 병합 window 밖으로 시각을 강제 이동.
+ *
+ * TestFixtureController.advanceNotificationClock 호출. 모든 Notification 의 last_occurred_at·created_at 을
+ * 지정한 minutes 만큼 과거로 UPDATE. 기본 6분 (5분 window 초과).
+ *
+ * 시나리오: 병합 → 시각 이동 → 재신청 → 신규 row 생성 검증.
+ */
+export async function advanceNotificationClock(
+    page: Page,
+    minutes: number = 6,
+): Promise<void> {
+    const response = await page.request.post('/__test__/advance-notification-clock', {
+        data: { minutes },
+    });
+    if (response.status() !== 204) {
+        throw new Error(
+            `advanceNotificationClock failed: status=${response.status()} body=${await response.text()}`,
+        );
+    }
+}
+
+/**
  * A-admin-notice-attachment seed-pollution 해소: 관리자 계정으로 생성된 임시 공지를 정리한다.
  *
  * 배경: admin-notice-form / admin-notice-upload / admin-notice-rbac spec 이 POST /admin/notices 로
