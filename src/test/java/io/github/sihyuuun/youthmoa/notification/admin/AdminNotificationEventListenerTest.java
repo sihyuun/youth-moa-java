@@ -10,6 +10,7 @@ import io.github.sihyuuun.youthmoa.center.Center;
 import io.github.sihyuuun.youthmoa.center.CenterRepository;
 import io.github.sihyuuun.youthmoa.notification.Notification;
 import io.github.sihyuuun.youthmoa.notification.NotificationRepository;
+import io.github.sihyuuun.youthmoa.notification.NotificationService;
 import io.github.sihyuuun.youthmoa.notification.NotificationType;
 import io.github.sihyuuun.youthmoa.program.Program;
 import io.github.sihyuuun.youthmoa.program.ProgramRepository;
@@ -47,6 +48,7 @@ class AdminNotificationEventListenerTest {
   @Autowired ProgramRepository programRepository;
   @Autowired CenterRepository centerRepository;
   @Autowired NotificationRepository notificationRepository;
+  @Autowired NotificationService notificationService;
 
   private User applicant;
   private User centerAdminA;
@@ -160,8 +162,11 @@ class AdminNotificationEventListenerTest {
   }
 
   @Test
-  @DisplayName("apply cancel 후 재신청도 NEW_APPLICATION 알림을 재발행한다")
-  void reapply_also_creates_notification() {
+  @DisplayName(
+      "apply cancel 후 5분 내 재신청은 병합되어 row 1건 (occurrenceCount=2) — A7-rate-limit (2026-09-29)")
+  void reapply_within_window_merges_into_single_row() {
+    // A7-rate-limit 도입 전에는 재신청마다 별개 row 를 기대했으나, 지금은 같은 (type, dedupKey) 5분 window 안에서 병합된다.
+    // window 밖 재신청 시나리오는 아래 reapply_after_window_creates_new_row 가 커버.
     ApplyRequest req = new ApplyRequest();
     req.setApplyReason("첫 신청");
     Application app = applicationService.apply(applicant.getEmail(), programA.getId(), req);
@@ -171,12 +176,13 @@ class AdminNotificationEventListenerTest {
     req2.setApplyReason("재신청");
     applicationService.apply(applicant.getEmail(), programA.getId(), req2);
 
-    long newAppCount =
+    List<Notification> newApp =
         notificationRepository.findAll().stream()
             .filter(n -> n.getType() == NotificationType.NEW_APPLICATION)
             .filter(n -> n.getUser().getId().equals(centerAdminA.getId()))
-            .count();
-    assertThat(newAppCount).isEqualTo(2);
+            .toList();
+    assertThat(newApp).hasSize(1);
+    assertThat(newApp.get(0).getOccurrenceCount()).isEqualTo(2);
   }
 
   @Test
@@ -222,4 +228,162 @@ class AdminNotificationEventListenerTest {
   // 기존 apply_with_unmatched_organization_creates_no_notifications 케이스 폐기. 미매칭 CENTER_ADMIN
   // 계정 시나리오 (Program.center.id 는 있으나 그 센터의 CENTER_ADMIN 이 0명) 는 기본 케이스
   // apply_creates_notification_for_matching_center_admin_only 의 부정 assertion 이 이미 커버한다.
+
+  // ── A7-rate-limit (2026-09-29) 병합 검증 ─────────────────────────────
+  // Q3 그룹기준 = type + sourceId. window=5분(기본).
+  // 검증 4가지: (a) 같은 programId 재신청 → 병합 (b) 다른 programId → 독립 (c) window 밖 → 신규
+  //           (d) 사용자 트랙 create → 병합 안 됨
+
+  @Test
+  @DisplayName(
+      "A7-rate-limit (a) 같은 programId 5분 내 2회 신청 → row 1건, occurrenceCount=2, isRead=false 리셋")
+  void reapply_within_window_merges_into_same_row() {
+    ApplyRequest req1 = new ApplyRequest();
+    req1.setApplyReason("첫 신청");
+    Application app1 = applicationService.apply(applicant.getEmail(), programA.getId(), req1);
+
+    // 첫 알림을 읽음 처리 후 → 병합 시 isRead=false 리셋 검증
+    List<Notification> firstBatch =
+        notificationRepository.findAll().stream()
+            .filter(n -> n.getType() == NotificationType.NEW_APPLICATION)
+            .toList();
+    assertThat(firstBatch).hasSize(1);
+    Long firstId = firstBatch.get(0).getId();
+    notificationService.markAsRead(firstId, centerAdminA.getId());
+
+    applicationService.cancel(app1.getId(), applicant.getEmail());
+    ApplyRequest req2 = new ApplyRequest();
+    req2.setApplyReason("재신청");
+    applicationService.apply(applicant.getEmail(), programA.getId(), req2);
+
+    List<Notification> newApplication =
+        notificationRepository.findAll().stream()
+            .filter(n -> n.getType() == NotificationType.NEW_APPLICATION)
+            .filter(n -> n.getUser().getId().equals(centerAdminA.getId()))
+            .toList();
+
+    // 병합 → row 1건 유지, count=2, isRead=false 리셋
+    assertThat(newApplication).hasSize(1);
+    Notification merged = newApplication.get(0);
+    assertThat(merged.getId()).isEqualTo(firstId);
+    assertThat(merged.getOccurrenceCount()).isEqualTo(2);
+    assertThat(merged.isRead()).isFalse();
+    assertThat(merged.getDedupKey()).isEqualTo("NEW_APPLICATION:" + programA.getId());
+  }
+
+  @Test
+  @DisplayName("A7-rate-limit (b) 다른 programId 신청 → row 2건 (독립 dedupKey)")
+  void different_programs_do_not_merge() {
+    // programB (centerA 소속, 같은 centerAdminA 가 수신)
+    LocalDate today = LocalDate.now();
+    Program programB =
+        programRepository.save(
+            Program.builder()
+                .title("A7 프로그램 B")
+                .center(centerA)
+                .category("취업")
+                .region("수원시")
+                .content("c")
+                .startDate(today.minusDays(1))
+                .endDate(today.plusDays(30))
+                .capacity(30)
+                .createdBy(centerAdminA)
+                .build());
+
+    ApplyRequest reqA = new ApplyRequest();
+    reqA.setApplyReason("A 신청");
+    applicationService.apply(applicant.getEmail(), programA.getId(), reqA);
+
+    ApplyRequest reqB = new ApplyRequest();
+    reqB.setApplyReason("B 신청");
+    applicationService.apply(applicant.getEmail(), programB.getId(), reqB);
+
+    List<Notification> newApplication =
+        notificationRepository.findAll().stream()
+            .filter(n -> n.getType() == NotificationType.NEW_APPLICATION)
+            .filter(n -> n.getUser().getId().equals(centerAdminA.getId()))
+            .toList();
+
+    // 각 program 별 dedupKey 가 다르므로 독립 row 2건
+    assertThat(newApplication).hasSize(2);
+    assertThat(newApplication)
+        .extracting(Notification::getDedupKey)
+        .containsExactlyInAnyOrder(
+            "NEW_APPLICATION:" + programA.getId(), "NEW_APPLICATION:" + programB.getId());
+    assertThat(newApplication).allMatch(n -> n.getOccurrenceCount() == 1);
+  }
+
+  @Test
+  @DisplayName("A7-rate-limit (c) window 밖 (>5분) 재신청 → 신규 row 생성 (병합 안 됨)")
+  void reapply_after_window_creates_new_row() {
+    ApplyRequest req1 = new ApplyRequest();
+    req1.setApplyReason("첫 신청");
+    Application app1 = applicationService.apply(applicant.getEmail(), programA.getId(), req1);
+
+    // 첫 알림의 lastOccurredAt 을 6분 전으로 강제 이동 (window 5분 밖)
+    List<Notification> firstBatch =
+        notificationRepository.findAll().stream()
+            .filter(n -> n.getType() == NotificationType.NEW_APPLICATION)
+            .toList();
+    assertThat(firstBatch).hasSize(1);
+    Notification first = firstBatch.get(0);
+    // 시각 강제 이동: e2e 프로파일 H2 이므로 DATEADD 사용. @SpringBootTest 는 기본 트랜잭션이 없으므로
+    // TransactionTemplate 로 native UPDATE 를 감싼다.
+    Long firstId = first.getId();
+    transactionTemplate.execute(
+        status -> {
+          entityManagerHolder
+              .createNativeQuery(
+                  "UPDATE notification SET last_occurred_at ="
+                      + " DATEADD('MINUTE', -6, last_occurred_at) WHERE id = :id")
+              .setParameter("id", firstId)
+              .executeUpdate();
+          return null;
+        });
+
+    applicationService.cancel(app1.getId(), applicant.getEmail());
+    ApplyRequest req2 = new ApplyRequest();
+    req2.setApplyReason("재신청");
+    applicationService.apply(applicant.getEmail(), programA.getId(), req2);
+
+    List<Notification> newApplication =
+        notificationRepository.findAll().stream()
+            .filter(n -> n.getType() == NotificationType.NEW_APPLICATION)
+            .filter(n -> n.getUser().getId().equals(centerAdminA.getId()))
+            .toList();
+
+    // window 밖 → 새 row → 총 2건 (각 count=1)
+    assertThat(newApplication).hasSize(2);
+    assertThat(newApplication).allMatch(n -> n.getOccurrenceCount() == 1);
+  }
+
+  @Test
+  @DisplayName("A7-rate-limit (d) 사용자 트랙 create() 는 dedupKey=null 이라 병합되지 않는다")
+  void user_track_create_does_not_merge() {
+    // NotificationService.create (사용자 트랙) 는 dedupKey 를 세팅하지 않으므로 병합 후보 조회에서 제외됨.
+    // 같은 유저 같은 타입으로 2건 연속 발행 → 각각 독립 row.
+    notificationService.create(
+        applicant.getId(), NotificationType.APPLICATION_APPROVED, "승인 알림", "메시지 1", "/link");
+    notificationService.create(
+        applicant.getId(), NotificationType.APPLICATION_APPROVED, "승인 알림", "메시지 2", "/link");
+
+    List<Notification> approved =
+        notificationRepository.findAll().stream()
+            .filter(n -> n.getType() == NotificationType.APPLICATION_APPROVED)
+            .filter(n -> n.getUser().getId().equals(applicant.getId()))
+            .toList();
+
+    // Q5: 사용자 트랙 무영향 — dedupKey=null 이라 병합 안 됨. row 2건, 각 count=1.
+    assertThat(approved).hasSize(2);
+    assertThat(approved).allMatch(n -> n.getOccurrenceCount() == 1);
+    assertThat(approved).allMatch(n -> n.getDedupKey() == null);
+  }
+
+  // native SQL 실행용 EntityManager (테스트 시각 조작).
+  @jakarta.persistence.PersistenceContext
+  private jakarta.persistence.EntityManager entityManagerHolder;
+
+  // A7-rate-limit: native UPDATE 를 트랜잭션 경계 안에서 실행하기 위한 helper.
+  @Autowired
+  private org.springframework.transaction.support.TransactionTemplate transactionTemplate;
 }
