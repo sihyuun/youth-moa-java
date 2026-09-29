@@ -212,7 +212,9 @@ class AdminEagerFetchN1Test {
     assertThat(model).isNotNull();
     long executedQueries = measureAndReport("adminStatsService_load_쿼리_상한_48_이내", 48L);
     assertThat(executedQueries)
-        .as("AdminStatsService.load 는 EAGER 승격 후에도 쿼리 48 개 이하여야 한다 " + "(baseline 37 + 30% 여유).")
+        .as(
+            "AdminStatsService.load 는 EAGER 승격 후에도 쿼리 48 개 이하여야 한다 "
+                + "(baseline 32 · A9-b 유산 tight 유지 — A6-followup #233 로 55→32 복구).")
         .isLessThanOrEqualTo(48L);
   }
 
