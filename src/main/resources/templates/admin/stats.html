@@ -11,11 +11,7 @@
     <link rel="icon" type="image/png" th:href="@{/images/logo_symbol.png}">
     <link rel="stylesheet" th:href="@{/css/main.css}">
     <link rel="stylesheet" th:href="@{/css/admin.css}">
-    <script th:src="@{/webjars/htmx.org/2.0.4/dist/htmx.min.js}" defer></script>
-    <meta name="_csrf" th:content="${_csrf?.token}"/>
-    <meta name="_csrf_header" th:content="${_csrf?.headerName}"/>
-    <script th:src="@{/js/htmx-csrf.js}" defer></script>
-    <script th:src="@{/js/common-ui.js}" defer></script>
+    <th:block th:replace="~{admin/fragments/_head-scripts :: scripts}"></th:block>
 </head>
 <body class="admin-shell-body">
 
