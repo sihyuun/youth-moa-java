@@ -11,10 +11,7 @@
     <link rel="icon" type="image/png" th:href="@{/images/logo_symbol.png}">
     <link rel="stylesheet" th:href="@{/css/main.css}">
     <link rel="stylesheet" th:href="@{/css/admin.css}">
-    <meta name="_csrf" th:content="${_csrf?.token}"/>
-    <meta name="_csrf_header" th:content="${_csrf?.headerName}"/>
-    <script th:src="@{/webjars/htmx.org/2.0.4/dist/htmx.min.js}"></script>
-    <script th:src="@{/js/common-ui.js}" defer></script>
+    <th:block th:replace="~{admin/fragments/_head-scripts :: scripts}"></th:block>
 </head>
 <body class="admin-shell-body">
 
@@ -176,17 +173,7 @@
             });
         });
     })();
-
-    // HTMX CSRF 토큰 부착
-    (function () {
-        var token = document.querySelector('meta[name="_csrf"]');
-        var header = document.querySelector('meta[name="_csrf_header"]');
-        if (token && header && window.htmx) {
-            document.body.addEventListener('htmx:configRequest', function (evt) {
-                evt.detail.headers[header.getAttribute('content')] = token.getAttribute('content');
-            });
-        }
-    })();
+    // (P-A) 인라인 HTMX CSRF 훅 제거 — admin/fragments/_head-scripts 의 htmx-csrf.js 가 대체 수행
 </script>
 </body>
 </html>
