@@ -4,9 +4,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.github.sihyuuun.youthmoa.application.Application;
 import io.github.sihyuuun.youthmoa.application.ApplicationRepository;
+import io.github.sihyuuun.youthmoa.application.event.ApplicationCreatedEvent;
 import io.github.sihyuuun.youthmoa.bookmark.Bookmark;
 import io.github.sihyuuun.youthmoa.bookmark.BookmarkRepository;
 import io.github.sihyuuun.youthmoa.common.N1BaselineReporter;
+import io.github.sihyuuun.youthmoa.notice.Notice;
+import io.github.sihyuuun.youthmoa.notification.admin.AdminNotificationEventListener;
 import io.github.sihyuuun.youthmoa.program.Program;
 import io.github.sihyuuun.youthmoa.user.User;
 import io.github.sihyuuun.youthmoa.user.UserPrincipal;
@@ -52,6 +55,9 @@ class AdminEagerFetchN1Test {
   @Autowired AdminDashboardService adminDashboardService;
   @Autowired AdminStatsService adminStatsService;
   @Autowired AdminProgramService adminProgramService;
+  @Autowired AdminUserService adminUserService;
+  @Autowired AdminNoticeService adminNoticeService;
+  @Autowired AdminNotificationEventListener adminNotificationEventListener;
   @Autowired ApplicationRepository applicationRepository;
   @Autowired BookmarkRepository bookmarkRepository;
   @Autowired UserRepository userRepository;
@@ -262,6 +268,102 @@ class AdminEagerFetchN1Test {
         .as(
             "AdminProgramService.find(id) 는 center EAGER 로드 시에도 쿼리 3 개 이하여야 한다 "
                 + "(baseline 실측 2 + 30% 여유, ceil).")
+        .isLessThanOrEqualTo(3L);
+  }
+
+  /**
+   * A9-c P1 A8: AdminNotificationEventListener.onApplicationCreated — NEW_APPLICATION fan-out.
+   *
+   * <p>이벤트 리스너를 직접 호출해 fan-out 경로 (Resolver 3축 조회 + N 명 createOrMerge INSERT) 의 쿼리 수를 측정한다. 프로덕션 로직
+   * 변경 없이 baseline 감시만 수행. resolver 3축 (B-2 CENTER_ADMIN + B-3-A createdBy + B-3-B watcher) union
+   * 조회 + 각 admin 별 createOrMerge (dedupKey 조회 + INSERT/UPDATE) 로 구성.
+   *
+   * <p>시드 program 1 (내일스퀘어 양평) · centerId=1 · center1 CENTER_ADMIN 1명 존재. B-3-A createdBy=sysadmin.
+   * distinct union 후 수신자 2명. baseline 실측 8 · 상한 12 (baseline + 50% 여유). 초과 시 Resolver 3축 조회 회귀 (축별
+   * 쿼리 증가) 또는 createOrMerge N+1 발화 의심.
+   */
+  @Test
+  void adminNotificationListener_onApplicationCreated_fan_out_쿼리_상한_이내() {
+    // fan-out 대상 시드 확인.
+    User seed1 = userRepository.findByEmail("seed1@youth-moa.test").orElseThrow();
+    ApplicationCreatedEvent event =
+        new ApplicationCreatedEvent(
+            1L, // applicationId (시드 첫 신청 row · listener 는 로그 문자열만 사용)
+            seed1.getId(),
+            1L, // programId = 취업역량 강화 워크숍
+            "취업역량 강화 워크숍",
+            1L // centerId = 내일스퀘어 양평
+            );
+
+    resetSessionAndStats();
+
+    // AFTER_COMMIT + REQUIRES_NEW 이지만 직접 호출 시엔 phase 우회. @Transactional 클래스 TX 내에서 REQUIRES_NEW 새
+    // TX 로 진입 → resolver 조회 + createOrMerge 실행.
+    adminNotificationEventListener.onApplicationCreated(event);
+
+    long executedQueries =
+        measureAndReport("adminNotificationListener_onApplicationCreated_fan_out_쿼리_상한_이내", 12L);
+    assertThat(executedQueries)
+        .as(
+            "AdminNotificationEventListener.onApplicationCreated 는 fan-out 쿼리 12 개 이하여야 한다 "
+                + "(baseline 실측 8 = Resolver 3축 조회 3~4 + createOrMerge N×2 · +50% 여유). "
+                + "초과 시 Resolver 축별 쿼리 회귀 또는 createOrMerge N+1 발화.")
+        .isLessThanOrEqualTo(12L);
+  }
+
+  /**
+   * A9-c P1 A9: AdminUserService.list — 관리자 사용자 목록 (검색·role filter 포함) 쿼리 상한.
+   *
+   * <p>진입점: {@code list(q, role, page)}. Specification 조립 후 {@code findAll(spec, pageable)} 호출. 기대:
+   * page 쿼리 + count 쿼리 = 2건. 무필터·필터 두 번 측정하여 안정성 확인. baseline = 실측 · 상한 = baseline + 100% tight
+   * (low-baseline 회귀 감시).
+   */
+  @Test
+  void adminUserService_list_쿼리_상한_이내() {
+    loginAsSysadmin();
+    resetSessionAndStats();
+
+    // 무필터 목록.
+    org.springframework.data.domain.Page<User> pageAll = adminUserService.list(null, null, 0);
+    assertThat(pageAll).isNotNull();
+
+    // 필터 목록 (이름/이메일 LIKE + role) — 동일 요청 사이클 시뮬레이션.
+    org.springframework.data.domain.Page<User> pageFiltered =
+        adminUserService.list("seed", "USER", 0);
+    assertThat(pageFiltered).isNotNull();
+
+    long executedQueries = measureAndReport("adminUserService_list_쿼리_상한_이내", 6L);
+    assertThat(executedQueries)
+        .as(
+            "AdminUserService.list 는 2회 호출 (무필터 + 필터) 시 쿼리 6 개 이하여야 한다 "
+                + "(baseline 실측 4 = page*2 + count*2 · +100% tight). 초과 시 Specification 비효율 회귀.")
+        .isLessThanOrEqualTo(6L);
+  }
+
+  /**
+   * A9-c P1 A10: AdminNoticeService.list — 공지 목록 fetch join 회귀 감시.
+   *
+   * <p>진입점: {@code list(page)} → {@link
+   * io.github.sihyuuun.youthmoa.notice.NoticeRepository#findAllWithCreatedBy}. {@code @EntityGraph}
+   * 로 createdBy 즉시 로딩. 기대: page 쿼리 (join fetch) + count 쿼리. {@code @EntityGraph} 제거 회귀 시 각 Notice
+   * row 마다 createdBy SELECT 로 N+1 발화.
+   *
+   * <p>baseline 실측 1 (시드 Notice 소수 · count 미발화 케이스) · 상한 3 (low-baseline tight 감시). N+1 회귀 시 시드
+   * Notice 개수만큼 급증하므로 3 초과 즉시 감지.
+   */
+  @Test
+  void adminNoticeService_list_쿼리_상한_이내() {
+    resetSessionAndStats();
+
+    org.springframework.data.domain.Page<Notice> page = adminNoticeService.list(0);
+    assertThat(page).isNotNull();
+
+    long executedQueries = measureAndReport("adminNoticeService_list_쿼리_상한_이내", 3L);
+    assertThat(executedQueries)
+        .as(
+            "AdminNoticeService.list 는 @EntityGraph(createdBy) fetch join 유지 시 쿼리 3 개 이하여야 한다 "
+                + "(baseline 실측 1 · low-baseline tight 감시). 초과 시 @EntityGraph 회귀 → "
+                + "Notice.createdBy 별도 SELECT N+1 즉시 감지.")
         .isLessThanOrEqualTo(3L);
   }
 }
