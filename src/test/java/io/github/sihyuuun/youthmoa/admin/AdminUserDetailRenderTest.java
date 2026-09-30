@@ -166,4 +166,40 @@ class AdminUserDetailRenderTest {
   void GET_admin_user_detail_missing_returns_404() throws Exception {
     mockMvc.perform(get("/admin/users/999999").with(sysadmin())).andExpect(status().isNotFound());
   }
+
+  // ================= A7 (2026-09-30) — mail 발송 결과 배너 조건부 렌더 =================
+
+  @Test
+  void GET_admin_user_detail_renders_mail_sent_banner_and_hides_password_card() throws Exception {
+    // Q3 A: 메일 성공 시 password 는 메일에만. 화면 카드 비노출.
+    Long id = seedUserId();
+    mockMvc
+        .perform(
+            get("/admin/users/" + id).with(sysadmin()).flashAttr("flashMailSent", Boolean.TRUE))
+        .andExpect(status().isOk())
+        .andExpect(content().string(containsString("data-testid=\"admin-user-mail-sent\"")))
+        .andExpect(content().string(containsString("초대 메일이 발송되었어요")))
+        // password 카드는 flashInitialPassword 가 없으므로 렌더 X
+        .andExpect(
+            content().string(not(containsString("data-testid=\"admin-user-initial-password\""))));
+  }
+
+  @Test
+  void GET_admin_user_detail_renders_mail_failed_banner_and_shows_password_card() throws Exception {
+    // Q2 A fallback: 메일 실패 시 실패 배너 + password 카드 노출.
+    Long id = seedUserId();
+    mockMvc
+        .perform(
+            get("/admin/users/" + id)
+                .with(sysadmin())
+                .flashAttr("flashMailFailed", "Connection refused")
+                .flashAttr("flashInitialPassword", "Abcd1234!@#$"))
+        .andExpect(status().isOk())
+        .andExpect(content().string(containsString("data-testid=\"admin-user-mail-failed\"")))
+        .andExpect(content().string(containsString("초대 메일 발송에 실패했어요")))
+        .andExpect(content().string(containsString("Connection refused")))
+        // fallback password 카드 노출
+        .andExpect(content().string(containsString("data-testid=\"admin-user-initial-password\"")))
+        .andExpect(content().string(containsString("Abcd1234!@#$")));
+  }
 }

@@ -128,12 +128,15 @@ class AdminUserServiceStaffTest {
   @Test
   void resetPassword_updates_password_and_resets_flag() {
     String oldPasswordHash = seedUser.getPassword();
-    String newPlain = adminUserService.resetPassword(seedUser.getId(), sysadmin);
+    AdminUserService.ResetPasswordResult result =
+        adminUserService.resetPassword(seedUser.getId(), sysadmin);
     User reloaded = userRepository.findById(seedUser.getId()).orElseThrow();
-    assertThat(newPlain).hasSize(12);
+    assertThat(result.plainPassword()).hasSize(12);
     assertThat(reloaded.isMustChangePassword()).isTrue();
-    assertThat(passwordEncoder.matches(newPlain, reloaded.getPassword())).isTrue();
+    assertThat(passwordEncoder.matches(result.plainPassword(), reloaded.getPassword())).isTrue();
     assertThat(reloaded.getPassword()).isNotEqualTo(oldPasswordHash);
+    // A7 (2026-09-30): e2e 프로파일은 MockAdminInvitationMailSender → 항상 sent=true.
+    assertThat(result.mailResult().sent()).isTrue();
   }
 
   @Test
@@ -141,5 +144,18 @@ class AdminUserServiceStaffTest {
     assertThatThrownBy(() -> adminUserService.resetPassword(sysadmin.getId(), sysadmin))
         .isInstanceOf(IllegalStateException.class)
         .hasMessageContaining("본인");
+  }
+
+  // ================= A7 (2026-09-30) — mail dispatch integration =================
+
+  @Test
+  void createStaff_mock_mail_dispatch_returns_sent_true() {
+    AdminUserService.CreatedStaff created =
+        adminUserService.createStaff(
+            sysadmin, "mail-check@test.local", "메일확인", UserGender.MALE, UserRole.USER, null);
+    // e2e 프로파일은 MockAdminInvitationMailSender 활성 → 항상 sent=true 반환.
+    assertThat(created.mailResult()).isNotNull();
+    assertThat(created.mailResult().sent()).isTrue();
+    assertThat(created.mailResult().failureReason()).isNull();
   }
 }
