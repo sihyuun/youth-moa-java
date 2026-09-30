@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<!--
+  user 전용 head-csrf fragment (F-user-scripts-fragment · Q1=B 계층 분리).
+  - CSRF meta 2개만 삽입 (HTMX 미사용 정적/폼 페이지용)
+  - HTMX 를 사용하는 페이지는 fragments/_head-htmx :: scripts 사용
+  - common-ui.js 는 footer.html 하단에서 이미 로드되므로 제외
+-->
+<th:block th:fragment="csrf">
+    <meta name="_csrf" th:content="${_csrf?.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf?.headerName}"/>
+</th:block>
+</html>
