@@ -83,7 +83,7 @@
                 </div>
 
                 <div class="admin-term-form-row">
-                    <label class="admin-term-form-label" for="content">본문 <span
+                    <label id="term-content-label" class="admin-term-form-label" for="content">본문 <span
                             class="admin-term-form-required">*</span></label>
                     <!--
                       WYSIWYG 컨테이너. Toast UI Editor 인스턴스가 마운트되어 툴바·에디팅 영역을 만든다.
@@ -231,6 +231,28 @@
             usageStatistics: false,
             hideModeSwitch: false          // 상단 MD/WYSIWYG 탭 노출 유지
         });
+
+        // -----------------------------------------------------------------
+        // a11y (verify F1 fix)
+        // · fallback 경로에서는 <label for="content"> 로 hidden textarea 와 연결됐지만
+        //   editor 활성 경로에서는 실제 편집 영역이 contenteditable div (ProseMirror) 라
+        //   label.for 가 hidden textarea 를 가리키면 screen reader 포커스가 어긋난다.
+        // · label 에 id=term-content-label 을 주고, for 는 제거 → ProseMirror 요소에
+        //   aria-labelledby 로 명시 연결.
+        // · MD 탭·WYSIWYG 탭 두 ProseMirror 모두 세팅 (Toast UI 3.2.2 기준 selector).
+        // -----------------------------------------------------------------
+        var labelEl = document.getElementById('term-content-label');
+        if (labelEl) {
+            labelEl.removeAttribute('for');
+        }
+        var wwEditor = editorEl.querySelector('.toastui-editor-ww-container .ProseMirror');
+        if (wwEditor) {
+            wwEditor.setAttribute('aria-labelledby', 'term-content-label');
+        }
+        var mdEditor = editorEl.querySelector('.toastui-editor-md-container .ProseMirror');
+        if (mdEditor) {
+            mdEditor.setAttribute('aria-labelledby', 'term-content-label');
+        }
 
         // form submit hook — WYSIWYG HTML 을 hidden textarea 로 주입.
         if (form) {
