@@ -39,6 +39,28 @@ spring:
     suffix: .html
     enabled: true
 
+  # A7 admin-invitation-mail (2026-09-30 · SMTP 초대 메일):
+  # - dev/local 기본: MailHog (localhost:1025, plain SMTP, 인증 없음).
+  #   → docker run -p 1025:1025 -p 8025:8025 mailhog/mailhog 로 기동, http://localhost:8025 로 수신 확인.
+  # - prod: Gmail SMTP (smtp.gmail.com:587 STARTTLS). fly.io secrets 로 자격증명 주입.
+  #   → fly secrets set MAIL_USERNAME=... MAIL_PASSWORD=...(App password) MAIL_HOST=smtp.gmail.com MAIL_PORT=587
+  #     MAIL_STARTTLS=true MAIL_AUTH=true
+  # - e2e 프로파일: youthmoa.mail.mock=true → MockAdminInvitationMailSender 활성 (SMTP 미접속).
+  mail:
+    host: ${MAIL_HOST:localhost}
+    port: ${MAIL_PORT:1025}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: ${MAIL_AUTH:false}
+          starttls:
+            enable: ${MAIL_STARTTLS:false}
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
+
   # A-admin-notice-attachment (2026-09-03 · Qn-2 A):
   # - max-file-size = 5MB (NoticeService.MAX_ATTACHMENT_SIZE_BYTES 와 일치, Servlet-level rejection 이 우선)
   # - max-request-size = 6MB (파일 5MB + 폼 필드 여유)
@@ -92,6 +114,18 @@ security:
 #   - 이 경우 지도 영역엔 fallback 문구 표시되고 리스트/필터는 정상 동작.
 #   - 발급: https://developers.kakao.com → 애플리케이션 → JavaScript 키
 youthmoa:
+  # A7 admin-invitation-mail (2026-09-30): 관리자 계정 발급 · 임시 password 재발급 시 초대 메일 발송.
+  # - mock=false (기본): SmtpAdminInvitationMailSender 활성 (실 SMTP).
+  # - mock=true (e2e/dev): MockAdminInvitationMailSender 활성 (로그만).
+  # - from-address 는 SMTP 서비스 정책상 도메인 매치 필요 (Gmail 은 계정 주소 그대로).
+  # - login-url 은 메일 CTA 링크 · 절대 URL 필수.
+  mail:
+    mock: ${YOUTHMOA_MAIL_MOCK:false}
+    from-address: ${YOUTHMOA_MAIL_FROM_ADDRESS:noreply@youth-moa.local}
+    from-name: ${YOUTHMOA_MAIL_FROM_NAME:청년몽땅}
+    login-url: ${YOUTHMOA_MAIL_LOGIN_URL:http://localhost:8080/login}
+    service-name: ${YOUTHMOA_MAIL_SERVICE_NAME:청년몽땅}
+
   # A7-rate-limit (2026-09-29): admin fan-out 알림 병합 window (분). 기본 5분.
   # createOrMerge 는 (userId, type, dedupKey) 매칭 알림이 이 window 안에 존재하면 병합, 아니면 신규 row 생성.
   notification:
