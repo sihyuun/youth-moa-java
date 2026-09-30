@@ -71,7 +71,7 @@
 
 ## 이월 항목
 
-- content 편집 UX (WYSIWYG) — `A-admin-terms-crud-ux-polish` 별도 티켓
+- ~~content 편집 UX (WYSIWYG) — `A-admin-terms-crud-ux-polish` 별도 티켓~~ ✅ 2026-09-30 완료 (Toast UI Editor 3.2 통합, jsdelivr CDN, WYSIWYG default + Markdown 탭, HTML 저장 유지, textarea 폴백)
 - 개정 시 회원 자동 재동의 요청 — `A-terms-re-agreement`
 - 회원별 동의 이력 관리 화면 — A6 이후
 

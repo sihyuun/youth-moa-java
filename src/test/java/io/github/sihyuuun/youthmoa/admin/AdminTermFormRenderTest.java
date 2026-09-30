@@ -72,6 +72,20 @@ class AdminTermFormRenderTest {
   }
 
   @Test
+  void GET_admin_terms_new_form_ToastUI_에디터_통합() throws Exception {
+    // 2026-09-30 admin term editor: Toast UI Editor WYSIWYG 통합.
+    // 편집기 컨테이너 · CDN 스크립트 · hidden textarea 폴백 3요소 렌더 확인.
+    // 2026-10-01 verify F1 fix: label id (aria-labelledby 연결용) 렌더 확인.
+    mockMvc
+        .perform(get("/admin/terms/new").with(sysadmin()))
+        .andExpect(status().isOk())
+        .andExpect(content().string(containsString("id=\"term-content-editor\"")))
+        .andExpect(content().string(containsString("toastui-editor")))
+        .andExpect(content().string(containsString("cdn.jsdelivr.net/npm/@toast-ui/editor")))
+        .andExpect(content().string(containsString("id=\"term-content-label\"")));
+  }
+
+  @Test
   void GET_admin_terms_new_centerAdmin_403_Qn1B() throws Exception {
     mockMvc.perform(get("/admin/terms/new").with(centerAdmin())).andExpect(status().isForbidden());
   }

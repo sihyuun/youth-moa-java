@@ -3414,3 +3414,28 @@ body.admin-shell-body {
     text-overflow: ellipsis;
     white-space: nowrap;
 }
+
+/* =====================================================================
+ * Toast UI Editor 브랜드 오버라이드 (약관 편집 화면)
+ *  - Toast UI 기본 primary 는 파랑 계열. 브랜드 컬러(#3F30E9) 로 정렬.
+ *  - 컨테이너 radius 는 --radius-md 로 통일.
+ * ===================================================================== */
+.admin-term-content-editor {
+    margin-bottom: 8px;
+}
+.admin-term-content-editor .toastui-editor-defaultUI {
+    border-radius: var(--radius-md, 8px);
+    border-color: var(--color-border, #e2e8f0);
+}
+.admin-term-content-editor .toastui-editor-toolbar-icons.active,
+.admin-term-content-editor .toastui-editor-toolbar-icons:hover {
+    background-color: var(--color-primary-bg, #eef0ff);
+}
+.admin-term-content-editor .toastui-editor-md-tab-container .tab-item.active,
+.admin-term-content-editor .toastui-editor-mode-switch .tab-item.active {
+    color: var(--color-primary, #3F30E9);
+    border-color: var(--color-primary, #3F30E9);
+}
+.admin-term-content-editor .toastui-editor-contents a {
+    color: var(--color-primary, #3F30E9);
+}
