@@ -7,6 +7,7 @@
     <link rel="icon" type="image/png" th:href="@{/images/logo_symbol.png}">
     <link rel="stylesheet" th:href="@{/css/main.css}">
     <th:block th:replace="~{fragments/_head-csrf :: csrf}"></th:block>
+    <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
 </head>
 <body>
 
@@ -306,10 +307,28 @@
             if (input) input.value = val;
         });
     });
+    // 우편번호 검색 — Daum Postcode API 연동 (signup.html 패턴 재사용)
     var btnAddr = document.getElementById('btnAddrSearch');
     if (btnAddr) {
         btnAddr.addEventListener('click', function () {
-            if (window.Toast && window.Toast.show) window.Toast.show('주소 검색 창이 열립니다.', 'info');
+            if (typeof daum === 'undefined' || !daum.Postcode) {
+                if (window.Toast) window.Toast.show('우편번호 서비스를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.', 'error');
+                else alert('우편번호 서비스를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.');
+                return;
+            }
+            new daum.Postcode({
+                oncomplete: function (data) {
+                    var zip = document.getElementById('editZipcode');
+                    var addr = document.getElementById('editAddress');
+                    var detail = document.getElementById('editAddressDetail');
+                    if (!zip || !addr) return;
+                    zip.value = data.zonecode;
+                    addr.value = data.roadAddress || data.jibunAddress;
+                    zip.dispatchEvent(new Event('input', { bubbles: true }));
+                    addr.dispatchEvent(new Event('input', { bubbles: true }));
+                    if (detail) detail.focus();
+                }
+            }).open();
         });
     }
     // F-wireframe #9 / fix/password-change-inline: 비밀번호 눈 아이콘 토글
