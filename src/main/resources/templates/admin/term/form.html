@@ -11,6 +11,14 @@
     <link rel="icon" type="image/png" th:href="@{/images/logo_symbol.png}">
     <link rel="stylesheet" th:href="@{/css/main.css}">
     <link rel="stylesheet" th:href="@{/css/admin.css}">
+    <!--
+      Toast UI Editor (WYSIWYG + Markdown 탭 편집기) CDN — jsdelivr.
+      · WYSIWYG 이 만드는 태그 (strong/em/a/ul/ol/h1-6/blockquote/table 등) 는
+        서버 sanitize 화이트리스트 (FORMATTING+LINKS+BLOCKS+STYLES+TABLES) 안에 포함.
+      · CDN 로드 실패 시 hidden textarea 를 표시로 전환해 편집을 계속할 수 있게 폴백.
+    -->
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/@toast-ui/editor@3.2.2/dist/toastui-editor.min.css">
     <th:block th:replace="~{admin/fragments/_head-scripts :: scripts}"></th:block>
 </head>
 <body class="admin-shell-body">
@@ -75,14 +83,24 @@
                 </div>
 
                 <div class="admin-term-form-row">
-                    <label class="admin-term-form-label" for="content">본문 (HTML) <span
+                    <label class="admin-term-form-label" for="content">본문 <span
                             class="admin-term-form-required">*</span></label>
+                    <!--
+                      WYSIWYG 컨테이너. Toast UI Editor 인스턴스가 마운트되어 툴바·에디팅 영역을 만든다.
+                      form submit 순간 editor.getHTML() 을 아래 hidden textarea 에 주입 → 서버 sanitize.
+                    -->
+                    <div id="term-content-editor" class="admin-term-content-editor"></div>
+                    <!--
+                      Fallback textarea. Toast UI 로드 실패(오프라인·CDN 차단) 시 JS 가 이 요소를
+                      화면에 노출시키고 hidden 을 해제해 그대로 HTML 편집을 계속할 수 있게 한다.
+                    -->
                     <textarea id="content" name="content" required rows="20" cols="80"
                               class="admin-term-form-textarea"
                               placeholder="약관 본문을 HTML 로 입력해주세요. &lt;script&gt; 등은 저장 시 자동 제거돼요."
-                              th:text="${term != null ? term.content : ''}"></textarea>
+                              th:text="${term != null ? term.content : ''}"
+                              hidden aria-hidden="true"></textarea>
                     <p class="admin-term-form-help">
-                        저장 시 OWASP HTML sanitizer 로 정화됩니다. WYSIWYG 편집기는 별도 티켓에서 도입 예정.
+                        WYSIWYG 편집기(툴바 우측에서 마크다운 탭 전환 가능). 저장 시 OWASP HTML sanitizer 로 정화됩니다.
                     </p>
                 </div>
 
@@ -160,7 +178,68 @@
     </div>
 </main>
 
+<!--
+  Toast UI Editor 본체 스크립트 (all 번들: WYSIWYG + Markdown + 플러그인 헬퍼).
+  head 가 아닌 body 하단 배치 → 초기 렌더 blocking 제거.
+-->
+<script src="https://cdn.jsdelivr.net/npm/@toast-ui/editor@3.2.2/dist/toastui-editor-all.min.js"></script>
 <script th:inline="javascript">
+    // -------------------------------------------------------------------
+    // Toast UI Editor 통합
+    // · SYSTEM_ADMIN 만 편집 가능 (fieldset disabled 상황에서는 초기화 스킵).
+    // · CDN 로드 실패 시 hidden textarea 를 표시로 전환 → 폴백 편집.
+    // · form submit 훅에서 WYSIWYG HTML 을 textarea.value 로 주입 → 서버 sanitize 대상.
+    // -------------------------------------------------------------------
+    (function () {
+        var editorEl = document.getElementById('term-content-editor');
+        var textarea = document.getElementById('content');
+        if (!editorEl || !textarea) {
+            return;
+        }
+        var form = textarea.closest('form');
+        var fieldsetDisabled = form && form.querySelector('fieldset[disabled]');
+
+        function revealTextareaFallback(reasonLog) {
+            // Toast UI 없음 → hidden 해제 + 안내
+            editorEl.hidden = true;
+            textarea.hidden = false;
+            textarea.setAttribute('aria-hidden', 'false');
+            if (reasonLog) {
+                console.warn('[admin-term] Toast UI Editor fallback:', reasonLog);
+            }
+        }
+
+        // 조회 전용(CENTER_ADMIN) 은 텍스트만 보여주고 편집기 스킵.
+        if (fieldsetDisabled) {
+            revealTextareaFallback('read-only (non SYSTEM_ADMIN)');
+            textarea.setAttribute('readonly', 'readonly');
+            return;
+        }
+
+        if (!window.toastui || !window.toastui.Editor) {
+            revealTextareaFallback('CDN load failed');
+            return;
+        }
+
+        var initial = textarea.value || '';
+        var editor = new toastui.Editor({
+            el: editorEl,
+            height: '500px',
+            initialEditType: 'wysiwyg',   // WYSIWYG default (Q4)
+            previewStyle: 'tab',
+            initialValue: initial,
+            usageStatistics: false,
+            hideModeSwitch: false          // 상단 MD/WYSIWYG 탭 노출 유지
+        });
+
+        // form submit hook — WYSIWYG HTML 을 hidden textarea 로 주입.
+        if (form) {
+            form.addEventListener('submit', function () {
+                textarea.value = editor.getHTML();
+            });
+        }
+    })();
+
     // 유저 드롭다운
     (function () {
         var trigger = document.querySelector('.admin-header-user-trigger');
