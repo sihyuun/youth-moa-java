@@ -29,6 +29,7 @@ const CENTER_SELECT = 'select[data-testid="admin-user-new-center"]';
 const SUBMIT = 'button[data-testid="admin-user-new-submit"]';
 const INITIAL_PW_CARD = '[data-testid="admin-user-initial-password"]';
 const INITIAL_PW_VALUE = '[data-testid="admin-user-initial-password-value"]';
+const MAIL_SENT_BANNER = '[data-testid="admin-user-mail-sent"]';
 
 test.beforeEach(async ({ page }) => {
     await abortExternal(page);
@@ -60,7 +61,10 @@ test('동적 섹션 — 계정타입 ADMIN 선택 시 관리자 종류·센터 �
     await expect(page.locator('#centerSection')).toBeVisible();
 });
 
-test('USER 계정 발급 — 제출 → 상세로 redirect + 임시 비밀번호 1회 노출', async ({ page }) => {
+test('USER 계정 발급 — 제출 → 상세로 redirect + 메일 발송 배너 노출 (password 카드 비노출)', async ({ page }) => {
+    // A7 (2026-09-30, Q3=A 보안 우선): 초대 메일 발송 성공 시 임시 비밀번호는 메일에만 존재.
+    // 화면 password 카드는 fallback (메일 실패) 시에만 렌더. e2e profile 은 MockAdminInvitationMailSender
+    // 를 사용하며 항상 success 반환 → 성공 배너 노출 + password 카드 부재를 검증한다.
     const email = uniqueEmail('issue');
     await loginAdmin(page);
     await page.goto('/admin/users/new', { waitUntil: 'domcontentloaded' });
@@ -73,13 +77,12 @@ test('USER 계정 발급 — 제출 → 상세로 redirect + 임시 비밀번호
     // 302 → /admin/users/{id}
     await page.waitForURL(/\/admin\/users\/\d+/);
 
-    // 초기 비밀번호 카드 + 값 노출 (flash — 1회성)
-    await expect(page.locator(INITIAL_PW_CARD)).toBeVisible();
-    const tempPw = (await page.locator(INITIAL_PW_VALUE).textContent())?.trim();
-    expect(tempPw && tempPw.length >= 8).toBeTruthy();
+    // 메일 발송 성공 배너 노출 (Q3=A)
+    await expect(page.locator(MAIL_SENT_BANNER)).toBeVisible();
+    await expect(page.locator(MAIL_SENT_BANNER)).toContainText('초대 메일이 발송');
 
-    // 발급 대상 이메일이 화면에 표기되는지
-    await expect(page.locator(INITIAL_PW_CARD)).toContainText(email);
+    // password 카드는 렌더되지 않아야 함 (메일 성공 시 컨트롤러가 flashInitialPassword 미전달)
+    await expect(page.locator(INITIAL_PW_CARD)).toHaveCount(0);
 });
 
 test('이메일 중복 발급 — 같은 이메일 재발급 시 에러 메시지 노출', async ({ page }) => {
@@ -103,32 +106,34 @@ test('이메일 중복 발급 — 같은 이메일 재발급 시 에러 메시�
     await expect(page.getByText(/이미 사용/)).toBeVisible();
 });
 
-test('임시 비밀번호 재발급 — 상세에서 재발급 버튼 → 새 임시 비밀번호 노출', async ({ page }) => {
+test('임시 비밀번호 재발급 — 상세에서 재발급 버튼 → 메일 재발송 배너 노출', async ({ page }) => {
+    // A7 (2026-09-30, Q3=A): 재발급도 신규 발급과 동일하게 메일에만 password 를 담아 전송.
+    // 화면에서는 성공 배너만 확인한다 (password 카드는 fallback 전용).
     const email = uniqueEmail('reset');
     await loginAdmin(page);
 
-    // 대상 유저 발급
+    // 대상 유저 발급 (1차)
     await page.goto('/admin/users/new', { waitUntil: 'domcontentloaded' });
     await page.locator(EMAIL_INPUT).fill(email);
     await page.locator(NAME_INPUT).fill('재발급 대상');
     await page.locator(SUBMIT).click();
     await page.waitForURL(/\/admin\/users\/\d+/);
-    const firstPw = (await page.locator(INITIAL_PW_VALUE).textContent())?.trim();
+    await expect(page.locator(MAIL_SENT_BANNER)).toBeVisible();
 
     // 재발급 버튼 — form onsubmit=confirm(...) 이므로 dialog accept
     page.once('dialog', dialog => dialog.accept());
     await page.locator('button[data-testid="admin-user-reset-password-btn"]').click();
     await page.waitForURL(/\/admin\/users\/\d+/);
 
-    // 새 임시 비밀번호 카드 재노출
-    await expect(page.locator(INITIAL_PW_CARD)).toBeVisible();
-    const secondPw = (await page.locator(INITIAL_PW_VALUE).textContent())?.trim();
-    expect(secondPw && secondPw.length >= 8).toBeTruthy();
-    // 재발급이면 이전 비밀번호와 달라야 한다 (SecureRandom 12자)
-    expect(secondPw).not.toBe(firstPw);
+    // 재발급 성공 배너 재노출 + password 카드 비노출
+    await expect(page.locator(MAIL_SENT_BANNER)).toBeVisible();
+    await expect(page.locator(INITIAL_PW_CARD)).toHaveCount(0);
 });
 
-test('강제 비밀번호 변경 — 신규 관리자 첫 로그인 시 /password/change 강제 → 변경 후 정상 진입', async ({
+// A7 (2026-09-30, Q3=A) 이월: 메일 발송 성공 시 임시 비밀번호는 메일에만 담김 → 화면에서 tempPw 를
+// 얻어 스태프 재로그인하는 이 시나리오는 성립하지 않는다. fallback (메일 실패 강제) 경로가 도입되면
+// 그때 함께 되살린다. 별건 이월 (mock force-fail flag 신설 필요).
+test.skip('강제 비밀번호 변경 — 신규 관리자 첫 로그인 시 /password/change 강제 → 변경 후 정상 진입', async ({
     page,
     browser,
 }) => {
