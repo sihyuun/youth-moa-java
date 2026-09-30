@@ -16,6 +16,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
+import org.thymeleaf.spring6.SpringTemplateEngine;
 
 /**
  * D5 — CapacityBar fragment 실 렌더 검증 (prototype.tsx L204~228 2-line 매칭).
@@ -32,7 +33,9 @@ class CapacityBarFragmentRenderTest {
   @Autowired MockMvc mockMvc;
 
   private String renderFragment(ProgramCardDto dto) {
-    TemplateEngine engine = ctx.getBean(TemplateEngine.class);
+    // A7 (2026-09-30) 이후 mail 전용 TemplateEngine bean 이 추가되어 TemplateEngine 타입으로 조회하면
+    // NoUniqueBeanDefinitionException. web 엔진(SpringTemplateEngine)만 명시 요청해 fragment 를 렌더한다.
+    TemplateEngine engine = ctx.getBean(SpringTemplateEngine.class);
     Context c = new Context();
     c.setVariable("pct", dto.getPct());
     c.setVariable("colorClass", dto.getColorClass());
