@@ -1,5 +1,6 @@
 package io.github.sihyuuun.youthmoa.test;
 
+import io.github.sihyuuun.youthmoa.admin.MockAdminInvitationMailSender;
 import io.github.sihyuuun.youthmoa.application.Application;
 import io.github.sihyuuun.youthmoa.application.ApplicationRepository;
 import io.github.sihyuuun.youthmoa.common.DataInitializer;
@@ -12,12 +13,14 @@ import jakarta.validation.constraints.NotBlank;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -43,6 +46,13 @@ public class TestFixtureController {
   private final ApplicationRepository applicationRepository;
   private final UserRepository userRepository;
   private final NotificationRepository notificationRepository;
+
+  /**
+   * M2 (2026-09-30 · A7 mail followup): MockAdminInvitationMailSender 는 {@code
+   * youthmoa.mail.mock=true} 일 때만 등록되는 bean. e2e 프로파일 default 는 mock=true 이지만 향후 정책 변경 대비 optional
+   * 주입으로 방어. bean 부재 시 force-fail endpoint 는 404 대신 명시적 IllegalState 로 원인 안내.
+   */
+  private final ObjectProvider<MockAdminInvitationMailSender> mockMailProvider;
 
   @PersistenceContext private EntityManager entityManager;
 
@@ -455,6 +465,31 @@ public class TestFixtureController {
         "[test-fixture] reset-application-status programId={} updatedRows={}",
         req.programId(),
         reset);
+    return ResponseEntity.noContent().build();
+  }
+
+  /**
+   * M2 (2026-09-30 · A7 mail followup): MockAdminInvitationMailSender 의 강제 실패 flag 를 토글한다.
+   *
+   * <p>사용처: admin-staff-management.spec.ts fallback 시나리오 (메일 발송 실패 시 상세 화면에 password 카드 노출 +
+   * fallback 배너). 정상 시나리오는 mock 의 default success 결과에 의존하므로 이 endpoint 는 강제 실패 케이스에서만 enable=true 로
+   * 켠 뒤 반드시 enable=false 로 복구해야 다음 spec 에 오염되지 않는다.
+   *
+   * <p>격리: {@code @Profile("e2e")} 컨트롤러 안이라 local/prod 에서는 엔드포인트 자체가 부재.
+   *
+   * @param enabled true 이면 강제 실패, false 이면 정상 (default 로 복구)
+   * @return 204 No Content
+   */
+  @PostMapping("/mail/force-fail")
+  public ResponseEntity<Void> mailForceFail(@RequestParam("enabled") boolean enabled) {
+    MockAdminInvitationMailSender mock = mockMailProvider.getIfAvailable();
+    if (mock == null) {
+      throw new IllegalStateException(
+          "test fixture: MockAdminInvitationMailSender bean unavailable — "
+              + "youthmoa.mail.mock 가 false 이거나 prod 프로파일에서 활성화될 수 없음");
+    }
+    mock.setForceFail(enabled);
+    log.info("[test-fixture] mail.force-fail enabled={}", enabled);
     return ResponseEntity.noContent().build();
   }
 }
