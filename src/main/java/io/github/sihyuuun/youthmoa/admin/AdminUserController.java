@@ -122,9 +122,14 @@ public class AdminUserController {
       }
       AdminUserService.CreatedStaff created =
           adminUserService.createStaff(admin, email, name, newGender, newRole, centerId);
-      ra.addFlashAttribute("flashMessage", "계정을 발급했어요.");
-      ra.addFlashAttribute("flashInitialEmail", created.user().getEmail());
-      ra.addFlashAttribute("flashInitialPassword", created.plainPassword());
+      // A7 (2026-09-30 · Q2 A fallback + Q3 보안 우선):
+      //  - mail 성공 → "초대 메일 발송 완료" 배너만. password 는 메일에 있으므로 화면 비노출.
+      //  - mail 실패 → 실패 배너 + fallback 으로 password 노출 (운영자가 직접 전달).
+      applyMailFlash(ra, created.mailResult(), created.user().getEmail(), created.plainPassword());
+      if (!created.mailResult().sent()) {
+        ra.addFlashAttribute("flashInitialEmail", created.user().getEmail());
+        ra.addFlashAttribute("flashInitialPassword", created.plainPassword());
+      }
       return "redirect:/admin/users/" + created.user().getId();
     } catch (IllegalArgumentException e) {
       ra.addFlashAttribute("flashError", e.getMessage());
@@ -143,13 +148,37 @@ public class AdminUserController {
       RedirectAttributes ra) {
     try {
       User admin = loadCurrentAdmin(principal);
-      String newPassword = adminUserService.resetPassword(uid, admin);
-      ra.addFlashAttribute("flashMessage", "임시 비밀번호를 재발급했어요.");
-      ra.addFlashAttribute("flashInitialPassword", newPassword);
+      AdminUserService.ResetPasswordResult result = adminUserService.resetPassword(uid, admin);
+      User target = adminUserService.findById(uid);
+      // A7 (2026-09-30): 메일 성공 시 password 화면 비노출, 실패 시 fallback 노출.
+      applyMailFlash(ra, result.mailResult(), target.getEmail(), result.plainPassword());
+      if (!result.mailResult().sent()) {
+        ra.addFlashAttribute("flashInitialPassword", result.plainPassword());
+      }
     } catch (IllegalArgumentException | IllegalStateException e) {
       ra.addFlashAttribute("flashError", e.getMessage());
     }
     return "redirect:/admin/users/" + uid;
+  }
+
+  /**
+   * A7 (2026-09-30) — mail 발송 결과 → flash 배너 매핑.
+   *
+   * <ul>
+   *   <li>성공: {@code flashMailSent=true} + 성공 배너 텍스트. detail.html 은 이 플래그로 password 카드 숨김.
+   *   <li>실패: {@code flashMailFailed=<사유>} + 실패 안내 텍스트. detail.html 은 fallback 으로 password 카드 노출.
+   * </ul>
+   */
+  private static void applyMailFlash(
+      RedirectAttributes ra, MailDispatchResult mail, String email, String plainPassword) {
+    if (mail.sent()) {
+      ra.addFlashAttribute("flashMailSent", true);
+      ra.addFlashAttribute("flashMessage", "초대 메일을 발송했어요. (" + email + ")");
+    } else {
+      ra.addFlashAttribute("flashMailFailed", mail.failureReason());
+      ra.addFlashAttribute(
+          "flashMessage", "계정은 발급됐지만 초대 메일 발송에 실패했어요. 아래 임시 비밀번호를 대상자에게 직접 전달해주세요.");
+    }
   }
 
   // ================= 상세 =================

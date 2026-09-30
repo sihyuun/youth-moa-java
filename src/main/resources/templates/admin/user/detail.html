@@ -43,7 +43,38 @@
         <div th:if="${flashError}" class="admin-flash admin-flash--error" role="alert"
              th:text="${flashError}"></div>
 
-        <!-- A5-1 (2026-09-18): 초기/임시 비밀번호 1회 노출 카드 (flash — 새로고침 시 사라짐) -->
+        <!-- A7 (2026-09-30): 초대 메일 발송 결과 배너 -->
+        <div th:if="${flashMailSent}"
+             class="admin-flash admin-flash--success"
+             role="status"
+             data-testid="admin-user-mail-sent"
+             style="border-left:4px solid #22C55E;padding:16px 20px;background:#F0FDF4">
+            <p style="margin:0 0 4px 0;font-size:13px;font-weight:700;color:#166534">
+                초대 메일이 발송되었어요
+            </p>
+            <p style="margin:0;font-size:12px;color:#166534">
+                대상자가 메일에서 임시 비밀번호를 확인할 수 있어요. 최초 로그인 후 반드시 비밀번호를 변경해야 해요.
+            </p>
+        </div>
+        <div th:if="${flashMailFailed}"
+             class="admin-flash admin-flash--error"
+             role="alert"
+             data-testid="admin-user-mail-failed"
+             style="border-left:4px solid #EF4444;padding:16px 20px;background:#FEF2F2">
+            <p style="margin:0 0 4px 0;font-size:13px;font-weight:700;color:#991B1B">
+                초대 메일 발송에 실패했어요
+            </p>
+            <p style="margin:0 0 6px 0;font-size:12px;color:#991B1B">
+                사유: <span th:text="${flashMailFailed}">SMTP 오류</span>
+            </p>
+            <p style="margin:0;font-size:12px;color:#991B1B">
+                아래 임시 비밀번호를 안전한 채널로 대상자에게 직접 전달해주세요.
+            </p>
+        </div>
+
+        <!-- A5-1 (2026-09-18): 초기/임시 비밀번호 1회 노출 카드 (flash — 새로고침 시 사라짐)
+             A7 (2026-09-30 · Q3 보안 우선): 메일 발송 성공 시 password 는 메일에만 있으므로 화면 비노출.
+             flashMailSent 가 true 이면 flashInitialPassword 는 컨트롤러에서 전달하지 않아 이 카드도 렌더 안 됨. -->
         <div th:if="${flashInitialPassword}"
              class="admin-flash admin-flash--success"
              role="status"

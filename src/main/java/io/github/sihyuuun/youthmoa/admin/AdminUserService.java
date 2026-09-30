@@ -48,6 +48,8 @@ public class AdminUserService {
   private final CenterRepository centerRepository;
   private final PasswordEncoder passwordEncoder;
   private final SecureRandomPasswordGenerator passwordGenerator;
+  // A7 (2026-09-30): 계정 발급·password 재발급 완료 후 초대 메일 발송. Q2 A fallback — 실패해도 계정/password 는 커밋 유지.
+  private final AdminInvitationMailService invitationMailService;
 
   // ================= 조회 =================
 
@@ -208,26 +210,36 @@ public class AdminUserService {
             .build();
     newUser.assignInitialPassword(encoded, admin);
     User saved = userRepository.save(newUser);
-    return new CreatedStaff(saved, plainPassword);
+    // A7 (2026-09-30): 초대 메일 발송. Q2 A fallback — 실패해도 계정 저장은 커밋 유지.
+    // MailDispatchResult 는 컨트롤러에서 flash 분기(password 노출 vs 숨김) 결정에 사용.
+    MailDispatchResult mail =
+        invitationMailService.sendInvitation(saved.getEmail(), saved.getName(), plainPassword);
+    return new CreatedStaff(saved, plainPassword, mail);
   }
 
   /**
    * SYSTEM_ADMIN 이 임시 password 를 재발급한다. mustChangePassword=TRUE 재설정. 자기 자신 리셋 금지 (Qn-5 A).
    *
-   * @return plain-text 새 password (flash 1회 노출용)
+   * @return {@link ResetPasswordResult} — plain-text 새 password + 메일 발송 결과 (Q2 A fallback)
    */
   @Transactional
-  public String resetPassword(Long userId, User admin) {
+  public ResetPasswordResult resetPassword(Long userId, User admin) {
     User target = findById(userId);
     safeguard.assertCanResetPassword(admin, target);
     String plainPassword = passwordGenerator.generate();
     String encoded = passwordEncoder.encode(plainPassword);
     target.resetPasswordByAdmin(encoded);
-    return plainPassword;
+    // A7 (2026-09-30): 재발급 메일 발송. 실패해도 password 재설정은 커밋 유지.
+    MailDispatchResult mail =
+        invitationMailService.sendPasswordReset(target.getEmail(), target.getName(), plainPassword);
+    return new ResetPasswordResult(plainPassword, mail);
   }
 
-  /** 신규 발급 결과 · flash 로 초기 password 1회 노출용. */
-  public record CreatedStaff(User user, String plainPassword) {}
+  /** 신규 발급 결과 · flash 로 초기 password 1회 노출용. A7 (2026-09-30): mail 결과 필드 추가. */
+  public record CreatedStaff(User user, String plainPassword, MailDispatchResult mailResult) {}
+
+  /** password 재발급 결과. A7 (2026-09-30) 신설. */
+  public record ResetPasswordResult(String plainPassword, MailDispatchResult mailResult) {}
 
   // ================= 헬퍼 =================
 
