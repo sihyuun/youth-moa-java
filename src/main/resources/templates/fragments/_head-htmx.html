@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<!--
+  user 전용 head-htmx fragment (F-user-scripts-fragment · Q1=B 계층 분리).
+  - CSRF meta 2개 + HTMX 코어 + htmx-csrf 훅 순서 고정
+  - HTMX 를 사용하는 사용자 페이지 <head> 내부에 th:replace 로 삽입
+  - common-ui.js 는 footer.html 하단에서 이미 로드되므로 제외 (admin fragment 와 다른 지점)
+  - 페이지 특유 script (Kakao Map SDK, daum postcode, hero-rotator 등) 는 각 페이지에서 유지
+-->
+<th:block th:fragment="scripts">
+    <meta name="_csrf" th:content="${_csrf?.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf?.headerName}"/>
+    <script th:src="@{/webjars/htmx.org/2.0.4/dist/htmx.min.js}" defer></script>
+    <script th:src="@{/js/htmx-csrf.js}" defer></script>
+</th:block>
+</html>
