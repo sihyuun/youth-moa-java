@@ -17,7 +17,7 @@ import { abortExternal, login, seedEmail } from '../helpers';
  *   - /programs        → htmx fragment  (window.htmx object 존재)
  *   - /notices         → htmx fragment
  *   - /login           → csrf-only fragment (window.htmx 는 undefined — 계층 분리 확인)
- *   - /mypage/history  → csrf-only fragment (로그인 상태 · window.htmx undefined)
+ *   - /mypage?tab=history → csrf-only fragment (로그인 상태 · window.htmx undefined)
  *
  * + Kakao Map SDK 회귀 방어: /centers 에 SDK script 태그가 여전히 존재하는지.
  */
@@ -40,7 +40,7 @@ const CASES: Expect[] = [
     { name: 'program/list (htmx fragment)', url: '/programs', htmxLoaded: true },
     { name: 'notice/list (htmx fragment)', url: '/notices', htmxLoaded: true },
     { name: 'user/login (csrf-only fragment)', url: '/login', htmxLoaded: false },
-    { name: 'mypage/history (csrf-only fragment)', url: '/mypage/history', htmxLoaded: false, requiresLogin: true },
+    { name: 'mypage?tab=history (csrf-only fragment)', url: '/mypage?tab=history', htmxLoaded: false, requiresLogin: true },
 ];
 
 for (const c of CASES) {
