@@ -21,22 +21,26 @@ import org.springframework.stereotype.Component;
 public class MockAdminInvitationMailSender implements AdminInvitationMailService {
 
   @Override
-  public MailDispatchResult sendInvitation(String toEmail, String toName, String tempPassword) {
+  public MailDispatchResult sendInvitation(
+      String toEmail, String toName, String tempPassword, String centerName) {
     log.info(
-        "[MOCK MAIL] admin invitation → {} (name={}, tempPassword={})",
+        "[MOCK MAIL] admin invitation → {} (name={}, centerName={}, tempPassword={})",
         toEmail,
         toName,
+        centerName == null ? "-" : centerName,
         maskPassword(tempPassword));
     return MailDispatchResult.success();
   }
 
   @Override
-  public MailDispatchResult sendPasswordReset(String toEmail, String toName, String tempPassword) {
+  public MailDispatchResult sendPasswordReset(
+      String toEmail, String toName, String newPassword, String resetBy) {
     log.info(
-        "[MOCK MAIL] admin password reset → {} (name={}, tempPassword={})",
+        "[MOCK MAIL] admin password reset → {} (name={}, resetBy={}, newPassword={})",
         toEmail,
         toName,
-        maskPassword(tempPassword));
+        resetBy == null ? "-" : resetBy,
+        maskPassword(newPassword));
     return MailDispatchResult.success();
   }
 

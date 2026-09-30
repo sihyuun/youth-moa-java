@@ -19,19 +19,43 @@ public interface AdminInvitationMailService {
   /**
    * 신규 계정 발급 메일.
    *
-   * @param toEmail 수신자
+   * <p>템플릿 변수 매핑 (admin-invitation.html):
+   *
+   * <ul>
+   *   <li>{@code name} — toName
+   *   <li>{@code loginId} — toEmail (템플릿 상 "아이디" row)
+   *   <li>{@code centerName} — nullable. CENTER_ADMIN 이면 소속 센터명, 그 외 role 은 null → 소속 센터 row 숨김
+   *   <li>{@code tempPassword} — plain-text
+   *   <li>{@code loginUrl}, {@code supportEmail} — {@link AdminMailProperties} 에서 주입
+   * </ul>
+   *
+   * @param toEmail 수신자 이메일 (== loginId)
    * @param toName 수신자 이름 (본문 인사말)
    * @param tempPassword plain-text 임시 비밀번호 (메일 본문 노출)
+   * @param centerName 소속 센터명 (nullable · CENTER_ADMIN 만 노출)
    * @return {@link MailDispatchResult} — 발송 성공/실패. 예외를 throw 하지 않는 이유는 컨트롤러 fallback (Q2 A) 분기 때문.
    */
-  MailDispatchResult sendInvitation(String toEmail, String toName, String tempPassword);
+  MailDispatchResult sendInvitation(
+      String toEmail, String toName, String tempPassword, String centerName);
 
   /**
    * 임시 비밀번호 재발급 메일.
    *
+   * <p>템플릿 변수 매핑 (admin-password-reset.html):
+   *
+   * <ul>
+   *   <li>{@code name} — toName
+   *   <li>{@code loginId} — toEmail
+   *   <li>{@code resetBy} — nullable. 재설정을 실행한 관리자 표시명 (없으면 "재설정한 관리자" row 숨김)
+   *   <li>{@code newPassword} — plain-text (초대 flow 의 {@code tempPassword} 와 이름이 다름 · 템플릿 spec)
+   *   <li>{@code loginUrl}, {@code supportEmail} — {@link AdminMailProperties} 에서 주입
+   * </ul>
+   *
    * @param toEmail 수신자
    * @param toName 수신자 이름
-   * @param tempPassword 새 임시 비밀번호
+   * @param newPassword 새 임시 비밀번호
+   * @param resetBy 재설정 실행 관리자 표시명 (nullable)
    */
-  MailDispatchResult sendPasswordReset(String toEmail, String toName, String tempPassword);
+  MailDispatchResult sendPasswordReset(
+      String toEmail, String toName, String newPassword, String resetBy);
 }

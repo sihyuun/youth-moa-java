@@ -212,8 +212,11 @@ public class AdminUserService {
     User saved = userRepository.save(newUser);
     // A7 (2026-09-30): 초대 메일 발송. Q2 A fallback — 실패해도 계정 저장은 커밋 유지.
     // MailDispatchResult 는 컨트롤러에서 flash 분기(password 노출 vs 숨김) 결정에 사용.
+    // centerName 은 CENTER_ADMIN 만 세팅. 그 외 role 은 null → 템플릿 소속 센터 row 숨김.
+    String centerName = (center != null) ? center.getName() : null;
     MailDispatchResult mail =
-        invitationMailService.sendInvitation(saved.getEmail(), saved.getName(), plainPassword);
+        invitationMailService.sendInvitation(
+            saved.getEmail(), saved.getName(), plainPassword, centerName);
     return new CreatedStaff(saved, plainPassword, mail);
   }
 
@@ -230,8 +233,11 @@ public class AdminUserService {
     String encoded = passwordEncoder.encode(plainPassword);
     target.resetPasswordByAdmin(encoded);
     // A7 (2026-09-30): 재발급 메일 발송. 실패해도 password 재설정은 커밋 유지.
+    // resetBy 는 재설정 실행 관리자의 표시명 (본인 리셋은 safeguard 에서 이미 차단됨).
+    String resetBy = admin.getName();
     MailDispatchResult mail =
-        invitationMailService.sendPasswordReset(target.getEmail(), target.getName(), plainPassword);
+        invitationMailService.sendPasswordReset(
+            target.getEmail(), target.getName(), plainPassword, resetBy);
     return new ResetPasswordResult(plainPassword, mail);
   }
 

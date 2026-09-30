@@ -12,8 +12,14 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * @param fromAddress 발신 이메일 주소. Gmail 은 계정 주소 그대로, MailHog 은 임의 문자열 허용.
  * @param fromName 발신자 표시명 (예: "청년몽땅"). MimeMessageHelper 가 RFC 2047 로 UTF-8 인코딩.
  * @param loginUrl 메일 본문 CTA 링크. 절대 URL 필수 (mail 클라이언트는 상대 URL 해석 못 함).
- * @param serviceName 브랜드명. 메일 제목·본문 상단·서명 라인에서 사용.
+ * @param serviceName 브랜드명. subject 조립에 사용 (본문·상단 wordmark 는 템플릿에 "청년모아" 하드코딩).
+ * @param supportEmail 메일 footer 문의처. mailto 링크 + 표시 텍스트로 사용 (2026-09-30 사용자 템플릿 편입).
  */
 @ConfigurationProperties(prefix = "youthmoa.mail")
 public record AdminMailProperties(
-    boolean mock, String fromAddress, String fromName, String loginUrl, String serviceName) {}
+    boolean mock,
+    String fromAddress,
+    String fromName,
+    String loginUrl,
+    String serviceName,
+    String supportEmail) {}

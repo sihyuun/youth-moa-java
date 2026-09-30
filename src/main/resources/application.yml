@@ -125,6 +125,8 @@ youthmoa:
     from-name: ${YOUTHMOA_MAIL_FROM_NAME:청년몽땅}
     login-url: ${YOUTHMOA_MAIL_LOGIN_URL:http://localhost:8080/login}
     service-name: ${YOUTHMOA_MAIL_SERVICE_NAME:청년몽땅}
+    # A7 (2026-09-30 사용자 템플릿 편입): 메일 footer 문의처. mailto 링크 + 표시 텍스트.
+    support-email: ${YOUTHMOA_MAIL_SUPPORT_EMAIL:support@youth-moa.local}
 
   # A7-rate-limit (2026-09-29): admin fan-out 알림 병합 window (분). 기본 5분.
   # createOrMerge 는 (userId, type, dedupKey) 매칭 알림이 이 window 안에 존재하면 병합, 아니면 신규 row 생성.

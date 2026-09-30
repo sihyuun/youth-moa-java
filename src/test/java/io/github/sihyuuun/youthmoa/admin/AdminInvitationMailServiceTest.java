@@ -31,6 +31,16 @@ import org.springframework.test.context.TestPropertySource;
  * <p>포트: 3025 (GreenMail 기본 SMTP dynamic offset). {@code @TestPropertySource} 로
  * spring.mail.host/port 를 localhost:3025 로 override + {@code youthmoa.mail.mock=false} 로 {@link
  * SmtpAdminInvitationMailSender} 활성화.
+ *
+ * <p>2026-09-30 갱신 — 사용자 제공 mail 템플릿 편입에 따른 assertion 대응:
+ *
+ * <ul>
+ *   <li>템플릿 내 서비스명은 "청년모아" 로 하드코딩됨 → subject 는 여전히 {@code serviceName} 사용 (여기서는 "청년몽땅").
+ *   <li>초대 flow: 새 카피 "관리자 계정이 준비됐어요" · "청년모아 관리자로 초대" · CTA "청년모아로 이동하기".
+ *   <li>재발급 flow: 새 카피 "비밀번호가 재설정됐어요" · "관리자가 비밀번호를 재설정".
+ *   <li>centerName · resetBy 는 nullable — 각각 있음/없음 2 시나리오.
+ *   <li>supportEmail 은 footer mailto 에 노출.
+ * </ul>
  */
 @SpringBootTest
 @ActiveProfiles("e2e")
@@ -44,7 +54,8 @@ import org.springframework.test.context.TestPropertySource;
       "youthmoa.mail.from-address=noreply@youth-moa.test",
       "youthmoa.mail.from-name=청년몽땅",
       "youthmoa.mail.login-url=http://localhost:8090/login",
-      "youthmoa.mail.service-name=청년몽땅"
+      "youthmoa.mail.service-name=청년몽땅",
+      "youthmoa.mail.support-email=help@youth-moa.test"
     })
 class AdminInvitationMailServiceTest {
 
@@ -58,11 +69,9 @@ class AdminInvitationMailServiceTest {
   @Autowired AdminInvitationMailService mailService;
 
   @Test
-  void sendInvitation_delivers_mime_message_with_expected_content() throws Exception {
-    // GreenMail dynamic port 를 서버 property 로 재주입 (일부 CI 환경 대비 로그).
-    // Spring context 는 이미 @TestPropertySource 로 3025 지정되어 있어 dynamicPort 가 3025 를 잡음.
+  void sendInvitation_with_centerName_delivers_full_template() throws Exception {
     MailDispatchResult result =
-        mailService.sendInvitation("recipient@test.local", "홍길동", "Abcd1234!@#$");
+        mailService.sendInvitation("recipient@test.local", "홍길동", "Abcd1234!@#$", "고천센터");
 
     assertThat(result.sent()).isTrue();
     assertThat(result.failureReason()).isNull();
@@ -72,27 +81,50 @@ class AdminInvitationMailServiceTest {
     assertThat(received).hasSize(1);
 
     MimeMessage m = received[0];
-    // Subject
-    assertThat(m.getSubject()).contains("청년몽땅").contains("관리자 계정");
+    // Subject 는 serviceName 기반 — 사용자 템플릿 편입 후에도 subject 조립은 코드 소관.
+    assertThat(m.getSubject()).contains("청년몽땅").contains("관리자 계정이 준비됐어요");
     // From (표시명 포함)
     assertThat(m.getFrom()[0].toString()).contains("noreply@youth-moa.test");
     // To
     assertThat(m.getAllRecipients()[0].toString()).isEqualTo("recipient@test.local");
 
-    // Body (HTML) — 이름·이메일·임시 비밀번호·CTA 링크 렌더 확인.
-    // SMTP 전송 시 한글은 quoted-printable 로 인코딩되므로 raw body 대신 decode 후 검사한다.
+    // Body (HTML) — 새 템플릿 카피·loginId·tempPassword·centerName·CTA·supportEmail 렌더 확인.
     String body = decodeBody(m);
     assertThat(body).contains("홍길동");
-    assertThat(body).contains("recipient@test.local");
+    assertThat(body).contains("recipient@test.local"); // loginId row
     assertThat(body).contains("Abcd1234!@#$");
+    assertThat(body).contains("고천센터"); // centerName row 노출
+    assertThat(body).contains("관리자 계정이 준비됐어요"); // headline
+    assertThat(body).contains("청년모아 관리자로 초대"); // body 카피
     assertThat(body).contains("http://localhost:8090/login");
-    assertThat(body).contains("로그인 하러 가기");
+    assertThat(body).contains("청년모아로 이동하기"); // CTA 텍스트
+    assertThat(body).contains("help@youth-moa.test"); // supportEmail footer
   }
 
   @Test
-  void sendPasswordReset_delivers_reset_template_content() throws Exception {
+  void sendInvitation_without_centerName_hides_center_row() throws Exception {
+    // centerName=null → 템플릿 th:if="${centerName != null}" 로 소속 센터 row 미렌더.
     MailDispatchResult result =
-        mailService.sendPasswordReset("user@test.local", "김민준", "NewPass9876!");
+        mailService.sendInvitation("solo@test.local", "김민준", "Pw@Solo0001", null);
+
+    assertThat(result.sent()).isTrue();
+
+    greenMail.waitForIncomingEmail(5000, 1);
+    MimeMessage[] received = greenMail.getReceivedMessages();
+    assertThat(received).hasSize(1);
+
+    String body = decodeBody(received[0]);
+    assertThat(body).contains("김민준");
+    assertThat(body).contains("solo@test.local");
+    assertThat(body).contains("Pw@Solo0001");
+    // 소속 센터 라벨 자체는 label row 가 제거되므로 body 에 존재해선 안 됨.
+    assertThat(body).doesNotContain("소속 센터");
+  }
+
+  @Test
+  void sendPasswordReset_with_resetBy_delivers_full_template() throws Exception {
+    MailDispatchResult result =
+        mailService.sendPasswordReset("user@test.local", "김민준", "NewPass9876!", "김관리 (시스템 관리자)");
 
     assertThat(result.sent()).isTrue();
 
@@ -101,13 +133,35 @@ class AdminInvitationMailServiceTest {
     assertThat(received).hasSize(1);
 
     MimeMessage m = received[0];
-    assertThat(m.getSubject()).contains("임시 비밀번호").contains("재발급");
+    assertThat(m.getSubject()).contains("청년몽땅").contains("비밀번호가 재설정됐어요");
 
     String body = decodeBody(m);
     assertThat(body).contains("김민준");
-    assertThat(body).contains("NewPass9876!");
+    assertThat(body).contains("user@test.local");
+    assertThat(body).contains("NewPass9876!"); // newPassword 변수 렌더
+    assertThat(body).contains("김관리 (시스템 관리자)"); // resetBy row
     // 재발급 템플릿 고유 문구
-    assertThat(body).contains("임시 비밀번호를 재발급");
+    assertThat(body).contains("비밀번호가 재설정됐어요"); // headline
+    assertThat(body).contains("관리자가 비밀번호를 재설정"); // body 카피
+    assertThat(body).contains("help@youth-moa.test");
+  }
+
+  @Test
+  void sendPasswordReset_without_resetBy_hides_resetBy_row() throws Exception {
+    MailDispatchResult result =
+        mailService.sendPasswordReset("anon@test.local", "이서연", "Rst!Anon0001", null);
+
+    assertThat(result.sent()).isTrue();
+
+    greenMail.waitForIncomingEmail(5000, 1);
+    MimeMessage[] received = greenMail.getReceivedMessages();
+    assertThat(received).hasSize(1);
+
+    String body = decodeBody(received[0]);
+    assertThat(body).contains("이서연");
+    assertThat(body).contains("Rst!Anon0001");
+    // resetBy=null → "재설정한 관리자" label row 렌더 안 됨.
+    assertThat(body).doesNotContain("재설정한 관리자");
   }
 
   /**
@@ -115,7 +169,6 @@ class AdminInvitationMailServiceTest {
    * Content-Transfer-Encoding 을 decode 해 원문 한글을 복원.
    */
   private static String decodeBody(MimeMessage m) throws Exception {
-    // 헤더 명시적 확인. HTML text/html + quoted-printable 이므로 MimeUtility.decode 로 stream 처리.
     byte[] raw =
         com.icegreen.greenmail.util.GreenMailUtil.getBody(m).getBytes(StandardCharsets.US_ASCII);
     var in = new ByteArrayInputStream(raw);

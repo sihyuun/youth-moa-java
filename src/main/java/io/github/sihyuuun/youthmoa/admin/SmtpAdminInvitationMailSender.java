@@ -55,21 +55,39 @@ public class SmtpAdminInvitationMailSender implements AdminInvitationMailService
   }
 
   @Override
-  public MailDispatchResult sendInvitation(String toEmail, String toName, String tempPassword) {
-    String subject = "[" + mailProperties.serviceName() + "] 관리자 계정이 발급되었어요";
-    return dispatch(TEMPLATE_INVITATION, subject, toEmail, toName, tempPassword);
+  public MailDispatchResult sendInvitation(
+      String toEmail, String toName, String tempPassword, String centerName) {
+    String subject = "[" + mailProperties.serviceName() + "] 관리자 계정이 준비됐어요";
+    // Q2 A fallback: 예외를 상위로 던지지 않고 결과 객체로 반환 → 컨트롤러가 flash 분기 결정.
+    Context ctx = new Context();
+    ctx.setVariable("name", toName);
+    ctx.setVariable("loginId", toEmail);
+    ctx.setVariable("centerName", centerName); // nullable — 템플릿의 th:if 로 row 숨김/노출
+    ctx.setVariable("tempPassword", tempPassword);
+    ctx.setVariable("loginUrl", mailProperties.loginUrl());
+    ctx.setVariable("supportEmail", mailProperties.supportEmail());
+    return dispatch(TEMPLATE_INVITATION, subject, toEmail, ctx);
   }
 
   @Override
-  public MailDispatchResult sendPasswordReset(String toEmail, String toName, String tempPassword) {
-    String subject = "[" + mailProperties.serviceName() + "] 임시 비밀번호가 재발급되었어요";
-    return dispatch(TEMPLATE_PASSWORD_RESET, subject, toEmail, toName, tempPassword);
+  public MailDispatchResult sendPasswordReset(
+      String toEmail, String toName, String newPassword, String resetBy) {
+    String subject = "[" + mailProperties.serviceName() + "] 비밀번호가 재설정됐어요";
+    Context ctx = new Context();
+    ctx.setVariable("name", toName);
+    ctx.setVariable("loginId", toEmail);
+    ctx.setVariable("resetBy", resetBy); // nullable — 템플릿의 th:if 로 row 숨김/노출
+    // 템플릿 spec 상 재발급 flow 는 변수명이 `newPassword` (초대의 tempPassword 와 다름).
+    ctx.setVariable("newPassword", newPassword);
+    ctx.setVariable("loginUrl", mailProperties.loginUrl());
+    ctx.setVariable("supportEmail", mailProperties.supportEmail());
+    return dispatch(TEMPLATE_PASSWORD_RESET, subject, toEmail, ctx);
   }
 
   private MailDispatchResult dispatch(
-      String templateName, String subject, String toEmail, String toName, String tempPassword) {
+      String templateName, String subject, String toEmail, Context ctx) {
     try {
-      String html = renderTemplate(templateName, toEmail, toName, tempPassword);
+      String html = mailTemplateEngine.process(templateName, ctx);
       MimeMessage message = mailSender.createMimeMessage();
       MimeMessageHelper helper =
           new MimeMessageHelper(message, false, StandardCharsets.UTF_8.name());
@@ -84,17 +102,6 @@ public class SmtpAdminInvitationMailSender implements AdminInvitationMailService
       log.error("[MAIL] send failed template={} to={} : {}", templateName, toEmail, e.getMessage());
       return MailDispatchResult.failure(shortReason(e));
     }
-  }
-
-  private String renderTemplate(
-      String templateName, String toEmail, String toName, String tempPassword) {
-    Context ctx = new Context();
-    ctx.setVariable("email", toEmail);
-    ctx.setVariable("name", toName);
-    ctx.setVariable("tempPassword", tempPassword);
-    ctx.setVariable("loginUrl", mailProperties.loginUrl());
-    ctx.setVariable("serviceName", mailProperties.serviceName());
-    return mailTemplateEngine.process(templateName, ctx);
   }
 
   /** SMTP 예외 → 사용자 노출 가능한 짧은 사유. 상세는 log 에만 남기고 화면엔 요약만. */
