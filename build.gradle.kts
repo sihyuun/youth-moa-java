@@ -34,6 +34,15 @@ dependencies {
 	implementation("com.opencsv:opencsv:5.12.0")
 	// F-signup-01: CoolSMS SDK — 실 SMS 발송용. youthmoa.coolsms.enabled=false 이면 MockSmsSender 사용.
 	implementation("net.nurigo:sdk:4.3.2")
+	// A7 admin-invitation-mail (2026-09-30): SMTP 초대 메일.
+	// - spring-boot-starter-mail: JavaMailSender + MimeMessageHelper (JavaMail API 얇은 wrapper).
+	//   MailHog(local) / Gmail(prod) SMTP 를 동일 인터페이스로 사용.
+	// - MockAdminInvitationMailSender 는 youthmoa.mail.mock=true (dev/e2e) 로 스위치, 실 SMTP 접속 없이 로그만.
+	implementation("org.springframework.boot:spring-boot-starter-mail")
+	// A7 admin-invitation-mail (2026-09-30): plain Thymeleaf TemplateEngine 이 표현식 평가에 OGNL 을 사용.
+	// spring-boot-starter-thymeleaf 는 SpringTemplateEngine + SpEL 만 가져오므로 mail 전용 plain engine 을 쓰려면
+	// ognl 을 명시적으로 추가해야 한다. SpringTemplateEngine 을 두 개 등록하면 web autoconfig 를 밀어내므로 plain 엔진 유지.
+	implementation("ognl:ognl:3.3.4")
 	// A-admin-notice-attachment (2026-09-03): SupabaseFileStorage REST 호출용 (Qn-6 파생 B).
 	// Supabase Java SDK 대신 표준 REST + OkHttp 로 직접 호출 (학습 목적 + 의존성 최소).
 	implementation("com.squareup.okhttp3:okhttp:4.12.0")
@@ -64,6 +73,10 @@ dependencies {
 	testImplementation("org.springframework.boot:spring-boot-starter-validation-test")
 	testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
 	testImplementation("org.springframework.boot:spring-boot-testcontainers")
+	// A7 admin-invitation-mail (2026-09-30): GreenMail embedded SMTP.
+	// 실 프로토콜(SMTP wire) 로 검증하고 수신 메시지를 read back — Mockito 로 JavaMailSender stub 하는 것보다
+	// SmtpAdminInvitationMailSender 의 MIME 조립·헤더·인코딩 실전 회귀를 잡아낸다.
+	testImplementation("com.icegreen:greenmail-junit5:2.1.0")
 	testImplementation("org.testcontainers:testcontainers-junit-jupiter")
 	testImplementation("org.testcontainers:testcontainers-postgresql")
 	// H2: unit test + e2e profile (CI Playwright) 양쪽에서 사용 — runtimeOnly 로 승격해 boot jar 포함
