@@ -194,7 +194,9 @@ test('USER 계정 발급 · 메일 실패 시 password 카드 fallback 노출 (Q
     const email = uniqueEmail('mail-fail');
 
     // 1) 강제 실패 mode ON
-    let res = await request.post('http://localhost:8090/__test__/mail/force-fail?enabled=true');
+    // BASE_URL fallback: playwright config 의 baseURL 이 자동 적용되도록 상대 경로 사용.
+    // 하드코딩 (http://localhost:8090) 시 CI (8080) 에서 ECONNREFUSED 로 fail (2026-09-30 회귀).
+    let res = await request.post('/__test__/mail/force-fail?enabled=true');
     expect(res.status()).toBe(204);
 
     try {
@@ -215,8 +217,8 @@ test('USER 계정 발급 · 메일 실패 시 password 카드 fallback 노출 (Q
         const shown = (await page.locator(INITIAL_PW_VALUE).textContent())?.trim();
         expect(shown && shown.length >= 8).toBeTruthy();
     } finally {
-        // 3) 강제 실패 mode OFF (복구)
-        res = await request.post('http://localhost:8090/__test__/mail/force-fail?enabled=false');
+        // 3) 강제 실패 mode OFF (복구) — 위와 동일하게 baseURL 상대 경로 사용
+        res = await request.post('/__test__/mail/force-fail?enabled=false');
         expect(res.status()).toBe(204);
     }
 });
