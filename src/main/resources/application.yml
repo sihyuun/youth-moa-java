@@ -117,6 +117,8 @@ youthmoa:
   # A7 admin-invitation-mail (2026-09-30): 관리자 계정 발급 · 임시 password 재발급 시 초대 메일 발송.
   # - mock=false (기본): SmtpAdminInvitationMailSender 활성 (실 SMTP).
   # - mock=true (e2e/dev): MockAdminInvitationMailSender 활성 (로그만).
+  # - M4 (2026-09-30): MockAdminInvitationMailSender 는 @Profile("!prod") — 즉 youthmoa.mail.mock 은
+  #   non-prod 프로파일 전용. prod 프로파일에 mock=true 를 실수로 넣으면 부팅 시 no-bean 오류로 즉시 실패한다.
   # - from-address 는 SMTP 서비스 정책상 도메인 매치 필요 (Gmail 은 계정 주소 그대로).
   # - login-url 은 메일 CTA 링크 · 절대 URL 필수.
   mail:

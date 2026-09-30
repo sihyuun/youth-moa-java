@@ -185,6 +185,42 @@ test.skip('강제 비밀번호 변경 — 신규 관리자 첫 로그인 시 /pa
     await ctx.close();
 });
 
+test('USER 계정 발급 · 메일 실패 시 password 카드 fallback 노출 (Q3 A fallback)', async ({ page, request }) => {
+    // M2 (2026-09-30 · A7 mail followup): MockAdminInvitationMailSender 를 강제 실패 mode 로 전환 후
+    // 초대를 트리거하면 컨트롤러가 flashInitialPassword 를 심어 상세 화면에 password 카드가 노출되어야 한다
+    // (Q3 A: 메일 발송 실패 = 화면 fallback 만이 임시 비밀번호 획득 경로).
+    //
+    // 반드시 finally 로 force-fail 을 off 로 복구해 다음 spec 오염을 차단한다.
+    const email = uniqueEmail('mail-fail');
+
+    // 1) 강제 실패 mode ON
+    let res = await request.post('http://localhost:8090/__test__/mail/force-fail?enabled=true');
+    expect(res.status()).toBe(204);
+
+    try {
+        // 2) 발급 → password 카드 노출 확인
+        await loginAdmin(page);
+        await page.goto('/admin/users/new', { waitUntil: 'domcontentloaded' });
+        await page.locator(EMAIL_INPUT).fill(email);
+        await page.locator(NAME_INPUT).fill('메일실패 fallback');
+        await page.locator(SUBMIT).click();
+
+        await page.waitForURL(/\/admin\/users\/\d+/);
+
+        // 메일 발송 성공 배너는 노출되지 않아야 함 (성공 flag 없음)
+        await expect(page.locator(MAIL_SENT_BANNER)).toHaveCount(0);
+
+        // fallback password 카드가 노출되어야 함
+        await expect(page.locator(INITIAL_PW_CARD)).toBeVisible();
+        const shown = (await page.locator(INITIAL_PW_VALUE).textContent())?.trim();
+        expect(shown && shown.length >= 8).toBeTruthy();
+    } finally {
+        // 3) 강제 실패 mode OFF (복구)
+        res = await request.post('http://localhost:8090/__test__/mail/force-fail?enabled=false');
+        expect(res.status()).toBe(204);
+    }
+});
+
 test('RBAC — CENTER_ADMIN 은 스태프 발급 화면 접근 불가 (403)', async ({ page }) => {
     // /admin/users/** 는 SYSTEM_ADMIN 전용 (@PreAuthorize hasRole SYSTEM_ADMIN)
     await page.goto('/admin/login', { waitUntil: 'domcontentloaded' });

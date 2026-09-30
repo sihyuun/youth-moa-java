@@ -11,8 +11,10 @@ import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
+import org.springframework.boot.mail.autoconfigure.MailSenderAutoConfiguration;
+import org.springframework.boot.mail.autoconfigure.MailSenderValidatorAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 
 /**
@@ -42,8 +44,30 @@ import org.springframework.test.context.TestPropertySource;
  *   <li>supportEmail 은 footer mailto 에 노출.
  * </ul>
  */
-@SpringBootTest
-@ActiveProfiles("e2e")
+/*
+ * M3 (2026-09-30 · A7 mail followup) — 슬라이스화.
+ *
+ * 이전: {@code @SpringBootTest} + {@code @ActiveProfiles("e2e")} → JPA · Security · Web · SMS 등
+ * 전체 context 부팅 (~3s). 이 테스트는 SMTP 발송 파이프라인 (Thymeleaf template render → MimeMessage →
+ * JavaMailSender wire 통신) 만 검증하면 되므로 부팅 범위를 mail 도메인으로 최소화한다.
+ *
+ * classes 명시:
+ * - {@link SmtpAdminInvitationMailSender}  — 검증 대상
+ * - {@link MailConfig}                     — mailTemplateEngine + AdminMailProperties 등록
+ *
+ * autoconfig 명시:
+ * - {@link MailSenderAutoConfiguration}         — spring.mail.* → JavaMailSender 자동 구성
+ * - {@link MailSenderValidatorAutoConfiguration} — 프로퍼티 검증 (선택적이지만 실 환경과 동등)
+ *
+ * @ActiveProfiles("e2e") 제거: 슬라이스가 mail 도메인만 로드하므로 profile 조건이 필요 없고,
+ * MockAdminInvitationMailSender 는 @Profile("!prod") + mock=true 조건이라 여기에 오지도 않음
+ * (mock=false 를 @TestPropertySource 로 강제).
+ */
+@SpringBootTest(classes = {SmtpAdminInvitationMailSender.class, MailConfig.class})
+@ImportAutoConfiguration({
+  MailSenderAutoConfiguration.class,
+  MailSenderValidatorAutoConfiguration.class
+})
 @TestPropertySource(
     properties = {
       "youthmoa.mail.mock=false",
