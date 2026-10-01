@@ -11,8 +11,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 /**
  * A8-search (2026-10-01) — 관리자 헤더 글로벌 검색 드롭다운 엔드포인트.
  *
- * <p>HTMX keyup (debounce 200ms) 에서 호출되어 fragment HTML 조각을 반환한다. 사용자 /search 와 분리된 전용 네임스페이스
- * (Q4 결정 — 공지 제외 · RBAC 격리 · 짧은 드롭다운 UX 전용).
+ * <p>HTMX keyup (debounce 200ms) 에서 호출되어 fragment HTML 조각을 반환한다. 사용자 /search 와 분리된 전용 네임스페이스 (Q4 결정
+ * — 공지 제외 · RBAC 격리 · 짧은 드롭다운 UX 전용).
  *
  * <p>GET /admin/search/dropdown?q=... — fragment: admin/fragments/_search-dropdown :: dropdown
  *

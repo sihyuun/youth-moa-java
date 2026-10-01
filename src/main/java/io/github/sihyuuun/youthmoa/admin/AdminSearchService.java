@@ -69,16 +69,13 @@ public class AdminSearchService {
       spec = spec.and((root, query, cb) -> cb.equal(root.get("center").get("id"), scopeCenterId));
     }
     return programRepository
-        .findAll(
-            spec, PageRequest.of(0, PROGRAM_LIMIT, Sort.by(Sort.Direction.DESC, "createdAt")))
+        .findAll(spec, PageRequest.of(0, PROGRAM_LIMIT, Sort.by(Sort.Direction.DESC, "createdAt")))
         .getContent()
         .stream()
         .map(
             p ->
                 new AdminSearchResult.ProgramHit(
-                    p.getId(),
-                    p.getTitle(),
-                    p.getCenter() != null ? p.getCenter().getName() : ""))
+                    p.getId(), p.getTitle(), p.getCenter() != null ? p.getCenter().getName() : ""))
         .toList();
   }
 
@@ -100,8 +97,7 @@ public class AdminSearchService {
           return keyword;
         };
     return userRepository
-        .findAll(
-            spec, PageRequest.of(0, USER_LIMIT, Sort.by(Sort.Direction.DESC, "createdAt")))
+        .findAll(spec, PageRequest.of(0, USER_LIMIT, Sort.by(Sort.Direction.DESC, "createdAt")))
         .getContent()
         .stream()
         .map(u -> new AdminSearchResult.UserHit(u.getId(), u.getName(), u.getEmail()))

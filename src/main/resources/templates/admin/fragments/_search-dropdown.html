@@ -14,7 +14,14 @@
 
   링크 target: /admin/programs/{id} · /admin/users/{id} — 상세 페이지 (A2·A5 트랙 머지분).
 -->
+<!--
+  FAIL #1 fix (2026-10-01): fragment root 에 id 를 부여해 hx-swap="outerHTML" 교체 후에도
+  다음 keyup 의 hx-target="#admin-search-dropdown" 가 계속 매치되도록 한다.
+  이 id 는 header.html wrapper 와 동일하지만, swap 시점에 wrapper 가 사라지고 fragment 로 교체되므로
+  DOM 상 동시 존재하지 않아 중복 ID 가 되지 않는다.
+-->
 <div th:fragment="dropdown"
+     id="admin-search-dropdown"
      class="admin-header-search-dropdown"
      th:classappend="${hasQuery} ? ' is-open' : ''">
 
