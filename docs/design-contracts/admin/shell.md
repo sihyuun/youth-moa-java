@@ -16,8 +16,8 @@
         - **Qn-6 B**: 통계/프로그램 관리/사용자 관리 미구현 → 렌더 안 함
         - 대시보드 활성 링크만 남김 (`admin-nav-link active`)
     - 우 (flex 1 · justify-end)
-        - 검색 자리 (disabled 아이콘)
-        - 알림 벨 자리 (disabled)
+        - 검색 입력박스 (A8 실동작 — `admin-search.md` 참조)
+        - 알림 벨 (A7 실동작 — `header-notifications.md` 참조)
         - 유저 드롭다운 (avatar `.` chevron)
             - 프로필 요약 (이름 · 역할 · 이메일)
             - 사용자 페이지 링크 (`/`)
@@ -27,10 +27,10 @@
 
 | 항목 | 종류 | 사유 |
 |---|---|---|
-| 통계·프로그램·사용자 GNB | **deviation: A2/A5/A6 순차 도입** | Qn-6 B — 미구현 링크 미노출 |
-| 검색 실동작 | **deferred: A7** | 자리 disabled |
-| 알림 벨 드롭다운·미읽음 뱃지 | **deferred: A7** | 자리 disabled |
-| 센터 스코프 셀렉터 실동작 (SYSTEM 드롭다운) | **deferred: A7** | 표시만 |
+| 통계·프로그램·사용자 GNB | ~~deviation~~ **완료 (A2/A5/A6)** | Qn-6 B — 머지 완료 |
+| 검색 실동작 | ~~deferred: A7~~ **완료 (A8-search 2026-10-01)** | admin-search.md |
+| 알림 벨 드롭다운·미읽음 뱃지 | ~~deferred: A7~~ **완료** | header-notifications.md |
+| 센터 스코프 셀렉터 실동작 (SYSTEM 드롭다운) | **deferred: 추후** | 표시만 |
 | 데모 권한 전환 pill | **deviation: production 제거** | HANDOFF 정책 |
 | 개인 정보 수정 / 프로그램 현황 / 설정 | **deferred: A7** | 유저 드롭다운 상단 항목 |
 

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<!--
+  A8-search (2026-10-01) — 관리자 헤더 글로벌 검색 결과 fragment.
+
+  AdminSearchController.dropdown() 이 반환. 키워드가 비면 result 는 non-null + 양쪽 리스트 empty 상태로 와서
+  이 fragment 는 "닫힘" (is-open 클래스 미부여 → CSS display:none) 상태로 렌더된다.
+
+  구조:
+    - 프로그램 섹션 (최대 4)
+    - 사용자 섹션 (최대 3)
+    - 빈 상태 (쿼리는 있는데 결과 0)
+
+  링크 target: /admin/programs/{id} · /admin/users/{id} — 상세 페이지 (A2·A5 트랙 머지분).
+-->
+<div th:fragment="dropdown"
+     class="admin-header-search-dropdown"
+     th:classappend="${hasQuery} ? ' is-open' : ''">
+
+    <!-- 프로그램 섹션 -->
+    <div th:if="${result != null and !result.programs.empty}" class="admin-search-section">
+        <div class="admin-search-section-title">프로그램</div>
+        <a th:each="p : ${result.programs}"
+           th:href="@{/admin/programs/{id}(id=${p.id})}"
+           class="admin-search-item">
+            <span class="admin-search-item-icon admin-search-item-icon--program" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none"
+                     stroke="currentColor" stroke-width="2">
+                    <path d="M3 21h18M5 21V7l8-4v18M19 21V11l-6-4"/>
+                </svg>
+            </span>
+            <span class="admin-search-item-main">
+                <span class="admin-search-item-title" th:text="${p.title}">프로그램명</span>
+                <span class="admin-search-item-sub" th:text="${p.centerName}">센터명</span>
+            </span>
+        </a>
+    </div>
+
+    <!-- 사용자 섹션 -->
+    <div th:if="${result != null and !result.users.empty}" class="admin-search-section">
+        <div class="admin-search-section-title">사용자</div>
+        <a th:each="u : ${result.users}"
+           th:href="@{/admin/users/{id}(id=${u.id})}"
+           class="admin-search-item">
+            <span class="admin-search-item-icon admin-search-item-icon--user" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none"
+                     stroke="currentColor" stroke-width="2">
+                    <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
+                    <circle cx="12" cy="7" r="4"/>
+                </svg>
+            </span>
+            <span class="admin-search-item-main">
+                <span class="admin-search-item-title" th:text="${u.name}">이름</span>
+                <span class="admin-search-item-sub" th:text="${u.email}">이메일</span>
+            </span>
+        </a>
+    </div>
+
+    <!-- 빈 상태 (쿼리는 왔는데 결과 0) -->
+    <div th:if="${hasQuery and result != null and result.empty}" class="admin-search-empty">
+        검색 결과가 없어요
+    </div>
+</div>
+</body>
+</html>
