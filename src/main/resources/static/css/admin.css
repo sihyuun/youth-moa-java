@@ -3439,3 +3439,173 @@ body.admin-shell-body {
 .admin-term-content-editor .toastui-editor-contents a {
     color: var(--color-primary, #3F30E9);
 }
+
+/* ────────────────────────────────────────────────────────────────
+   A8-search (2026-10-01) — 관리자 헤더 글로벌 검색
+   계약: docs/design-contracts/admin/search.md
+   디자인 토큰: 다크 헤더 위 pill 입력박스 + 라이트 드롭다운 (알림 벨 패턴 재사용).
+   ──────────────────────────────────────────────────────────────── */
+
+.admin-header-search {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 180px;
+    height: 32px;
+    padding: 0 8px 0 28px;
+    background: #1E293B;
+    border: 1px solid #334155;
+    border-radius: 20px;
+    transition: border-color 0.15s, background-color 0.15s;
+}
+.admin-header-search:focus-within {
+    border-color: var(--color-primary, #3F30E9);
+    background: #273449;
+}
+
+.admin-header-search-icon {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #9CA3AF;
+    pointer-events: none;
+}
+
+.admin-header-search-input {
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #FFFFFF;
+    font-size: 13px;
+    font-family: inherit;
+}
+.admin-header-search-input::placeholder {
+    color: #6B7280;
+}
+.admin-header-search-input::-webkit-search-cancel-button {
+    display: none;
+}
+
+.admin-header-search-clear {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    padding: 0;
+    margin-left: 4px;
+    background: transparent;
+    border: none;
+    border-radius: 50%;
+    color: #9CA3AF;
+    font-size: 14px;
+    line-height: 1;
+    cursor: pointer;
+}
+.admin-header-search-clear:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #FFFFFF;
+}
+
+/* 드롭다운 패널: 알림 벨과 동일 라이트 톤, 300px 폭 */
+.admin-header-search-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    width: 300px;
+    display: none;
+    background: #FFFFFF;
+    border: 1px solid #E3E1E8;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(17, 24, 39, 0.12);
+    z-index: 600;
+    overflow: hidden;
+    max-height: 420px;
+    overflow-y: auto;
+}
+.admin-header-search-dropdown.is-open {
+    display: block;
+}
+
+.admin-search-section {
+    padding: 4px 0;
+}
+.admin-search-section + .admin-search-section {
+    border-top: 1px solid #F1EFF5;
+}
+
+.admin-search-section-title {
+    padding: 8px 14px 4px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #6B7280;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+}
+
+.admin-search-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 14px;
+    text-decoration: none;
+    color: inherit;
+    transition: background-color 0.12s;
+}
+.admin-search-item:hover {
+    background: #F9F8FB;
+}
+
+.admin-search-item-icon {
+    flex: 0 0 28px;
+    width: 28px;
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+}
+.admin-search-item-icon--program {
+    background: #F1EFFC;
+    color: #3F30E9;
+}
+.admin-search-item-icon--user {
+    background: #ECFDF5;
+    color: #10B981;
+}
+
+.admin-search-item-main {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    gap: 2px;
+}
+.admin-search-item-title {
+    font-size: 13px;
+    font-weight: 500;
+    color: #111827;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.admin-search-item-sub {
+    font-size: 11px;
+    color: #6B7280;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.admin-search-empty {
+    padding: 24px 14px;
+    text-align: center;
+    font-size: 13px;
+    color: #6B7280;
+}

@@ -9,6 +9,7 @@
 | 관리자 로그인 | `/admin/login` | `e2e/contracts/admin-login.ts` | `docs/design-contracts/admin/login.md` | A1 (2026-09-03) |
 | 관리자 shell (다크 헤더) | `/admin` | `e2e/contracts/admin-shell.ts` | `docs/design-contracts/admin/shell.md` | A1 |
 | 대시보드 콘텐츠 | `/admin` | `e2e/contracts/admin-dashboard.ts` | `docs/design-contracts/admin/dashboard.md` | A1 |
+| 헤더 글로벌 검색 | `/admin` | `e2e/contracts/admin-search.ts` | `docs/design-contracts/admin/search.md` | A8-search (2026-10-01) |
 
 ## prototype 출처
 
