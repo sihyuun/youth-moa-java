@@ -719,6 +719,9 @@ public class DataInitializer implements ApplicationRunner {
                         .build())
                 .startDate(today.minusDays(10))
                 .endDate(today.plusDays(3))
+                // D5-Q1a: OPEN 의도 — 신청기간은 운영 시작 전부터 열려 있고 아직 모집 중
+                .applyStartDate(today.minusDays(14))
+                .applyEndDate(today.plusDays(2))
                 .capacity(30)
                 .createdBy(sysadmin)
                 .build(),
@@ -737,6 +740,9 @@ public class DataInitializer implements ApplicationRunner {
                         .build())
                 .startDate(today.minusDays(5))
                 .endDate(today.plusDays(12))
+                // D5-Q1a: OPEN
+                .applyStartDate(today.minusDays(10))
+                .applyEndDate(today.plusDays(10))
                 .capacity(25)
                 .createdBy(sysadmin)
                 .build(),
@@ -755,6 +761,9 @@ public class DataInitializer implements ApplicationRunner {
                         .build())
                 .startDate(today.minusDays(2))
                 .endDate(today.plusDays(6))
+                // D5-Q1a: OPEN
+                .applyStartDate(today.minusDays(7))
+                .applyEndDate(today.plusDays(5))
                 .capacity(20)
                 .createdBy(sysadmin)
                 .build(),
@@ -773,6 +782,9 @@ public class DataInitializer implements ApplicationRunner {
                         .build())
                 .startDate(today.minusDays(30))
                 .endDate(today.minusDays(5))
+                // D5-Q1a: ENDED (신청 마감 지남)
+                .applyStartDate(today.minusDays(35))
+                .applyEndDate(today.minusDays(10))
                 .capacity(15)
                 .createdBy(sysadmin)
                 .build(),
@@ -791,6 +803,9 @@ public class DataInitializer implements ApplicationRunner {
                         .build())
                 .startDate(today.plusDays(14))
                 .endDate(today.plusDays(45))
+                // D5-Q1a: UPCOMING (신청 아직 시작 전)
+                .applyStartDate(today.plusDays(7))
+                .applyEndDate(today.plusDays(13))
                 .capacity(30)
                 .createdBy(sysadmin)
                 .build(),
@@ -809,6 +824,9 @@ public class DataInitializer implements ApplicationRunner {
                         .build())
                 .startDate(today.plusDays(21))
                 .endDate(today.plusDays(180))
+                // D5-Q1a: UPCOMING
+                .applyStartDate(today.plusDays(10))
+                .applyEndDate(today.plusDays(20))
                 .capacity(20)
                 .createdBy(sysadmin)
                 .build(),
@@ -827,6 +845,9 @@ public class DataInitializer implements ApplicationRunner {
                         .build())
                 .startDate(today.minusDays(7))
                 .endDate(today.plusDays(30))
+                // D5-Q1a: OPEN
+                .applyStartDate(today.minusDays(14))
+                .applyEndDate(today.plusDays(25))
                 .capacity(40)
                 .createdBy(sysadmin)
                 .build(),
@@ -845,6 +866,9 @@ public class DataInitializer implements ApplicationRunner {
                         .build())
                 .startDate(today.minusDays(1))
                 .endDate(today.plusDays(2))
+                // D5-Q1a: OPEN
+                .applyStartDate(today.minusDays(5))
+                .applyEndDate(today.plusDays(1))
                 .capacity(60)
                 .createdBy(sysadmin)
                 .build(),
@@ -864,6 +888,9 @@ public class DataInitializer implements ApplicationRunner {
                         .build())
                 .startDate(today.plusDays(3))
                 .endDate(today.plusDays(30))
+                // D5-Q1a: SUSPENDED (isActive=false 가 최우선, 기간은 OPEN 처럼 자유 세팅)
+                .applyStartDate(today.minusDays(7))
+                .applyEndDate(today.plusDays(25))
                 .capacity(16)
                 .isActive(false)
                 .createdBy(sysadmin)
@@ -884,6 +911,9 @@ public class DataInitializer implements ApplicationRunner {
                         .build())
                 .startDate(today.minusDays(90))
                 .endDate(today.minusDays(30))
+                // D5-Q1a: ENDED
+                .applyStartDate(today.minusDays(95))
+                .applyEndDate(today.minusDays(35))
                 .capacity(20)
                 .createdBy(sysadmin)
                 .build(),
@@ -903,6 +933,9 @@ public class DataInitializer implements ApplicationRunner {
                         .build())
                 .startDate(today.minusDays(3))
                 .endDate(today.plusDays(28))
+                // D5-Q1a: OPEN
+                .applyStartDate(today.minusDays(10))
+                .applyEndDate(today.plusDays(25))
                 .capacity(25)
                 .createdBy(sysadmin)
                 .build(),
@@ -921,6 +954,9 @@ public class DataInitializer implements ApplicationRunner {
                         .build())
                 .startDate(today.minusDays(1))
                 .endDate(today.plusDays(35))
+                // D5-Q1a: OPEN
+                .applyStartDate(today.minusDays(8))
+                .applyEndDate(today.plusDays(30))
                 .capacity(20)
                 .createdBy(sysadmin)
                 .build(),
@@ -939,6 +975,9 @@ public class DataInitializer implements ApplicationRunner {
                         .build())
                 .startDate(today.minusDays(2))
                 .endDate(today.plusDays(56))
+                // D5-Q1a: OPEN
+                .applyStartDate(today.minusDays(10))
+                .applyEndDate(today.plusDays(50))
                 .capacity(16)
                 .createdBy(sysadmin)
                 .build(),
@@ -957,6 +996,9 @@ public class DataInitializer implements ApplicationRunner {
                         .build())
                 .startDate(today.plusDays(7))
                 .endDate(today.plusDays(90))
+                // D5-Q1a: UPCOMING
+                .applyStartDate(today.plusDays(3))
+                .applyEndDate(today.plusDays(6))
                 .capacity(24)
                 .createdBy(sysadmin)
                 .build(),
@@ -977,6 +1019,9 @@ public class DataInitializer implements ApplicationRunner {
                 // (ProgramListRenderTest.OPEN_/programs-calendar.spec.ts:129 OPEN chip 회귀 방지)
                 .startDate(today.plusDays(0))
                 .endDate(today.plusDays(10))
+                // D5-Q1a: OPEN
+                .applyStartDate(today.minusDays(5))
+                .applyEndDate(today.plusDays(8))
                 .capacity(12)
                 .createdBy(sysadmin)
                 .build(),
@@ -995,6 +1040,9 @@ public class DataInitializer implements ApplicationRunner {
                         .build())
                 .startDate(today.minusDays(4))
                 .endDate(today.plusDays(24))
+                // D5-Q1a: OPEN
+                .applyStartDate(today.minusDays(14))
+                .applyEndDate(today.plusDays(20))
                 .capacity(40)
                 .createdBy(sysadmin)
                 .build(),
@@ -1013,6 +1061,9 @@ public class DataInitializer implements ApplicationRunner {
                         .build())
                 .startDate(today.minusDays(6))
                 .endDate(today.plusDays(15))
+                // D5-Q1a: OPEN
+                .applyStartDate(today.minusDays(14))
+                .applyEndDate(today.plusDays(12))
                 .capacity(18)
                 .createdBy(sysadmin)
                 .build(),
@@ -1031,6 +1082,9 @@ public class DataInitializer implements ApplicationRunner {
                         .build())
                 .startDate(today.plusDays(14))
                 .endDate(today.plusDays(50))
+                // D5-Q1a: UPCOMING
+                .applyStartDate(today.plusDays(7))
+                .applyEndDate(today.plusDays(13))
                 .capacity(20)
                 .createdBy(sysadmin)
                 .build(),
@@ -1049,6 +1103,9 @@ public class DataInitializer implements ApplicationRunner {
                         .build())
                 .startDate(today.minusDays(2))
                 .endDate(today.plusDays(19))
+                // D5-Q1a: OPEN
+                .applyStartDate(today.minusDays(10))
+                .applyEndDate(today.plusDays(15))
                 .capacity(22)
                 .createdBy(sysadmin)
                 .build(),
@@ -1067,6 +1124,9 @@ public class DataInitializer implements ApplicationRunner {
                         .build())
                 .startDate(today.minusDays(3))
                 .endDate(today.plusDays(53))
+                // D5-Q1a: OPEN
+                .applyStartDate(today.minusDays(10))
+                .applyEndDate(today.plusDays(45))
                 .capacity(30)
                 .createdBy(sysadmin)
                 .build(),
@@ -1085,6 +1145,9 @@ public class DataInitializer implements ApplicationRunner {
                         .build())
                 .startDate(today.plusDays(10))
                 .endDate(today.plusDays(52))
+                // D5-Q1a: UPCOMING
+                .applyStartDate(today.plusDays(3))
+                .applyEndDate(today.plusDays(9))
                 .capacity(15)
                 .createdBy(sysadmin)
                 .build(),
@@ -1103,6 +1166,9 @@ public class DataInitializer implements ApplicationRunner {
                         .build())
                 .startDate(today.minusDays(30))
                 .endDate(today.minusDays(2))
+                // D5-Q1a: ENDED
+                .applyStartDate(today.minusDays(35))
+                .applyEndDate(today.minusDays(10))
                 .capacity(20)
                 .createdBy(sysadmin)
                 .build(),
@@ -1121,6 +1187,9 @@ public class DataInitializer implements ApplicationRunner {
                         .build())
                 .startDate(today.minusDays(60))
                 .endDate(today.minusDays(10))
+                // D5-Q1a: ENDED
+                .applyStartDate(today.minusDays(65))
+                .applyEndDate(today.minusDays(15))
                 .capacity(12)
                 .createdBy(sysadmin)
                 .build(),
@@ -1141,6 +1210,9 @@ public class DataInitializer implements ApplicationRunner {
                 // (ProgramListRenderTest.UPCOMING_ 회귀 방지 · Oct 이후 view 커버리지)
                 .startDate(today.plusDays(35))
                 .endDate(today.plusDays(105))
+                // D5-Q1a: UPCOMING
+                .applyStartDate(today.plusDays(20))
+                .applyEndDate(today.plusDays(34))
                 .capacity(18)
                 .createdBy(sysadmin)
                 .build());

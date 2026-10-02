@@ -314,34 +314,70 @@ public class Program extends BaseTimeEntity {
   }
 
   public ProgramStatus getStatus() {
-    // F0f-fix-3 (2026-07-20): 4개 명시 상태. "마감(isFull)" 은 파생.
-    //   isActive=false → SUSPENDED (운영중단, 관리자 강제, 복구 가능)
-    //   endDate < today → ENDED (기간 만료, 자연 종료)
-    //   today < startDate → UPCOMING
-    //   그 외 → OPEN
+    // D5-Q1a (2026-10-02): status 를 신청기간(applyStart/End) 기준으로 재정의.
+    // HANDOFF.md L273 "status는 신청기간·정원으로 파생" + 사용자 확정 Set-A Q5=A.
+    //   isActive=false → SUSPENDED (최우선, 어떤 기간이든)
+    //   applyStart > today → UPCOMING (아직 모집 전)
+    //   applyStart <= today <= applyEnd → OPEN (모집 중)
+    //   applyEnd < today → ENDED (모집 마감 — 운영기간 무관. 운영중 라벨은 상세에서 별도 노출)
+    //
+    // nullable 폴백 (D5-Q1d 승격 전까지 임시): V12 로 컬럼은 추가됐지만 레거시 row 는 null.
+    //   applyStartDate ?? startDate, applyEndDate ?? endDate 로 대체.
+    //   TODO(D5-Q1d): V27 backfill + NOT NULL 승격 머지 후 폴백 블록 제거.
     if (!isActive) return ProgramStatus.SUSPENDED;
     LocalDate today = LocalDate.now();
-    if (startDate != null && today.isBefore(startDate)) return ProgramStatus.UPCOMING;
-    if (endDate != null && today.isAfter(endDate)) return ProgramStatus.ENDED;
+    LocalDate effectiveStart = applyStartDate != null ? applyStartDate : startDate;
+    LocalDate effectiveEnd = applyEndDate != null ? applyEndDate : endDate;
+    if (effectiveStart != null && today.isBefore(effectiveStart)) return ProgramStatus.UPCOMING;
+    if (effectiveEnd != null && today.isAfter(effectiveEnd)) return ProgramStatus.ENDED;
     return ProgramStatus.OPEN;
   }
 
-  /** endDate까지 남은 일수. endDate가 없으면 -1, 이미 지났으면 음수. */
+  /**
+   * 신청 마감일(applyEndDate)까지 남은 일수. applyEndDate 가 없으면 endDate 폴백.
+   * 둘 다 null 이면 -1 (sentinel), 이미 지났으면 음수.
+   *
+   * <p>주의: -1 은 "데이터 없음" sentinel 과 "하루 지남" 두 의미가 겹치므로 **직접 -1 비교 금지**. UI 표기는
+   * {@link #getDdayLabel()} 를 쓴다 (null 분기를 분리).
+   *
+   * <p>D5-Q1a (2026-10-02): endDate → applyEndDate 로 재정의. D-day 는 "모집 마감까지" 를 의미한다.
+   * TODO(D5-Q1d): V27 backfill 후 endDate 폴백 제거.
+   */
   public long getDaysUntilDeadline() {
-    if (endDate == null) return -1;
-    return ChronoUnit.DAYS.between(LocalDate.now(), endDate);
+    LocalDate effectiveEnd = applyEndDate != null ? applyEndDate : endDate;
+    if (effectiveEnd == null) return -1;
+    return ChronoUnit.DAYS.between(LocalDate.now(), effectiveEnd);
   }
 
   /**
    * D-day 표시 레이블 (예: "D-3", "D-DAY", "종료")
    *
-   * <p>기간 만료(days &lt; 0)는 "종료" 로 표기. isFull(정원 100%) 은 별개 파생값이며 여기서 다루지 않음.
+   * <p>신청 마감(days &lt; 0)은 "종료" 로 표기. isFull(정원 100%) 은 별개 파생값이며 여기서 다루지 않음.
+   *
+   * <p>D5-Q1a: null (데이터 없음) 과 "하루 지남 (-1)" 을 분리하기 위해 effectiveEnd 를 직접 분기한다.
+   * 레거시 호출 지점이 -1 == "데이터 없음" 전제를 깔고 있을 수 있으므로 getDaysUntilDeadline 반환값은 유지한다.
    */
   public String getDdayLabel() {
-    long days = getDaysUntilDeadline();
-    if (days == -1) return "";
+    LocalDate effectiveEnd = applyEndDate != null ? applyEndDate : endDate;
+    if (effectiveEnd == null) return "";
+    long days = ChronoUnit.DAYS.between(LocalDate.now(), effectiveEnd);
     if (days < 0) return "종료";
     if (days == 0) return "D-DAY";
     return "D-" + days;
+  }
+
+  /**
+   * 신청 오픈일(applyStartDate)까지 남은 일수. applyStartDate 가 없으면 startDate 폴백.
+   * 둘 다 null 이면 -1 (sentinel). 이미 지났으면 음수 (UPCOMING 이 아닌 상태에서 호출 시).
+   *
+   * <p>D5-Q1a (reverify2 2026-10-02): ProgramCardDto 상세 "신청 오픈까지 N일" 산술이 운영 startDate 를
+   * 직접 사용하던 모순 해소. "신청 오픈" 라벨은 신청기간 축이어야 함.
+   *
+   * <p>TODO(D5-Q1d): V27 backfill + applyStartDate NOT NULL 승격 머지 후 startDate 폴백 제거.
+   */
+  public long getDaysUntilApplyStart() {
+    LocalDate effectiveStart = applyStartDate != null ? applyStartDate : startDate;
+    if (effectiveStart == null) return -1;
+    return ChronoUnit.DAYS.between(LocalDate.now(), effectiveStart);
   }
 }
