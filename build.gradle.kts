@@ -76,7 +76,7 @@ dependencies {
 	// A7 admin-invitation-mail (2026-09-30): GreenMail embedded SMTP.
 	// 실 프로토콜(SMTP wire) 로 검증하고 수신 메시지를 read back — Mockito 로 JavaMailSender stub 하는 것보다
 	// SmtpAdminInvitationMailSender 의 MIME 조립·헤더·인코딩 실전 회귀를 잡아낸다.
-	testImplementation("com.icegreen:greenmail-junit5:2.1.0")
+	testImplementation("com.icegreen:greenmail-junit5:2.1.14")
 	testImplementation("org.testcontainers:testcontainers-junit-jupiter")
 	testImplementation("org.testcontainers:testcontainers-postgresql")
 	// H2: unit test + e2e profile (CI Playwright) 양쪽에서 사용 — runtimeOnly 로 승격해 boot jar 포함
