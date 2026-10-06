@@ -790,6 +790,18 @@ export const mypageContract: ScreenContract = {
             states: ['auth'],
             severity: 'P1',
         },
+        // 251006 U-mypage-T1+T12: ym-impl 가 신설한 서브헤드 "비밀번호 재확인" regression 가드
+        // (verify 리포트 UNVERIFIED F 해소 — contract 자동 감지 공백 메움)
+        {
+            id: 'profile-verify.subhead.text',
+            desc: 'Step1 서브헤드 "비밀번호 재확인" (prototype L1489)',
+            selector: '.mypage-profile-verify .mypage-verify-subhead',
+            kind: 'text',
+            expected: '비밀번호 재확인',
+            proto: 'tsx L1489 비밀번호 재확인',
+            states: ['auth'],
+            severity: 'P1',
+        },
         {
             id: 'profile-verify.form.exists',
             desc: '비밀번호 재확인 폼 존재',

@@ -18,7 +18,8 @@
 
         <section class="mypage-profile-verify mypage-card">
             <h3 class="mypage-section-title">개인 정보 수정</h3>
-            <p class="mypage-section-hint">본인 확인을 위해 비밀번호를 다시 입력해 주세요.</p>
+            <div class="mypage-verify-subhead">비밀번호 재확인</div>
+            <p class="mypage-section-hint">회원님의 정보를 안전하게 보호하기 위해 비밀번호를 다시 한번 확인해주세요.</p>
 
             <div th:if="${profileVerifyError}" class="alert alert-error"
                  th:text="${profileVerifyError}"></div>
