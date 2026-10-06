@@ -40,7 +40,7 @@ import org.springframework.transaction.annotation.Transactional;
  *   <li>성별/연령 = User.gender + User.birthDate 실시간 GROUP BY (Qn-A/B · 캐시 없음)
  *   <li>방문자 = DailyVisit 최근 30일 (없는 날은 0 표시 · Qn-8)
  *   <li>KPI 증감 = 최근 30일 vs 이전 30일 방문자 SUM 비교 (Qn-9)
- *   <li>마감임박 = applyEndDate 우선 (없으면 endDate) · 오늘~+7 (Qn-10)
+ *   <li>마감임박 = applyEndDate · 오늘~+7 (Qn-10 · D5-Q1d NOT NULL 승격 후 폴백 제거)
  * </ul>
  */
 @Service
@@ -163,13 +163,17 @@ public class AdminStatsService {
             .map(p -> toProgramStatRow(p, appliedCountMap.getOrDefault(p.getId(), 0L)))
             .toList();
 
-    // ── 마감 임박 (applyEndDate 우선 · Qn-10) ─────────────────
+    // ── 마감 임박 (applyEndDate · Qn-10) ─────────────────────
+    // D5-Q1d: applyEndDate NOT NULL 승격 완료 → 폴백 제거, getApplyEndDate() 직접 사용.
     LocalDate cutoff = today.plusDays(7);
     List<Program> urgent =
         scoped.stream()
-            .filter(p -> deadlineOf(p) != null)
-            .filter(p -> !deadlineOf(p).isBefore(today) && !deadlineOf(p).isAfter(cutoff))
-            .sorted(Comparator.comparing(this::deadlineOf))
+            .filter(p -> p.getApplyEndDate() != null)
+            .filter(
+                p ->
+                    !p.getApplyEndDate().isBefore(today)
+                        && !p.getApplyEndDate().isAfter(cutoff))
+            .sorted(Comparator.comparing(Program::getApplyEndDate))
             .limit(5)
             .toList();
 
@@ -236,10 +240,6 @@ public class AdminStatsService {
     // A9-followup (2026-09-29): findAll+stream 카운트 → DB COUNT 로 전환.
     List<Long> ids = scoped.stream().map(Program::getId).toList();
     return applicationRepository.countByProgramIdInAndStatus(ids, ApplicationStatus.PENDING);
-  }
-
-  private LocalDate deadlineOf(Program p) {
-    return p.getApplyEndDate() != null ? p.getApplyEndDate() : p.getEndDate();
   }
 
   /** 최근 N일 간의 방문자 시리즈. 없는 날은 0. */

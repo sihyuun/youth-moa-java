@@ -15,8 +15,8 @@ import org.junit.jupiter.api.Test;
  * ENDED, 운영기간 무관") 를 코드로 못박는다. consumer 지점(ProgramSpec·Repository·Service) 교체는 D5-Q1b 범위이며
  * 본 테스트는 엔티티 파생 메서드만 검증한다.
  *
- * <p>폴백 동작: V12 가 applyStartDate/applyEndDate 를 nullable 로 추가했기 때문에 D5-Q1d (V27 backfill +
- * NOT NULL 승격) 머지 전까지는 null → startDate/endDate 로 폴백한다. case 6 이 이를 커버.
+ * <p>D5-Q1d (2026-10-06 · V27): applyStart/End NOT NULL 승격 완료. case 6 (null 폴백) 삭제됨 — 승격
+ * 전제라 unreachable.
  */
 class ProgramStatusDerivationTest {
 
@@ -106,45 +106,4 @@ class ProgramStatusDerivationTest {
     assertThat(p.getStatus()).isEqualTo(ProgramStatus.SUSPENDED);
   }
 
-  @Test
-  @DisplayName("case 6 — applyStart/End 둘 다 null → startDate/endDate 폴백 (D5-Q1d 승격 전 임시)")
-  void bothApplyDatesNull_fallsBackToStartEndDate() {
-    LocalDate today = LocalDate.now();
-
-    // startDate 폴백으로 UPCOMING 판정
-    Program upcomingByFallback =
-        Program.builder()
-            .title("legacy upcoming")
-            .center(CENTER)
-            .content("내용")
-            .startDate(today.plusDays(7))
-            .endDate(today.plusDays(30))
-            .build();
-    assertThat(upcomingByFallback.getStatus()).isEqualTo(ProgramStatus.UPCOMING);
-
-    // endDate 폴백으로 ENDED 판정 + D-day 폴백
-    Program endedByFallback =
-        Program.builder()
-            .title("legacy ended")
-            .center(CENTER)
-            .content("내용")
-            .startDate(today.minusDays(60))
-            .endDate(today.minusDays(5))
-            .build();
-    assertThat(endedByFallback.getStatus()).isEqualTo(ProgramStatus.ENDED);
-    assertThat(endedByFallback.getDdayLabel()).isEqualTo("종료");
-
-    // 폴백으로 OPEN 판정 + D-day 폴백
-    Program openByFallback =
-        Program.builder()
-            .title("legacy open")
-            .center(CENTER)
-            .content("내용")
-            .startDate(today.minusDays(2))
-            .endDate(today.plusDays(3))
-            .build();
-    assertThat(openByFallback.getStatus()).isEqualTo(ProgramStatus.OPEN);
-    assertThat(openByFallback.getDaysUntilDeadline()).isEqualTo(3);
-    assertThat(openByFallback.getDdayLabel()).isEqualTo("D-3");
-  }
 }

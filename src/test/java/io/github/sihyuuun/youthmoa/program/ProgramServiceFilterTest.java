@@ -62,6 +62,8 @@ class ProgramServiceFilterTest {
     Center centerWonmi =
         centerRepository.save(Center.builder().name("원미").region("부천시").isFeatured(false).build());
 
+    // D5-Q1d (2026-10-06 · V27): applyStart/End NOT NULL — 전 시드에 명시적 세팅.
+    // 운영기간과 동일 범위로 백필한 시나리오 (V27 백필 로직과 일치).
     programRepository.save(
         Program.builder()
             .title("취업 워크숍")
@@ -70,6 +72,8 @@ class ProgramServiceFilterTest {
             .content("c")
             .startDate(today.minusDays(5))
             .endDate(today.plusDays(5))
+            .applyStartDate(today.minusDays(5))
+            .applyEndDate(today.plusDays(5))
             .capacity(30)
             .createdBy(creator)
             .build());
@@ -82,6 +86,8 @@ class ProgramServiceFilterTest {
             .content("c")
             .startDate(today.plusDays(10))
             .endDate(today.plusDays(30))
+            .applyStartDate(today.plusDays(10))
+            .applyEndDate(today.plusDays(30))
             .capacity(20)
             .createdBy(creator)
             .build());
@@ -94,6 +100,8 @@ class ProgramServiceFilterTest {
             .content("c")
             .startDate(today.minusDays(30))
             .endDate(today.minusDays(5))
+            .applyStartDate(today.minusDays(30))
+            .applyEndDate(today.minusDays(5))
             .capacity(15)
             .createdBy(creator)
             .build());
@@ -231,44 +239,8 @@ class ProgramServiceFilterTest {
             "newest",
             0,
             Collections.emptySet());
-    // "Q1b-ended" 는 applyEndDate 가 어제 → ENDED. 기존 "마케팅 종료" seed 는 endDate 과거이지만 applyEndDate null →
-    // endDate 폴백으로 ENDED 분류. 두 건 모두 포함돼야 하고 "AI 교육"(applyEnd null + endDate 미래) 은 제외.
-    assertThat(result.getContent())
-        .extracting(Program::getTitle)
-        .contains("Q1b-ended")
-        .doesNotContain("AI 교육");
-  }
-
-  /**
-   * Q1b 폴백: applyStart/End 가 null 인 레거시 row → COALESCE 로 startDate/endDate 가 축이 됨. TODO(D5-Q1d)
-   * 백필 후 삭제.
-   */
-  @Test
-  @DisplayName("Q1b: apply* null → startDate/endDate 폴백 (레거시 row 호환)")
-  void q1b_nullApply_fallbackToOperationDates() {
-    LocalDate today = LocalDate.now();
-    Center c = centerRepository.save(Center.builder().name("Q1센터3").region("수원시").build());
-    // apply* 둘 다 null, 운영기간이 진행중 → OPEN 으로 폴백
-    programRepository.save(
-        Program.builder()
-            .title("Q1b-legacy-open")
-            .center(c)
-            .region("수원시")
-            .content("c")
-            .startDate(today.minusDays(2))
-            .endDate(today.plusDays(5))
-            .capacity(10)
-            .createdBy(creator)
-            .build());
-
-    Page<Program> result =
-        programService.search(
-            "open",
-            Collections.emptyList(),
-            Collections.emptyList(),
-            "newest",
-            0,
-            Collections.emptySet());
-    assertThat(result.getContent()).extracting(Program::getTitle).contains("Q1b-legacy-open");
+    // "Q1b-ended" 는 applyEndDate 가 어제 → ENDED.
+    // D5-Q1d (2026-10-06 · V27): applyEndDate NOT NULL — null 폴백 TC 삭제.
+    assertThat(result.getContent()).extracting(Program::getTitle).contains("Q1b-ended");
   }
 }

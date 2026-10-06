@@ -69,23 +69,16 @@ public class AdminDashboardService {
             .limit(5)
             .toList();
 
-    // 마감 임박: effectiveApplyEnd 가 오늘~+7 이내.
-    // D5-Q1b (2026-10-02): endDate → applyEndDate 축으로 전환. applyEndDate 가 null 이면 endDate 폴백.
-    // TODO(D5-Q1d): V27 backfill + NOT NULL 승격 후 폴백 제거.
+    // 마감 임박: applyEndDate 가 오늘~+7 이내.
+    // D5-Q1b (2026-10-02): endDate → applyEndDate 축으로 전환.
+    // D5-Q1d (2026-10-06 · V27): applyEndDate NOT NULL — 폴백 헬퍼 제거, 직접 접근.
     LocalDate today = LocalDate.now();
     LocalDate cutoff = today.plusDays(7);
     List<Program> urgent =
         scoped.stream()
-            .map(p -> new Object[] {p, effectiveApplyEnd(p)})
-            .filter(arr -> arr[1] != null)
-            .filter(
-                arr -> {
-                  LocalDate d = (LocalDate) arr[1];
-                  return !d.isBefore(today) && !d.isAfter(cutoff);
-                })
-            .sorted(Comparator.comparing(arr -> (LocalDate) arr[1]))
+            .filter(p -> !p.getApplyEndDate().isBefore(today) && !p.getApplyEndDate().isAfter(cutoff))
+            .sorted(Comparator.comparing(Program::getApplyEndDate))
             .limit(5)
-            .map(arr -> (Program) arr[0])
             .toList();
 
     return DashboardModel.builder()
@@ -107,14 +100,6 @@ public class AdminDashboardService {
       all = all.filter(p -> p.getCenter() != null && cid.equals(p.getCenter().getId()));
     }
     return all.toList();
-  }
-
-  /**
-   * D5-Q1b: applyEndDate ?? endDate 폴백 헬퍼. V12 로 applyEndDate 가 nullable 로 추가됐으므로 레거시 row 는
-   * endDate 로 폴백한다. TODO(D5-Q1d): V27 backfill + NOT NULL 승격 후 제거.
-   */
-  private static LocalDate effectiveApplyEnd(Program p) {
-    return p.getApplyEndDate() != null ? p.getApplyEndDate() : p.getEndDate();
   }
 
   private long countPendingApplications(List<Program> scoped) {

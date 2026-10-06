@@ -252,10 +252,7 @@
                         <div class="admin-stats-list-item-sub">
                             <span th:text="${up.center?.name}">청년센터</span>
                             <span> · </span>
-                            <span th:if="${up.applyEndDate != null}"
-                                  th:text="|${#temporals.format(up.applyEndDate, 'yyyy-MM-dd')} 마감|">마감일</span>
-                            <span th:if="${up.applyEndDate == null and up.endDate != null}"
-                                  th:text="|${#temporals.format(up.endDate, 'yyyy-MM-dd')} 마감|">마감일</span>
+                            <span th:text="|${#temporals.format(up.applyEndDate, 'yyyy-MM-dd')} 마감|">마감일</span>
                         </div>
                     </div>
                     <span class="admin-status-badge"

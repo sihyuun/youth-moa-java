@@ -455,16 +455,14 @@ public class AdminProgramService {
    * 상태 필터. Program.getStatus() 는 런타임 파생이라 DB 필터로 표현하려면 각 상태의 조건을 직접 옮겨야 한다.
    *
    * <p>D5-Q1b (2026-10-02): 신청기간(applyStart/End) 축으로 전환. 서술 계약
-   * {@code docs/design-contracts/program-status-derivation.md} §7-2. applyStart/End 가 null 인 레거시
-   * row 는 startDate/endDate 로 폴백한다 (COALESCE). <b>TODO(D5-Q1d)</b>: V27 backfill + NOT NULL 승격 머지
-   * 후 폴백 제거.
+   * {@code docs/design-contracts/program-status-derivation.md} §7-2.
+   * D5-Q1d (2026-10-06 · V27): applyStart/End NOT NULL 승격으로 COALESCE 폴백 제거.
    *
    * <ul>
    *   <li>SUSPENDED = isActive=false
-   *   <li>ENDED = isActive=true AND effectiveApplyEnd &lt; today
-   *   <li>UPCOMING = isActive=true AND effectiveApplyStart &gt; today
-   *   <li>OPEN = isActive=true AND (effectiveApplyStart NULL OR &lt;= today) AND (effectiveApplyEnd
-   *       NULL OR &gt;= today)
+   *   <li>ENDED = isActive=true AND applyEndDate &lt; today
+   *   <li>UPCOMING = isActive=true AND applyStartDate &gt; today
+   *   <li>OPEN = isActive=true AND applyStartDate &lt;= today AND applyEndDate &gt;= today
    * </ul>
    */
   private Specification<Program> statusSpec(String status) {
@@ -480,28 +478,21 @@ public class AdminProgramService {
     return switch (s) {
       case SUSPENDED -> (root, query, cb) -> cb.isFalse(root.get("isActive"));
       case ENDED ->
-          (root, query, cb) -> {
-            jakarta.persistence.criteria.Expression<LocalDate> effEnd =
-                cb.coalesce(root.<LocalDate>get("applyEndDate"), root.<LocalDate>get("endDate"));
-            return cb.and(cb.isTrue(root.get("isActive")), cb.lessThan(effEnd, today));
-          };
+          (root, query, cb) ->
+              cb.and(
+                  cb.isTrue(root.get("isActive")),
+                  cb.lessThan(root.<LocalDate>get("applyEndDate"), today));
       case UPCOMING ->
-          (root, query, cb) -> {
-            jakarta.persistence.criteria.Expression<LocalDate> effStart =
-                cb.coalesce(root.<LocalDate>get("applyStartDate"), root.<LocalDate>get("startDate"));
-            return cb.and(cb.isTrue(root.get("isActive")), cb.greaterThan(effStart, today));
-          };
+          (root, query, cb) ->
+              cb.and(
+                  cb.isTrue(root.get("isActive")),
+                  cb.greaterThan(root.<LocalDate>get("applyStartDate"), today));
       case OPEN ->
-          (root, query, cb) -> {
-            jakarta.persistence.criteria.Expression<LocalDate> effStart =
-                cb.coalesce(root.<LocalDate>get("applyStartDate"), root.<LocalDate>get("startDate"));
-            jakarta.persistence.criteria.Expression<LocalDate> effEnd =
-                cb.coalesce(root.<LocalDate>get("applyEndDate"), root.<LocalDate>get("endDate"));
-            return cb.and(
-                cb.isTrue(root.get("isActive")),
-                cb.or(cb.isNull(effStart), cb.lessThanOrEqualTo(effStart, today)),
-                cb.or(cb.isNull(effEnd), cb.greaterThanOrEqualTo(effEnd, today)));
-          };
+          (root, query, cb) ->
+              cb.and(
+                  cb.isTrue(root.get("isActive")),
+                  cb.lessThanOrEqualTo(root.<LocalDate>get("applyStartDate"), today),
+                  cb.greaterThanOrEqualTo(root.<LocalDate>get("applyEndDate"), today));
     };
   }
 }

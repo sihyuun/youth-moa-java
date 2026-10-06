@@ -42,11 +42,9 @@ public class ProgramSpec {
    * <p>D5-Q1b (2026-10-02): 신청기간(applyStart/End) 축으로 전환. 서술 계약
    * {@code docs/design-contracts/program-status-derivation.md} §7-2.
    *
-   * <p>nullable 폴백: V12 (2026-09-10) 가 apply* 를 nullable 로 추가해 레거시 row 는 null 이 남아 있다. {@code
-   * COALESCE(applyX, X)} 로 운영기간 폴백한다. <b>TODO(D5-Q1d)</b>: V27 backfill + NOT NULL 승격 머지 후 폴백
-   * 제거.
+   * <p>D5-Q1d (2026-10-06 · V27): applyStartDate / applyEndDate NOT NULL 승격 완료 — COALESCE 폴백 제거.
    *
-   * <p>"ended" 는 effectiveApplyEnd &lt; today AND isActive=true (SUSPENDED 는 별도 상태이므로 제외).
+   * <p>"ended" 는 applyEndDate &lt; today AND isActive=true (SUSPENDED 는 별도 상태이므로 제외).
    */
   public static Specification<Program> withDateStatus(String status) {
     if (status == null || status.isBlank()) return null;
@@ -57,27 +55,18 @@ public class ProgramSpec {
     if ("closed".equals(key)) key = "ended";
     return switch (key) {
       case "open" ->
-          (root, query, cb) -> {
-            jakarta.persistence.criteria.Expression<LocalDate> effStart =
-                cb.coalesce(root.<LocalDate>get("applyStartDate"), root.<LocalDate>get("startDate"));
-            jakarta.persistence.criteria.Expression<LocalDate> effEnd =
-                cb.coalesce(root.<LocalDate>get("applyEndDate"), root.<LocalDate>get("endDate"));
-            return cb.and(
-                cb.or(cb.isNull(effStart), cb.lessThanOrEqualTo(effStart, today)),
-                cb.or(cb.isNull(effEnd), cb.greaterThanOrEqualTo(effEnd, today)));
-          };
+          (root, query, cb) ->
+              cb.and(
+                  cb.lessThanOrEqualTo(root.<LocalDate>get("applyStartDate"), today),
+                  cb.greaterThanOrEqualTo(root.<LocalDate>get("applyEndDate"), today));
       case "upcoming" ->
-          (root, query, cb) -> {
-            jakarta.persistence.criteria.Expression<LocalDate> effStart =
-                cb.coalesce(root.<LocalDate>get("applyStartDate"), root.<LocalDate>get("startDate"));
-            return cb.greaterThan(effStart, today);
-          };
+          (root, query, cb) ->
+              cb.greaterThan(root.<LocalDate>get("applyStartDate"), today);
       case "ended" ->
-          (root, query, cb) -> {
-            jakarta.persistence.criteria.Expression<LocalDate> effEnd =
-                cb.coalesce(root.<LocalDate>get("applyEndDate"), root.<LocalDate>get("endDate"));
-            return cb.and(cb.lessThan(effEnd, today), cb.isTrue(root.get("isActive")));
-          };
+          (root, query, cb) ->
+              cb.and(
+                  cb.lessThan(root.<LocalDate>get("applyEndDate"), today),
+                  cb.isTrue(root.get("isActive")));
       default -> null;
     };
   }
@@ -85,18 +74,14 @@ public class ProgramSpec {
   /**
    * "전체" 탭에서 종료 프로그램을 제외 — 계약 grid.excludeEnded (wireframe WF-5-001-01). 종료 프로그램은 "종료" 탭에서만 노출한다.
    *
-   * <p>D5-Q1b (2026-10-02): 신청기간(applyEndDate) 축으로 전환. applyEndDate 가 null 이면 endDate 폴백.
-   * <b>TODO(D5-Q1d)</b>: V27 backfill 후 폴백 제거.
+   * <p>D5-Q1b (2026-10-02): 신청기간(applyEndDate) 축으로 전환.
+   * D5-Q1d (2026-10-06): applyEndDate NOT NULL 전제 — null 분기 제거.
    *
-   * <p>effectiveApplyEnd 가 null 이거나 >= today 인 프로그램만 통과.
+   * <p>applyEndDate &gt;= today 인 프로그램만 통과.
    */
   public static Specification<Program> notEnded() {
-    return (root, query, cb) -> {
-      LocalDate today = LocalDate.now();
-      jakarta.persistence.criteria.Expression<LocalDate> effEnd =
-          cb.coalesce(root.<LocalDate>get("applyEndDate"), root.<LocalDate>get("endDate"));
-      return cb.or(cb.isNull(effEnd), cb.greaterThanOrEqualTo(effEnd, today));
-    };
+    return (root, query, cb) ->
+        cb.greaterThanOrEqualTo(root.<LocalDate>get("applyEndDate"), LocalDate.now());
   }
 
   /** 단일 지역 (하위 호환용 — 사용처 없으면 추후 제거) */

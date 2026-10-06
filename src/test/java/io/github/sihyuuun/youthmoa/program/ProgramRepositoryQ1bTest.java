@@ -21,16 +21,16 @@ import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.PageRequest;
 
 /**
- * D5-Q1b (2026-10-02): ProgramRepository 의 신청기간 축 쿼리 검증.
+ * D5-Q1b (2026-10-02) · D5-Q1d (2026-10-06 · V27): ProgramRepository 의 신청기간 축 쿼리 검증.
  *
  * <ul>
  *   <li>{@link ProgramRepository#findTop4ByIsActiveTrueOrderByApplyEndDateAsc(org.springframework.data.domain.Pageable)}
- *       — applyEndDate 가 가장 가까운 순 (apply null 이면 endDate 폴백)
- *   <li>{@link ProgramRepository#countActiveGroupByCenterId()} — effectiveApplyEnd &gt;= today 인
+ *       — applyEndDate 가 가장 가까운 순
+ *   <li>{@link ProgramRepository#countActiveGroupByCenterId()} — applyEndDate &gt;= today 인
  *       프로그램만 센터별 카운트
  * </ul>
  *
- * <p>TODO(D5-Q1d): V27 backfill + NOT NULL 승격 후 폴백 TC 삭제, @Query 의 COALESCE 제거와 동시.
+ * <p>V27 로 applyStart/End NOT NULL 승격 완료 — 레거시 null 폴백 TC 삭제.
  */
 @DataJpaTest
 @AutoConfigureTestDatabase
@@ -73,17 +73,6 @@ class ProgramRepositoryQ1bTest {
   }
 
   @Test
-  @DisplayName("findTop4: apply* null 이면 endDate 로 COALESCE 폴백해 정렬")
-  void top4FallbackToEndDate() {
-    LocalDate today = LocalDate.now();
-    programRepository.save(prog("legacy-end-3", null, today.plusDays(3)));
-    programRepository.save(prog("new-apply-10", today.plusDays(10), today.plusDays(100)));
-
-    List<Program> top = programRepository.findTop4ByIsActiveTrueOrderByApplyEndDateAsc(PageRequest.of(0, 4));
-    assertThat(top).extracting(Program::getTitle).containsExactly("legacy-end-3", "new-apply-10");
-  }
-
-  @Test
   @DisplayName("countActiveGroupByCenterId: applyEndDate >= today 인 프로그램만 센터별 카운트")
   void countActiveByApplyEnd() {
     LocalDate today = LocalDate.now();
@@ -102,18 +91,6 @@ class ProgramRepositoryQ1bTest {
     assertThat(counts).containsEntry(centerB.getId(), 2L);
   }
 
-  @Test
-  @DisplayName("countActiveGroupByCenterId: apply* null 이어도 endDate 폴백으로 포함")
-  void countActiveFallback() {
-    LocalDate today = LocalDate.now();
-    programRepository.save(progCenter("legacy-A", centerA, null, today.plusDays(10)));
-
-    Map<Long, Long> counts =
-        programRepository.countActiveGroupByCenterId().stream()
-            .collect(java.util.stream.Collectors.toMap(r -> (Long) r[0], r -> (Long) r[1]));
-    assertThat(counts).containsEntry(centerA.getId(), 1L);
-  }
-
   private Program prog(String title, LocalDate applyEnd, LocalDate opEnd) {
     LocalDate today = LocalDate.now();
     return Program.builder()
@@ -123,7 +100,7 @@ class ProgramRepositoryQ1bTest {
         .content("c")
         .startDate(today.minusDays(1))
         .endDate(opEnd)
-        .applyStartDate(applyEnd != null ? today.minusDays(1) : null)
+        .applyStartDate(today.minusDays(1))
         .applyEndDate(applyEnd)
         .capacity(10)
         .createdBy(creator)
@@ -139,7 +116,7 @@ class ProgramRepositoryQ1bTest {
         .content("c")
         .startDate(today.minusDays(1))
         .endDate(opEnd)
-        .applyStartDate(applyEnd != null ? today.minusDays(1) : null)
+        .applyStartDate(today.minusDays(1))
         .applyEndDate(applyEnd)
         .capacity(10)
         .createdBy(creator)
