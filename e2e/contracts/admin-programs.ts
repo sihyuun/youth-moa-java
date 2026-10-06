@@ -114,6 +114,15 @@ export const adminProgramListContract: ScreenContract = {
             severity: 'P1',
         },
         {
+            id: 'list.head.col.apply',
+            desc: '헤더 "신청기간" 컬럼 (D5-Q1c 전면 노출)',
+            selector: '.admin-program-row--head .admin-program-col-apply',
+            kind: 'text',
+            expected: '신청기간',
+            proto: 'admin/program/list.html L87 · D5-Q1c',
+            severity: 'P1',
+        },
+        {
             id: 'list.rows.seeded',
             desc: '시드된 프로그램 5건 이상 렌더 (첫 페이지 10건)',
             selector: '.admin-program-row:not(.admin-program-row--head)',
@@ -140,17 +149,17 @@ export const adminProgramListContract: ScreenContract = {
             proto: 'spec §1-B',
             severity: 'P0',
         },
-        // deferred — A3/A6/A8 이월
+        // D5-Q1c (2026-10-06): A3 이월 해소 — 신청기간 실데이터 노출.
         {
-            id: 'row.apply.period.column',
-            desc: '신청기간 컬럼 (A3 이월 · A2 에서는 "-")',
+            id: 'row.apply.period.text',
+            desc: '신청기간 셀 — YYYY-MM-DD ~ YYYY-MM-DD 포맷 (D5-Q1c)',
             selector: '.admin-program-row:not(.admin-program-row--head) .admin-program-col-apply',
-            kind: 'text',
-            expected: '(신청기간)',
-            proto: 'prototype.html L960',
-            severity: 'P2',
-            deferred: 'A3 (docs/specs/ADMIN-00-master-directive.md §5-A3) — A2 는 "-" 자리만',
+            kind: 'text-match',
+            expected: '^\\d{4}-\\d{2}-\\d{2}\\s*~\\s*\\d{4}-\\d{2}-\\d{2}$',
+            proto: 'admin/program/list.html L131 · D5-Q1c',
+            severity: 'P0',
         },
+        // deferred — A6 이월
         {
             id: 'row.views.column',
             desc: '조회수 컬럼 (A6 이월 · A2 에서는 "-")',

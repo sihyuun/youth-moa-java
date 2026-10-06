@@ -24,7 +24,9 @@ export type CheckKind =
     /** 부재 여부 (expected: true 시 count===0 요구). exists 의 반대 — admin-notice 신규 폼 첨부 섹션 미노출 등 */
     | 'not-exists'
     /** attr 값 비어있지 않음 (prop 지정 필수 — 예: prop='value' → input.value != '') */
-    | 'attr-not-empty';
+    | 'attr-not-empty'
+    /** textContent (trim 후) 가 expected 정규식에 매칭. 날짜 등 가변 포맷 검증용 (D5-Q1c) */
+    | 'text-match';
 
 export type Severity = 'P0' | 'P1' | 'P2';
 

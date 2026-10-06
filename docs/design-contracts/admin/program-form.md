@@ -66,6 +66,7 @@
 
 ## 이월 (A3-2 이관 · 절대 손대지 말 것)
 
+- **상세-편집 분리** (`FOLLOW-admin-program-detail-readonly` · prototype `program-detail` 재현): read-only 정보 카드 + "수정" 버튼 + ⋯ 더보기(복제·삭제) + 신청 현황 테이블. 현재는 편집 폼 1화면으로 통합
 - F4/F0c 인라인 통합 (본 티켓은 별도 페이지 링크만)
 - Course 엔티티 (강좌 제공 radio + 다중 row)
 - ProgramAttachment 엔티티 (첨부 다중 업로드)
@@ -74,6 +75,7 @@
 
 ## deviation
 
+- **prototype 은 `program-detail`(read-only 상세) 과 `program-form`(편집 폼) 을 별도 screen 으로 분리** (admin HANDOFF §프로그램 상세 L234-238, §프로그램 등록/수정 폼 L240-245 참조). 본 구현은 "편집 겸 상세" 로 통합(`GET /admin/programs/{id}` 이 바로 편집 폼 노출 · Qn-A A). 상단 "수정" 버튼 / "⋯ 더보기 메뉴" / read-only 정보 카드 레이아웃은 미구현. 상세↔편집 분리가 필요하면 후속 티켓 `FOLLOW-admin-program-detail-readonly` 로 분리할 것 (현재 deferred)
 - prototype 청년센터 select 는 하드코딩 9종 → 본 티켓은 text input (Program-Center FK 미도입 A9 승계)
 - prototype "강좌 제공 · 신청 질문 관리 · 약관명 · 약관 내용 1000자" 라디오 UI → A3-2 로 이월. 본 티켓 약관 탭은 3분류 textarea (`termsService/termsPrivacy/termsMarketing`) 로 단순화
 - prototype 툴바 B/I/U + 첨부 대시드 버튼 → A3-2 (rich editor · attachment)

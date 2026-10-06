@@ -131,7 +131,8 @@ Program.java 에 `TODO(D5-Q1d)` 주석으로 명시했다.
 ## 8. 관련 PR / 이월
 
 - **D5-Q1a** (이 PR) — Program 엔티티 파생 메서드 교체 + 단위 테스트 + 서술 계약 + DataInitializer 역산 시드. 뱃지·CSV·대시보드·캘린더·신청 가드가 **머지 즉시 신청기간 기준으로 전환됨** (§7-1, Q5=A 의도된 결과)
-- **D5-Q1b** — DB 쿼리 날짜 비교 지점 교체 (§7-2: ProgramSpec withDateStatus/notEnded + ProgramRepository findTop4/countActiveGroupByCenterId)
-- **D5-Q1c** — UI 노출 (list.html / detail.html / dashboard.html / stats.html)
+- **D5-Q1b** — DB 쿼리 날짜 비교 지점 교체 (§7-2: ProgramSpec withDateStatus/notEnded + ProgramRepository findTop4/countActiveGroupByCenterId) + 사용자 가시 축 (dashboard/stats/user detail) 신청기간 전환
+- **D5-Q1c** — admin UI 신청기간 전면 노출 (admin/program/list.html 셀 "-" 플레이스홀더 → `applyStart ~ applyEnd` 실데이터). admin/program/form.html 은 "탭 2: 신청 정보" 섹션에 신청 시작/마감 입력 2행이 이미 분리돼 있어 추가 수정 없음 (`/admin/programs/{id}` = 편집 폼 겸 상세). contract `admin-programs.ts` 에 `list.head.col.apply` + `row.apply.period.text` (text-match 포맷 검증) 추가, 러너에 `text-match` kind 신설
+  - **갭 (deferred)**: prototype HANDOFF.md L234-238 는 "프로그램 상세" 를 **read-only detail 화면** (좌측 정보 카드 + 우측 설명 + 하단 신청 현황 테이블 + 상단 "수정" 버튼) 으로 명세. 현 코드는 `/admin/programs/{id}` → form.html 편집 폼 겸 상세 단일 뷰로 수렴 상태. 신청기간 노출 자체는 완료됐으나 "read-only detail + 수정 폼 2분리" 구조는 미반영 → 후속 티켓 `FOLLOW-admin-detail-readonly` 로 분리 (D5-Q1 트랙 외)
 - **D5-Q1d** — V27 backfill (startDate/endDate → applyStart/End) + NOT NULL 승격 + 본 폴백 제거
 - **D5-Q1e** — AdminStatsService fallback 제거 (Q4=B)
