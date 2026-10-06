@@ -75,9 +75,15 @@ public class HomeService {
     return applicationRepository.countDistinctUsers();
   }
 
-  /** Top 4 프로그램 — 모집중 + endDate ASC (마감임박). */
+  /**
+   * Top 4 프로그램 — 모집중 + applyEndDate ASC (신청 마감임박).
+   *
+   * <p>D5-Q1b (2026-10-02): endDate → applyEndDate 축으로 전환. 홈 뱃지(D-N)와 Top 4 정렬이 모두 신청기간 기준으로
+   * 일치하도록. applyEndDate 가 null 이면 endDate 폴백 (Repository @Query 의 COALESCE).
+   */
   public List<Program> findTopPrograms() {
-    return programRepository.findTop4ByIsActiveTrueOrderByEndDateAsc();
+    return programRepository.findTop4ByIsActiveTrueOrderByApplyEndDateAsc(
+        org.springframework.data.domain.PageRequest.of(0, 4));
   }
 
   /** Top 4 프로그램 → ProgramCardDto 변환 (CapacityBar용). */
@@ -139,17 +145,16 @@ public class HomeService {
   public List<Program> findRecommendedPrograms(Long userId) {
     User user = userRepository.findById(userId).orElse(null);
     if (user == null) return findTopPrograms();
-    // 활성 프로그램 마감임박순 pool (한 번만 조회 후 스코어링)
-    List<Program> pool = programRepository.findTop4ByIsActiveTrueOrderByEndDateAsc();
-    // pool 이 4개보다 부족할 여지가 있어 넉넉히 재조회 — findAllByIsActiveTrue 로 대체
-    pool =
-        programRepository
-            .findAllByIsActiveTrue(
-                org.springframework.data.domain.PageRequest.of(
-                    0, 50, org.springframework.data.domain.Sort.by("endDate").ascending()))
-            .getContent();
-    // Page.getContent() 가 unmodifiable List 반환 → sort 위해 새 ArrayList 로 복사
-    pool = new ArrayList<>(pool);
+    // 활성 프로그램 pool (스코어링용) — 50건 넉넉히 로드. 정렬은 아래 sort() 에서 재적용되므로
+    // DB 레벨 정렬 축은 보조. D5-Q1b 로 Top 4 는 applyEndDate 축으로 전환됐지만, 여기 pool 재조회는
+    // 뒤의 scoreOf → endDate ASC fallback 과 일관을 위해 endDate 축 유지 (ArrayList 복사 후 재정렬).
+    List<Program> pool =
+        new ArrayList<>(
+            programRepository
+                .findAllByIsActiveTrue(
+                    org.springframework.data.domain.PageRequest.of(
+                        0, 50, org.springframework.data.domain.Sort.by("endDate").ascending()))
+                .getContent());
 
     // F-signup-03: interests → interestCategories (category 매칭용).
     Set<String> interests =
