@@ -112,7 +112,7 @@ Hero 우측 정보 영역 순서: 상태 배지 1개(L982) → h1 26/700(L984) �
 - **알림 신청됨 토글** (`notified` state, L1029·L1114) — 재클릭 시 해제 + 토스트
 - **정원마감(full) 분기 자체가 구현에 없음** — `detail.html` 의 CTA 는 `program.status`(OPEN/UPCOMING/ENDED/SUSPENDED) 로만 분기한다. 정원이 찬 OPEN 프로그램도 `신청하기` 가 그대로 노출된다. 모집 상태 카드(`ProgramCardDto`)는 `모집 마감` 헤드라인을 이미 계산하고 있어 **카드 문구와 CTA 가 서로 모순**된다
 - **하단 sticky 바 상태 줄의 정보량** (L1099) — prototype 은 `마감까지 3일 · 27/30명`, 구현은 상태 라벨(`모집중`)만. 카피 유지 결정과는 별개로 D-day·신청 인원이 빠져 있다
-- 신청 기간 값 포맷 (L995) — prototype `2026-07-01 ~ 07-31`, 구현 `~ 2026.08.01 까지`
+- 신청 기간 값 포맷 (L995) — prototype `2026-07-01 ~ 07-31`, 구현 `YYYY.MM.DD ~ YYYY.MM.DD` (양측 노출). D5-Q1d (2026-10-06) 로 `applyStartDate` 가 NOT NULL 승격되면서 "~ YYYY.MM.DD 까지" (마감 단독) 폴백 포맷을 제거하고 양측 날짜 노출로 확정. 구분자 `.` 유지 (prototype 의 `-` 와는 정책상 다름 — 전 화면 날짜 표기 공통 토큰). 기계 계약 `e2e/contracts/program-detail.ts` `meta.apply.period.text` 로 자동 검사됨
 - 이미지 로테이션 없음 (상세는 단일 이미지 `IMGS.pg[0]`) — 홈과 달리 크로스페이드 없음
 - 카드·버튼 hover (`btn-hover`), 토스트 (`addToast`), 진행 장소 모달의 격자 배경·핀 회전 연출 (L1074~1078)
 - 즐겨찾기 비로그인 클릭 시 prototype 은 **로그인 모달**, 구현은 `/login` **페이지 이동**

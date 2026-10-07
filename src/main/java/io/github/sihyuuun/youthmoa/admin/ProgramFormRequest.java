@@ -1,7 +1,6 @@
 package io.github.sihyuuun.youthmoa.admin;
 
 import io.github.sihyuuun.youthmoa.program.ApprovalMode;
-import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -43,12 +42,13 @@ public class ProgramFormRequest {
   private String content;
 
   // 탭 2 — 신청 정보
-  // D5-Q1d (2026-10-06): V27 로 DB NOT NULL 승격 — 폼 레벨에서도 @NotNull 로 입력 강제.
-  @NotNull(message = "신청 시작일을 입력해주세요.")
+  // D5-Q1d (2026-10-06): V27 로 DB NOT NULL 승격.
+  // FOLLOW-notnull-valid (2026-10-07): @NotNull 데드코드 제거 — AdminProgramController 는
+  // admin-notice/term 과 동일하게 @Valid 를 쓰지 않으며 (Qn-Δ5 결정, javadoc 상단 참조),
+  // null 가드는 AdminProgramService.validate() 에서 IllegalArgumentException → 400 매핑으로 처리.
   @DateTimeFormat(pattern = "yyyy-MM-dd")
   private LocalDate applyStartDate;
 
-  @NotNull(message = "신청 마감일을 입력해주세요.")
   @DateTimeFormat(pattern = "yyyy-MM-dd")
   private LocalDate applyEndDate;
 
