@@ -206,6 +206,7 @@ export const adminDashboardContract: ScreenContract = {
             severity: 'P1',
         },
         {
+            // 2026-10-07 A-R2: deferred 해소 — A5 승인 처리 페이지 머지로 CTA 링크 렌더 확인 (probe)
             id: 'side.pending.cta.text',
             desc: '바로 처리하기 CTA 텍스트',
             selector: '.admin-pending-card-cta-link',
@@ -213,7 +214,6 @@ export const adminDashboardContract: ScreenContract = {
             expected: '바로 처리하기 →',
             proto: 'html L747',
             severity: 'P1',
-            deferred: 'A5: 승인 처리 페이지 미구현. 링크만 노출',
         },
         // ── 마감 임박 ────────────────────────────────────────
         {
@@ -252,16 +252,15 @@ export const adminDashboardContract: ScreenContract = {
             proto: 'html L765 grid 5 columns',
             severity: 'P2',
         },
-        // ── deferred: Stat trend copy (A6 이월) ──────────────
+        // ── 2026-10-07 A-R2: deferred 해소 — A6 통계 트랙 머지로 trend caption 렌더 확인 (probe count=4)
         {
             id: 'stat.trend.increased',
-            desc: '"지난달보다 증가" 카피 (A6 실계산 대체 예정)',
+            desc: '"지난달보다 증가" 카피',
             selector: '.admin-stat-card-trend-caption',
             kind: 'text',
             expected: '지난달보다 증가',
             proto: 'html L626',
             severity: 'P2',
-            deferred: 'A6 (docs/specs/A6): 통계 화면에서 실계산',
         },
     ],
 };
