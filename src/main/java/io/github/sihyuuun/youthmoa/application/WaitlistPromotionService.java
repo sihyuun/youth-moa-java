@@ -58,14 +58,14 @@ public class WaitlistPromotionService {
    */
   @Transactional
   public void promoteIfEligible(Long programId) {
-    Program program =
-        programRepository.findById(programId).orElse(null);
+    Program program = programRepository.findById(programId).orElse(null);
     if (program == null) return;
     if (!program.isAutoApproveWhenFull()) return;
     if (program.getCapacity() == null) return;
 
     long approvedCount =
-        applicationRepository.countByProgramAndStatusIn(program, List.of(ApplicationStatus.APPROVED));
+        applicationRepository.countByProgramAndStatusIn(
+            program, List.of(ApplicationStatus.APPROVED));
     if (approvedCount >= program.getCapacity()) {
       // 방어적 — 정상 흐름에선 CANCELLED/REJECTED 로 공석 하나 생긴 직후이므로 approvedCount < capacity 성립.
       // approvedCount >= capacity 라면 승격을 추가하면 정원 초과가 되므로 skip.
@@ -99,9 +99,6 @@ public class WaitlistPromotionService {
     // "승인 완료" 알림을 공유한다.
     eventPublisher.publishEvent(
         new ApplicationApprovedEvent(
-            promoted.getId(),
-            promoted.getUser().getId(),
-            program.getId(),
-            program.getTitle()));
+            promoted.getId(), promoted.getUser().getId(), program.getId(), program.getTitle()));
   }
 }

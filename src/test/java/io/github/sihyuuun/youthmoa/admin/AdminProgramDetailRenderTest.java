@@ -141,8 +141,8 @@ class AdminProgramDetailRenderTest {
   // ================= FOLLOW-waitlist-auto-approve (2026-10-08 · Q5 A) =================
 
   /**
-   * capacity != null && applied >= capacity 조건 충족 시 배너 markup 포함.
-   * program 1 에 capacity 를 작게 조정해 조건을 재현 (시드 program 1 은 capacity=30 + applied 28 이라 조건 미달).
+   * capacity != null && applied >= capacity 조건 충족 시 배너 markup 포함. program 1 에 capacity 를 작게 조정해 조건을
+   * 재현 (시드 program 1 은 capacity=30 + applied 28 이라 조건 미달).
    */
   @Test
   void GET_admin_program_detail_정원_꽉참_배너_노출() throws Exception {

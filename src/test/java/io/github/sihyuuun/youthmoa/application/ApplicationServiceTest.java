@@ -85,9 +85,9 @@ class ApplicationServiceTest {
   @Autowired MeterRegistry meterRegistry;
 
   /**
-   * FOLLOW-waitlist-auto-approve (2026-10-08): ApplicationService 가 WaitlistPromotionService 를
-   * 생성자 주입하도록 변경됨. @DataJpaTest 슬라이스에는 승격 Bean 이 없으므로 mock 으로 격리.
-   * 승격 시나리오는 별도 ApplicationServiceAutoApproveTest 가 커버하므로 여기선 no-op 로 충분.
+   * FOLLOW-waitlist-auto-approve (2026-10-08): ApplicationService 가 WaitlistPromotionService 를 생성자
+   * 주입하도록 변경됨. @DataJpaTest 슬라이스에는 승격 Bean 이 없으므로 mock 으로 격리. 승격 시나리오는 별도
+   * ApplicationServiceAutoApproveTest 가 커버하므로 여기선 no-op 로 충분.
    */
   @MockitoBean WaitlistPromotionService waitlistPromotionService;
 

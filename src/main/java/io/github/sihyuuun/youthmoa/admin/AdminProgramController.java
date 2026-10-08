@@ -333,8 +333,8 @@ public class AdminProgramController {
   // ================= FOLLOW-waitlist-auto-approve (2026-10-08) =================
 
   /**
-   * 대기자 자동 승인 토글. Q1 A — 상세 열람과 동일한 권한 (SYSTEM_ADMIN + CENTER_ADMIN own-center). PRG 302 redirect
-   * + flash 패턴.
+   * 대기자 자동 승인 토글. Q1 A — 상세 열람과 동일한 권한 (SYSTEM_ADMIN + CENTER_ADMIN own-center). PRG 302 redirect +
+   * flash 패턴.
    *
    * <p>Q2 A: 토글 ON 자체는 승격을 수행하지 않는다. 승격은 {@code AdminApplicationService.reject/forceCancel} 또는
    * {@code ApplicationService.cancel} 가 상태 전이 후 트리거한다.
@@ -351,8 +351,7 @@ public class AdminProgramController {
     } catch (IllegalAccessError e) {
       throw new AccessDeniedException(e.getMessage());
     }
-    ra.addFlashAttribute(
-        "flashMessage", enabled ? "대기자 자동 승인을 켰어요." : "대기자 자동 승인을 껐어요.");
+    ra.addFlashAttribute("flashMessage", enabled ? "대기자 자동 승인을 켰어요." : "대기자 자동 승인을 껐어요.");
     return "redirect:/admin/programs/" + id;
   }
 

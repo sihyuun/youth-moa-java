@@ -28,8 +28,8 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * FOLLOW-waitlist-auto-approve (2026-10-08): {@link AdminApplicationService#forceCancel} /
- * {@link AdminApplicationService#reject} 에 끼운 승격 트리거 검증.
+ * FOLLOW-waitlist-auto-approve (2026-10-08): {@link AdminApplicationService#forceCancel} / {@link
+ * AdminApplicationService#reject} 에 끼운 승격 트리거 검증.
  *
  * <p>Q2 A 핵심: APPROVED→CANCELLED/REJECTED 만 공석을 만든다. PENDING→REJECTED/CANCELLED 는 승격 트리거 X.
  */
