@@ -5869,6 +5869,13 @@ body:not(.is-scrolled) .site-header--transparent .header-menu-btn:hover {
 
 /* 프로필 편집 */
 /* P0 PV1-3: prototype.tsx L1493~1500 — maxWidth 480 중앙 정렬, 90px 라벨 그리드 */
+/* T12 (2026-10-06): 비밀번호 재확인 서브헤드 (prototype.tsx L1491 fontSize:14 fontWeight:600) */
+.mypage-verify-subhead {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-text);
+    margin-bottom: 8px;
+}
 .mypage-verify-form { max-width: 480px; margin: 0 auto; }
 .mypage-verify-grid {
     display: grid;
