@@ -30,6 +30,9 @@ const ADMIN_PAGES: { name: string; url: string }[] = [
     { name: 'notice/form(new)', url: '/admin/notices/new' },
     { name: 'program/list', url: '/admin/programs' },
     { name: 'program/form(new)', url: '/admin/programs/new' },
+    // FOLLOW-admin-program-detail-readonly (2026-10-07): 상세·편집 분리 후 신규 경로 2종.
+    { name: 'program/detail', url: '/admin/programs/1' },
+    { name: 'program/form(edit)', url: '/admin/programs/1/edit' },
     { name: 'program-dynamic-field/list', url: '/admin/programs/1/dynamic-fields' },
     { name: 'program-dynamic-field/form(new)', url: '/admin/programs/1/dynamic-fields/new' },
     { name: 'program-eligibility/form', url: '/admin/programs/1/eligibility' },

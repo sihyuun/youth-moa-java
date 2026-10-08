@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="|${program.title} — 청년모아 관리자|">프로그램 상세 — 청년모아 관리자</title>
+    <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"
+          rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" th:href="@{/images/logo_symbol.png}">
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
+    <th:block th:replace="~{admin/fragments/_head-scripts :: scripts}"></th:block>
+</head>
+<body class="admin-shell-body">
+
+<div th:replace="~{admin/fragments/header :: header('programs', ${centerScopeLabel}, ${isSystemAdmin})}"></div>
+
+<main class="admin-shell-main">
+    <!--
+      FOLLOW-admin-program-detail-readonly (2026-10-07 · Q1~Q8 모두 권장안):
+        · 상세 전용 템플릿. 편집은 /admin/programs/{id}/edit 로 분리됨.
+        · HANDOFF L234-238 + prototype.html L1446~1540 참조.
+    -->
+    <div class="admin-program-detail-page">
+
+        <!-- ===== Header strip ===== -->
+        <section class="admin-program-detail-header">
+            <div class="admin-program-detail-breadcrumb">
+                <a th:href="@{/admin/programs}" class="admin-program-breadcrumb-link">← 프로그램 목록</a>
+            </div>
+            <div class="admin-program-detail-title-row">
+                <div class="admin-program-detail-title-group">
+                    <h2 class="admin-program-detail-title" th:text="${program.title}">프로그램 제목</h2>
+                    <span class="admin-status-badge"
+                          th:classappend="${'admin-status-badge--' + program.status.name().toLowerCase()}"
+                          th:text="${program.status.label}">모집중</span>
+                    <span class="admin-program-detail-applied"
+                          th:text="|신청 ${applied}명|">신청 0명</span>
+                </div>
+                <div class="admin-program-detail-header-actions">
+                    <!-- Q8: watch-button 상세 헤더 전용 -->
+                    <div th:replace="~{admin/fragments/watch-button :: button(${program.id}, ${watched != null and watched}, 'detail-watch-btn')}"></div>
+                    <!-- Q1: 수정 CTA → /edit (SYSTEM_ADMIN only, CENTER_ADMIN 에게는 백엔드에서 403 반환) -->
+                    <a th:href="@{/admin/programs/{id}/edit(id=${program.id})}"
+                       class="admin-btn admin-btn--primary admin-program-detail-edit-cta"
+                       sec:authorize="hasRole('SYSTEM_ADMIN')">수정</a>
+                    <!-- Q5: ⋯ 더보기 (삭제만. 복제는 이월) -->
+                    <div class="admin-program-detail-more" sec:authorize="hasRole('SYSTEM_ADMIN')">
+                        <button type="button"
+                                class="admin-btn admin-btn--outline admin-program-detail-more-trigger"
+                                data-detail-menu-trigger
+                                aria-haspopup="menu" aria-expanded="false"
+                                aria-label="더보기 메뉴">⋯</button>
+                        <div class="admin-program-detail-more-menu" hidden role="menu"
+                             data-detail-menu-panel>
+                            <button type="button"
+                                    class="admin-program-detail-more-item admin-program-detail-more-item--danger"
+                                    data-testid="detail-menu-delete"
+                                    data-delete-trigger="program-delete-modal"
+                                    role="menuitem">삭제</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== 2열 그리드 ===== -->
+        <section class="admin-program-detail-grid">
+            <!-- 좌: 정보 카드 -->
+            <aside class="admin-program-detail-info">
+                <div class="admin-program-detail-thumb">
+                    <img th:if="${program.imageUrl != null and !program.imageUrl.isEmpty()}"
+                         th:src="${program.imageUrl}"
+                         th:alt="${program.title}"
+                         class="admin-program-detail-thumb-img"/>
+                    <div th:unless="${program.imageUrl != null and !program.imageUrl.isEmpty()}"
+                         class="admin-program-detail-thumb-placeholder">
+                        <span>이미지 없음</span>
+                    </div>
+                </div>
+
+                <dl class="admin-program-detail-fields">
+                    <div class="admin-program-detail-field" data-field="center">
+                        <dt class="admin-program-detail-field-label">청년센터</dt>
+                        <dd class="admin-program-detail-field-value"
+                            th:text="${program.center != null} ? ${program.center.name} : '-'">딴딴회관</dd>
+                    </div>
+
+                    <div class="admin-program-detail-field" data-field="period">
+                        <dt class="admin-program-detail-field-label">진행 기간</dt>
+                        <dd class="admin-program-detail-field-value">
+                            <span th:if="${program.startDate != null and program.endDate != null}"
+                                  th:text="|${#temporals.format(program.startDate, 'yyyy-MM-dd')} ~ ${#temporals.format(program.endDate, 'yyyy-MM-dd')}|">2026-01-01 ~ 2026-03-31</span>
+                            <span th:unless="${program.startDate != null and program.endDate != null}">미정</span>
+                        </dd>
+                    </div>
+
+                    <div class="admin-program-detail-field" data-field="apply-period">
+                        <dt class="admin-program-detail-field-label">신청 기간</dt>
+                        <dd class="admin-program-detail-field-value">
+                            <span th:if="${program.applyStartDate != null and program.applyEndDate != null}"
+                                  th:text="|${#temporals.format(program.applyStartDate, 'yyyy-MM-dd')} ~ ${#temporals.format(program.applyEndDate, 'yyyy-MM-dd')}|">2026-01-01 ~ 2026-01-31</span>
+                            <span th:unless="${program.applyStartDate != null and program.applyEndDate != null}">미정</span>
+                        </dd>
+                    </div>
+
+                    <div class="admin-program-detail-field" data-field="capacity">
+                        <dt class="admin-program-detail-field-label">모집 인원</dt>
+                        <dd class="admin-program-detail-field-value">
+                            <strong th:text="${applied}">0</strong>
+                            <span th:if="${program.capacity != null}"
+                                  th:text="| / ${program.capacity}명|"> / 20명</span>
+                            <span th:unless="${program.capacity != null}">명 (제한 없음)</span>
+                        </dd>
+                    </div>
+
+                    <div class="admin-program-detail-field" data-field="venue">
+                        <dt class="admin-program-detail-field-label">진행 장소</dt>
+                        <dd class="admin-program-detail-field-value"
+                            th:text="${program.venue != null and !program.venue.isEmpty()} ? ${program.venue} : '미정'">강의실 A</dd>
+                    </div>
+
+                    <div class="admin-program-detail-field" data-field="contact">
+                        <dt class="admin-program-detail-field-label">문의처</dt>
+                        <dd class="admin-program-detail-field-value"
+                            th:text="${program.contact != null and !program.contact.isEmpty()} ? ${program.contact} : '-'">031-123-4567</dd>
+                    </div>
+
+                    <div class="admin-program-detail-field" data-field="attachments"
+                         th:if="${attachments != null and !attachments.isEmpty()}">
+                        <dt class="admin-program-detail-field-label">첨부파일</dt>
+                        <dd class="admin-program-detail-field-value">
+                            <ul class="admin-program-detail-attachment-list">
+                                <li th:each="att : ${attachments}" class="admin-program-detail-attachment-item">
+                                    <a th:href="@{/admin/programs/{id}/attachments/{aid}/download(id=${program.id},aid=${att.id})}"
+                                       class="admin-program-detail-attachment-link"
+                                       th:text="${att.fileName}">파일명.pdf</a>
+                                    <span class="admin-program-detail-attachment-size"
+                                          th:text="${att.humanFileSize}">1.2MB</span>
+                                </li>
+                            </ul>
+                        </dd>
+                    </div>
+                </dl>
+            </aside>
+
+            <!-- 우: 설명 카드 -->
+            <article class="admin-program-detail-desc">
+                <section th:if="${program.description != null and !program.description.isEmpty()}"
+                         class="admin-program-detail-desc-section">
+                    <h3 class="admin-program-detail-desc-title">프로그램 설명</h3>
+                    <p class="admin-program-detail-desc-summary" th:text="${program.description}">짧은 설명</p>
+                </section>
+
+                <!-- Q7: th:text 평문 렌더. Program.content 저장 시 sanitize 미도입이라 th:utext 는 XSS 위험. -->
+                <section th:if="${program.content != null and !program.content.isEmpty()}"
+                         class="admin-program-detail-desc-section">
+                    <h3 class="admin-program-detail-desc-title">상세 내용</h3>
+                    <div class="admin-program-detail-desc-content" th:text="${program.content}">상세 내용</div>
+                </section>
+
+                <!-- Q6: 상세 내 신청 테이블 없음. /applications 이동 링크 -->
+                <section class="admin-program-detail-desc-section">
+                    <h3 class="admin-program-detail-desc-title">신청 현황</h3>
+                    <a th:href="@{/admin/programs/{id}/applications(id=${program.id})}"
+                       class="admin-btn admin-btn--outline"
+                       data-testid="link-applications"
+                       th:text="|신청 현황 ${applied}건 보기 →|">신청 현황 0건 보기 →</a>
+                </section>
+            </article>
+        </section>
+
+        <!-- 삭제 confirm 모달 (⋯ 더보기 → 삭제에서 호출) -->
+        <div sec:authorize="hasRole('SYSTEM_ADMIN')"
+             id="program-delete-modal" class="admin-confirm-modal" hidden aria-hidden="true"
+             role="dialog" aria-labelledby="program-delete-modal-title" aria-modal="true">
+            <div class="admin-confirm-modal-backdrop" data-modal-close></div>
+            <div class="admin-confirm-modal-body">
+                <h3 id="program-delete-modal-title" class="admin-confirm-modal-title">프로그램 운영을 중단할까요?</h3>
+                <p class="admin-confirm-modal-desc">
+                    프로그램은 물리적으로 삭제되지 않고 <b>SUSPENDED(운영중단) 상태</b>로 전환돼요. 사용자 사이드에는 노출되지 않지만 목록·통계에는 남아 있어요. 다시 활성화하려면 편집 폼에서 "활성 상태" 를 체크해주세요.
+                </p>
+                <div class="admin-confirm-modal-actions">
+                    <button type="button" class="admin-btn admin-btn--outline"
+                            data-modal-close>취소</button>
+                    <form th:action="@{/admin/programs/{id}/delete(id=${program.id})}"
+                          method="post" style="display:inline;">
+                        <button type="submit" class="admin-btn admin-btn--danger">삭제</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</main>
+
+<script th:inline="javascript">
+    // 유저 드롭다운
+    (function () {
+        var trigger = document.querySelector('.admin-header-user-trigger');
+        var menu = document.getElementById('admin-user-dropdown');
+        if (trigger && menu) {
+            trigger.addEventListener('click', function (ev) {
+                ev.stopPropagation();
+                menu.hidden = !menu.hidden;
+                trigger.setAttribute('aria-expanded', String(!menu.hidden));
+            });
+            document.addEventListener('click', function (ev) {
+                if (!menu.hidden && !menu.contains(ev.target)) {
+                    menu.hidden = true;
+                    trigger.setAttribute('aria-expanded', 'false');
+                }
+            });
+        }
+    })();
+
+    // ⋯ 더보기 메뉴 토글
+    (function () {
+        var trigger = document.querySelector('[data-detail-menu-trigger]');
+        var panel = document.querySelector('[data-detail-menu-panel]');
+        if (!trigger || !panel) return;
+        trigger.addEventListener('click', function (ev) {
+            ev.stopPropagation();
+            var open = panel.hidden;
+            panel.hidden = !open;
+            trigger.setAttribute('aria-expanded', String(open));
+        });
+        document.addEventListener('click', function (ev) {
+            if (!panel.hidden && !panel.contains(ev.target) && ev.target !== trigger) {
+                panel.hidden = true;
+                trigger.setAttribute('aria-expanded', 'false');
+            }
+        });
+    })();
+
+    // 커스텀 confirm 모달 (삭제)
+    (function () {
+        document.querySelectorAll('[data-delete-trigger]').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var modal = document.getElementById(btn.getAttribute('data-delete-trigger'));
+                if (modal) { modal.hidden = false; modal.setAttribute('aria-hidden', 'false'); }
+            });
+        });
+        document.querySelectorAll('[data-modal-close]').forEach(function (el) {
+            el.addEventListener('click', function () {
+                var modal = el.closest('.admin-confirm-modal');
+                if (modal) { modal.hidden = true; modal.setAttribute('aria-hidden', 'true'); }
+            });
+        });
+    })();
+</script>
+</body>
+</html>

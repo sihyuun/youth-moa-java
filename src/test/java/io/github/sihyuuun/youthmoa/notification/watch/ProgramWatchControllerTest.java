@@ -69,17 +69,19 @@ class ProgramWatchControllerTest {
   }
 
   @Test
-  void POST_watch_toggle_SYSTEM_ADMIN_returns_fragment_form_styleClass() throws Exception {
+  void POST_watch_toggle_SYSTEM_ADMIN_returns_fragment_detail_styleClass() throws Exception {
+    // FOLLOW-admin-program-detail-readonly (2026-10-07 · Q8):
+    //   watch-button 은 상세 헤더 전용으로 이관됨. styleClass hx-vals 왕복 자체는 임의 문자열에 대해 동일하게 유지돼야 함.
     User sysadmin = userRepository.findByEmail("sysadmin@youth-moa.test").orElseThrow();
     Program p = programRepository.findAll().stream().findFirst().orElseThrow();
     mockMvc
         .perform(
             post("/admin/programs/" + p.getId() + "/watch/toggle")
-                .param("styleClass", "form-watch-btn")
+                .param("styleClass", "detail-watch-btn")
                 .with(user(new UserPrincipal(sysadmin)))
                 .with(csrf()))
         .andExpect(status().isOk())
-        // hx-vals 왕복 확인: form-watch-btn styleClass 로 렌더
-        .andExpect(content().string(org.hamcrest.Matchers.containsString("form-watch-btn")));
+        // hx-vals 왕복 확인: detail-watch-btn styleClass 로 렌더
+        .andExpect(content().string(org.hamcrest.Matchers.containsString("detail-watch-btn")));
   }
 }

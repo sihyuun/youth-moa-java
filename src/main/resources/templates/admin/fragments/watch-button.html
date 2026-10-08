@@ -27,6 +27,7 @@
 
     <button sec:authorize="hasAnyRole('CENTER_ADMIN','SYSTEM_ADMIN')"
             type="button"
+            data-testid="watch-button"
             th:hx-post="@{/admin/programs/{id}/watch/toggle(id=${programId})}"
             hx-swap="outerHTML"
             th:attr="hx-vals=|{&quot;styleClass&quot;:&quot;${styleClass}&quot;}|"

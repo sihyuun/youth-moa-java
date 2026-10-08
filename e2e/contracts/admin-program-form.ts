@@ -300,8 +300,8 @@ export const adminProgramFormNewContract: ScreenContract = {
 
 export const adminProgramEditContract: ScreenContract = {
     screen: 'admin-program-form-edit',
-    path: '/admin/programs/1',
-    source: 'admin POLICY + prototype.html L2422~2618 · 2026-09-10 A3-1 (Qn-A A: 상세=편집 폼)',
+    path: '/admin/programs/1/edit',
+    source: 'admin POLICY + prototype.html L2422~2618 · 2026-09-10 A3-1 → FOLLOW-admin-program-detail-readonly 2026-10-07 (상세 재분리, 편집은 /edit 서브경로)',
     viewport: { width: 1440, height: 900 },
     checks: [
         {
@@ -345,6 +345,30 @@ export const adminProgramEditContract: ScreenContract = {
             severity: 'P0',
         },
         {
+            id: 'edit.breadcrumb.back.to.detail',
+            desc: 'FOLLOW-admin-program-detail-readonly Q3: 브레드크럼 "← 프로그램 상세"',
+            selector: '.admin-program-form-breadcrumb a',
+            kind: 'text',
+            expected: '← 프로그램 상세',
+            severity: 'P1',
+        },
+        {
+            id: 'edit.watch.button.removed',
+            desc: 'FOLLOW-admin-program-detail-readonly Q8: watch-button 상세로 이관 → 폼에서 미노출',
+            selector: '.admin-program-form-header-meta .form-watch-btn',
+            kind: 'count',
+            expected: 0,
+            severity: 'P1',
+        },
+        {
+            id: 'edit.delete.button.removed',
+            desc: 'FOLLOW-admin-program-detail-readonly: 삭제 버튼은 상세 ⋯ 더보기로 이관 → 폼에서 미노출',
+            selector: '.admin-program-form-actions .admin-btn--danger',
+            kind: 'count',
+            expected: 0,
+            severity: 'P1',
+        },
+        {
             id: 'edit.tabs.count',
             desc: '편집에도 3탭',
             selector: '.admin-program-form-tab',
@@ -361,20 +385,12 @@ export const adminProgramEditContract: ScreenContract = {
             severity: 'P0',
         },
         {
-            id: 'edit.action.delete.exists',
-            desc: '편집 모드 삭제 버튼 노출',
-            selector: '.admin-program-form-actions .admin-btn--danger',
-            kind: 'exists',
-            expected: true,
-            severity: 'P0',
-        },
-        {
-            id: 'edit.delete.modal.markup',
-            desc: '삭제 confirm 모달 markup',
+            id: 'edit.delete.modal.markup.removed',
+            desc: 'FOLLOW-admin-program-detail-readonly: 삭제 모달도 상세로 이관 → 폼에서 미노출',
             selector: '#program-delete-modal',
-            kind: 'exists',
-            expected: true,
-            severity: 'P0',
+            kind: 'count',
+            expected: 0,
+            severity: 'P1',
         },
         {
             id: 'edit.sublink.eligibility',

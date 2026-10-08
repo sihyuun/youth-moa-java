@@ -64,30 +64,26 @@ test('CENTER_ADMIN — 프로그램 목록 눈 아이콘 클릭 → is-watched �
     ]);
 });
 
-test('편집 폼 헤더 눈 아이콘 클릭 → styleClass=form-watch-btn 유지 (재렌더 후에도 스타일 클래스 왕복)', async ({ page }) => {
+test('상세 헤더 눈 아이콘 클릭 → styleClass=detail-watch-btn 유지 (재렌더 후에도 스타일 클래스 왕복)', async ({ page }) => {
+    // FOLLOW-admin-program-detail-readonly (2026-10-07 · Q8):
+    //   watch-button 은 상세 헤더 전용으로 이관됨. 폼에서는 제거.
     await loginAdmin(page, ADMIN_SYSTEM_EMAIL);
-    await page.goto('/admin/programs', { waitUntil: 'domcontentloaded' });
-    const firstEdit = page
-        .locator('.admin-program-row:not(.admin-program-row--head)')
-        .first()
-        .locator('.admin-program-col-actions a', { hasText: '편집' });
-    await firstEdit.click();
-    await page.waitForURL(/\/admin\/programs\/\d+$/);
+    await page.goto('/admin/programs/1', { waitUntil: 'domcontentloaded' });
 
-    const formWatchBtn = page.locator('.form-watch-btn');
-    await expect(formWatchBtn).toBeVisible();
+    const detailWatchBtn = page.locator('.detail-watch-btn');
+    await expect(detailWatchBtn).toBeVisible();
 
     await Promise.all([
         page.waitForResponse(res => res.url().includes('/watch/toggle') && res.status() === 200),
-        formWatchBtn.click(),
+        detailWatchBtn.click(),
     ]);
-    // 재렌더 후 여전히 form-watch-btn 스타일 유지 (hx-vals 왕복 검증)
-    await expect(page.locator('.form-watch-btn')).toBeVisible();
+    // 재렌더 후 여전히 detail-watch-btn 스타일 유지 (hx-vals 왕복 검증)
+    await expect(page.locator('.detail-watch-btn')).toBeVisible();
 
     // 정리
     await Promise.all([
         page.waitForResponse(res => res.url().includes('/watch/toggle') && res.status() === 200),
-        page.locator('.form-watch-btn').click(),
+        page.locator('.detail-watch-btn').click(),
     ]);
 });
 

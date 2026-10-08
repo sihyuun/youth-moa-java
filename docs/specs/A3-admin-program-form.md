@@ -3,6 +3,7 @@
 | 메타 | 값 |
 |---|---|
 | 상태 | **`spec_confirmed (A3-1)`** (2026-09-10 사용자 결정: **A3-1 + A3-2 분할** · A3-1 만 이번 착수 · Qn-A/B/C/1~8/Δ1~6 모두 권장안 A) |
+| 후속 FOLLOW | **Qn-A "상세 = 편집 폼" 결정은 FOLLOW-admin-program-detail-readonly (2026-10-07) 로 되돌림** — HANDOFF L234~238 명세 (read-only 상세 + `/edit` 수정 폼 2분리) 복원. 상세 참조: `docs/specs/FOLLOW-admin-program-detail-readonly.md` |
 | 브랜치 | `feature/A3-1-admin-program-form` (A3-2 는 후속 티켓) |
 | A3-1 스코프 | 기본 CRUD (등록/편집/삭제) · 3탭 (정보/신청/약관) · V12 Program 컬럼 확장 (applyPeriod · venue · contact · approval_mode · terms_* · description) · F4/F0c 별도 페이지 유지 (인라인 이월) · 이미지 URL 입력 (파일 업로드 이월) |
 | A3-2 이월 | F4/F0c 인라인 통합 · Course · ProgramAttachment · 이미지 파일 업로드 |

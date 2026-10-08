@@ -211,7 +211,8 @@ export const adminProgramListContract: ScreenContract = {
 };
 
 /**
- * A3-1 (2026-09-10 · Qn-A A): A2 read-only 상세 페이지를 편집 폼으로 대체.
- * `admin-program-form.ts` 로 계약이 이관됨. 이 export 는 회귀 방지용 legacy re-export.
+ * A3-1 (2026-09-10 · Qn-A A) 에서 A2 상세 → 편집 폼으로 통합했으나,
+ * FOLLOW-admin-program-detail-readonly (2026-10-07) 로 상세와 편집을 다시 분리.
+ * `/admin/programs/{id}` 는 read-only 상세, `/admin/programs/{id}/edit` 가 편집 폼.
  */
-export { adminProgramEditContract as adminProgramDetailContract } from './admin-program-form';
+export { adminProgramDetailContract } from './admin-program-detail';

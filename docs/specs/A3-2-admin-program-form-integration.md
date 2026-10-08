@@ -3,6 +3,7 @@
 | 메타 | 값 |
 |---|---|
 | 상태 | **`spec_confirmed`** (2026-09-11 사용자 결정: **Qn-A/B/C/D + Δ 13종 모두 권장안 A**. §11 그대로 이행) |
+| 후속 FOLLOW | **A3-1 Qn-A "상세 = 편집 폼" 결정은 FOLLOW-admin-program-detail-readonly (2026-10-07) 로 되돌림** — 상세 전용 페이지 신설, 편집은 `/admin/programs/{id}/edit` 로 분리. 상세 참조: `docs/specs/FOLLOW-admin-program-detail-readonly.md` |
 | 브랜치 | `feature/A3-2-admin-program-form-integration` |
 | 스코프 | F4/F0c 인라인 통합 · **Course 엔티티 신설 (V13)** · **ProgramAttachment 엔티티 신설 (V14)** · **이미지 파일 업로드 (P0-3 FileStorage 재사용)** |
 | 선행 | ✅ A3-1 admin-program-form (#212) — V12 · 3탭 폼 · 소프트 삭제 · 이미지 URL 입력 · F4/F0c 별도 페이지 링크만 · main 기준 `9847250` |

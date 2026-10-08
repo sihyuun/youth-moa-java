@@ -1,8 +1,9 @@
-# 관리자 프로그램 등록·편집 폼 (`/admin/programs/new`, `/admin/programs/{id}`) — 디자인 계약
+# 관리자 프로그램 등록·편집 폼 (`/admin/programs/new`, `/admin/programs/{id}/edit`) — 디자인 계약
 
-- 상태: 신설 (A3-1 admin-program-form · 2026-09-10)
+- 상태: 갱신 (FOLLOW-admin-program-detail-readonly · 2026-10-07 — 편집 URL `/edit` 서브경로 분리)
+- 신설 이력: A3-1 admin-program-form · 2026-09-10
 - 원본: `docs/00_assets/admin/prototype.html` L2422~2618 (Program Form 3탭)
-- 스코프 결정: `docs/specs/A3-admin-program-form.md` (Qn-A/B/C/1~8/Δ1~6 모두 A)
+- 스코프 결정: `docs/specs/A3-admin-program-form.md` + `docs/specs/FOLLOW-admin-program-detail-readonly.md`
 - 계약 파일: `e2e/contracts/admin-program-form.ts`
 
 ## 아키텍처
@@ -17,9 +18,9 @@
 
 | 상태 | 진입 | 다음 |
 |---|---|---|
-| 신규 폼 (`mode=new`) | `GET /admin/programs/new` | 저장 → `POST /admin/programs` → 302 `/admin/programs/{newId}` |
-| 편집 폼 (`mode=edit`) | `GET /admin/programs/{id}` (A2 상세 대체 · Qn-A A) | 저장 → `POST /admin/programs/{id}` → 302 (자기 자신) |
-| 삭제 confirm | 편집 폼 삭제 버튼 클릭 → 모달 | 확인 → `POST /admin/programs/{id}/delete` → 302 `/admin/programs` (성공) or 400 (FK) |
+| 신규 폼 (`mode=new`) | `GET /admin/programs/new` | 저장 → `POST /admin/programs` → 302 `/admin/programs/{newId}` (상세) |
+| 편집 폼 (`mode=edit`) | `GET /admin/programs/{id}/edit` (FOLLOW-admin-program-detail-readonly) | 저장 → `POST /admin/programs/{id}/edit` → 302 `/admin/programs/{id}` (상세 복귀) |
+| 삭제 | **상세 ⋯ 더보기** → 모달 → 확인 → `POST /admin/programs/{id}/delete` → 302 `/admin/programs` (상세 템플릿으로 이관) |
 | 탭 전환 | 탭 헤더 클릭 | 클라이언트 사이드 (`.admin-program-form-tab-panel--active` 클래스 토글) |
 
 ## RBAC
@@ -32,10 +33,12 @@
 | 트리거 | 경로 | 응답 |
 |---|---|---|
 | A2 목록 "+ 프로그램 등록" | `/admin/programs/new` | 200 (신규 폼) |
-| A2 목록 행 클릭 / 편집 버튼 | `/admin/programs/{id}` | 200 (편집 폼) |
-| 편집 폼 취소 | `/admin/programs` | 302 목록 |
-| 편집 폼 저장 | `POST /admin/programs/{id}` | 302 자기 자신 |
-| 편집 폼 삭제 → 모달 확인 | `POST /admin/programs/{id}/delete` | 302 목록 or 400 FK |
+| A2 목록 행 클릭 | `/admin/programs/{id}` | 200 (상세) |
+| 상세 "수정" CTA | `/admin/programs/{id}/edit` | 200 (편집 폼) |
+| 편집 폼 취소 (new) | `/admin/programs` | 302 목록 |
+| 편집 폼 취소 (edit) | `/admin/programs/{id}` | 302 상세 |
+| 편집 폼 저장 | `POST /admin/programs/{id}/edit` | 302 `/admin/programs/{id}` (상세) |
+| 상세 ⋯ 더보기 삭제 → 모달 확인 | `POST /admin/programs/{id}/delete` | 302 목록 (SUSPENDED 전환) |
 | 편집 폼 "자격요건 편집" | `/admin/programs/{id}/eligibility` | F4 페이지 (별도) |
 | 편집 폼 "동적 필드 관리" | `/admin/programs/{id}/dynamic-fields` | F0c 페이지 (별도) |
 
