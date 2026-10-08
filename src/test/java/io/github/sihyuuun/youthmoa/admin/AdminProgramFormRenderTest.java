@@ -77,21 +77,35 @@ class AdminProgramFormRenderTest {
   }
 
   @Test
-  void GET_admin_programs_id_렌더_편집_모드_prefilled() throws Exception {
+  void GET_admin_programs_id_edit_렌더_편집_모드_prefilled() throws Exception {
+    // FOLLOW-admin-program-detail-readonly (2026-10-07 · Q1): 편집 폼은 /{id}/edit 서브경로로 분리됨.
     mockMvc
-        .perform(get("/admin/programs/1").with(sysadmin()))
+        .perform(get("/admin/programs/1/edit").with(sysadmin()))
         .andExpect(status().isOk())
         .andExpect(content().string(containsString("프로그램 편집")))
         // 저장 버튼 (편집 → 저장)
         .andExpect(content().string(containsString(">저장</button>")))
-        // 편집 모드에서 삭제 모달·버튼 노출
-        .andExpect(content().string(containsString("program-delete-modal")))
-        .andExpect(content().string(containsString("admin-btn--danger")))
+        // Q3: 브레드크럼이 "← 프로그램 상세" 로 상세로 복귀
+        .andExpect(content().string(containsString("← 프로그램 상세")))
+        // Q8: watch-button 은 폼에서 제거됨 (상세로 이관) → form-watch-btn 미노출
+        .andExpect(content().string(not(containsString("form-watch-btn"))))
+        // 삭제 버튼·모달도 폼에서 제거됨 (상세로 이관)
+        .andExpect(content().string(not(containsString("program-delete-modal"))))
+        // Q2: POST action 이 /{id}/edit 로 바뀌었어야 함
+        .andExpect(content().string(containsString("action=\"/admin/programs/1/edit\"")))
         // F4/F0c 진입 링크 (Qn-B A)
         .andExpect(content().string(containsString("/admin/programs/1/eligibility")))
         .andExpect(content().string(containsString("/admin/programs/1/dynamic-fields")))
         // 시드 프로그램 #1 의 title 이 prefilled (취업역량 강화 워크숍)
         .andExpect(content().string(containsString("취업역량 강화 워크숍")));
+  }
+
+  @Test
+  void GET_admin_programs_id_edit_CENTER_ADMIN_403() throws Exception {
+    // Qn-1 A: 편집은 SYSTEM_ADMIN only (A3-1 승계)
+    mockMvc
+        .perform(get("/admin/programs/1/edit").with(centerAdmin()))
+        .andExpect(status().isForbidden());
   }
 
   @Test

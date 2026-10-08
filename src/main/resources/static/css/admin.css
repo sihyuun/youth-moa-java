@@ -1852,6 +1852,180 @@ body.admin-shell-body {
     }
 }
 
+/* ============ FOLLOW-admin-program-detail-readonly (2026-10-07) ============
+   상세 전용 추가 클래스. 기존 .admin-program-detail-* 토대 위에 header-strip·2열 그리드·
+   정보/설명 카드·⋯ 더보기 메뉴·첨부 다운로드 리스트 스타일을 보강한다. */
+.admin-program-detail-title-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.admin-program-detail-applied {
+    font-size: 13px;
+    color: #6b7280;
+    font-weight: 500;
+}
+.admin-program-detail-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.admin-program-detail-edit-cta { font-weight: 600; }
+
+/* ⋯ 더보기 메뉴 */
+.admin-program-detail-more { position: relative; }
+.admin-program-detail-more-trigger {
+    width: 34px;
+    padding: 6px 0;
+    font-size: 18px;
+    line-height: 1;
+}
+.admin-program-detail-more-menu {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 6px);
+    min-width: 140px;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    padding: 4px;
+    z-index: 300;
+    display: flex;
+    flex-direction: column;
+}
+.admin-program-detail-more-menu[hidden] { display: none; }
+.admin-program-detail-more-item {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 9px 12px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #374151;
+    background: none;
+    border: none;
+    border-radius: 7px;
+    cursor: pointer;
+}
+.admin-program-detail-more-item:hover { background: #f3f4f6; }
+.admin-program-detail-more-item--danger { color: #ef4444; }
+.admin-program-detail-more-item--danger:hover { background: #fef2f2; }
+
+/* 2열 그리드 (좌 400 + 우 flex-1) */
+.admin-program-detail-grid {
+    grid-template-columns: minmax(0, 400px) minmax(0, 1fr);
+}
+@media (max-width: 900px) {
+    .admin-program-detail-grid { grid-template-columns: 1fr; }
+}
+
+/* 좌 정보 카드 */
+.admin-program-detail-info {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+.admin-program-detail-thumb {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #f3f4f6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.admin-program-detail-thumb-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.admin-program-detail-thumb-placeholder {
+    font-size: 13px;
+    color: #9ca3af;
+}
+.admin-program-detail-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin: 0;
+}
+.admin-program-detail-field {
+    display: grid;
+    grid-template-columns: 90px 1fr;
+    gap: 12px;
+    align-items: baseline;
+    font-size: 13px;
+}
+.admin-program-detail-field-label {
+    color: #6b7280;
+    font-weight: 500;
+    margin: 0;
+}
+.admin-program-detail-field-value {
+    margin: 0;
+    color: #111827;
+    word-break: break-word;
+}
+.admin-program-detail-attachment-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.admin-program-detail-attachment-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+}
+.admin-program-detail-attachment-link {
+    color: #3F30E9;
+    text-decoration: none;
+    font-weight: 500;
+}
+.admin-program-detail-attachment-link:hover { text-decoration: underline; }
+.admin-program-detail-attachment-size { color: #9ca3af; }
+
+/* 우 설명 카드 */
+.admin-program-detail-desc {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+}
+.admin-program-detail-desc-section { }
+.admin-program-detail-desc-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #111827;
+    margin: 0 0 10px;
+}
+.admin-program-detail-desc-summary {
+    font-size: 13px;
+    color: #6b7280;
+    margin: 0;
+    line-height: 1.6;
+}
+.admin-program-detail-desc-content {
+    font-size: 14px;
+    line-height: 1.75;
+    color: #374151;
+    white-space: pre-wrap;
+}
+
 /* ============ A3-1 admin-program-form (2026-09-10) ============ */
 .admin-program-form-page {
     max-width: 960px;

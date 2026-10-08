@@ -63,9 +63,17 @@ test('신규 등록 → 편집 폼 prefilled 확인 (3탭 왕복)', async ({ pag
     await expect(page.locator('#tab-terms')).toBeVisible();
     await page.locator('textarea[name="termsService"]').fill('약관 내용 e2e');
 
-    // 저장
+    // 저장 → FOLLOW-admin-program-detail-readonly: 저장 후 상세 화면으로 redirect.
     await page.locator('.admin-program-form-actions button[type="submit"]').click();
     await page.waitForURL(/\/admin\/programs\/\d+$/);
+    await expect(page.locator('.admin-program-detail-page')).toBeVisible();
+    await expect(page.locator('.admin-program-detail-title')).toHaveText(uniqueTitle);
+
+    // 수정 CTA → /edit 이동해 prefilled 확인
+    const editCta = page.locator('.admin-program-detail-header-actions a.admin-btn--primary', {
+        hasText: '수정',
+    });
+    await Promise.all([page.waitForURL(/\/admin\/programs\/\d+\/edit$/), editCta.click()]);
 
     // 편집 폼 prefill 확인
     await expect(page.locator('.admin-program-form-title')).toHaveText('프로그램 편집');
@@ -80,8 +88,7 @@ test('신규 등록 → 편집 폼 prefilled 확인 (3탭 왕복)', async ({ pag
     await expect(page.locator('input[name="venue"]')).toHaveValue('e2e 장소');
     await expect(page.locator('input[name="capacity"]')).toHaveValue('50');
 
-    // 삭제 버튼 및 F4/F0c 진입 링크 노출 확인 (sub-links 는 탭1 안에 위치)
-    await expect(page.locator('.admin-program-form-actions .admin-btn--danger')).toBeVisible();
+    // F4/F0c 진입 링크 노출 확인 (sub-links 는 탭1 안에 위치)
     await page.locator('.admin-program-form-tab[data-tab-target="tab-info"]').click();
     await expect(page.locator('#tab-info')).toBeVisible();
     await expect(page.locator('.admin-program-form-sub-links a[href*="/eligibility"]')).toBeVisible();
@@ -100,13 +107,22 @@ test('편집 → 제목 수정 → 저장 → 반영', async ({ page }) => {
     await page.locator('input[name="applyStartDate"]').fill('2026-09-01');
     await page.locator('input[name="applyEndDate"]').fill('2026-09-30');
     await page.locator('.admin-program-form-actions button[type="submit"]').click();
+    // FOLLOW-admin-program-detail-readonly: 저장 후 상세로 redirect
     await page.waitForURL(/\/admin\/programs\/\d+$/);
+    await expect(page.locator('.admin-program-detail-page')).toBeVisible();
+
+    // 상세 → 수정 CTA → /edit 재진입
+    const editCta = page.locator('.admin-program-detail-header-actions a.admin-btn--primary', {
+        hasText: '수정',
+    });
+    await Promise.all([page.waitForURL(/\/admin\/programs\/\d+\/edit$/), editCta.click()]);
 
     const updated = `${initial}-mod`;
     await page.locator('input[name="title"]').fill(updated);
     await page.locator('.admin-program-form-actions button[type="submit"]').click();
+    // 저장 후 다시 상세 → title 반영 확인
     await page.waitForURL(/\/admin\/programs\/\d+$/);
-    await expect(page.locator('input[name="title"]')).toHaveValue(updated);
+    await expect(page.locator('.admin-program-detail-title')).toHaveText(updated);
 });
 
 test('FK 참조가 있는 시드 프로그램(#1) 삭제 → 소프트 삭제 302 (ADMIN-00 §Q10)', async ({ page }) => {
@@ -122,8 +138,10 @@ test('FK 참조가 있는 시드 프로그램(#1) 삭제 → 소프트 삭제 30
     });
     expect(response.status()).toBe(302);
     expect(response.headers()['location']).toContain('/admin/programs');
-    // 재조회 시 SUSPENDED 상태로 남아 있어야 함 (row 유지)
-    await page.goto('/admin/programs/1', { waitUntil: 'domcontentloaded' });
+    // 재조회 시 SUSPENDED 상태로 남아 있어야 함 (row 유지).
+    // FOLLOW-admin-program-detail-readonly: /admin/programs/1 은 이제 read-only 상세이므로
+    // active 체크박스는 편집 폼(/edit)에서만 확인 가능.
+    await page.goto('/admin/programs/1/edit', { waitUntil: 'domcontentloaded' });
     // 편집 폼에서 활성 체크박스 (isActive) 가 해제되어 있어야 함
     const isActive = await page.locator('input[name="active"]').isChecked();
     expect(isActive).toBe(false);
@@ -142,7 +160,7 @@ test('FK 참조가 있는 시드 프로그램(#1) 삭제 → 소프트 삭제 30
     await page.locator('.admin-program-form-actions button[type="submit"]').click();
     await page.waitForURL(/\/admin\/programs\/\d+$/);
     // 편집 폼 재진입해 실제 저장 상태 확인 (redirect 후 GET)
-    await page.goto('/admin/programs/1', { waitUntil: 'domcontentloaded' });
+    await page.goto('/admin/programs/1/edit', { waitUntil: 'domcontentloaded' });
     const isActiveRestored = await page.locator('input[name="active"]').isChecked();
     expect(isActiveRestored).toBe(true);
 });
@@ -159,17 +177,20 @@ test('FK 없는 신규 프로그램 삭제 → 목록 리다이렉트', async ({
     await page.locator('input[name="applyStartDate"]').fill('2026-09-01');
     await page.locator('input[name="applyEndDate"]').fill('2026-09-30');
     await page.locator('.admin-program-form-actions button[type="submit"]').click();
+    // FOLLOW-admin-program-detail-readonly: 저장 후 상세로 redirect
     await page.waitForURL(/\/admin\/programs\/(\d+)$/);
+    await expect(page.locator('.admin-program-detail-page')).toBeVisible();
     const url = page.url();
     const id = url.match(/\/admin\/programs\/(\d+)$/)?.[1];
     expect(id).toBeTruthy();
 
-    // 삭제 모달 → 확인
-    await page.locator('.admin-program-form-actions .admin-btn--danger').click();
+    // 상세 ⋯ 더보기 → 삭제 메뉴 → 모달 → 확인
+    await page.locator('[data-detail-menu-trigger]').click();
+    await page.locator('[data-testid="detail-menu-delete"]').click();
     await page.locator('#program-delete-modal form button[type="submit"]').click();
     await page.waitForURL('**/admin/programs');
     // ADMIN-00 §Q10 소프트 삭제: row 유지 · isActive=false. 편집 폼 재진입 시 200 · 활성 체크박스 해제 상태.
-    await page.goto(`/admin/programs/${id}`, { waitUntil: 'domcontentloaded' });
+    await page.goto(`/admin/programs/${id}/edit`, { waitUntil: 'domcontentloaded' });
     const isActive = await page.locator('input[name="active"]').isChecked();
     expect(isActive).toBe(false);
 });

@@ -47,7 +47,9 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
  *   <li>A2 목록/상세 조회: SYSTEM_ADMIN + CENTER_ADMIN 모두 허용
  *   <li>A3-1 등록/편집/삭제: <b>SYSTEM_ADMIN only</b> (Qn-1 A). Program-Center FK 미도입 상태라 CENTER 격리
  *       fragile → A9 이후 CENTER_ADMIN 확장 예정
- *   <li>Qn-A A — {@code GET /admin/programs/{id}} 는 편집 폼으로 대체. 기존 read-only detail 페이지 폐기
+ *   <li>Qn-A A — (A3-1 기준) {@code GET /admin/programs/{id}} 는 편집 폼으로 대체. (<b>FOLLOW-admin-program-detail-readonly
+ *       2026-10-07 에서 되돌림</b> — 상세와 편집을 다시 분리. {@code GET /admin/programs/{id}} 는 상세, {@code
+ *       GET /admin/programs/{id}/edit} 가 편집 폼.)
  *   <li>Qn-B A — F4/F0c 는 편집 폼 상단 링크로 진입 (별도 페이지 유지, 인라인 통합은 A3-2)
  *   <li>Qn-5 A — 응답은 PRG redirect + flash (form 실패 시 400 매핑 = admin-notice 패턴)
  * </ul>
@@ -160,9 +162,48 @@ public class AdminProgramController {
     return "redirect:/admin/programs/" + saved.getId();
   }
 
-  // ================= A3-1 편집 (Qn-A A: 상세 = 편집 폼) =================
+  // ================= FOLLOW-admin-program-detail-readonly (2026-10-07) 상세 =================
 
+  /**
+   * 상세 전용 페이지. A3-1 당시 "상세 = 편집 폼" (Qn-A A) 으로 통합했으나, 실 운영 결함으로 FOLLOW-admin-program-detail-readonly
+   * 에서 되돌려 다시 분리됐다.
+   *
+   * <ul>
+   *   <li>SYSTEM_ADMIN + CENTER_ADMIN 모두 조회 가능 (A2 승계)
+   *   <li>편집 CTA → {@code /admin/programs/{id}/edit}
+   *   <li>삭제 모달 markup 포함 → confirm 시 {@code POST /admin/programs/{id}/delete}
+   *   <li>신청 현황 보기 → {@code /admin/programs/{id}/applications}
+   * </ul>
+   */
   @GetMapping("/{id}")
+  public String detail(
+      @PathVariable Long id, @AuthenticationPrincipal UserDetails principal, Model model) {
+    Program program;
+    try {
+      program = adminProgramService.find(id);
+    } catch (IllegalArgumentException e) {
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "프로그램을 찾을 수 없어요.");
+    } catch (IllegalAccessError e) {
+      throw new AccessDeniedException(e.getMessage());
+    }
+    long applied = adminProgramService.countApplied(program);
+    populateCommonModel(model);
+    model.addAttribute("program", program);
+    model.addAttribute("applied", applied);
+    // 첨부 다운로드 링크 (상세는 다운로드만 가능 · 추가/삭제는 편집 폼)
+    List<ProgramAttachment> attachments = adminProgramAttachmentService.findAttachments(id);
+    model.addAttribute("attachments", attachments);
+    // Q8: watch-button 상세 헤더 전용
+    boolean watched =
+        principal != null && programWatchService.isWatched(principal.getUsername(), id);
+    model.addAttribute("watched", watched);
+    return "admin/program/detail";
+  }
+
+  // ================= 편집 폼 (/{id}/edit) =================
+
+  @GetMapping("/{id}/edit")
+  @PreAuthorize("hasRole('SYSTEM_ADMIN')")
   public String editForm(
       @PathVariable Long id, @AuthenticationPrincipal UserDetails principal, Model model) {
     Program program;
@@ -188,7 +229,8 @@ public class AdminProgramController {
     model.addAttribute("courses", courses);
     model.addAttribute("questions", questions);
     model.addAttribute("attachments", attachments);
-    // A7-watcher-ui (2026-09-28 · Q-A7W-2 c): 편집 폼 헤더 지켜보기 초기 상태.
+    // FOLLOW-admin-program-detail-readonly (2026-10-07 · Q8): watch-button 은 상세 헤더 전용으로 이동. 폼에서는
+    // 모델만 유지해 하위 호환 (템플릿에서 참조 제거).
     boolean watched =
         principal != null && programWatchService.isWatched(principal.getUsername(), id);
     model.addAttribute("watched", watched);
@@ -197,8 +239,11 @@ public class AdminProgramController {
 
   /**
    * A3-2 verify fix (2026-09-11): create 와 동일 — 단일 트랜잭션으로 Program/Course/Question/이미지/첨부 전체 롤백 보장.
+   *
+   * <p>FOLLOW-admin-program-detail-readonly (2026-10-07 · Q1·Q2): 매핑을 {@code /{id}} → {@code /{id}/edit}
+   * 로 분리. 저장 후 redirect 대상은 상세 (`/{id}`) 로 복귀.
    */
-  @PostMapping("/{id}")
+  @PostMapping("/{id}/edit")
   @PreAuthorize("hasRole('SYSTEM_ADMIN')")
   @Transactional(rollbackFor = Exception.class)
   public String update(
