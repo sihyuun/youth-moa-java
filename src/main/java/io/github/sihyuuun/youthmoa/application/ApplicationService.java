@@ -43,6 +43,12 @@ public class ApplicationService {
   private final ApplyAnswerRepository applyAnswerRepository;
   private final FileStorage fileStorage;
 
+  /**
+   * FOLLOW-waitlist-auto-approve (2026-10-08): 사용자 본인 취소 경로에서도 승격을 트리거. AdminApplicationService
+   * (관리자 강제 취소·반려) 와 동일 서비스 재사용.
+   */
+  private final WaitlistPromotionService waitlistPromotionService;
+
   /** F0c-dynamic-fields: ATTACHMENT 응답 저장 bucket. LocalFileStorage 는 파일시스템에 저장. */
   @Value("${youthmoa.storage.supabase.apply-bucket:apply-attachments}")
   private String applyBucket;
@@ -367,6 +373,7 @@ public class ApplicationService {
     if (application.getStatus() == ApplicationStatus.CANCELLED) {
       return; // idempotent
     }
+    ApplicationStatus prev = application.getStatus();
     application.cancel(reason);
 
     eventPublisher.publishEvent(
@@ -376,6 +383,12 @@ public class ApplicationService {
             application.getProgram().getId(),
             application.getProgram().getTitle(),
             reason));
+
+    // FOLLOW-waitlist-auto-approve (2026-10-08): APPROVED 였던 신청만 공석을 만든다. PENDING→CANCELLED 는
+    // 애초에 자리를 차지하지 않았으므로 승격 트리거 아님.
+    if (prev == ApplicationStatus.APPROVED) {
+      waitlistPromotionService.promoteIfEligible(application.getProgram().getId());
+    }
   }
 
   private Application loadWithProgramAndUser(Long applicationId) {

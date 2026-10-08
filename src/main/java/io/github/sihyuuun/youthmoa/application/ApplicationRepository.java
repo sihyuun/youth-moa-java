@@ -48,6 +48,13 @@ public interface ApplicationRepository
   List<Application> findAllByProgramAndStatusOrderByAppliedAtAsc(
       Program program, ApplicationStatus status);
 
+  /**
+   * FOLLOW-waitlist-auto-approve (2026-10-08 · Q2 A): 대기자 승격 대상 1건 조회. 가장 오래된 PENDING 신청 (FIFO
+   * 선입선출). 승격 helper 에서 CANCELLED/REJECTED 발생 직후 호출된다. 없으면 Optional.empty.
+   */
+  Optional<Application> findFirstByProgramIdAndStatusOrderByAppliedAtAsc(
+      Long programId, ApplicationStatus status);
+
   /** 홈 "누적 참여자" — 신청 한 번이라도 한 distinct user 수. status 무관 (학습 단계 단순화). */
   @Query("SELECT COUNT(DISTINCT a.user.id) FROM Application a")
   long countDistinctUsers();

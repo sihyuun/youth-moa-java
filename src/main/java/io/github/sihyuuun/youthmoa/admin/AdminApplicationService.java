@@ -5,6 +5,7 @@ import io.github.sihyuuun.youthmoa.application.ApplicationRepository;
 import io.github.sihyuuun.youthmoa.application.ApplicationStatus;
 import io.github.sihyuuun.youthmoa.application.ApplyAnswer;
 import io.github.sihyuuun.youthmoa.application.ApplyAnswerRepository;
+import io.github.sihyuuun.youthmoa.application.WaitlistPromotionService;
 import io.github.sihyuuun.youthmoa.application.event.ApplicationApprovedEvent;
 import io.github.sihyuuun.youthmoa.application.event.ApplicationCancelledEvent;
 import io.github.sihyuuun.youthmoa.application.event.ApplicationRejectedEvent;
@@ -54,6 +55,12 @@ public class AdminApplicationService {
   private final ApplyAnswerRepository applyAnswerRepository;
   private final AdminScope adminScope;
   private final ApplicationEventPublisher eventPublisher;
+
+  /**
+   * FOLLOW-waitlist-auto-approve (2026-10-08): 승격 로직 분리. 두 서비스 (AdminApplicationService ·
+   * ApplicationService) 가 공유하도록 별도 Service 로 추출. 순환 참조 방지.
+   */
+  private final WaitlistPromotionService waitlistPromotionService;
 
   /** 프로그램이 관리자 스코프 내에 있는지 검증. 미매칭이면 IllegalAccessError. */
   public Program assertProgramInScope(Long programId) {
@@ -183,6 +190,7 @@ public class AdminApplicationService {
     Application app = findById(programId, applicationId);
     User admin = loadUser(adminEmail);
     if (app.getStatus() == ApplicationStatus.REJECTED) return;
+    ApplicationStatus prev = app.getStatus();
     app.reject(admin, reason);
     eventPublisher.publishEvent(
         new ApplicationRejectedEvent(
@@ -191,6 +199,11 @@ public class AdminApplicationService {
             app.getProgram().getId(),
             app.getProgram().getTitle(),
             reason));
+    // FOLLOW-waitlist-auto-approve (2026-10-08): APPROVED 였던 신청만 공석을 만든다. PENDING→REJECTED 는
+    // 애초에 자리를 차지하지 않았으므로 승격 트리거 아님.
+    if (prev == ApplicationStatus.APPROVED) {
+      waitlistPromotionService.promoteIfEligible(app.getProgram().getId());
+    }
   }
 
   /**
@@ -205,6 +218,7 @@ public class AdminApplicationService {
     Application app = findById(programId, applicationId);
     User admin = loadUser(adminEmail);
     if (app.getStatus() == ApplicationStatus.CANCELLED) return;
+    ApplicationStatus prev = app.getStatus();
     String prefixed = "관리자 취소: " + reason;
     app.forceCancelByAdmin(admin, prefixed);
     eventPublisher.publishEvent(
@@ -214,6 +228,10 @@ public class AdminApplicationService {
             app.getProgram().getId(),
             app.getProgram().getTitle(),
             prefixed));
+    // FOLLOW-waitlist-auto-approve: APPROVED→CANCELLED 만 공석을 만든다.
+    if (prev == ApplicationStatus.APPROVED) {
+      waitlistPromotionService.promoteIfEligible(app.getProgram().getId());
+    }
   }
 
   /** 담당자 의견 저장 (Qn-3 A: 이벤트 발행 없음). 상태 미변경. */

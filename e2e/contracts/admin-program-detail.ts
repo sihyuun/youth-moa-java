@@ -197,9 +197,13 @@ export const adminProgramDetailContract: ScreenContract = {
             severity: 'P1',
         },
         {
-            id: 'waitlist.banner.missing',
-            desc: '대기자/자동승인 배너 없음 (Q4 이월)',
-            selector: '.admin-program-detail-waitlist-banner',
+            id: 'waitlist.banner.conditional',
+            desc:
+                '대기자/자동승인 배너 — FOLLOW-waitlist-auto-approve (2026-10-08) 로 복원. ' +
+                'capacity != null && (approved + pending) >= capacity 일 때만 노출. ' +
+                '기본 시드 (program 1) 는 조건 미충족으로 미노출 — 노출 조건 검증은 ' +
+                'AdminProgramDetailRenderTest + admin-waitlist-auto.spec.ts 가 담당.',
+            selector: '[data-testid="waitlist-auto-banner"]',
             kind: 'count',
             expected: 0,
             severity: 'P1',
