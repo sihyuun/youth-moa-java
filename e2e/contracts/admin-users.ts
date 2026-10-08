@@ -255,6 +255,7 @@ export const adminUsersListContract: ScreenContract = {
             severity: 'P0',
         },
         {
+            // 2026-10-07 A-R2: deferred 해소 — "+ 신규 사용자 등록" 버튼 노출 확인 (probe)
             id: 'action.register.button',
             desc: '"등록하기" 버튼',
             selector: 'a.admin-btn--primary[href*="/admin/users/new"]',
@@ -262,7 +263,6 @@ export const adminUsersListContract: ScreenContract = {
             expected: true,
             proto: 'admin/prototype.html L1192',
             severity: 'P2',
-            deferred: 'A5-1 · Qn-4 이월 (기존 사용자 승격 flow 만)',
         },
     ],
 };

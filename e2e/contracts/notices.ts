@@ -243,7 +243,8 @@ export const noticesContract: ScreenContract = {
         },
 
         // ══════════════════════════════════════════════════════
-        // 페이지네이션 (seed 20개+ 있어야 유효 — 없으면 count=0)
+        // 페이지네이션 (seed > pageSize 임계 돌파 — 2026-10-07 A-R2 활성화)
+        // 현재 seed 가 pagination 노출 임계를 넘겨 count=4 로 실 렌더됨 (probe)
         // ══════════════════════════════════════════════════════
         {
             id: 'pagination.page-btn.size',
@@ -255,7 +256,6 @@ export const noticesContract: ScreenContract = {
             tolerance: 1,
             proto: 'tsx L2071 width:32 height:32',
             severity: 'P2',
-            deferred: 'seed 데이터가 페이지네이션 노출 임계(> pageSize) 이상일 때만 유효. 현재 seed 정책 미확정 → docs/specs/F-notices-seed-volume.md',
         },
         {
             id: 'pagination.page-btn.radius',
@@ -266,7 +266,6 @@ export const noticesContract: ScreenContract = {
             expected: '7px',
             proto: 'tsx L2071 borderRadius:7',
             severity: 'P2',
-            deferred: 'seed 데이터 임계 확정 후 활성화',
         },
     ],
 };

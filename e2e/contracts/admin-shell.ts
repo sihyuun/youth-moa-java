@@ -166,14 +166,14 @@ export const adminShellContract: ScreenContract = {
             severity: 'P2',
         },
         {
+            // 2026-10-07 A-R2: deferred 해소 — A7 admin-header-live (#217, b9017df) 머지로 알림 벨 렌더
             id: 'header.bell.placeholder',
-            desc: '알림 벨 자리 존재 (disabled)',
+            desc: '알림 벨 자리 존재',
             selector: '.admin-header-bell',
             kind: 'exists',
             expected: true,
             proto: 'html L444~453 알림 벨',
             severity: 'P2',
-            deferred: 'A7 (docs/specs/A7): 알림 벨 드롭다운·미읽음 뱃지',
         },
         // ── 유저 드롭다운 ────────────────────────────────────
         {
