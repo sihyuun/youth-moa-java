@@ -341,6 +341,18 @@ export const programDetailContract: ScreenContract = {
             proto: 'tsx L995',
             severity: 'P1',
         },
+        // FOLLOW-detail-contract (2026-10-07): D5-Q1d 로 applyStartDate NOT NULL 승격 후
+        // "~ YYYY.MM.DD 까지" (마감 단독) 폴백 포맷 제거 · "YYYY.MM.DD ~ YYYY.MM.DD" 양측 노출로 확정.
+        // 구분자 `.` 유지 (전 화면 날짜 표기 공통 토큰 · prototype 의 `-` 와는 정책상 다름 — 서술 계약 참조).
+        {
+            id: 'meta.apply.period.text',
+            desc: '신청 기간 셀 — YYYY.MM.DD ~ YYYY.MM.DD 포맷 (D5-Q1d/FOLLOW)',
+            selector: '.detail-meta-item:first-of-type .detail-meta-value',
+            kind: 'text-match',
+            expected: '^\\d{4}\\.\\d{2}\\.\\d{2}\\s*~\\s*\\d{4}\\.\\d{2}\\.\\d{2}$',
+            proto: 'templates/program/detail.html L77 · D5-Q1d',
+            severity: 'P1',
+        },
         {
             id: 'meta.grid.gap',
             desc: '정보 그리드 gap 10',
