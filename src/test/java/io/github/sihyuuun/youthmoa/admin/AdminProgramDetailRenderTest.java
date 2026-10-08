@@ -137,4 +137,65 @@ class AdminProgramDetailRenderTest {
         // Controller.detail() 에서 IllegalAccessError → AccessDeniedException 승격 → 403
         .andExpect(status().isForbidden());
   }
+
+  // ================= FOLLOW-waitlist-auto-approve (2026-10-08 · Q5 A) =================
+
+  /**
+   * capacity != null && applied >= capacity 조건 충족 시 배너 markup 포함.
+   * program 1 에 capacity 를 작게 조정해 조건을 재현 (시드 program 1 은 capacity=30 + applied 28 이라 조건 미달).
+   */
+  @Test
+  void GET_admin_program_detail_정원_꽉참_배너_노출() throws Exception {
+    Program p = programRepository.findById(PROGRAM_ID).orElseThrow();
+    // 가장 간단한 재현: capacity 를 applied 수 이하로 임시 조정. applied=28 가정 → capacity=10 으로 세팅하면 (28 >= 10) 충족.
+    // Program 의 공식 update 경로는 updateFromAdminForm 뿐이고 서명이 길다. 테스트 전용으로 reflect 는 피하고
+    // 신규 Program 을 꽉 찬 상태로 삽입하는 방법이 깔끔하므로 그 접근을 쓴다.
+    io.github.sihyuuun.youthmoa.user.User admin =
+        userRepository.findByEmail("sysadmin@youth-moa.test").orElseThrow();
+    io.github.sihyuuun.youthmoa.center.Center center = p.getCenter();
+    Program full =
+        programRepository.save(
+            Program.builder()
+                .title("정원꽉참 배너 테스트")
+                .center(center)
+                .category("c")
+                .region(center.getRegion())
+                .content("c")
+                .startDate(java.time.LocalDate.now().minusDays(1))
+                .endDate(java.time.LocalDate.now().plusDays(10))
+                .capacity(0) // 0 이면 어떤 applied 라도 조건 충족 (applied >= 0)
+                .createdBy(admin)
+                .build());
+    mockMvc
+        .perform(get("/admin/programs/" + full.getId()).with(sysadmin()))
+        .andExpect(status().isOk())
+        .andExpect(content().string(containsString("data-testid=\"waitlist-auto-banner\"")))
+        .andExpect(content().string(containsString("data-testid=\"waitlist-auto-toggle\"")));
+  }
+
+  /** 조건 미충족 (capacity 가 넉넉하거나 null) 이면 배너 미노출. */
+  @Test
+  void GET_admin_program_detail_정원_여유_배너_미노출() throws Exception {
+    io.github.sihyuuun.youthmoa.user.User admin =
+        userRepository.findByEmail("sysadmin@youth-moa.test").orElseThrow();
+    io.github.sihyuuun.youthmoa.center.Center center =
+        programRepository.findById(PROGRAM_ID).orElseThrow().getCenter();
+    Program spacious =
+        programRepository.save(
+            Program.builder()
+                .title("정원 여유 배너 미노출 테스트")
+                .center(center)
+                .category("c")
+                .region(center.getRegion())
+                .content("c")
+                .startDate(java.time.LocalDate.now().minusDays(1))
+                .endDate(java.time.LocalDate.now().plusDays(10))
+                .capacity(9999) // applied 0 → 9999 미달
+                .createdBy(admin)
+                .build());
+    mockMvc
+        .perform(get("/admin/programs/" + spacious.getId()).with(sysadmin()))
+        .andExpect(status().isOk())
+        .andExpect(content().string(not(containsString("data-testid=\"waitlist-auto-banner\""))));
+  }
 }

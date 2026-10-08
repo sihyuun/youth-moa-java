@@ -3783,3 +3783,106 @@ body.admin-shell-body {
     font-size: 13px;
     color: #6B7280;
 }
+
+/* ============================================================
+   FOLLOW-waitlist-auto-approve (2026-10-08)
+   대기자 자동 승인 배너 + 토글 스위치.
+   prototype admin/prototype.html L1580~1592 (노란 배경 + 토글).
+   CSS 변수 우선 사용 (CLAUDE.md 디자인 변경 체크리스트 준수).
+   ============================================================ */
+
+.admin-waitlist-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 16px 20px;
+    margin-bottom: 16px;
+    background: var(--color-warning-light);
+    border: 1px solid var(--color-warning);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+}
+
+.admin-waitlist-banner-text {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.admin-waitlist-banner-title {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-text);
+    margin-bottom: 4px;
+}
+
+.admin-waitlist-banner-desc {
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--color-text-sec);
+    margin: 0;
+}
+
+.admin-waitlist-banner-form {
+    flex: 0 0 auto;
+    margin: 0;
+}
+
+/* 토글 스위치 */
+.admin-toggle-switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.admin-toggle-switch-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--color-text-sec);
+    white-space: nowrap;
+}
+
+.admin-toggle-switch--on .admin-toggle-switch-label {
+    color: var(--color-primary);
+    font-weight: 600;
+}
+
+.admin-toggle-switch-button {
+    position: relative;
+    width: 44px;
+    height: 24px;
+    padding: 0;
+    border: none;
+    border-radius: var(--radius-pill);
+    background: var(--color-border);
+    cursor: pointer;
+    transition: background 150ms ease-out;
+}
+
+.admin-toggle-switch--on .admin-toggle-switch-button {
+    background: var(--color-primary);
+}
+
+.admin-toggle-switch-button:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
+.admin-toggle-switch-thumb {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--color-surface);
+    box-shadow: var(--shadow-sm);
+    transition: transform 150ms ease-out;
+}
+
+.admin-toggle-switch--on .admin-toggle-switch-thumb {
+    transform: translateX(20px);
+}

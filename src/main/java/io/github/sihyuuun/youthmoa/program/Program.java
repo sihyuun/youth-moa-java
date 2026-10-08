@@ -165,6 +165,21 @@ public class Program extends BaseTimeEntity {
   @Column(nullable = false)
   private int viewCount;
 
+  // ============== FOLLOW-waitlist-auto-approve (2026-10-08 · V28) ==============
+
+  /**
+   * 대기자 자동 승인 플래그 (Q1 A). 정원 꽉 참 상태에서 APPROVED→CANCELLED/REJECTED 가 발생할 때, PENDING 최선순위 1건을 SYSTEM
+   * 자동 APPROVED 로 승격할지 여부.
+   *
+   * <p>Q1 A: {@link ApprovalMode} enum 확장 대신 독립 boolean 유지. approvalMode 와 교차 영향 없음.
+   *
+   * <p>Q2 A: {@code apply()} 시점 자동 승인은 하지 않음 (approvalMode=AUTO 가 담당). 본 플래그는 "공석 재분배" 경로 전용.
+   *
+   * <p>Q4 A: OFF→ON 전환 시 기존 PENDING 일괄 승격 금지. 신규 승격 이벤트부터 적용.
+   */
+  @Column(name = "auto_approve_when_full", nullable = false)
+  private boolean autoApproveWhenFull;
+
   @Builder
   private Program(
       String title,
@@ -190,7 +205,8 @@ public class Program extends BaseTimeEntity {
       String description,
       Boolean hasCourses,
       User createdBy,
-      Integer viewCount) {
+      Integer viewCount,
+      Boolean autoApproveWhenFull) {
     this.title = title;
     this.center = center;
     this.category = category;
@@ -219,6 +235,24 @@ public class Program extends BaseTimeEntity {
     this.hasCourses = hasCourses != null && hasCourses;
     this.createdBy = createdBy;
     this.viewCount = viewCount != null ? viewCount : 0;
+    // FOLLOW-waitlist-auto-approve (2026-10-08): V28 NOT NULL DEFAULT false 와 동일하게 기본 OFF.
+    this.autoApproveWhenFull = autoApproveWhenFull != null && autoApproveWhenFull;
+  }
+
+  // ============== FOLLOW-waitlist-auto-approve 도메인 메서드 ==============
+
+  /**
+   * 대기자 자동 승인 활성화. Q1 A: approvalMode 와 독립 — 상호작용 없음.
+   *
+   * <p>Q4 A: 이 메서드는 플래그만 켠다. 기존 PENDING 일괄 승급은 수행하지 않는다 (신규 승격 이벤트부터 적용).
+   */
+  public void enableAutoApproveWhenFull() {
+    this.autoApproveWhenFull = true;
+  }
+
+  /** 대기자 자동 승인 비활성화. 이미 승격된 APPROVED 는 되돌리지 않음. */
+  public void disableAutoApproveWhenFull() {
+    this.autoApproveWhenFull = false;
   }
 
   /**

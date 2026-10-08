@@ -197,6 +197,13 @@ public class AdminProgramController {
     boolean watched =
         principal != null && programWatchService.isWatched(principal.getUsername(), id);
     model.addAttribute("watched", watched);
+    // FOLLOW-waitlist-auto-approve (2026-10-08 · Q5 A): 대기자 자동 승인 배너 노출 판단용.
+    //   조건: capacity != null && (approved + pending) >= capacity.
+    //   applied 는 PENDING+APPROVED 합이므로 그대로 사용.
+    boolean waitlistBannerVisible =
+        program.getCapacity() != null && applied >= program.getCapacity();
+    model.addAttribute("waitlistBannerVisible", waitlistBannerVisible);
+    model.addAttribute("autoApproveWhenFull", program.isAutoApproveWhenFull());
     return "admin/program/detail";
   }
 
@@ -321,6 +328,32 @@ public class AdminProgramController {
     redirectAttributes.addFlashAttribute(
         "flashMessage", "프로그램 운영을 중단했어요. 목록에서 SUSPENDED 상태로 확인할 수 있어요.");
     return "redirect:/admin/programs";
+  }
+
+  // ================= FOLLOW-waitlist-auto-approve (2026-10-08) =================
+
+  /**
+   * 대기자 자동 승인 토글. Q1 A — 상세 열람과 동일한 권한 (SYSTEM_ADMIN + CENTER_ADMIN own-center). PRG 302 redirect
+   * + flash 패턴.
+   *
+   * <p>Q2 A: 토글 ON 자체는 승격을 수행하지 않는다. 승격은 {@code AdminApplicationService.reject/forceCancel} 또는
+   * {@code ApplicationService.cancel} 가 상태 전이 후 트리거한다.
+   */
+  @PostMapping("/{id}/auto-approve")
+  public String updateAutoApproveWhenFull(
+      @PathVariable Long id,
+      @RequestParam(value = "enabled", defaultValue = "false") boolean enabled,
+      RedirectAttributes ra) {
+    try {
+      adminProgramService.updateAutoApproveWhenFull(id, enabled);
+    } catch (IllegalArgumentException e) {
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "프로그램을 찾을 수 없어요.");
+    } catch (IllegalAccessError e) {
+      throw new AccessDeniedException(e.getMessage());
+    }
+    ra.addFlashAttribute(
+        "flashMessage", enabled ? "대기자 자동 승인을 켰어요." : "대기자 자동 승인을 껐어요.");
+    return "redirect:/admin/programs/" + id;
   }
 
   // ================= A8 admin-bulk (2026-09-17) =================

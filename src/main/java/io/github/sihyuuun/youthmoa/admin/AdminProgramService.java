@@ -359,6 +359,20 @@ public class AdminProgramService {
    * <p>초기 구현 (2026-09-10 F1) 은 물리 삭제 + FK 400 방어였으나 정책 위반 · ym-verify FAIL. 본 커밋 (F1-fix) 에서
    * A안(소프트) 로 정정.
    */
+  /**
+   * FOLLOW-waitlist-auto-approve (2026-10-08 · Q1 A): 대기자 자동 승인 플래그 토글. 상세 열람 권한과 동일 (SYSTEM_ADMIN
+   * + CENTER_ADMIN own-center). {@link #find(Long)} 재활용으로 scope 검증 동시 수행.
+   */
+  @Transactional
+  public void updateAutoApproveWhenFull(Long id, boolean enabled) {
+    Program program = find(id);
+    if (enabled) {
+      program.enableAutoApproveWhenFull();
+    } else {
+      program.disableAutoApproveWhenFull();
+    }
+  }
+
   @Transactional
   public void delete(Long id) {
     Program program =

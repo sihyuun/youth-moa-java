@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<!--
+  FOLLOW-waitlist-auto-approve (2026-10-08):
+    대기자 자동 승인 배너 fragment. 정원 꽉 참 (approved + pending >= capacity)
+    + capacity != null 일 때만 상위 detail.html 에서 조건부 include.
+
+    원본: admin/prototype.html L1580~1592 (노란 배경 + 토글 스위치).
+-->
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      lang="ko">
+<body>
+
+<div th:fragment="waitlistBanner(program, enabled)"
+     class="admin-waitlist-banner"
+     data-testid="waitlist-auto-banner">
+    <div class="admin-waitlist-banner-text">
+        <strong class="admin-waitlist-banner-title">정원이 꽉 찼어요</strong>
+        <p class="admin-waitlist-banner-desc">
+            승인된 신청이 취소/반려되면 대기자(PENDING) 중 가장 먼저 신청한 1명을 자동 승인할 수 있어요.
+        </p>
+    </div>
+    <form th:action="@{/admin/programs/{id}/auto-approve(id=${program.id})}"
+          method="post"
+          class="admin-waitlist-banner-form">
+        <!-- Thymeleaf-spring CSRF 숨은 필드는 자동 주입 (spring.thymeleaf 기본). -->
+        <!-- Q4 A: 토글 ON 자체는 승격을 수행하지 않음. 신규 승격 이벤트부터 적용. -->
+        <input type="hidden" name="enabled" th:value="${enabled} ? 'false' : 'true'"/>
+        <label class="admin-toggle-switch" th:classappend="${enabled} ? 'admin-toggle-switch--on' : ''">
+            <span class="admin-toggle-switch-label"
+                  th:text="${enabled} ? '자동 승인 켜짐' : '자동 승인 꺼짐'">자동 승인 꺼짐</span>
+            <button type="submit"
+                    class="admin-toggle-switch-button"
+                    data-testid="waitlist-auto-toggle"
+                    th:attr="aria-pressed=${enabled}"
+                    th:aria-label="${enabled} ? '대기자 자동 승인 끄기' : '대기자 자동 승인 켜기'">
+                <span class="admin-toggle-switch-thumb"></span>
+            </button>
+        </label>
+    </form>
+</div>
+
+</body>
+</html>
