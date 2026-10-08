@@ -62,7 +62,7 @@ async function measure(page: Page, check: Check): Promise<string> {
         return String(Math.round(value * 100) / 100);
     }
 
-    if (check.kind === 'text') {
+    if (check.kind === 'text' || check.kind === 'text-match') {
         return normalizeText(await first.innerText());
     }
 
@@ -86,6 +86,13 @@ function isPass(check: Check, actual: string): boolean {
         const value = Number(actual);
         if (Number.isNaN(value)) return false;
         return value >= expected;
+    }
+    if (check.kind === 'text-match') {
+        try {
+            return new RegExp(String(check.expected)).test(actual);
+        } catch {
+            return false;
+        }
     }
     return actual === String(check.expected);
 }
@@ -119,7 +126,11 @@ export function assertResults(results: CheckResult[]): void {
                 `[${r.check.severity}] ${r.check.id} — ${r.check.desc} (출처 ${r.check.proto})`,
             )
             .toBe(
-                (r.check.kind === 'box' || r.check.kind === 'count-min')
+                // box/count-min/text-match 는 pass 판정이 허용 범위·정규식 기반이라
+                // actual != expected 여도 pass 가능. pass 면 actual 을 돌려 toBe 가 통과하게 한다.
+                (r.check.kind === 'box'
+                    || r.check.kind === 'count-min'
+                    || r.check.kind === 'text-match')
                     ? r.pass
                         ? r.actual
                         : String(r.check.expected)

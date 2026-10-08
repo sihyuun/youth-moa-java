@@ -185,6 +185,65 @@ class ProgramCardDtoTest {
     assertThat(dto.isCtaDisabled()).isTrue();
   }
 
+  // ─── D5-Q1a reverify2 (2026-10-02): detail 서브텍스트 신청기간 축 보강 ───
+
+  @Test
+  @DisplayName(
+      "detail UPCOMING: applyStartDate 미래 + startDate 과거 → '신청 오픈까지 N일' 은 applyStartDate 기준 계산")
+  void detailHeadline_upcoming_usesApplyStartDate_overStartDate() {
+    // 운영기간은 이미 시작했지만(startDate 과거) 신청은 아직 시작 전(applyStartDate 미래)
+    // 상태 파생은 applyStartDate 기준 → UPCOMING, "신청 오픈까지 N일" 산술도 applyStartDate 기준이어야 함
+    Program p =
+        Program.builder()
+            .title("신청기간 축 검증 프로그램")
+            .center(CENTER)
+            .content("내용")
+            .startDate(LocalDate.now().minusDays(10))
+            .endDate(LocalDate.now().plusDays(20))
+            .applyStartDate(LocalDate.now().plusDays(5))
+            .applyEndDate(LocalDate.now().plusDays(15))
+            .build();
+    ProgramCardDto dto = new ProgramCardDto(p, 0);
+    assertThat(dto.getStatus()).isEqualTo(ProgramStatus.UPCOMING);
+    // applyStartDate 기준 5일 (startDate 기준이면 -10일 → "신청 오픈까지 -10일" 모순)
+    assertThat(dto.getDetailHeadline()).isEqualTo("신청 오픈까지 5일");
+    assertThat(dto.isDetailEmphasized()).isTrue();
+  }
+
+  @Test
+  @DisplayName(
+      "detail OPEN with capacity: applyEndDate 가 endDate 와 다를 때 '마감까지 N일' 은 applyEndDate 기준 계산")
+  void detailHeadline_open_usesApplyEndDate_overEndDate() {
+    // 운영기간은 아직 많이 남았지만 신청 마감은 임박
+    // 뱃지 D-day 와 서브텍스트가 같은 축(applyEndDate) 을 써야 함
+    Program p =
+        Program.builder()
+            .title("신청 마감 임박 프로그램")
+            .center(CENTER)
+            .content("내용")
+            .startDate(LocalDate.now().minusDays(5))
+            .endDate(LocalDate.now().plusDays(60))
+            .applyStartDate(LocalDate.now().minusDays(5))
+            .applyEndDate(LocalDate.now().plusDays(3))
+            .capacity(10)
+            .build();
+    ProgramCardDto dto = new ProgramCardDto(p, 5);
+    assertThat(dto.getStatus()).isEqualTo(ProgramStatus.OPEN);
+    // applyEndDate 기준 3일 (endDate 기준이면 60일)
+    assertThat(dto.getDetailHeadline()).contains("마감까지 3일");
+  }
+
+  @Test
+  @DisplayName(
+      "detail UPCOMING: applyStartDate null + startDate 미래 → startDate 폴백 (D5-Q1d 백필 전 레거시 데이터)")
+  void detailHeadline_upcoming_fallbackToStartDate_whenApplyStartNull() {
+    // 레거시 row (applyStartDate null) — Q1d 백필 전까지 startDate 폴백 유지
+    ProgramCardDto dto = new ProgramCardDto(upcomingProgram(), 0);
+    assertThat(dto.getStatus()).isEqualTo(ProgramStatus.UPCOMING);
+    // upcomingProgram startDate = today + 5
+    assertThat(dto.getDetailHeadline()).isEqualTo("신청 오픈까지 5일");
+  }
+
   @Test
   @DisplayName("CTA: SUSPENDED (운영 중단) → inactive/운영이 중단되었어요/muted/disabled")
   void cta_inactive() {

@@ -97,6 +97,8 @@ class JpaMappingTest {
                         .region("서울")
                         .etc("전 회차 참석 가능자")
                         .build())
+                .applyStartDate(LocalDate.now().minusDays(5))
+                .applyEndDate(LocalDate.now().plusDays(30))
                 .capacity(20)
                 .createdBy(admin)
                 .build());

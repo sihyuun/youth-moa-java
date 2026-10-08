@@ -62,6 +62,8 @@ class ProgramServiceFilterTest {
     Center centerWonmi =
         centerRepository.save(Center.builder().name("원미").region("부천시").isFeatured(false).build());
 
+    // D5-Q1d (2026-10-06 · V27): applyStart/End NOT NULL — 전 시드에 명시적 세팅.
+    // 운영기간과 동일 범위로 백필한 시나리오 (V27 백필 로직과 일치).
     programRepository.save(
         Program.builder()
             .title("취업 워크숍")
@@ -70,6 +72,8 @@ class ProgramServiceFilterTest {
             .content("c")
             .startDate(today.minusDays(5))
             .endDate(today.plusDays(5))
+            .applyStartDate(today.minusDays(5))
+            .applyEndDate(today.plusDays(5))
             .capacity(30)
             .createdBy(creator)
             .build());
@@ -82,6 +86,8 @@ class ProgramServiceFilterTest {
             .content("c")
             .startDate(today.plusDays(10))
             .endDate(today.plusDays(30))
+            .applyStartDate(today.plusDays(10))
+            .applyEndDate(today.plusDays(30))
             .capacity(20)
             .createdBy(creator)
             .build());
@@ -94,6 +100,8 @@ class ProgramServiceFilterTest {
             .content("c")
             .startDate(today.minusDays(30))
             .endDate(today.minusDays(5))
+            .applyStartDate(today.minusDays(30))
+            .applyEndDate(today.minusDays(5))
             .capacity(15)
             .createdBy(creator)
             .build());
@@ -157,5 +165,81 @@ class ProgramServiceFilterTest {
   void allRegionsOrdered() {
     List<Region> all = programService.getAllRegions();
     assertThat(all).extracting(Region::getName).containsExactly("고양시", "부천시", "수원시");
+  }
+
+  // ================= D5-Q1b: ProgramSpec.withDateStatus/notEnded 신청기간 축 =================
+
+  /**
+   * D5-Q1b (2026-10-02): status 필터가 신청기간(applyStart/End) 기준으로 동작한다. 운영기간(start/end)이 과거/미래에 걸쳐 있어도
+   * 신청기간 축만 반영된다.
+   */
+  @Test
+  @DisplayName("Q1b: status=upcoming → applyStartDate 미래인 프로그램만 (운영기간 start 는 무시)")
+  void q1b_statusUpcoming_byApplyStartDate() {
+    LocalDate today = LocalDate.now();
+    Center c = centerRepository.save(Center.builder().name("Q1센터").region("수원시").build());
+    // 운영기간 start 는 과거이지만 신청기간 start 는 미래 → UPCOMING
+    programRepository.save(
+        Program.builder()
+            .title("Q1b-upcoming")
+            .center(c)
+            .region("수원시")
+            .content("c")
+            .startDate(today.minusDays(10))
+            .endDate(today.plusDays(30))
+            .applyStartDate(today.plusDays(5))
+            .applyEndDate(today.plusDays(20))
+            .capacity(10)
+            .createdBy(creator)
+            .build());
+
+    Page<Program> result =
+        programService.search(
+            "upcoming",
+            Collections.emptyList(),
+            Collections.emptyList(),
+            "newest",
+            0,
+            Collections.emptySet());
+    assertThat(result.getContent()).extracting(Program::getTitle).contains("Q1b-upcoming")
+    // 기존 seed "AI 교육" 은 운영 start 미래 but applyStartDate null → polisfall endDate 축으로도 OPEN 분류되므로
+    // UPCOMING 필터 결과에는 포함되지 않아야 함 (applyEnd 가 없고 applyStart 도 없으면 startDate 폴백 → start 미래 →
+    // UPCOMING).
+    // 따라서 "AI 교육" 도 UPCOMING 에 포함될 수 있음. 명시적 포함만 검증한다.
+    ;
+  }
+
+  /** Q1b: status=ended → applyEndDate 과거인 프로그램만 (운영기간 end 미래여도 ENDED). */
+  @Test
+  @DisplayName("Q1b: status=ended → applyEndDate 지난 프로그램만 (운영 end 미래 무시)")
+  void q1b_statusEnded_byApplyEndDate() {
+    LocalDate today = LocalDate.now();
+    Center c = centerRepository.save(Center.builder().name("Q1센터2").region("수원시").build());
+    // 신청기간 지남 but 운영기간 미래 → ENDED (Q5=A)
+    programRepository.save(
+        Program.builder()
+            .title("Q1b-ended")
+            .center(c)
+            .region("수원시")
+            .content("c")
+            .startDate(today.plusDays(5))
+            .endDate(today.plusDays(40))
+            .applyStartDate(today.minusDays(10))
+            .applyEndDate(today.minusDays(1))
+            .capacity(10)
+            .createdBy(creator)
+            .build());
+
+    Page<Program> result =
+        programService.search(
+            "ended",
+            Collections.emptyList(),
+            Collections.emptyList(),
+            "newest",
+            0,
+            Collections.emptySet());
+    // "Q1b-ended" 는 applyEndDate 가 어제 → ENDED.
+    // D5-Q1d (2026-10-06 · V27): applyEndDate NOT NULL — null 폴백 TC 삭제.
+    assertThat(result.getContent()).extracting(Program::getTitle).contains("Q1b-ended");
   }
 }

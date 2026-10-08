@@ -1,8 +1,6 @@
 package io.github.sihyuuun.youthmoa.program;
 
-import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
 import lombok.Getter;
 
 /**
@@ -139,7 +137,6 @@ public class ProgramCardDto {
     }
 
     // ── 상세 페이지 전용 라벨 (prototype L947~951) ──
-    LocalDate today = LocalDate.now();
     boolean full =
         (status != ProgramStatus.UPCOMING)
             && capacity != null
@@ -147,9 +144,11 @@ public class ProgramCardDto {
             && applicantCount >= capacity;
     boolean closedByDate = (status == ProgramStatus.ENDED);
 
-    if (status == ProgramStatus.UPCOMING && program.getStartDate() != null) {
-      long daysUntilOpen = ChronoUnit.DAYS.between(today, program.getStartDate());
-      this.detailHeadline = "신청 오픈까지 " + daysUntilOpen + "일";
+    if (status == ProgramStatus.UPCOMING) {
+      // D5-Q1a (reverify2 2026-10-02): "신청 오픈까지 N일" 산술은 신청기간 축이어야 함.
+      // getDaysUntilApplyStart() 가 applyStartDate 우선 + startDate 폴백 (D5-Q1d 백필 전까지).
+      long daysUntilOpen = program.getDaysUntilApplyStart();
+      this.detailHeadline = daysUntilOpen >= 0 ? "신청 오픈까지 " + daysUntilOpen + "일" : "신청 오픈 예정";
       this.detailSubtext = "오픈 알림을 신청하면 시작 시 알려드려요.";
       this.detailEmphasized = true;
     } else if (closedByDate) {
@@ -168,8 +167,10 @@ public class ProgramCardDto {
       this.detailEmphasized = true;
     } else {
       // OPEN with capacity — 마감까지 N일 + 신청률 · 경쟁률
-      long daysUntilDeadline =
-          program.getEndDate() != null ? ChronoUnit.DAYS.between(today, program.getEndDate()) : -1;
+      // D5-Q1a (reverify2 2026-10-02): "마감까지 N일" 산술은 신청 마감(applyEndDate) 축이어야 함.
+      // 같은 카드/상세 안에서 뱃지 D-day(applyEnd) 와 서브텍스트 수치가 일치하도록 교체.
+      // Program.getDaysUntilDeadline() 가 applyEndDate 우선 + endDate 폴백 (D5-Q1d 백필 전까지).
+      long daysUntilDeadline = program.getDaysUntilDeadline();
       String stateWord;
       if ("error".equals(this.colorClass)) stateWord = "마감임박";
       else if ("warning".equals(this.colorClass)) stateWord = "서두르세요";

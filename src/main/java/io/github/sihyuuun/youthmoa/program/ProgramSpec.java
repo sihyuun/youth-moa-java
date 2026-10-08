@@ -39,7 +39,12 @@ public class ProgramSpec {
    *
    * <p>하위 호환: 기존 "active" → "open", "closed" → "ended" 로 매핑.
    *
-   * <p>"ended" 는 endDate < today AND isActive=true (SUSPENDED 는 별도 상태이므로 제외).
+   * <p>D5-Q1b (2026-10-02): 신청기간(applyStart/End) 축으로 전환. 서술 계약 {@code
+   * docs/design-contracts/program-status-derivation.md} §7-2.
+   *
+   * <p>D5-Q1d (2026-10-06 · V27): applyStartDate / applyEndDate NOT NULL 승격 완료 — COALESCE 폴백 제거.
+   *
+   * <p>"ended" 는 applyEndDate &lt; today AND isActive=true (SUSPENDED 는 별도 상태이므로 제외).
    */
   public static Specification<Program> withDateStatus(String status) {
     if (status == null || status.isBlank()) return null;
@@ -52,16 +57,15 @@ public class ProgramSpec {
       case "open" ->
           (root, query, cb) ->
               cb.and(
-                  cb.or(
-                      cb.isNull(root.get("startDate")),
-                      cb.lessThanOrEqualTo(root.get("startDate"), today)),
-                  cb.or(
-                      cb.isNull(root.get("endDate")),
-                      cb.greaterThanOrEqualTo(root.get("endDate"), today)));
-      case "upcoming" -> (root, query, cb) -> cb.greaterThan(root.get("startDate"), today);
+                  cb.lessThanOrEqualTo(root.<LocalDate>get("applyStartDate"), today),
+                  cb.greaterThanOrEqualTo(root.<LocalDate>get("applyEndDate"), today));
+      case "upcoming" ->
+          (root, query, cb) -> cb.greaterThan(root.<LocalDate>get("applyStartDate"), today);
       case "ended" ->
           (root, query, cb) ->
-              cb.and(cb.lessThan(root.get("endDate"), today), cb.isTrue(root.get("isActive")));
+              cb.and(
+                  cb.lessThan(root.<LocalDate>get("applyEndDate"), today),
+                  cb.isTrue(root.get("isActive")));
       default -> null;
     };
   }
@@ -69,14 +73,14 @@ public class ProgramSpec {
   /**
    * "전체" 탭에서 종료 프로그램을 제외 — 계약 grid.excludeEnded (wireframe WF-5-001-01). 종료 프로그램은 "종료" 탭에서만 노출한다.
    *
-   * <p>endDate 가 null 이거나 endDate >= today 인 프로그램만 통과.
+   * <p>D5-Q1b (2026-10-02): 신청기간(applyEndDate) 축으로 전환. D5-Q1d (2026-10-06): applyEndDate NOT NULL
+   * 전제 — null 분기 제거.
+   *
+   * <p>applyEndDate &gt;= today 인 프로그램만 통과.
    */
   public static Specification<Program> notEnded() {
-    return (root, query, cb) -> {
-      LocalDate today = LocalDate.now();
-      return cb.or(
-          cb.isNull(root.get("endDate")), cb.greaterThanOrEqualTo(root.get("endDate"), today));
-    };
+    return (root, query, cb) ->
+        cb.greaterThanOrEqualTo(root.<LocalDate>get("applyEndDate"), LocalDate.now());
   }
 
   /** 단일 지역 (하위 호환용 — 사용처 없으면 추후 제거) */

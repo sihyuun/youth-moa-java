@@ -91,12 +91,15 @@ public class Program extends BaseTimeEntity {
 
   // ============== A3-1 admin-program-form (2026-09-10 · V12) ==============
 
-  /** 신청 시작일 (nullable — 기존 시드 및 관리자 미입력 프로그램은 null 허용). */
-  @Column(name = "apply_start_date")
+  /**
+   * 신청 시작일. V12 (2026-09-10) nullable 로 추가 → V27 (2026-10-06) NOT NULL 승격. D5-Q1d: 백필 완료 후 전 지점
+   * COALESCE/effectiveApply* 폴백 제거.
+   */
+  @Column(name = "apply_start_date", nullable = false)
   private LocalDate applyStartDate;
 
-  /** 신청 마감일. */
-  @Column(name = "apply_end_date")
+  /** 신청 마감일. V12 nullable → V27 NOT NULL. */
+  @Column(name = "apply_end_date", nullable = false)
   private LocalDate applyEndDate;
 
   /** 진행 장소. */
@@ -200,8 +203,12 @@ public class Program extends BaseTimeEntity {
     this.applyUrl = applyUrl;
     this.isActive = isActive != null ? isActive : true;
     this.capacity = capacity;
-    this.applyStartDate = applyStartDate;
-    this.applyEndDate = applyEndDate;
+    // D5-Q1d (2026-10-06 · V27): applyStart/End 는 DB NOT NULL. 사용자 폼은 ProgramFormRequest
+    // @NotNull 로 입력 강제한다. 테스트/시드 Builder 경로에서 생략되면 운영기간(start/end) 으로
+    // 자동 백필 — V27 마이그레이션 로직과 동일한 복사 규칙. 런타임 COALESCE/effectiveApply*
+    // 폴백은 전 소비 지점(Spec/Repository/Service/Template)에서 제거됨.
+    this.applyStartDate = applyStartDate != null ? applyStartDate : startDate;
+    this.applyEndDate = applyEndDate != null ? applyEndDate : endDate;
     this.venue = venue;
     this.contact = contact;
     this.approvalMode = approvalMode != null ? approvalMode : ApprovalMode.MANUAL;
@@ -314,34 +321,54 @@ public class Program extends BaseTimeEntity {
   }
 
   public ProgramStatus getStatus() {
-    // F0f-fix-3 (2026-07-20): 4개 명시 상태. "마감(isFull)" 은 파생.
-    //   isActive=false → SUSPENDED (운영중단, 관리자 강제, 복구 가능)
-    //   endDate < today → ENDED (기간 만료, 자연 종료)
-    //   today < startDate → UPCOMING
-    //   그 외 → OPEN
+    // D5-Q1a (2026-10-02): status 를 신청기간(applyStart/End) 기준으로 재정의.
+    // HANDOFF.md L273 "status는 신청기간·정원으로 파생" + 사용자 확정 Set-A Q5=A.
+    //   isActive=false → SUSPENDED (최우선, 어떤 기간이든)
+    //   applyStart > today → UPCOMING (아직 모집 전)
+    //   applyStart <= today <= applyEnd → OPEN (모집 중)
+    //   applyEnd < today → ENDED (모집 마감 — 운영기간 무관. 운영중 라벨은 상세에서 별도 노출)
+    //
+    // D5-Q1d (2026-10-06 · V27): applyStartDate / applyEndDate NOT NULL 승격 완료. 폴백 제거.
     if (!isActive) return ProgramStatus.SUSPENDED;
     LocalDate today = LocalDate.now();
-    if (startDate != null && today.isBefore(startDate)) return ProgramStatus.UPCOMING;
-    if (endDate != null && today.isAfter(endDate)) return ProgramStatus.ENDED;
+    if (today.isBefore(applyStartDate)) return ProgramStatus.UPCOMING;
+    if (today.isAfter(applyEndDate)) return ProgramStatus.ENDED;
     return ProgramStatus.OPEN;
   }
 
-  /** endDate까지 남은 일수. endDate가 없으면 -1, 이미 지났으면 음수. */
+  /**
+   * 신청 마감일(applyEndDate)까지 남은 일수. 이미 지났으면 음수.
+   *
+   * <p>D5-Q1a (2026-10-02): endDate → applyEndDate 로 재정의. D-day 는 "모집 마감까지" 를 의미한다. D5-Q1d
+   * (2026-10-06): applyEndDate NOT NULL 승격으로 null 폴백 제거.
+   */
   public long getDaysUntilDeadline() {
-    if (endDate == null) return -1;
-    return ChronoUnit.DAYS.between(LocalDate.now(), endDate);
+    return ChronoUnit.DAYS.between(LocalDate.now(), applyEndDate);
   }
 
   /**
    * D-day 표시 레이블 (예: "D-3", "D-DAY", "종료")
    *
-   * <p>기간 만료(days &lt; 0)는 "종료" 로 표기. isFull(정원 100%) 은 별개 파생값이며 여기서 다루지 않음.
+   * <p>신청 마감(days &lt; 0)은 "종료" 로 표기. isFull(정원 100%) 은 별개 파생값이며 여기서 다루지 않음.
+   *
+   * <p>D5-Q1d: applyEndDate NOT NULL 전제 — null 분기 제거.
    */
   public String getDdayLabel() {
-    long days = getDaysUntilDeadline();
-    if (days == -1) return "";
+    long days = ChronoUnit.DAYS.between(LocalDate.now(), applyEndDate);
     if (days < 0) return "종료";
     if (days == 0) return "D-DAY";
     return "D-" + days;
+  }
+
+  /**
+   * 신청 오픈일(applyStartDate)까지 남은 일수. 이미 지났으면 음수 (UPCOMING 이 아닌 상태에서 호출 시).
+   *
+   * <p>D5-Q1a (reverify2 2026-10-02): ProgramCardDto 상세 "신청 오픈까지 N일" 산술이 운영 startDate 를 직접 사용하던 모순
+   * 해소. "신청 오픈" 라벨은 신청기간 축이어야 함.
+   *
+   * <p>D5-Q1d (2026-10-06): applyStartDate NOT NULL 전제 — startDate 폴백 제거.
+   */
+  public long getDaysUntilApplyStart() {
+    return ChronoUnit.DAYS.between(LocalDate.now(), applyStartDate);
   }
 }

@@ -69,14 +69,16 @@ public class AdminDashboardService {
             .limit(5)
             .toList();
 
-    // 마감 임박: endDate 가 오늘~+7 이내 (A3 에서 applyEndDate 도입 시 그것으로 교체 · deferred)
+    // 마감 임박: applyEndDate 가 오늘~+7 이내.
+    // D5-Q1b (2026-10-02): endDate → applyEndDate 축으로 전환.
+    // D5-Q1d (2026-10-06 · V27): applyEndDate NOT NULL — 폴백 헬퍼 제거, 직접 접근.
     LocalDate today = LocalDate.now();
     LocalDate cutoff = today.plusDays(7);
     List<Program> urgent =
         scoped.stream()
-            .filter(p -> p.getEndDate() != null)
-            .filter(p -> !p.getEndDate().isBefore(today) && !p.getEndDate().isAfter(cutoff))
-            .sorted(Comparator.comparing(Program::getEndDate))
+            .filter(
+                p -> !p.getApplyEndDate().isBefore(today) && !p.getApplyEndDate().isAfter(cutoff))
+            .sorted(Comparator.comparing(Program::getApplyEndDate))
             .limit(5)
             .toList();
 

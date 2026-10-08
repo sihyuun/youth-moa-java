@@ -136,6 +136,8 @@ class HomeServiceTest {
                 .content("c")
                 .endDate(today.plusDays(1))
                 .isActive(true)
+                .applyStartDate(today.minusDays(5))
+                .applyEndDate(today.plusDays(30))
                 .createdBy(noticeAuthor)
                 .build(),
             Program.builder()
@@ -146,6 +148,8 @@ class HomeServiceTest {
                 .content("c")
                 .endDate(today.plusDays(10))
                 .isActive(true)
+                .applyStartDate(today.minusDays(5))
+                .applyEndDate(today.plusDays(30))
                 .createdBy(noticeAuthor)
                 .build(),
             Program.builder()
@@ -156,6 +160,8 @@ class HomeServiceTest {
                 .content("c")
                 .endDate(today.plusDays(20))
                 .isActive(true)
+                .applyStartDate(today.minusDays(5))
+                .applyEndDate(today.plusDays(30))
                 .createdBy(noticeAuthor)
                 .build(),
             Program.builder()
@@ -166,6 +172,8 @@ class HomeServiceTest {
                 .content("c")
                 .endDate(today.plusDays(3))
                 .isActive(false)
+                .applyStartDate(today.minusDays(5))
+                .applyEndDate(today.plusDays(30))
                 .createdBy(noticeAuthor)
                 .build()));
   }

@@ -261,7 +261,7 @@
                 <div class="admin-urgent-programs-name-wrap">
                     <div class="admin-urgent-programs-name" th:text="${up.title}">프로그램명</div>
                     <div class="admin-urgent-programs-deadline"
-                         th:text="${up.endDate != null ? #temporals.format(up.endDate, 'yyyy-MM-dd') + ' 마감' : ''}">
+                         th:text="${#temporals.format(up.applyEndDate, 'yyyy-MM-dd') + ' 마감'}">
                         2026-01-01 마감
                     </div>
                 </div>

@@ -127,8 +127,9 @@
                           th:classappend="${'admin-status-badge--' + p.status.name().toLowerCase()}"
                           th:text="${p.status.label}">모집중</span>
                 </span>
+                <!-- D5-Q1c (2026-10-06): 신청기간 실데이터 노출. applyStart/End 는 D5-Q1d 로 NOT NULL. -->
                 <span class="admin-program-col-apply"
-                      title="신청기간은 A3 에서 별도 컬럼으로 도입돼요.">-</span>
+                      th:text="|${#temporals.format(p.applyStartDate, 'yyyy-MM-dd')} ~ ${#temporals.format(p.applyEndDate, 'yyyy-MM-dd')}|">2026-01-01 ~ 2026-01-31</span>
                 <span class="admin-program-col-applied"
                       th:text="|${appliedCounts.getOrDefault(p.id, 0)} / ${p.capacity != null ? p.capacity : '∞'}|">0 / 30</span>
                 <span class="admin-program-col-views"

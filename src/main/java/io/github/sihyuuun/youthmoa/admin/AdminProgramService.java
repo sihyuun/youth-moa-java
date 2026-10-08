@@ -454,12 +454,15 @@ public class AdminProgramService {
   /**
    * 상태 필터. Program.getStatus() 는 런타임 파생이라 DB 필터로 표현하려면 각 상태의 조건을 직접 옮겨야 한다.
    *
+   * <p>D5-Q1b (2026-10-02): 신청기간(applyStart/End) 축으로 전환. 서술 계약 {@code
+   * docs/design-contracts/program-status-derivation.md} §7-2. D5-Q1d (2026-10-06 · V27):
+   * applyStart/End NOT NULL 승격으로 COALESCE 폴백 제거.
+   *
    * <ul>
    *   <li>SUSPENDED = isActive=false
-   *   <li>ENDED = isActive=true AND endDate &lt; today
-   *   <li>UPCOMING = isActive=true AND startDate &gt; today
-   *   <li>OPEN = isActive=true AND (startDate NULL OR &lt;= today) AND (endDate NULL OR &gt;=
-   *       today)
+   *   <li>ENDED = isActive=true AND applyEndDate &lt; today
+   *   <li>UPCOMING = isActive=true AND applyStartDate &gt; today
+   *   <li>OPEN = isActive=true AND applyStartDate &lt;= today AND applyEndDate &gt;= today
    * </ul>
    */
   private Specification<Program> statusSpec(String status) {
@@ -476,20 +479,20 @@ public class AdminProgramService {
       case SUSPENDED -> (root, query, cb) -> cb.isFalse(root.get("isActive"));
       case ENDED ->
           (root, query, cb) ->
-              cb.and(cb.isTrue(root.get("isActive")), cb.lessThan(root.get("endDate"), today));
+              cb.and(
+                  cb.isTrue(root.get("isActive")),
+                  cb.lessThan(root.<LocalDate>get("applyEndDate"), today));
       case UPCOMING ->
           (root, query, cb) ->
-              cb.and(cb.isTrue(root.get("isActive")), cb.greaterThan(root.get("startDate"), today));
+              cb.and(
+                  cb.isTrue(root.get("isActive")),
+                  cb.greaterThan(root.<LocalDate>get("applyStartDate"), today));
       case OPEN ->
           (root, query, cb) ->
               cb.and(
                   cb.isTrue(root.get("isActive")),
-                  cb.or(
-                      cb.isNull(root.get("startDate")),
-                      cb.lessThanOrEqualTo(root.get("startDate"), today)),
-                  cb.or(
-                      cb.isNull(root.get("endDate")),
-                      cb.greaterThanOrEqualTo(root.get("endDate"), today)));
+                  cb.lessThanOrEqualTo(root.<LocalDate>get("applyStartDate"), today),
+                  cb.greaterThanOrEqualTo(root.<LocalDate>get("applyEndDate"), today));
     };
   }
 }
