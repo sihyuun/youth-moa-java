@@ -20,13 +20,14 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 /**
- * FOLLOW-admin-program-detail-readonly (2026-10-07): {@code GET /admin/programs/{id}} 가 다시 read-only
- * 상세 페이지로 분리됨. 편집 폼은 {@link AdminProgramFormRenderTest} 에서 {@code /{id}/edit} 로 검증.
+ * FOLLOW-admin-program-detail-readonly (2026-10-07): {@code GET /admin/programs/{id}} 가 다시
+ * read-only 상세 페이지로 분리됨. 편집 폼은 {@link AdminProgramFormRenderTest} 에서 {@code /{id}/edit} 로 검증.
  *
  * <p>ym-impl 3차 (2026-10-07): verify UNVERIFIED-U1 해소 — CENTER_ADMIN own-center 200 + cross-center
- * 403 2 TC 추가. 기존 Service 레벨 {@link AdminProgramServiceTest#find_centerAdmin_wrongOrganization_throwsIllegalAccess}
- * 는 scopeSpec() 로직만 커버 → render + Controller.detail() 의 IllegalAccessError→AccessDeniedException
- * 승격·403 응답까지 자동 회귀 방어 공백이었음.
+ * 403 2 TC 추가. 기존 Service 레벨 {@link
+ * AdminProgramServiceTest#find_centerAdmin_wrongOrganization_throwsIllegalAccess} 는 scopeSpec() 로직만
+ * 커버 → render + Controller.detail() 의 IllegalAccessError→AccessDeniedException 승격·403 응답까지 자동 회귀 방어
+ * 공백이었음.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -57,8 +58,7 @@ class AdminProgramDetailRenderTest {
         .filter(p -> p.getCenter() != null && centerId.equals(p.getCenter().getId()))
         .map(Program::getId)
         .findFirst()
-        .orElseThrow(
-            () -> new IllegalStateException("center1 소속 프로그램 시드 누락 — DataInitializer 확인"));
+        .orElseThrow(() -> new IllegalStateException("center1 소속 프로그램 시드 누락 — DataInitializer 확인"));
   }
 
   /** center1 과 다른 센터 소속 program id 를 시드에서 동적으로 찾는다 (cross-center 403 검증용). */
@@ -69,8 +69,7 @@ class AdminProgramDetailRenderTest {
         .filter(p -> p.getCenter() != null && !centerId.equals(p.getCenter().getId()))
         .map(Program::getId)
         .findFirst()
-        .orElseThrow(
-            () -> new IllegalStateException("다른 센터 소속 프로그램 시드 누락 — DataInitializer 확인"));
+        .orElseThrow(() -> new IllegalStateException("다른 센터 소속 프로그램 시드 누락 — DataInitializer 확인"));
   }
 
   @Test
@@ -82,13 +81,11 @@ class AdminProgramDetailRenderTest {
         .andExpect(content().string(containsString("admin-program-detail-page")))
         .andExpect(content().string(containsString("admin-program-detail-header")))
         // Q1: 수정 CTA → /edit 서브경로
-        .andExpect(
-            content().string(containsString("/admin/programs/" + PROGRAM_ID + "/edit")))
+        .andExpect(content().string(containsString("/admin/programs/" + PROGRAM_ID + "/edit")))
         // Q6: 신청 현황 보기 링크
         .andExpect(content().string(containsString("data-testid=\"link-applications\"")))
         .andExpect(
-            content()
-                .string(containsString("/admin/programs/" + PROGRAM_ID + "/applications")))
+            content().string(containsString("/admin/programs/" + PROGRAM_ID + "/applications")))
         // Q5: ⋯ 더보기 삭제 메뉴 (복제는 미노출)
         .andExpect(content().string(containsString("data-testid=\"detail-menu-delete\"")))
         .andExpect(content().string(not(containsString("data-testid=\"detail-menu-clone\""))))

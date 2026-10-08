@@ -47,9 +47,9 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
  *   <li>A2 목록/상세 조회: SYSTEM_ADMIN + CENTER_ADMIN 모두 허용
  *   <li>A3-1 등록/편집/삭제: <b>SYSTEM_ADMIN only</b> (Qn-1 A). Program-Center FK 미도입 상태라 CENTER 격리
  *       fragile → A9 이후 CENTER_ADMIN 확장 예정
- *   <li>Qn-A A — (A3-1 기준) {@code GET /admin/programs/{id}} 는 편집 폼으로 대체. (<b>FOLLOW-admin-program-detail-readonly
- *       2026-10-07 에서 되돌림</b> — 상세와 편집을 다시 분리. {@code GET /admin/programs/{id}} 는 상세, {@code
- *       GET /admin/programs/{id}/edit} 가 편집 폼.)
+ *   <li>Qn-A A — (A3-1 기준) {@code GET /admin/programs/{id}} 는 편집 폼으로 대체.
+ *       (<b>FOLLOW-admin-program-detail-readonly 2026-10-07 에서 되돌림</b> — 상세와 편집을 다시 분리. {@code GET
+ *       /admin/programs/{id}} 는 상세, {@code GET /admin/programs/{id}/edit} 가 편집 폼.)
  *   <li>Qn-B A — F4/F0c 는 편집 폼 상단 링크로 진입 (별도 페이지 유지, 인라인 통합은 A3-2)
  *   <li>Qn-5 A — 응답은 PRG redirect + flash (form 실패 시 400 매핑 = admin-notice 패턴)
  * </ul>
@@ -165,8 +165,8 @@ public class AdminProgramController {
   // ================= FOLLOW-admin-program-detail-readonly (2026-10-07) 상세 =================
 
   /**
-   * 상세 전용 페이지. A3-1 당시 "상세 = 편집 폼" (Qn-A A) 으로 통합했으나, 실 운영 결함으로 FOLLOW-admin-program-detail-readonly
-   * 에서 되돌려 다시 분리됐다.
+   * 상세 전용 페이지. A3-1 당시 "상세 = 편집 폼" (Qn-A A) 으로 통합했으나, 실 운영 결함으로
+   * FOLLOW-admin-program-detail-readonly 에서 되돌려 다시 분리됐다.
    *
    * <ul>
    *   <li>SYSTEM_ADMIN + CENTER_ADMIN 모두 조회 가능 (A2 승계)
@@ -240,8 +240,8 @@ public class AdminProgramController {
   /**
    * A3-2 verify fix (2026-09-11): create 와 동일 — 단일 트랜잭션으로 Program/Course/Question/이미지/첨부 전체 롤백 보장.
    *
-   * <p>FOLLOW-admin-program-detail-readonly (2026-10-07 · Q1·Q2): 매핑을 {@code /{id}} → {@code /{id}/edit}
-   * 로 분리. 저장 후 redirect 대상은 상세 (`/{id}`) 로 복귀.
+   * <p>FOLLOW-admin-program-detail-readonly (2026-10-07 · Q1·Q2): 매핑을 {@code /{id}} → {@code
+   * /{id}/edit} 로 분리. 저장 후 redirect 대상은 상세 (`/{id}`) 로 복귀.
    */
   @PostMapping("/{id}/edit")
   @PreAuthorize("hasRole('SYSTEM_ADMIN')")
