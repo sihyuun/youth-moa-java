@@ -170,8 +170,8 @@ class ProgramServiceFilterTest {
   // ================= D5-Q1b: ProgramSpec.withDateStatus/notEnded 신청기간 축 =================
 
   /**
-   * D5-Q1b (2026-10-02): status 필터가 신청기간(applyStart/End) 기준으로 동작한다. 운영기간(start/end)이 과거/미래에 걸쳐
-   * 있어도 신청기간 축만 반영된다.
+   * D5-Q1b (2026-10-02): status 필터가 신청기간(applyStart/End) 기준으로 동작한다. 운영기간(start/end)이 과거/미래에 걸쳐 있어도
+   * 신청기간 축만 반영된다.
    */
   @Test
   @DisplayName("Q1b: status=upcoming → applyStartDate 미래인 프로그램만 (운영기간 start 는 무시)")
@@ -201,13 +201,12 @@ class ProgramServiceFilterTest {
             "newest",
             0,
             Collections.emptySet());
-    assertThat(result.getContent())
-        .extracting(Program::getTitle)
-        .contains("Q1b-upcoming")
-        // 기존 seed "AI 교육" 은 운영 start 미래 but applyStartDate null → polisfall endDate 축으로도 OPEN 분류되므로
-        // UPCOMING 필터 결과에는 포함되지 않아야 함 (applyEnd 가 없고 applyStart 도 없으면 startDate 폴백 → start 미래 → UPCOMING).
-        // 따라서 "AI 교육" 도 UPCOMING 에 포함될 수 있음. 명시적 포함만 검증한다.
-        ;
+    assertThat(result.getContent()).extracting(Program::getTitle).contains("Q1b-upcoming")
+    // 기존 seed "AI 교육" 은 운영 start 미래 but applyStartDate null → polisfall endDate 축으로도 OPEN 분류되므로
+    // UPCOMING 필터 결과에는 포함되지 않아야 함 (applyEnd 가 없고 applyStart 도 없으면 startDate 폴백 → start 미래 →
+    // UPCOMING).
+    // 따라서 "AI 교육" 도 UPCOMING 에 포함될 수 있음. 명시적 포함만 검증한다.
+    ;
   }
 
   /** Q1b: status=ended → applyEndDate 과거인 프로그램만 (운영기간 end 미래여도 ENDED). */

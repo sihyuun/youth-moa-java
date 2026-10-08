@@ -78,8 +78,8 @@ public class HomeService {
   /**
    * Top 4 프로그램 — 모집중 + applyEndDate ASC (신청 마감임박).
    *
-   * <p>D5-Q1b (2026-10-02): endDate → applyEndDate 축으로 전환. 홈 뱃지(D-N)와 Top 4 정렬이 모두 신청기간 기준으로
-   * 일치하도록. D5-Q1d (2026-10-06 · V27): applyEndDate NOT NULL — Repository 쿼리의 COALESCE 폴백 제거.
+   * <p>D5-Q1b (2026-10-02): endDate → applyEndDate 축으로 전환. 홈 뱃지(D-N)와 Top 4 정렬이 모두 신청기간 기준으로 일치하도록.
+   * D5-Q1d (2026-10-06 · V27): applyEndDate NOT NULL — Repository 쿼리의 COALESCE 폴백 제거.
    */
   public List<Program> findTopPrograms() {
     return programRepository.findTop4ByIsActiveTrueOrderByApplyEndDateAsc(

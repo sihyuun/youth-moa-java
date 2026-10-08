@@ -76,7 +76,8 @@ public class AdminDashboardService {
     LocalDate cutoff = today.plusDays(7);
     List<Program> urgent =
         scoped.stream()
-            .filter(p -> !p.getApplyEndDate().isBefore(today) && !p.getApplyEndDate().isAfter(cutoff))
+            .filter(
+                p -> !p.getApplyEndDate().isBefore(today) && !p.getApplyEndDate().isAfter(cutoff))
             .sorted(Comparator.comparing(Program::getApplyEndDate))
             .limit(5)
             .toList();

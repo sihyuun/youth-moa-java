@@ -148,8 +148,7 @@ public class ProgramCardDto {
       // D5-Q1a (reverify2 2026-10-02): "신청 오픈까지 N일" 산술은 신청기간 축이어야 함.
       // getDaysUntilApplyStart() 가 applyStartDate 우선 + startDate 폴백 (D5-Q1d 백필 전까지).
       long daysUntilOpen = program.getDaysUntilApplyStart();
-      this.detailHeadline =
-          daysUntilOpen >= 0 ? "신청 오픈까지 " + daysUntilOpen + "일" : "신청 오픈 예정";
+      this.detailHeadline = daysUntilOpen >= 0 ? "신청 오픈까지 " + daysUntilOpen + "일" : "신청 오픈 예정";
       this.detailSubtext = "오픈 알림을 신청하면 시작 시 알려드려요.";
       this.detailEmphasized = true;
     } else if (closedByDate) {

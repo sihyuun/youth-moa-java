@@ -454,9 +454,9 @@ public class AdminProgramService {
   /**
    * 상태 필터. Program.getStatus() 는 런타임 파생이라 DB 필터로 표현하려면 각 상태의 조건을 직접 옮겨야 한다.
    *
-   * <p>D5-Q1b (2026-10-02): 신청기간(applyStart/End) 축으로 전환. 서술 계약
-   * {@code docs/design-contracts/program-status-derivation.md} §7-2.
-   * D5-Q1d (2026-10-06 · V27): applyStart/End NOT NULL 승격으로 COALESCE 폴백 제거.
+   * <p>D5-Q1b (2026-10-02): 신청기간(applyStart/End) 축으로 전환. 서술 계약 {@code
+   * docs/design-contracts/program-status-derivation.md} §7-2. D5-Q1d (2026-10-06 · V27):
+   * applyStart/End NOT NULL 승격으로 COALESCE 폴백 제거.
    *
    * <ul>
    *   <li>SUSPENDED = isActive=false

@@ -92,8 +92,8 @@ public class Program extends BaseTimeEntity {
   // ============== A3-1 admin-program-form (2026-09-10 · V12) ==============
 
   /**
-   * 신청 시작일. V12 (2026-09-10) nullable 로 추가 → V27 (2026-10-06) NOT NULL 승격.
-   * D5-Q1d: 백필 완료 후 전 지점 COALESCE/effectiveApply* 폴백 제거.
+   * 신청 시작일. V12 (2026-09-10) nullable 로 추가 → V27 (2026-10-06) NOT NULL 승격. D5-Q1d: 백필 완료 후 전 지점
+   * COALESCE/effectiveApply* 폴백 제거.
    */
   @Column(name = "apply_start_date", nullable = false)
   private LocalDate applyStartDate;
@@ -339,8 +339,8 @@ public class Program extends BaseTimeEntity {
   /**
    * 신청 마감일(applyEndDate)까지 남은 일수. 이미 지났으면 음수.
    *
-   * <p>D5-Q1a (2026-10-02): endDate → applyEndDate 로 재정의. D-day 는 "모집 마감까지" 를 의미한다.
-   * D5-Q1d (2026-10-06): applyEndDate NOT NULL 승격으로 null 폴백 제거.
+   * <p>D5-Q1a (2026-10-02): endDate → applyEndDate 로 재정의. D-day 는 "모집 마감까지" 를 의미한다. D5-Q1d
+   * (2026-10-06): applyEndDate NOT NULL 승격으로 null 폴백 제거.
    */
   public long getDaysUntilDeadline() {
     return ChronoUnit.DAYS.between(LocalDate.now(), applyEndDate);
@@ -363,8 +363,8 @@ public class Program extends BaseTimeEntity {
   /**
    * 신청 오픈일(applyStartDate)까지 남은 일수. 이미 지났으면 음수 (UPCOMING 이 아닌 상태에서 호출 시).
    *
-   * <p>D5-Q1a (reverify2 2026-10-02): ProgramCardDto 상세 "신청 오픈까지 N일" 산술이 운영 startDate 를
-   * 직접 사용하던 모순 해소. "신청 오픈" 라벨은 신청기간 축이어야 함.
+   * <p>D5-Q1a (reverify2 2026-10-02): ProgramCardDto 상세 "신청 오픈까지 N일" 산술이 운영 startDate 를 직접 사용하던 모순
+   * 해소. "신청 오픈" 라벨은 신청기간 축이어야 함.
    *
    * <p>D5-Q1d (2026-10-06): applyStartDate NOT NULL 전제 — startDate 폴백 제거.
    */

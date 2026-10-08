@@ -39,8 +39,8 @@ public class ProgramSpec {
    *
    * <p>하위 호환: 기존 "active" → "open", "closed" → "ended" 로 매핑.
    *
-   * <p>D5-Q1b (2026-10-02): 신청기간(applyStart/End) 축으로 전환. 서술 계약
-   * {@code docs/design-contracts/program-status-derivation.md} §7-2.
+   * <p>D5-Q1b (2026-10-02): 신청기간(applyStart/End) 축으로 전환. 서술 계약 {@code
+   * docs/design-contracts/program-status-derivation.md} §7-2.
    *
    * <p>D5-Q1d (2026-10-06 · V27): applyStartDate / applyEndDate NOT NULL 승격 완료 — COALESCE 폴백 제거.
    *
@@ -60,8 +60,7 @@ public class ProgramSpec {
                   cb.lessThanOrEqualTo(root.<LocalDate>get("applyStartDate"), today),
                   cb.greaterThanOrEqualTo(root.<LocalDate>get("applyEndDate"), today));
       case "upcoming" ->
-          (root, query, cb) ->
-              cb.greaterThan(root.<LocalDate>get("applyStartDate"), today);
+          (root, query, cb) -> cb.greaterThan(root.<LocalDate>get("applyStartDate"), today);
       case "ended" ->
           (root, query, cb) ->
               cb.and(
@@ -74,8 +73,8 @@ public class ProgramSpec {
   /**
    * "전체" 탭에서 종료 프로그램을 제외 — 계약 grid.excludeEnded (wireframe WF-5-001-01). 종료 프로그램은 "종료" 탭에서만 노출한다.
    *
-   * <p>D5-Q1b (2026-10-02): 신청기간(applyEndDate) 축으로 전환.
-   * D5-Q1d (2026-10-06): applyEndDate NOT NULL 전제 — null 분기 제거.
+   * <p>D5-Q1b (2026-10-02): 신청기간(applyEndDate) 축으로 전환. D5-Q1d (2026-10-06): applyEndDate NOT NULL
+   * 전제 — null 분기 제거.
    *
    * <p>applyEndDate &gt;= today 인 프로그램만 통과.
    */

@@ -170,9 +170,7 @@ public class AdminStatsService {
         scoped.stream()
             .filter(p -> p.getApplyEndDate() != null)
             .filter(
-                p ->
-                    !p.getApplyEndDate().isBefore(today)
-                        && !p.getApplyEndDate().isAfter(cutoff))
+                p -> !p.getApplyEndDate().isBefore(today) && !p.getApplyEndDate().isAfter(cutoff))
             .sorted(Comparator.comparing(Program::getApplyEndDate))
             .limit(5)
             .toList();

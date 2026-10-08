@@ -24,10 +24,11 @@ import org.springframework.data.domain.PageRequest;
  * D5-Q1b (2026-10-02) · D5-Q1d (2026-10-06 · V27): ProgramRepository 의 신청기간 축 쿼리 검증.
  *
  * <ul>
- *   <li>{@link ProgramRepository#findTop4ByIsActiveTrueOrderByApplyEndDateAsc(org.springframework.data.domain.Pageable)}
+ *   <li>{@link
+ *       ProgramRepository#findTop4ByIsActiveTrueOrderByApplyEndDateAsc(org.springframework.data.domain.Pageable)}
  *       — applyEndDate 가 가장 가까운 순
- *   <li>{@link ProgramRepository#countActiveGroupByCenterId()} — applyEndDate &gt;= today 인
- *       프로그램만 센터별 카운트
+ *   <li>{@link ProgramRepository#countActiveGroupByCenterId()} — applyEndDate &gt;= today 인 프로그램만
+ *       센터별 카운트
  * </ul>
  *
  * <p>V27 로 applyStart/End NOT NULL 승격 완료 — 레거시 null 폴백 TC 삭제.
@@ -68,8 +69,11 @@ class ProgramRepositoryQ1bTest {
     programRepository.save(prog("B-apply-5", today.plusDays(5), today.plusDays(50)));
     programRepository.save(prog("C-apply-15", today.plusDays(15), today.plusDays(100)));
 
-    List<Program> top = programRepository.findTop4ByIsActiveTrueOrderByApplyEndDateAsc(PageRequest.of(0, 4));
-    assertThat(top).extracting(Program::getTitle).containsExactly("B-apply-5", "C-apply-15", "A-apply-30");
+    List<Program> top =
+        programRepository.findTop4ByIsActiveTrueOrderByApplyEndDateAsc(PageRequest.of(0, 4));
+    assertThat(top)
+        .extracting(Program::getTitle)
+        .containsExactly("B-apply-5", "C-apply-15", "A-apply-30");
   }
 
   @Test
@@ -81,7 +85,8 @@ class ProgramRepositoryQ1bTest {
     programRepository.save(progCenter("A-ended", centerA, today.minusDays(1), today.plusDays(50)));
     // centerB: 신청마감 미래 2건
     programRepository.save(progCenter("B-active1", centerB, today.plusDays(1), today.plusDays(5)));
-    programRepository.save(progCenter("B-active2", centerB, today.plusDays(10), today.plusDays(20)));
+    programRepository.save(
+        progCenter("B-active2", centerB, today.plusDays(10), today.plusDays(20)));
 
     Map<Long, Long> counts =
         programRepository.countActiveGroupByCenterId().stream()
