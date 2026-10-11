@@ -330,6 +330,27 @@ public class AdminProgramController {
     return "redirect:/admin/programs";
   }
 
+  // ================= FOLLOW-program-duplicate (2026-10-08) =================
+
+  /**
+   * 프로그램 복제. Q5 — 복제본 편집 폼으로 redirect. Q7 — SYSTEM_ADMIN only.
+   *
+   * <p>spec §5 — 미존재 404, principal 없음은 Service 가 IllegalStateException 로 신호. 그 외 트랜잭션 롤백은
+   * {@link AdminProgramService#duplicate(Long)} 가 담당.
+   */
+  @PostMapping("/{id}/duplicate")
+  @PreAuthorize("hasRole('SYSTEM_ADMIN')")
+  public String duplicate(@PathVariable Long id, RedirectAttributes ra) {
+    Program copy;
+    try {
+      copy = adminProgramService.duplicate(id);
+    } catch (IllegalArgumentException e) {
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "프로그램을 찾을 수 없어요.");
+    }
+    ra.addFlashAttribute("flashMessage", "프로그램을 복제했어요. 내용을 수정한 뒤 저장해주세요.");
+    return "redirect:/admin/programs/" + copy.getId() + "/edit";
+  }
+
   // ================= FOLLOW-waitlist-auto-approve (2026-10-08) =================
 
   /**

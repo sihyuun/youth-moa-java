@@ -373,6 +373,126 @@ public class AdminProgramService {
     }
   }
 
+  // ================= FOLLOW-program-duplicate (2026-10-08) =================
+
+  /**
+   * 복제 제목 접미사. prototype.html L4133 flash 메시지 톤과 일치.
+   *
+   * <p>Program.title 컬럼 상한이 255 자 — 원본 + 접미사가 초과하면 원본을 trim 해 수용.
+   */
+  static final String DUPLICATE_TITLE_SUFFIX = " (복제본)";
+
+  /**
+   * FOLLOW-program-duplicate (2026-10-08 · Q1~Q10 모두 권장안): 관리자 프로그램 복제.
+   *
+   * <ul>
+   *   <li>Q1 ③ — Program + Course(isActive=true) + ApplyQuestion(isActive=true) 복제.
+   *       ProgramAttachment 는 복제하지 않음 (물리 파일 orphan 위험 · 수동 재업로드 전제)
+   *   <li>Q2 — 제목에 "(복제본)" 접미사. 255 초과 시 원본 trim
+   *   <li>Q3 — 복제본 isActive=false (수동 활성화 전제, SUSPENDED 로 목록에 노출)
+   *   <li>Q4 — 날짜 (start/end · applyStart/End) 원본 그대로. 담당자가 편집 폼에서 수정
+   *   <li>Q6 — viewCount=0, applied 는 Application row 미복제라 자연 0
+   *   <li>Q8 — autoApproveWhenFull=false (명시 OFF)
+   *   <li>Q9 — createdBy = 복제 수행자 (A7 알림 fan-out 기준)
+   *   <li>Q10 — center 원본 유지 (CENTER_ADMIN 미지원이라 cross-center 복제 고려 불필요)
+   * </ul>
+   *
+   * <p>트랜잭션: Program → Course → ApplyQuestion 전체 롤백. principal 없음 시 안전 실패.
+   */
+  @Transactional
+  public Program duplicate(Long id) {
+    Program original =
+        programRepository
+            .findById(id)
+            .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 프로그램이에요: " + id));
+    User creator = adminScope.currentUser();
+    if (creator == null) {
+      throw new IllegalStateException("인증된 사용자만 프로그램을 복제할 수 있어요.");
+    }
+
+    // Q2 — 제목 접미사. 255 초과 시 원본 trim.
+    String baseTitle = original.getTitle();
+    String newTitle = baseTitle + DUPLICATE_TITLE_SUFFIX;
+    if (newTitle.length() > 255) {
+      int maxBaseLen = 255 - DUPLICATE_TITLE_SUFFIX.length();
+      newTitle = baseTitle.substring(0, maxBaseLen) + DUPLICATE_TITLE_SUFFIX;
+    }
+
+    // Q4 — eligibility 는 @Embedded 라 새 객체로 복제해 동일 값 주입 (원본과 참조 공유 방지).
+    ProgramEligibility origElig = original.getEligibility();
+    ProgramEligibility copiedElig =
+        origElig == null
+            ? null
+            : ProgramEligibility.builder()
+                .age(origElig.getAge())
+                .region(origElig.getRegion())
+                .etc(origElig.getEtc())
+                .build();
+
+    Program copy =
+        Program.builder()
+            .title(newTitle)
+            .center(original.getCenter()) // Q10
+            .category(original.getCategory())
+            .region(original.getRegion())
+            .imageUrl(original.getImageUrl())
+            .content(original.getContent())
+            .description(original.getDescription())
+            .eligibility(copiedElig)
+            .startDate(original.getStartDate())
+            .endDate(original.getEndDate())
+            .applyStartDate(original.getApplyStartDate())
+            .applyEndDate(original.getApplyEndDate())
+            .applyUrl(original.getApplyUrl())
+            .venue(original.getVenue())
+            .contact(original.getContact())
+            .capacity(original.getCapacity())
+            .approvalMode(original.getApprovalMode())
+            .termsService(original.getTermsService())
+            .termsPrivacy(original.getTermsPrivacy())
+            .termsMarketing(original.getTermsMarketing())
+            .hasCourses(original.isHasCourses())
+            .isActive(false) // Q3
+            .viewCount(0) // Q6
+            .autoApproveWhenFull(false) // Q8
+            .createdBy(creator) // Q9
+            .build();
+    Program saved = programRepository.save(copy);
+
+    // Q1 ③ — Course / ApplyQuestion: isActive=true 만 복제 (soft-deleted 는 제외).
+    List<Course> activeCourses =
+        courseRepository.findByProgramIdAndIsActiveTrueOrderBySortOrderAscIdAsc(original.getId());
+    for (Course c : activeCourses) {
+      courseRepository.save(
+          Course.builder()
+              .program(saved)
+              .name(c.getName())
+              .schedule(c.getSchedule())
+              .capacity(c.getCapacity())
+              .sortOrder(c.getSortOrder())
+              .isActive(true)
+              .build());
+    }
+
+    List<ApplyQuestion> activeQuestions =
+        applyQuestionRepository.findByProgramIdAndIsActiveTrueOrderBySortOrderAsc(original.getId());
+    for (ApplyQuestion q : activeQuestions) {
+      applyQuestionRepository.save(
+          ApplyQuestion.builder()
+              .program(saved)
+              .fieldType(q.getFieldType())
+              .label(q.getLabel())
+              .isRequired(q.isRequired())
+              .sortOrder(q.getSortOrder())
+              .options(q.getOptions())
+              .maxLength(q.getMaxLength())
+              .isActive(true)
+              .build());
+    }
+
+    return saved;
+  }
+
   @Transactional
   public void delete(Long id) {
     Program program =
