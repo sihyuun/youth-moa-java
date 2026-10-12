@@ -2306,14 +2306,28 @@ body.admin-shell-body {
 .admin-application-summary-item--cancelled { background: #E5E7EB; }
 .admin-application-summary-item--cancelled .admin-application-summary-value { color: #4B5563; }
 
+/* A5-2 (2026-10-12): 성별 열 추가 → 10열 (check · No · 이름 · 이메일 · 성별 · 핸드폰 · 접수일시 · 참여횟수 · 상태 · 관리). */
 .admin-application-row {
     display: grid;
-    grid-template-columns: 44px 100px 1fr 120px 150px 80px 90px 90px;
+    grid-template-columns: 44px 44px 100px 1fr 44px 120px 150px 80px 90px 90px;
     align-items: center; gap: 12px; padding: 14px 16px;
     border-bottom: 1px solid var(--admin-border-light); font-size: 14px;
 }
 .admin-application-row--head {
     background: #F0EFF3; font-weight: 600; color: var(--admin-text-sec); font-size: 12px;
+}
+
+/* A5-2 반응형: 1200px 이하는 참여횟수·접수일시 축소. 성별은 유지. */
+@media (max-width: 1200px) {
+    .admin-application-row {
+        grid-template-columns: 44px 44px 90px 1fr 44px 110px 120px 70px 80px 80px;
+        gap: 8px; padding: 12px 12px; font-size: 13px;
+    }
+}
+
+/* A5-2 admin-application-toolbar: 대기 전체 승인 + CSV 버튼 묶음 */
+.admin-application-toolbar {
+    display: inline-flex; gap: 8px; align-items: center;
 }
 
 .admin-application-status-badge {

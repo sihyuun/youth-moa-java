@@ -18,16 +18,21 @@
   `:: bar(...)` include 에서 누락되고 (admin-bulk.js 의 modal/form 이 null → 제출 무동작),
   대량 처리가 조용히 작동하지 않는다. th:block 은 출력 요소를 만들지 않으므로 렌더 결과는 동일하다.
 -->
-<th:block th:fragment="bar(domain, csvHrefBase, showRoleChange, approvePath)">
+<th:block th:fragment="bar(domain, csvHrefBase, showRoleChange, approvePath, rejectPath)">
 <div class="admin-bulk-action-bar"
      th:data-bulk-domain="${domain}"
      th:data-csv-base="${csvHrefBase}"
      th:data-approve-path="${approvePath}"
+     th:data-reject-path="${rejectPath}"
      data-active="false"
      role="region"
      aria-label="일괄 처리">
 
-    <span class="admin-bulk-count">
+    <!-- A5-2 Q10 (2026-10-12): applications 도메인은 "명", 그 외는 "건" -->
+    <span class="admin-bulk-count" th:if="${domain == 'applications'}">
+        <strong data-bulk-count>0</strong>명 선택됨
+    </span>
+    <span class="admin-bulk-count" th:unless="${domain == 'applications'}">
         <strong data-bulk-count>0</strong>건 선택됨
     </span>
 
@@ -51,10 +56,13 @@
                 th:if="${domain == 'programs'}"
                 data-bulk-action="reactivate">재활성화</button>
 
-        <!-- Applications: A안 Approve 만. Reject 는 이월 (A8-reject-bulk) -->
+        <!-- Applications: A5-2 (2026-10-12) 에서 Reject bulk 편입 -->
         <button type="button" class="admin-bulk-btn admin-bulk-btn--primary"
                 th:if="${domain == 'applications'}"
                 data-bulk-action="approve">일괄 승인</button>
+        <button type="button" class="admin-bulk-btn admin-bulk-btn--danger"
+                th:if="${domain == 'applications'}"
+                data-bulk-action="reject">일괄 반려</button>
 
         <!-- CSV (선택 건) -->
         <a href="#" class="admin-bulk-btn" data-bulk-action="csv-selected">선택 건 CSV</a>

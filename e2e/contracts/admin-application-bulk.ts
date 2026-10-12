@@ -52,13 +52,13 @@ export const adminApplicationBulkContract: ScreenContract = {
             severity: 'P0',
         },
         {
-            // 2026-10-07 A-R2: deferred 해소 — expected:false 와 현재 구현(미노출) 일치. negative 체크로 활성 유지
-            id: 'bulk.bar.action.reject.absent',
-            desc: '"일괄 반려" 버튼 미노출 (A8-reject-bulk 로 이월 · negative 체크)',
+            // A5-2 (2026-10-12): Reject bulk 편입. negative → exists 로 전환
+            id: 'bulk.bar.action.reject',
+            desc: '"일괄 반려" 버튼 (A5-2 편입 · 공통 사유 1건)',
             selector: '.admin-bulk-action-bar[data-bulk-domain="applications"] [data-bulk-action="reject"]',
             kind: 'exists',
-            expected: false,
-            proto: 'A8 Qn-App1 A · Reject 는 A4 개별 처리 유지',
+            expected: true,
+            proto: 'A5-2 Q1 A · docs/specs/A5-2-approval-bulk.md',
             severity: 'P0',
         },
         {

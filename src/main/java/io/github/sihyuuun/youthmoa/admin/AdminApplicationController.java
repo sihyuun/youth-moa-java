@@ -70,8 +70,14 @@ public class AdminApplicationController {
     List<Long> userIds = applications.getContent().stream().map(a -> a.getUser().getId()).toList();
     Map<Long, Long> visits = adminApplicationService.visitsByUserIds(userIds);
 
-    // 요약 카운트
-    Map<ApplicationStatus, Long> summary = adminApplicationService.summaryCounts(programId);
+    // 요약 카운트 — Service 는 Map<ApplicationStatus, Long> 반환. Thymeleaf SpEL 의
+    // `summary['PENDING']` 는 String 키 조회이므로 enum 키 맵과 매치되지 않아 null 이 된다.
+    // 템플릿 호환을 위해 String 키로 재패킹한다. (A5-2 BUG-1 — pre-existing 뱃지 공란도 동시 해소)
+    Map<ApplicationStatus, Long> rawSummary = adminApplicationService.summaryCounts(programId);
+    Map<String, Long> summary = new java.util.HashMap<>();
+    for (Map.Entry<ApplicationStatus, Long> e : rawSummary.entrySet()) {
+      summary.put(e.getKey().name(), e.getValue());
+    }
     long total = adminApplicationService.totalCount(programId);
 
     populateCommonModel(model);
@@ -215,6 +221,63 @@ public class AdminApplicationController {
     return "redirect:/admin/programs/" + programId + "/applications";
   }
 
+  /** A5-2 B (2026-10-12): 대기 전체 승인. 프로그램의 모든 PENDING 신청 승인. */
+  @PostMapping("/bulk/approve-all-pending")
+  public String bulkApproveAllPending(
+      @PathVariable Long programId,
+      @AuthenticationPrincipal io.github.sihyuuun.youthmoa.user.UserPrincipal principal,
+      RedirectAttributes ra) {
+    try {
+      BulkResult result =
+          adminApplicationBulkService.bulkApproveAllPending(programId, principal.getUsername());
+      if (result.getTotal() == 0) {
+        ra.addFlashAttribute("flashError", "대기 중인 신청이 없어요.");
+      } else {
+        applyBulkFlash(ra, result, "승인");
+      }
+    } catch (IllegalArgumentException e) {
+      ra.addFlashAttribute("flashError", e.getMessage());
+    } catch (IllegalStateException e) {
+      throw new AccessDeniedException(e.getMessage());
+    }
+    return "redirect:/admin/programs/" + programId + "/applications";
+  }
+
+  /**
+   * A5-2 A (2026-10-12): bulk reject. 공통 사유 1건을 모든 선택 신청에 적용.
+   *
+   * <p>reason @Size(max=200) · blank 금지. 500건 cap 초과 시 flashError.
+   */
+  @PostMapping("/bulk/reject")
+  public String bulkReject(
+      @PathVariable Long programId,
+      @RequestParam(value = "ids", required = false) List<Long> ids,
+      @RequestParam(value = "reason", required = false) String reason,
+      @AuthenticationPrincipal io.github.sihyuuun.youthmoa.user.UserPrincipal principal,
+      RedirectAttributes ra) {
+    if (reason == null || reason.isBlank()) {
+      ra.addFlashAttribute("flashError", "반려 사유를 입력해주세요.");
+      return "redirect:/admin/programs/" + programId + "/applications";
+    }
+    if (reason.length() > 200) {
+      ra.addFlashAttribute("flashError", "반려 사유는 200자 이하로 입력해주세요.");
+      return "redirect:/admin/programs/" + programId + "/applications";
+    }
+    try {
+      BulkResult result =
+          adminApplicationBulkService.bulkReject(programId, ids, principal.getUsername(), reason);
+      applyBulkFlash(ra, result, "반려");
+    } catch (IllegalArgumentException e) {
+      ra.addFlashAttribute("flashError", e.getMessage());
+    } catch (IllegalStateException e) {
+      throw new AccessDeniedException(e.getMessage());
+    }
+    return "redirect:/admin/programs/" + programId + "/applications";
+  }
+
+  /**
+   * A5-2 Q10 (2026-10-12): applications 도메인은 "건" 대신 "명" 라벨 사용. 성공/실패 집계 메시지를 flash 로 기록.
+   */
   private static void applyBulkFlash(RedirectAttributes ra, BulkResult result, String actionLabel) {
     if (result.getTotal() == 0) {
       ra.addFlashAttribute("flashError", "선택된 항목이 없어요.");
@@ -223,14 +286,14 @@ public class AdminApplicationController {
     String msg =
         "총 "
             + result.getTotal()
-            + "건 중 "
+            + "명 중 "
             + result.getSuccessCount()
-            + "건 "
+            + "명 "
             + actionLabel
             + "이 완료됐어요.";
     if (result.hasFailure()) {
       StringBuilder sb = new StringBuilder(msg);
-      sb.append(" ").append(result.getFailCount()).append("건은 처리하지 못했어요");
+      sb.append(" ").append(result.getFailCount()).append("명은 처리하지 못했어요");
       int shown = 0;
       for (BulkResult.FailureRow f : result.getErrors()) {
         if (shown++ >= 5) break;

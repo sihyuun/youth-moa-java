@@ -40,7 +40,9 @@
             reactivate: { path: '/admin/programs/bulk/reactivate', label: '재활성화', promptMsg: '선택한 프로그램을 재활성화할까요?' }
         },
         applications: {
-            approve: { path: null, label: '일괄 승인', promptMsg: '선택한 신청을 모두 승인할까요?' }
+            approve: { path: null, label: '일괄 승인', promptMsg: '선택한 신청을 모두 승인할까요?' },
+            // A5-2 (2026-10-12): bulk reject. 공통 사유 1건을 모든 선택 신청에 적용
+            reject: { path: null, label: '일괄 반려', requiresReason: true, promptMsg: '선택한 신청을 반려할까요? 사유는 모든 신청에 공통으로 적용돼요.' }
         }
     };
 
@@ -48,6 +50,10 @@
     const applicationsBulkApprovePath = bar.dataset.approvePath; // ex: /admin/programs/7/applications/bulk/approve
     if (actionMap.applications && applicationsBulkApprovePath) {
         actionMap.applications.approve.path = applicationsBulkApprovePath;
+    }
+    const applicationsBulkRejectPath = bar.dataset.rejectPath; // ex: /admin/programs/7/applications/bulk/reject
+    if (actionMap.applications && applicationsBulkRejectPath) {
+        actionMap.applications.reject.path = applicationsBulkRejectPath;
     }
 
     // === UI update ===

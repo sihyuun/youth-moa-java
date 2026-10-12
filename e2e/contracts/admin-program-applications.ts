@@ -211,13 +211,22 @@ export const adminProgramApplicationsListContract: ScreenContract = {
         },
         {
             id: 'actionbar.approve.all',
-            desc: '대기 전체 승인 버튼 — A8 이월',
+            desc: '대기 전체 승인 버튼 (A5-2 편입 · PENDING>0 일 때만 노출)',
             selector: '[data-testid="approve-all-pending-btn"]',
             kind: 'exists',
             expected: true,
-            proto: 'prototype L1387',
-            severity: 'P2',
-            deferred: 'A8 — 대기 전체 승인 (spec §Qn-Δ2 B)',
+            proto: 'A5-2 Q7 A · docs/specs/A5-2-approval-bulk.md',
+            severity: 'P0',
+        },
+        // A5-2 (2026-10-12) 성별 열 추가
+        {
+            id: 'list.row.gender',
+            desc: '각 row 성별 셀 (남/여/-)',
+            selector: '[data-testid="row-gender"]',
+            kind: 'count-min',
+            expected: 1,
+            proto: 'A5-2 Q5 A · UserGender.label',
+            severity: 'P0',
         },
     ],
 };

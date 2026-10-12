@@ -163,7 +163,7 @@
         </nav>
 
         <!-- A8 bulk action bar -->
-        <div th:replace="~{admin/fragments/_bulk-action-bar :: bar('programs', @{/admin/programs/export.csv(q=${q}, status=${statusFilter})}, false, null)}"></div>
+        <div th:replace="~{admin/fragments/_bulk-action-bar :: bar('programs', @{/admin/programs/export.csv(q=${q}, status=${statusFilter})}, false, null, null)}"></div>
 
     </div>
 </main>
