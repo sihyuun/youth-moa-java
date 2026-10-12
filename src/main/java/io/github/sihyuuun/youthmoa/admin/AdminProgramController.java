@@ -335,8 +335,8 @@ public class AdminProgramController {
   /**
    * 프로그램 복제. Q5 — 복제본 편집 폼으로 redirect. Q7 — SYSTEM_ADMIN only.
    *
-   * <p>spec §5 — 미존재 404, principal 없음은 Service 가 IllegalStateException 로 신호. 그 외 트랜잭션 롤백은
-   * {@link AdminProgramService#duplicate(Long)} 가 담당.
+   * <p>spec §5 — 미존재 404, principal 없음은 Service 가 IllegalStateException 로 신호. 그 외 트랜잭션 롤백은 {@link
+   * AdminProgramService#duplicate(Long)} 가 담당.
    */
   @PostMapping("/{id}/duplicate")
   @PreAuthorize("hasRole('SYSTEM_ADMIN')")

@@ -141,7 +141,8 @@ class AdminProgramDuplicateServiceTest {
     if (original.getEligibility() != null) {
       assertThat(copy.getEligibility()).isNotNull();
       assertThat(copy.getEligibility().getAge()).isEqualTo(original.getEligibility().getAge());
-      assertThat(copy.getEligibility().getRegion()).isEqualTo(original.getEligibility().getRegion());
+      assertThat(copy.getEligibility().getRegion())
+          .isEqualTo(original.getEligibility().getRegion());
       assertThat(copy.getEligibility().getEtc()).isEqualTo(original.getEligibility().getEtc());
     }
   }
@@ -160,9 +161,7 @@ class AdminProgramDuplicateServiceTest {
     // 활성 2건만 복제 (비활성 1건 제외)
     assertThat(copiedCourses).hasSize(2);
     assertThat(copiedCourses).allMatch(Course::isActive);
-    assertThat(copiedCourses)
-        .extracting(Course::getName)
-        .containsExactlyInAnyOrder("강좌1", "강좌2");
+    assertThat(copiedCourses).extracting(Course::getName).containsExactlyInAnyOrder("강좌1", "강좌2");
   }
 
   @Test
