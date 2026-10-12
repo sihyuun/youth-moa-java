@@ -137,7 +137,7 @@
         </section>
 
         <!-- A8 bulk action bar -->
-        <div th:replace="~{admin/fragments/_bulk-action-bar :: bar('users', @{/admin/users/export.csv(q=${q}, role=${roleFilter})}, true, null)}"></div>
+        <div th:replace="~{admin/fragments/_bulk-action-bar :: bar('users', @{/admin/users/export.csv(q=${q}, role=${roleFilter})}, true, null, null)}"></div>
 
         <!-- 페이징 -->
         <nav class="admin-notice-paging" th:if="${users.totalPages > 1}" aria-label="페이지 이동">

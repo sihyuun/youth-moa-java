@@ -240,6 +240,42 @@ test('CSV 내보내기 — 신청 목록 다운로드 + 파일명 프로그램 �
     expect(content).toContain('applicantEmail');
 });
 
+/**
+ * A5-2 U1 (2026-10-12 ym-impl 3차): 신청 CSV 에 성별(gender) 컬럼이 포함되어야 한다.
+ *  - 헤더에 "gender" 포함
+ *  - 데이터 row 1건 이상의 gender 셀 값이 MALE / FEMALE / "" (빈 값: 미기재) 중 하나
+ *    ("-" 은 화면 표시 라벨이며 CSV 는 enum name 그대로 export 하므로 빈 문자열이 미기재를 표현)
+ */
+test('CSV 내보내기 — 신청 목록 gender 컬럼 포함 + 값 MALE/FEMALE/빈값', async ({ page }) => {
+    await loginAdmin(page);
+    await page.goto(`/admin/programs/${APPROVE_PROGRAM_ID}/applications`, {
+        waitUntil: 'domcontentloaded',
+    });
+
+    const [download] = await Promise.all([
+        page.waitForEvent('download'),
+        page.locator('a[data-testid="csv-export-btn"]').click(),
+    ]);
+    const content = readFileSync(await download.path(), 'utf8');
+
+    // 헤더에 gender 포함
+    const lines = content.split(/\r?\n/).filter((l) => l.trim().length > 0);
+    expect(lines.length).toBeGreaterThan(1); // header + data row 1건 이상
+    const headerLine = lines[0];
+    expect(headerLine).toContain('gender');
+
+    // header 컬럼 index 추출 (CSVWriter 는 quote wrapping 기본 ON → "col" 형식)
+    const headers = headerLine.split(',').map((h) => h.replace(/^"|"$/g, ''));
+    const genderIdx = headers.indexOf('gender');
+    expect(genderIdx).toBeGreaterThanOrEqual(0);
+
+    // data row 1건 이상의 gender 셀 값이 허용 집합에 속해야 함
+    const allowed = new Set(['MALE', 'FEMALE', '']);
+    const dataLine = lines[1];
+    const cells = dataLine.split(',').map((c) => c.replace(/^"|"$/g, ''));
+    expect(allowed.has(cells[genderIdx])).toBe(true);
+});
+
 test('CSV RBAC — CENTER_ADMIN 은 사용자 CSV 내보내기 불가 (403)', async ({ page }) => {
     await page.goto('/admin/login', { waitUntil: 'domcontentloaded' });
     await page.locator('input[name="username"]').fill(ADMIN_CENTER1_EMAIL);

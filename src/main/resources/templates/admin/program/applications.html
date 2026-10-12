@@ -30,10 +30,23 @@
                     <h2 class="admin-program-form-title">신청 관리</h2>
                     <p class="admin-program-form-sub" th:text="${program.title}">프로그램명</p>
                 </div>
-                <a class="admin-btn--csv"
-                   th:href="@{/admin/programs/{id}/applications/export.csv(id=${program.id}, status=${statusFilter}, q=${q})}"
-                   data-testid="csv-export-btn"
-                   aria-label="CSV 내보내기">📥 CSV 내보내기</a>
+                <div class="admin-application-toolbar">
+                    <!-- A5-2 B (2026-10-12): 대기 전체 승인. PENDING > 0 일 때만 노출 -->
+                    <form th:if="${summary['PENDING'] != null and summary['PENDING'] > 0}"
+                          method="post"
+                          th:action="@{/admin/programs/{id}/applications/bulk/approve-all-pending(id=${program.id})}"
+                          onsubmit="return confirm('대기 중인 모든 신청을 승인할까요?');"
+                          style="display:inline">
+                        <input th:if="${_csrf}" type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                        <button type="submit" class="admin-btn admin-btn--sm admin-btn--primary"
+                                data-testid="approve-all-pending-btn"
+                                aria-label="대기 전체 승인">대기 전체 승인</button>
+                    </form>
+                    <a class="admin-btn--csv"
+                       th:href="@{/admin/programs/{id}/applications/export.csv(id=${program.id}, status=${statusFilter}, q=${q})}"
+                       data-testid="csv-export-btn"
+                       aria-label="CSV 내보내기">📥 CSV 내보내기</a>
+                </div>
             </div>
         </section>
 
@@ -119,6 +132,7 @@
                 <span>No</span>
                 <span>이름</span>
                 <span>이메일</span>
+                <span>성별</span>
                 <span>핸드폰</span>
                 <span>접수일시</span>
                 <span>참여횟수</span>
@@ -142,6 +156,8 @@
                 <span th:text="${applications.number * 10 + iter.count}">1</span>
                 <span th:text="${app.user.name}">이름</span>
                 <span th:text="${app.user.email}">email@test</span>
+                <span data-testid="row-gender"
+                      th:text="${app.user.gender != null} ? ${app.user.gender.label} : '-'">-</span>
                 <span th:text="${app.user.phone != null} ? ${app.user.phone} : '-'">-</span>
                 <span th:text="${#temporals.format(app.appliedAt, 'yyyy-MM-dd HH:mm')}">2026-09-15 00:00</span>
                 <span th:text="${visits[app.user.id] != null} ? ${visits[app.user.id]} : 0">0</span>
@@ -175,8 +191,8 @@
                class="admin-pagination-link">›</a>
         </nav>
 
-        <!-- A8 bulk action bar. approvePath 로 programId 주입 (JS 가 사용) -->
-        <div th:replace="~{admin/fragments/_bulk-action-bar :: bar('applications', @{/admin/programs/{id}/applications/export.csv(id=${program.id}, status=${statusFilter}, q=${q})}, false, @{/admin/programs/{id}/applications/bulk/approve(id=${program.id})})}"></div>
+        <!-- A8 bulk action bar + A5-2 (2026-10-12) rejectPath 추가 -->
+        <div th:replace="~{admin/fragments/_bulk-action-bar :: bar('applications', @{/admin/programs/{id}/applications/export.csv(id=${program.id}, status=${statusFilter}, q=${q})}, false, @{/admin/programs/{id}/applications/bulk/approve(id=${program.id})}, @{/admin/programs/{id}/applications/bulk/reject(id=${program.id})})}"></div>
 
     </div>
 </main>

@@ -235,6 +235,7 @@ public class AdminCsvController {
           "id",
           "applicantEmail",
           "applicantName",
+          "gender",
           "phone",
           "status",
           "appliedAt",
@@ -249,6 +250,10 @@ public class AdminCsvController {
               String.valueOf(a.getId()),
               a.getUser() == null ? "" : nvl(a.getUser().getEmail()),
               a.getUser() == null ? "" : nvl(a.getUser().getName()),
+              // A5-2 (2026-10-12): 성별 컬럼. MALE/FEMALE enum name 그대로 (화면은 label 사용)
+              a.getUser() == null || a.getUser().getGender() == null
+                  ? ""
+                  : a.getUser().getGender().name(),
               a.getUser() == null ? "" : nvl(a.getUser().getPhone()),
               a.getStatus() == null ? "" : a.getStatus().name(),
               a.getAppliedAt() == null ? "" : a.getAppliedAt().toString(),

@@ -62,6 +62,15 @@ public interface ApplicationRepository
   /** A4 admin-program-detail: 프로그램 내 상태별 카운트 (요약 배지용). */
   long countByProgramIdAndStatus(Long programId, ApplicationStatus status);
 
+  /**
+   * A5-2 admin-approval-bulk (2026-10-12): "대기 전체 승인" 용. 특정 상태의 신청 id 만 DB 에서 뽑아 메모리 부담 최소화. 결과는
+   * {@link io.github.sihyuuun.youthmoa.admin.AdminApplicationBulkService#bulkApprove} 로 위임된다.
+   */
+  @Query(
+      "SELECT a.id FROM Application a WHERE a.program.id = :programId AND a.status = :status ORDER BY a.appliedAt ASC")
+  List<Long> findIdsByProgramIdAndStatus(
+      @Param("programId") Long programId, @Param("status") ApplicationStatus status);
+
   /** A4 admin-program-detail: 프로그램 내 전체 카운트 (요약 배지용). */
   long countByProgramId(Long programId);
 
