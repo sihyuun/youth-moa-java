@@ -3900,3 +3900,55 @@ body.admin-shell-body {
 .admin-toggle-switch--on .admin-toggle-switch-thumb {
     transform: translateX(20px);
 }
+
+/* ================= D-admin-calendar (2026-10-12) ================= */
+
+/* 뷰 토글 세그먼트 — admin.program list.html */
+.admin-program-view-toggle {
+    display: inline-flex;
+    gap: 0;
+    margin: 12px 0;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+}
+.admin-program-view-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 16px;
+    font-size: 14px;
+    color: var(--color-text-sec);
+    background: var(--color-surface);
+    border: none;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background .15s, color .15s;
+}
+.admin-program-view-btn + .admin-program-view-btn {
+    border-left: 1px solid var(--color-border);
+}
+.admin-program-view-btn:hover {
+    background: var(--color-primary-bg);
+    color: var(--color-primary);
+}
+.admin-program-view-btn--active {
+    background: var(--color-primary);
+    color: #fff;
+}
+.admin-program-view-btn--active:hover {
+    background: var(--color-primary-dark);
+    color: #fff;
+}
+
+/* admin 전용 flashInfo (카드 뷰 placeholder) */
+.admin-flash--info {
+    background: var(--color-primary-bg);
+    color: var(--color-primary);
+    border: 1px solid var(--color-primary-light, var(--color-primary));
+}
+
+/* admin 캘린더 우측 패널 — 300px slide-in (Q3 · HANDOFF L232 Google Calendar) */
+.admin-program-calendar-panel {
+    width: 300px;
+}

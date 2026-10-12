@@ -116,4 +116,62 @@ class AdminProgramListRenderTest {
         .andExpect(status().isOk())
         .andExpect(content().string(containsString("프로그램 관리")));
   }
+
+  // ================= D-admin-calendar (2026-10-12) =================
+
+  @Test
+  void GET_admin_programs_view_토글_세그먼트_3버튼_렌더() throws Exception {
+    mockMvc
+        .perform(get("/admin/programs").with(sysadmin()))
+        .andExpect(status().isOk())
+        .andExpect(content().string(containsString("admin-program-view-toggle")))
+        .andExpect(content().string(containsString("data-view=\"list\"")))
+        .andExpect(content().string(containsString("data-view=\"card\"")))
+        .andExpect(content().string(containsString("data-view=\"calendar\"")))
+        // 기본 view=list → list 버튼이 active (class·속성 순서 Thymeleaf 가 결정하므로 fragment 단위로만 검증)
+        .andExpect(content().string(containsString("admin-program-view-btn--active")));
+  }
+
+  @Test
+  void GET_admin_programs_view_calendar_42셀_grid_렌더() throws Exception {
+    mockMvc
+        .perform(get("/admin/programs").param("view", "calendar").with(sysadmin()))
+        .andExpect(status().isOk())
+        // 캘린더 fragment 가 포함돼야 함
+        .andExpect(content().string(containsString("admin-program-calendar-layout")))
+        .andExpect(content().string(containsString("program-calendar-grid")))
+        .andExpect(content().string(containsString("admin-program-calendar-panel")))
+        // list 테이블은 숨겨짐
+        .andExpect(content().string(not(containsString("admin-program-list-card"))))
+        // calendar 버튼이 active
+        .andExpect(content().string(containsString("data-view=\"calendar\"")))
+        // Thymeleaf 표현식 잔존 없음
+        .andExpect(content().string(not(containsString("${"))));
+  }
+
+  @Test
+  void GET_admin_programs_view_card_placeholder_flash() throws Exception {
+    mockMvc
+        .perform(get("/admin/programs").param("view", "card").with(sysadmin()))
+        .andExpect(status().isOk())
+        // placeholder flash
+        .andExpect(content().string(containsString("카드 뷰는 별도 티켓에서 제공돼요")))
+        // list 렌더는 유지
+        .andExpect(content().string(containsString("admin-program-list-card")));
+  }
+
+  @Test
+  void GET_admin_programs_view_calendar_q_status_pass_through_유지() throws Exception {
+    mockMvc
+        .perform(
+            get("/admin/programs")
+                .param("view", "calendar")
+                .param("q", "교육")
+                .param("status", "SUSPENDED")
+                .with(sysadmin()))
+        .andExpect(status().isOk())
+        // 캘린더 nav 링크에 q·status 유지
+        .andExpect(content().string(containsString("q=%EA%B5%90%EC%9C%A1")))
+        .andExpect(content().string(containsString("status=SUSPENDED")));
+  }
 }

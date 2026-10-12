@@ -70,6 +70,8 @@ public class AdminProgramController {
   private final io.github.sihyuuun.youthmoa.center.CenterRepository centerRepository;
   private final io.github.sihyuuun.youthmoa.common.storage.FileStorage fileStorage;
   private final ProgramWatchService programWatchService;
+  private final io.github.sihyuuun.youthmoa.admin.program.AdminProgramCalendarService
+      adminProgramCalendarService;
 
   @org.springframework.beans.factory.annotation.Value(
       "${youthmoa.storage.supabase.program-attachment-bucket:program-attachments}")
@@ -80,10 +82,37 @@ public class AdminProgramController {
       @RequestParam(required = false) String q,
       @RequestParam(required = false) String status,
       @RequestParam(required = false, defaultValue = "0") int page,
+      @RequestParam(required = false, defaultValue = "list") String view,
+      @RequestParam(required = false) Integer year,
+      @RequestParam(required = false) Integer month,
       @AuthenticationPrincipal UserDetails principal,
       Model model) {
+    // D-admin-calendar (2026-10-12 · Q4/Q7/Q8): view 토글 분기.
+    //   list     — 기존 테이블 뷰 (default)
+    //   calendar — 월간 42셀 캘린더 (SUSPENDED 포함, q/status pass-through)
+    //   card     — 별 티켓(placeholder) · flashInfo 로 안내 후 list 와 동일 렌더
+    String viewMode = (view == null || view.isBlank()) ? "list" : view.toLowerCase();
+    if (!viewMode.equals("list") && !viewMode.equals("calendar") && !viewMode.equals("card")) {
+      viewMode = "list";
+    }
     Page<Program> programs = adminProgramService.list(q, status, page);
     populateCommonModel(model);
+    model.addAttribute("viewMode", viewMode);
+    if ("card".equals(viewMode)) {
+      model.addAttribute("flashInfo", "카드 뷰는 별도 티켓에서 제공돼요. 지금은 목록으로 보여드려요.");
+    }
+    if ("calendar".equals(viewMode)) {
+      java.time.LocalDate today = java.time.LocalDate.now();
+      int y = (year != null) ? year : today.getYear();
+      int m = (month != null) ? month : today.getMonthValue();
+      io.github.sihyuuun.youthmoa.program.CalendarViewDto calendarView =
+          adminProgramCalendarService.calendar(q, status, y, m);
+      model.addAttribute("calendarView", calendarView);
+      // fragment 는 사용자 fragment 와 같은 attribute 명(filterStatus 등)을 요구하지 않지만,
+      // admin fragment 에서 월 이동 링크에 이 값들을 실어 URL pass-through 를 유지한다.
+      model.addAttribute("filterQ", q == null ? "" : q);
+      model.addAttribute("filterStatus", status == null ? "" : status);
+    }
 
     // 배치 조회 — 목록 신청수 N+1 방지
     List<Long> ids = programs.getContent().stream().map(Program::getId).toList();

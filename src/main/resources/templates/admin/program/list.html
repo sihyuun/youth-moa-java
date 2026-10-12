@@ -42,6 +42,22 @@
              th:text="${flashMessage}"></div>
         <div th:if="${flashError}" class="admin-flash admin-flash--error" role="alert"
              th:text="${flashError}"></div>
+        <!-- D-admin-calendar (2026-10-12 · Q8): 카드 뷰 placeholder flash -->
+        <div th:if="${flashInfo}" class="admin-flash admin-flash--info" role="status"
+             th:text="${flashInfo}"></div>
+
+        <!-- D-admin-calendar (2026-10-12): 뷰 토글 세그먼트 (목록·카드·캘린더) -->
+        <nav class="admin-program-view-toggle" aria-label="뷰 전환" data-testid="admin-program-view-toggle">
+            <a th:href="@{/admin/programs(q=${q}, status=${statusFilter}, view='list')}"
+               th:class="${viewMode == 'list'} ? 'admin-program-view-btn admin-program-view-btn--active' : 'admin-program-view-btn'"
+               data-view="list">목록</a>
+            <a th:href="@{/admin/programs(q=${q}, status=${statusFilter}, view='card')}"
+               th:class="${viewMode == 'card'} ? 'admin-program-view-btn admin-program-view-btn--active' : 'admin-program-view-btn'"
+               data-view="card">카드</a>
+            <a th:href="@{/admin/programs(q=${q}, status=${statusFilter}, view='calendar')}"
+               th:class="${viewMode == 'calendar'} ? 'admin-program-view-btn admin-program-view-btn--active' : 'admin-program-view-btn'"
+               data-view="calendar">캘린더</a>
+        </nav>
 
         <!-- 액션바: 필터 + 검색 -->
         <section class="admin-program-actionbar">
@@ -72,8 +88,15 @@
             </nav>
         </section>
 
-        <!-- 목록 -->
-        <section class="admin-program-list-card">
+        <!-- D-admin-calendar (2026-10-12 · Q4): 캘린더 뷰 fragment include.
+             CLAUDE.md 함정: th:if 와 th:replace 를 같은 요소에 두면 th:if 가 무시된다 →
+             바깥 th:block 으로 조건 감싸기. -->
+        <th:block th:if="${viewMode == 'calendar'}">
+            <div th:replace="~{admin/program/_calendar-fragment :: calendar-region}"></div>
+        </th:block>
+
+        <!-- 목록 (list/card 공용 · calendar 일 때 숨김) -->
+        <section th:unless="${viewMode == 'calendar'}" class="admin-program-list-card">
 
             <div class="admin-program-row admin-program-row--head">
                 <span class="admin-program-col-check">
@@ -145,8 +168,10 @@
             </div>
         </section>
 
-        <!-- 페이징 -->
-        <nav class="admin-notice-paging" th:if="${programs.totalPages > 1}" aria-label="페이지 이동">
+        <!-- 페이징 (calendar 뷰에서는 숨김) -->
+        <nav class="admin-notice-paging"
+             th:if="${viewMode != 'calendar' and programs.totalPages > 1}"
+             aria-label="페이지 이동">
             <a class="admin-page-btn"
                th:href="@{/admin/programs(q=${q}, status=${statusFilter}, page=${prevGroupPage})}"
                th:classappend="${hasPrevGroup} ? '' : 'admin-page-btn--disabled'">‹</a>
@@ -169,6 +194,8 @@
 </main>
 
 <script th:src="@{/js/admin-bulk.js}" defer></script>
+<!-- D-admin-calendar (2026-10-12 · Q3): 셀 클릭 slide 패널 토글 (사용자 캘린더 CSS 는 main.css 에 이미 포함) -->
+<script th:if="${viewMode == 'calendar'}" th:src="@{/js/admin-program-calendar.js}" defer></script>
 <script th:inline="javascript">
     (function () {
         var trigger = document.querySelector('.admin-header-user-trigger');

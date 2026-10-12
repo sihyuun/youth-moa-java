@@ -568,6 +568,19 @@ public class AdminProgramService {
 
   // ================= Specifications =================
 
+  /**
+   * D-admin-calendar (2026-10-12): 캘린더 뷰({@code AdminProgramCalendarService})가 목록 필터와 동일한 파이프라인을
+   * 재사용하도록 공개된 Specification 조립 메서드. 기존 {@link #list(String, String, int)} 와 동일한 조건을 산출한다 (q, status,
+   * center scope).
+   */
+  public Specification<Program> buildListSpec(String q, String status) {
+    Specification<Program> spec = Specification.allOf();
+    spec = spec.and(scopeSpec());
+    spec = spec.and(keywordSpec(q));
+    spec = spec.and(statusSpec(status));
+    return spec;
+  }
+
   private Specification<Program> scopeSpec() {
     Long scopeId = adminScope.effectiveCenterId();
     if (scopeId == null) return (root, query, cb) -> cb.conjunction();
