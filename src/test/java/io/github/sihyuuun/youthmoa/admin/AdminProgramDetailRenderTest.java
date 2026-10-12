@@ -86,9 +86,9 @@ class AdminProgramDetailRenderTest {
         .andExpect(content().string(containsString("data-testid=\"link-applications\"")))
         .andExpect(
             content().string(containsString("/admin/programs/" + PROGRAM_ID + "/applications")))
-        // Q5: ⋯ 더보기 삭제 메뉴 (복제는 미노출)
+        // FOLLOW-program-duplicate (2026-10-08 · Q5 복원): 복제 + 삭제 모두 노출
         .andExpect(content().string(containsString("data-testid=\"detail-menu-delete\"")))
-        .andExpect(content().string(not(containsString("data-testid=\"detail-menu-clone\""))))
+        .andExpect(content().string(containsString("data-testid=\"detail-menu-clone\"")))
         // Q8: watch-button 상세 헤더 전용 (detail-watch-btn)
         .andExpect(content().string(containsString("detail-watch-btn")))
         // 삭제 모달은 상세로 이관됨

@@ -50,7 +50,7 @@ test('상세 → 수정 CTA → 편집 폼 → 저장 → 상세 복귀', async 
     await expect(page.locator('.admin-program-detail-page')).toBeVisible();
 });
 
-test('상세 ⋯ 더보기 → 삭제 메뉴 노출 + 복제 미노출 (Q5 이월)', async ({ page }) => {
+test('상세 ⋯ 더보기 → 복제 + 삭제 모두 노출 (FOLLOW-program-duplicate · Q5 복원)', async ({ page }) => {
     await loginAdmin(page, ADMIN_SYSTEM_EMAIL);
     await page.goto('/admin/programs/1', { waitUntil: 'domcontentloaded' });
 
@@ -58,9 +58,10 @@ test('상세 ⋯ 더보기 → 삭제 메뉴 노출 + 복제 미노출 (Q5 이�
     await expect(trigger).toBeVisible();
     await trigger.click();
 
-    // 삭제 메뉴 하나만 노출
+    // FOLLOW-program-duplicate (2026-10-08): 복제 메뉴가 복원됨
     await expect(page.locator('[data-testid="detail-menu-delete"]')).toBeVisible();
-    await expect(page.locator('[data-testid="detail-menu-clone"]')).toHaveCount(0);
+    await expect(page.locator('[data-testid="detail-menu-clone"]')).toBeVisible();
+    await expect(page.locator('[data-testid="detail-menu-clone"]')).toHaveText('복제');
 });
 
 test('상세 하단 "신청 현황 N건 보기" → /applications 이동 (Q6)', async ({ page }) => {
