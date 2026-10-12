@@ -32,10 +32,10 @@ import org.springframework.test.web.servlet.MockMvc;
  *   <li>U4 — CENTER_ADMIN 이 타 센터 프로그램으로 bulk POST → 403 (@PreAuthorize + scope 가드)
  * </ul>
  *
- * <p>Service 가 아닌 Controller 레벨에서 검증: 200/201자 길이 체크는 {@link
- * AdminApplicationController#bulkReject} 가 선처리하고 (Service 호출 전 flash redirect), 501건 가드는 Service
- * assertSizeCap 이 던지는 IllegalArgumentException 을 Controller 가 flashError 로 변환한다. 두 흐름 모두 Controller
- * 통합 테스트가 유일한 현실적 검증 지점.
+ * <p>Service 가 아닌 Controller 레벨에서 검증: 200/201자 길이 체크는 {@link AdminApplicationController#bulkReject}
+ * 가 선처리하고 (Service 호출 전 flash redirect), 501건 가드는 Service assertSizeCap 이 던지는
+ * IllegalArgumentException 을 Controller 가 flashError 로 변환한다. 두 흐름 모두 Controller 통합 테스트가 유일한 현실적 검증
+ * 지점.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -64,10 +64,10 @@ class AdminApplicationBulkControllerTest {
                 .with(csrf())
                 .param("reason", reason200))
         .andExpect(status().is3xxRedirection())
-        .andExpect(
-            redirectedUrl("/admin/programs/" + SEED_PROGRAM_ID + "/applications"))
+        .andExpect(redirectedUrl("/admin/programs/" + SEED_PROGRAM_ID + "/applications"))
         // 200자 길이 가드는 통과 → "200자 이하" 문구가 flashError 에 없어야 함
-        .andExpect(flash().attribute("flashError", Matchers.not(Matchers.containsString("200자 이하"))));
+        .andExpect(
+            flash().attribute("flashError", Matchers.not(Matchers.containsString("200자 이하"))));
   }
 
   @Test
@@ -82,10 +82,7 @@ class AdminApplicationBulkControllerTest {
                 .param("reason", reason201)
                 .param("ids", "1"))
         .andExpect(status().is3xxRedirection())
-        .andExpect(
-            flash()
-                .attribute(
-                    "flashError", Matchers.containsString("200자 이하")));
+        .andExpect(flash().attribute("flashError", Matchers.containsString("200자 이하")));
   }
 
   // ================= U3: ids 500/501 경계 =================

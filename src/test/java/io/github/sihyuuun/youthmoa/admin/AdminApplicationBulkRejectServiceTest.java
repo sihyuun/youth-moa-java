@@ -92,8 +92,7 @@ class AdminApplicationBulkRejectServiceTest {
     if (alreadyRejected.isEmpty()) return;
     List<Long> ids = alreadyRejected.stream().map(Application::getId).toList();
 
-    BulkResult result =
-        bulkService.bulkReject(1L, ids, "sysadmin@youth-moa.test", "회귀 테스트 사유");
+    BulkResult result = bulkService.bulkReject(1L, ids, "sysadmin@youth-moa.test", "회귀 테스트 사유");
     // 이미 REJECTED → idempotent (success 로 카운트, event 미발행)
     assertThat(result.getSuccessCount()).isEqualTo(alreadyRejected.size());
     assertThat(eventCount.get()).isEqualTo(0);
@@ -104,14 +103,14 @@ class AdminApplicationBulkRejectServiceTest {
     assertThatThrownBy(
             () -> bulkService.bulkReject(2L, List.of(1L), "sysadmin@youth-moa.test", "   "))
         .isInstanceOf(IllegalArgumentException.class);
-    assertThatThrownBy(() -> bulkService.bulkReject(2L, List.of(1L), "sysadmin@youth-moa.test", null))
+    assertThatThrownBy(
+            () -> bulkService.bulkReject(2L, List.of(1L), "sysadmin@youth-moa.test", null))
         .isInstanceOf(IllegalArgumentException.class);
   }
 
   @Test
   void bulkReject_empty_ids_returns_zero() {
-    BulkResult result =
-        bulkService.bulkReject(2L, List.of(), "sysadmin@youth-moa.test", "사유");
+    BulkResult result = bulkService.bulkReject(2L, List.of(), "sysadmin@youth-moa.test", "사유");
     assertThat(result.getTotal()).isEqualTo(0);
     assertThat(eventCount.get()).isEqualTo(0);
   }

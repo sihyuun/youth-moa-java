@@ -275,9 +275,7 @@ public class AdminApplicationController {
     return "redirect:/admin/programs/" + programId + "/applications";
   }
 
-  /**
-   * A5-2 Q10 (2026-10-12): applications 도메인은 "건" 대신 "명" 라벨 사용. 성공/실패 집계 메시지를 flash 로 기록.
-   */
+  /** A5-2 Q10 (2026-10-12): applications 도메인은 "건" 대신 "명" 라벨 사용. 성공/실패 집계 메시지를 flash 로 기록. */
   private static void applyBulkFlash(RedirectAttributes ra, BulkResult result, String actionLabel) {
     if (result.getTotal() == 0) {
       ra.addFlashAttribute("flashError", "선택된 항목이 없어요.");

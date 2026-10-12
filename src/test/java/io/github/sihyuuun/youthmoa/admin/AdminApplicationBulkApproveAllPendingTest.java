@@ -38,8 +38,7 @@ class AdminApplicationBulkApproveAllPendingTest {
             .toList();
     if (pendingBefore.isEmpty()) return;
 
-    BulkResult result =
-        bulkService.bulkApproveAllPending(3L, "sysadmin@youth-moa.test");
+    BulkResult result = bulkService.bulkApproveAllPending(3L, "sysadmin@youth-moa.test");
     assertThat(result.getTotal()).isEqualTo(pendingBefore.size());
     assertThat(result.getSuccessCount()).isEqualTo(pendingBefore.size());
 
