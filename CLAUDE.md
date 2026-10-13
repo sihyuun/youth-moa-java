@@ -50,11 +50,7 @@ CSS 변수·레이아웃·스타일을 변경하는 모든 작업은 아래 항�
 3. CSS 변수(`--color-*`, `--shadow-*` 등) 가 의도한 값으로 렌더링
 4. 이미지 크기·`object-fit` 사용 방식과 부모 컨테이너 `position` 일치
 
-### spec 산출 규칙 → `ym-spec` 에이전트 정의로 이관 (2026-07-28)
-
-3자산 정독 · 데이터 모델 gap 표 · 데이터 소비 지점 · write→read 왕복 시나리오 규칙은 CLAUDE.md 소관이 아니라 **특정 에이전트의 작업 절차**이므로 `~/.claude/agents/ym-spec.md` 로 옮겼다. spec 산출 시에만 필요한 50줄이 상시 컨텍스트를 차지하고 있었다.
-
-> 참고: `prototype.html` 과 `prototype.tsx` 는 **같은 소스**다 (단일 파일 React 앱, 컴포넌트 목록 차이 0건, `html 라인 = tsx 라인 + 35`). 둘을 "충돌 시 우선순위" 로 비교하는 절차는 실행할 일이 없다.
+> `prototype.html` 과 `prototype.tsx` 는 같은 소스 (단일 파일 React 앱). 우선순위 비교 불필요.
 
 ---
 
@@ -72,12 +68,10 @@ CSS 변수·레이아웃·스타일을 변경하는 모든 작업은 아래 항�
 ## 실행 환경 분리 규칙
 
 ### 회사 PC (현재 PC)
-- **Docker 사용 가능** (2026-07-10 실증 — Docker Desktop 29.x, Testcontainers 포함 전체 테스트 로컬 통과). 이전 "Docker 없음" 기록은 폐기
-  - 데몬이 안 떠 있으면 Docker Desktop 기동 후 `docker version` 으로 엔진 확인
-  - 기동 crash (`remove ...sock: The file cannot be accessed by the system`) 시: stale AF_UNIX 소켓 이슈 — 조치법은 메모리 `reference_docker_stale_socket_fix.md` (부모 디렉토리 rename 격리, settings-store.json 은 BOM 없이 저장)
-- 매핑 검증은 `JpaMappingTest` (H2) 우선, 통합 검증은 `YouthMoaApplicationTests` (Testcontainers) 로 가능
-- CI `integration-test` job 이 ubuntu 러너(Docker 내장)에서 전체 테스트를 항상 실행하므로, 로컬 Docker 상태와 무관하게 매 PR 통합 검증됨
-- **bootRun 자체는 가능** — `.claude/scripts/bootrun-e2e.cmd` 로 e2e 프로파일(H2 in-memory + 시드) + 포트 8090 기동. Supabase 자격증명 불필요. IntelliJ 8080 무충돌. **회사 PC 에서 curl 렌더 실측을 이 경로로 필수 수행**한다. (2026-07-07 도입, 2026-07-09 F0h-c2 사고 후 재강조)
+- **Docker 사용 가능** — Docker Desktop 29.x + Testcontainers 전체 통과. 기동 crash 시 조치법은 메모리 `reference_docker_stale_socket_fix.md`
+- 매핑 검증은 `JpaMappingTest` (H2), 통합 검증은 `YouthMoaApplicationTests` (Testcontainers)
+- CI `integration-test` job 이 ubuntu 러너에서 매 PR 전체 테스트 자동 실행
+- **bootRun 필수 경로**: `.claude/scripts/bootrun-e2e.cmd` — e2e 프로파일(H2 + 시드) + 포트 8090. Supabase 자격증명 불필요, IntelliJ 8080 무충돌. **회사 PC 에서 curl 렌더 실측은 이 경로로 수행**
 
 ### 개인 PC (Mac, 추후 작업 환경)
 - Docker 사용 가능 → Testcontainers + 실 PostgreSQL 통합 테스트 실행
@@ -116,8 +110,6 @@ sdk use java 21-tem  # 또는 17
 
 ## 검증 규칙 (필수)
 
-> **배경**: 2026-06-26 까지 4 PR 동안 `application.yml` 의 `static-path-pattern: /static/**` 잘못된 설정으로 모든 정적 리소스 (CSS/JS/IMG) 가 302 redirect 되어 화면 전체가 깨진 상태로 누적됨. 단 한 번도 직접 페이지를 열어 보지 않아 발견 못 함. 이 사고를 반복하지 않기 위한 규칙.
-
 ### 정적 검증 — 매 작업 필수
 
 - `./gradlew compileJava test --tests <class>` 통과
@@ -137,23 +129,12 @@ sdk use java 21-tem  # 또는 17
 
 **검증 절차:**
 
-1. 사용자에게 bootRun 상태 확인 (안 떠 있으면 띄워 달라 요청)
-2. **페이지 응답 코드 확인**
-   ```bash
-   curl -s -o /dev/null -w "%{http_code}\n" http://localhost:8080/<path>
-   ```
-3. **정적 리소스 응답 코드 확인** — 모두 200 OK 여야 함
-   ```bash
-   curl -s -o /dev/null -w "%{http_code}\n" http://localhost:8080/css/main.css
-   curl -s -o /dev/null -w "%{http_code}\n" http://localhost:8080/images/logo_symbol.png
-   curl -s -o /dev/null -w "%{http_code}\n" http://localhost:8080/webjars/htmx.org/dist/htmx.min.js
-   ```
-4. **HTML 마크업 검증** — 의도한 fragment / class / 컴포넌트가 렌더링됐는지
-   ```bash
-   curl -s http://localhost:8080/<path> | grep -A 10 "<특정 클래스 또는 마크업>"
-   ```
-5. **Thymeleaf 표현식 잔존 여부 확인** — `${...}`, `th:*` 가 응답 HTML 에 남아 있으면 렌더 실패
-6. 모두 이상 없을 때만 보고에 **"동적 검증 ✅"** 명시 후 commit 진행
+1. bootRun 상태 확인 (안 떠 있으면 사용자에게 요청)
+2. `curl -s -o /dev/null -w "%{http_code}\n" http://localhost:8080/<path>` — 페이지 200
+3. 정적 리소스 200 OK 확인 — `/css/main.css`, `/images/logo_symbol.png`, `/webjars/htmx.org/dist/htmx.min.js`
+4. `curl -s <path> | grep` 로 의도한 fragment/class 렌더 확인
+5. 응답 HTML 에 `${...}` / `th:*` 잔존 시 렌더 실패
+6. 모두 통과 시 보고에 **"동적 검증 ✅"** 명시 후 commit
 
 **금지 패턴:**
 
@@ -161,33 +142,25 @@ sdk use java 21-tem  # 또는 17
 - ❌ 정적 검증만 통과하고 commit / PR / 머지 후 동적 검증
 - ❌ 누적 미검증 PR 만들기 (1 PR 단위로 즉시 동적 검증, 그렇지 않으면 누적 사고)
 
-### 인터랙션 검증 — 클릭·상태 전환은 기능 E2E 필수 (2026-08-13 신설)
+### 인터랙션 검증 — 클릭·상태 전환은 기능 E2E 필수
 
-> **배경**: PR #143 (notifications) 에서 알림 아이콘 렌더 · 헤더 팝업 mark-all · 개별 삭제 3가지 버그가 계약 검사(`--project=contracts`) 는 전부 통과했지만 실제 브라우저 클릭 후에야 발견됨. 계약 검사는 **정적 렌더만** 검증하므로 클릭 → 응답 → DOM 변화 시퀀스는 커버 못 함. 재발 방지 조항.
+계약 검사(`--project=contracts`)는 정적 렌더만 검증. 클릭·응답·DOM 시퀀스는 별개.
 
-**필수 조건**: 다음 중 하나라도 신설·변경하면 최소 1개 **기능 E2E** (`tests/*.spec.ts` `--project=chromium`) 를 함께 신설·갱신한다.
+**발동 조건** (하나라도 해당 시 `tests/*.spec.ts --project=chromium` 최소 1개 신설·갱신):
+- HTMX 속성 (`hx-post`, `hx-target`, `hx-swap`, `hx-swap-oob`) 추가/변경
+- Form 액션 신설 (POST → redirect / fragment)
+- 클릭으로 상태 전환하는 컴포넌트 (모두 읽음·삭제·토글·아코디언)
+- 새 Controller endpoint (특히 `POST/DELETE`)
 
-- HTMX 속성 (`hx-post`, `hx-target`, `hx-swap`, `hx-swap-oob` 등) 추가/변경
-- Form 액션 신설 (POST → redirect / fragment 반환)
-- 클릭 이벤트로 상태 전환하는 컴포넌트 (모두 읽음·삭제·토글·아코디언 등)
-- 새 Controller endpoint (특히 `POST/DELETE` — 응답 status 가 인터랙션 성공을 좌우)
+**최소 확인 포인트**: ① 응답 status (200/302/204 실측 — HTMX 2.0 은 204 시 swap 스킵) ② DOM 변화 ③ URL 변화 ④ 헤더/드롭다운 팝업 위치 유지
 
-**기능 E2E 최소 확인 포인트**
-1. 클릭 후 응답 status 코드 확인 (200/302/204 차이 실측 — HTMX 2.0 은 204 응답 시 swap 스킵)
-2. 클릭 후 DOM 변화 확인 (요소 제거·추가·클래스 토글)
-3. 클릭 후 URL 확인 (redirect 흐름은 브라우저 이동 검증)
-4. 헤더/드롭다운 등 팝업 위치 유지 여부 확인 (outerHTML swap 은 wrapper 삭제 위험)
+**HTMX 특수 사례 체크리스트** (재발 실증)
+- **중복 ID + `hx-swap="outerHTML"`**: 첫 매치 요소 삭제로 wrapper·position·hidden 사라짐. 페어링된 wrapper·fragment root 는 서로 다른 id 사용
+- **204 응답 + `hx-swap`**: HTMX 2.0 기본 동작상 swap 스킵. DOM 조작 필요 시 200 OK (빈 본문 허용)
+- **`th:if` + `th:replace` 병치**: `th:if` 무시. 조건부 fragment 선택은 전처리 문법 `__${var}__` 사용
+- **Fragment 파라미터**: 반드시 `${var}` 로 wrap. `name(16, colorVar)` 는 `colorVar` 를 문자열 리터럴로 취급
 
-**HTMX 특수 사례 체크리스트** (재발이 실증된 사고 유형)
-- **중복 ID + `hx-swap="outerHTML"`**: 첫 매치 요소를 삭제하므로 wrapper·position·hidden 속성 사라짐. 페어링된 wrapper·fragment root 는 서로 다른 id 를 써야 함
-- **204 응답 + `hx-swap`**: HTMX 2.0 기본 동작상 swap 스킵. 실제 DOM 조작이 필요하면 200 OK (빈 본문 허용) 반환
-- **`th:if` + `th:replace` 같은 요소에 병치**: `th:if` 무시하고 fragment 항상 렌더. 조건부 fragment 선택은 전처리 문법 `__${var}__` 사용
-- **Fragment 파라미터로 변수 전달**: 반드시 `${var}` 로 wrap. `name(16, colorVar)` 는 `colorVar` 를 문자열 리터럴로 취급
-
-**적용 절차**
-- ym-impl 위임 프롬프트에 위 필수 조건과 체크리스트 명시
-- ym-verify 위임 프롬프트에 "실 클릭 시나리오를 Playwright 로 실측" 조항 추가
-- 계약 검사 통과 ≠ 인터랙션 통과. **두 개는 별개 검증**
+계약 검사 통과 ≠ 인터랙션 통과. **별개 검증**.
 
 ### 시각 검증 — 사용자 확인 영역
 
@@ -197,29 +170,11 @@ sdk use java 21-tem  # 또는 17
 
 ### 결과 보고 시 분리 표기
 
-PR 본문·커밋 본문·메시지 모두 **정적·동적·인터랙션·시각** 검증 범위를 분리해서 표기:
+PR·커밋 본문 모두 **정적 / 동적 / 인터랙션 / 시각** 4영역을 분리 헤더(`## 정적 검증` 등)로 표기. 각 영역에 검증한 항목·통과 여부(✅/⏸)를 나열. 통합 표현("검증 통과") 금지.
 
-```
-## 정적 검증
-- compile + N 클래스 / M TC PASS ✅
+### prototype 시각 대조 = 디자인 계약
 
-## 동적 검증
-- GET /<path> 200 OK + 정적 리소스 200 OK ✅
-- HTML 에 <expected markup> 정상 렌더 확인 ✅
-
-## 인터랙션 검증 (HTMX/form/click 변경 시 필수)
-- <button/form> 클릭 후 응답 status ✅ + DOM 변화 ✅ + URL 변화 ✅
-- Playwright 기능 E2E `tests/<feature>.spec.ts` PASS ✅
-
-## 시각 확인 (사용자 영역 · 감성 요소만)
-- 브라우저에서 색감·폰트·반응형 확인
-```
-
-### prototype 시각 대조 → 디자인 계약이 대체 (2026-07-28)
-
-기존에는 착수 전·PR 단계에서 prototype 을 사람이 육안 대조하도록 산문 규칙 2개를 두었다. 그 방식은 **7/22 에 규칙을 신설한 뒤에도 7/27 전수 스캔에서 갭 60건**이 나와 실패로 확인됐다. 기준이 매 세션 재해석되는 원문(2,733줄)이라 판단이 흔들리고, 육안 비교로는 정량값(`width 400 vs 460`, `font 34 vs 42`)을 잡을 수 없었다.
-
-지금은 **디자인 계약**이 이 역할을 기계적으로 수행한다.
+prototype 육안 대조는 정량값을 잡을 수 없어 폐기. **디자인 계약**이 기계적으로 대체한다.
 
 - 사용법·계약 현황: [docs/design-contracts/README.md](docs/design-contracts/README.md)
 - 전 화면 공통 정책: [docs/design-contracts/POLICY.md](docs/design-contracts/POLICY.md)
@@ -276,35 +231,24 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 식별자 예: `apply_form`, `bookmark_toggle`, `supabase_setup`, `token_cleanup`, `initial`
 요약은 화면에서 보이는 변화 위주 (라벨 변경·필드 추가·노출 조건 등)
 
-### 표준 워크플로우 (3단계)
+### 표준 워크플로우
 
-**① 시작**
 ```powershell
-git checkout main
-git pull origin main
-git checkout -b feature/D1-application-form
-```
+# ① 시작
+git checkout main; git pull origin main; git checkout -b feature/D1-application-form
 
-**② 진행** (작은 단위로 commit + push, PC 이동 직전엔 무조건 push)
-```powershell
+# ② 진행 (작은 단위 commit + push, PC 이동 직전 무조건 push)
 git add <명시 파일들>
 git commit -m "260626_apply_form_entity - ApplicationService 1차 구조"
 git push -u origin feature/D1-application-form   # 첫 push 시 -u
-git push                                          # 이후
-```
 
-**③ 완료** (self-PR → squash merge → 정리)
-```powershell
+# ③ 완료 (self-PR → squash merge → 정리)
 gh pr create --base main --title "D1: 신청 폼" --body "..."
 gh pr merge --squash --delete-branch
-git checkout main
-git pull
+git checkout main; git pull
 ```
 
-### Squash vs Merge 선택 기준
-
-- **`--squash` (권장)**: 학습 단계 1개 = 커밋 1개. main 히스토리 깔끔
-- **`--merge --no-ff`**: 중간 WIP 커밋까지 보존하고 싶을 때
+머지 방식은 **`--squash` 기본** (학습 단계 1개 = 커밋 1개). WIP 보존이 필요하면 `--merge --no-ff`.
 
 ### 듀얼 PC (Win + Mac) 동기화
 
@@ -321,19 +265,11 @@ git pull
 
 ### 파괴적 명령 체이닝 금지
 
-`git reset --hard`, `git clean -f`, `git checkout -- .`, `git branch -D` 등은 **`&&` 체인으로 실행하지 않는다.** 앞 명령이 실패해도 뒤 명령이 의도하지 않은 브랜치·상태에서 실행된다.
-
-- 실행 전 `git status --short` + `git branch --show-current` 로 현재 상태 확인
-- unpushed 커밋 유무는 `git log --oneline @{u}..HEAD`
-- 사고 시 첫 조치는 `git reflog -20` → 사고 이전 SHA 로 `git reset --hard <sha>`
-
-→ 실제 사고 경위: [docs/postmortems/2026-07-06-destructive-git-chain.md](docs/postmortems/2026-07-06-destructive-git-chain.md)
+`git reset --hard`, `git clean -f`, `git checkout -- .`, `git branch -D` 등을 `&&` 체인으로 실행하지 않는다. 사고 시 첫 조치는 `git reflog -20` → 사고 이전 SHA 로 `git reset --hard`. 사고 경위: [docs/postmortems/2026-07-06-destructive-git-chain.md](docs/postmortems/2026-07-06-destructive-git-chain.md)
 
 ### main 보호 정책
 
-- **GitHub branch protection 사용 불가** (2026-07-10 확인 — Free 플랜 + private repo 는 API 403 "Upgrade to GitHub Pro or make public". secret scanning push protection 도 동일 제약)
-- 대체 통제: ① self-PR 워크플로우 유지 (main 직접 push 지양) ② CI/Lint/E2E 워크플로우가 매 PR 실행 — **머지 전 check 전부 green 확인은 사람(및 /wrap-up)이 수행** ③ 시크릿은 lint.yml 의 gitleaks job 이 스캔
-- repo 를 public 전환하거나 GitHub Pro 결제 시 required status check 활성화 (설정 JSON: 세션 스크래치 참조 — contexts: "Build + Test (H2)", "Gradle Check (compile + spotless)")
+Free + private repo 는 branch protection 불가. 대체: self-PR 워크플로우 + CI green 확인(사람/`/wrap-up`) + lint.yml gitleaks 스캔. public 전환 or Pro 결제 시 required status check 활성화 가능.
 
 ---
 
@@ -376,15 +312,13 @@ io.github.sihyuuun.youthmoa/
 
 스키마의 진리 소스는 `src/main/resources/db/migration/V*.sql`. 엔티티는 스키마를 만들지 않으며 `ddl-auto: validate` 가 매핑·스키마 일치만 검사한다 (불일치 시 부팅 실패 = 조기 감지).
 
-### 스키마 변경 절차 (엔티티 수정 시 반드시 세트로)
+### 스키마 변경 절차 (엔티티 수정 시 세트)
 
-1. 엔티티 변경 + `V<N>__<snake_case_설명>.sql` 을 **같은 PR** 에 작성
-   - N = main 의 db/migration 최신 버전 + 1. 병렬 브랜치가 같은 N 을 선점했으면 rebase 후 번호 재부여
-   - 예: `V2__add_program_apply_period.sql`, `V3__create_daily_visit.sql`
-2. DDL 작성이 막히면 로컬 Docker PG 에 `JPA_DDL_AUTO=update FLYWAY_ENABLED=false` 로 1회 띄워 Hibernate 가 찍는 DDL 로그 참고
-3. 검증: `YouthMoaApplicationTests` (Testcontainers) 가 빈 PG 에 V1..VN 적용 + validate 를 매 PR 자동 수행
-4. **한 번 main 에 머지된 V 파일은 절대 수정 금지** — 적용된 환경에서 checksum mismatch 로 부팅 실패. 잘못됐으면 다음 번호의 새 V 파일로 정정
-5. 뷰·함수 등 재적용 가능 객체는 `R__<이름>.sql` (repeatable)
+- 엔티티 변경 + `V<N>__<설명>.sql` **같은 PR**. N = main 최신 + 1 (병렬 브랜치 충돌 시 rebase 후 재부여)
+- DDL 초안이 막히면 로컬 PG 에 `JPA_DDL_AUTO=update FLYWAY_ENABLED=false` 로 띄워 Hibernate DDL 로그 참고
+- Testcontainers (`YouthMoaApplicationTests`) 가 매 PR V1..VN + validate 자동 수행
+- **머지된 V 파일 수정 절대 금지** — checksum mismatch 로 부팅 실패. 정정은 다음 번호로
+- 재적용 가능 객체(뷰·함수)는 `R__<이름>.sql`
 
 ### 프로파일별 스키마 소스
 
@@ -399,7 +333,6 @@ io.github.sihyuuun.youthmoa/
 - ❌ `JPA_DDL_AUTO=update` 로 Supabase 스키마 변경 (Flyway 이력 밖의 drift 발생)
 - ❌ Supabase SQL Editor 로 직접 DDL (동일 — 필요 시 V 파일로 작성 후 부팅으로 적용)
 - 시드 데이터는 계속 `DataInitializer` (멱등 체크) 담당. 마이그레이션은 스키마 전용
-- 활성화 이전 이력: `V1__baseline.sql` = 2026-07-22 시점 스냅샷, 기존 Supabase 는 baseline-version 1 로 스킵
 
 ---
 
@@ -435,10 +368,6 @@ Boot 4 / Thymeleaf / JPA 에서 **이 프로젝트가 실제로 사고 낸 패�
 | `@AssertTrue(message=...)` | `"아이디 중복확인을 진행해주세요."` |
 | 클라이언트 JS 동적 메시지 | 누락 조건 조립: `"비밀번호는 8자 이상이어야 하고, 영문을 포함해야 합니다."` |
 
-### 통일 안 한 어조 (혼란 사례)
-- ❌ `"비밀번호 조건: 8자 이상 · 숫자 포함 필요합니다."` ("필요합니다" 는 어디에도 안 맞음)
-- ❌ `"~해주세요"` 가 검증/제약 메시지에 섞임 (요청형은 NotBlank 만)
-
 ---
 
 ## 확장성 원칙 (관리자 페이지 대비)
@@ -455,13 +384,10 @@ Boot 4 / Thymeleaf / JPA 에서 **이 프로젝트가 실제로 사고 낸 패�
 
 ### 파생 시드 금지 (2026-07-09 추가)
 
-**배경 (2026-07-09 F0h 좌표 사고)**: `DataInitializer` 가 `regionCoords.put("양평군", {37.xxx, 127.xxx})` 로 시·군청 대표 좌표만 매핑하고, 모든 Center 의 lat/lng 를 `base + offset(idx*15)` 파생으로 채웠음. 결과:
-- 양평군의 3개 센터(딴딴회관·내일스퀘어·오름) 가 모두 양평군청 근처 100m offset 지점에 렌더 → 카카오맵 클러스터가 "3" 으로 뭉침
-- 실주소 데이터(`DataInitializer.java:663~665`)는 존재하나 좌표에 반영 안 됨
-- 관리자가 좌표 편집해도 재기동 시 파생 로직이 덮어씀 → **admin CRUD 무력화**
+Center 좌표 파생 사고(2026-07-09 F0h) 재발 방지 — 지역 대표 좌표에서 offset 파생 → admin CRUD 무력화. 상세: `docs/postmortems/` 참조.
 
 **규칙**:
-1. **엔티티 필드는 각 row 자체가 진리 소스** (single source of truth). 다른 필드나 컬렉션 규칙으로부터 파생 시드하지 말 것. 예: Center.lat/lng 는 Center row 자체에 개별 저장. Region 이나 시·군 대표 좌표 파생 금지
+1. **엔티티 필드는 각 row 자체가 진리 소스**. 다른 필드·컬렉션 규칙으로부터 파생 시드 금지. 예: Center.lat/lng 는 Center row 에 개별 저장
 2. **시드 데이터는 자원 파일에서 로드** (`src/main/resources/data/*.csv` or `.yml`). Java 코드 내 Map 하드코딩은 소규모(≤ 10건) 데이터에 한함. 대규모 데이터는 자원 파일 분리
 3. **파생이 필요하면 도메인 메서드** (예: `Center.isCurrentlyOpen(now)`) 로 런타임 계산. DB 저장값은 원천 필드만
 4. **감지 방법**: DataInitializer 리뷰 시 `Map<String, ...>` 내부에 지역·타입 등 그룹 키가 있고, 이걸 forEach 로 각 row 에 파생 적용하는 패턴 발견 시 → 즉시 자원 파일 로드 방식으로 전환
@@ -486,12 +412,9 @@ Boot 4 / Thymeleaf / JPA 에서 **이 프로젝트가 실제로 사고 낸 패�
 - [ ] 향후 정책 변경 가능성 있는가? → 상수 대신 설정 파일 or DB
 - [ ] 이미지·아이콘·문자열 리소스인가? → `SiteImage` 등 별도 리소스 엔티티
 
-### 슬롯 기반 설계 패턴 (SiteImage 예시)
-```
-SiteImage(slot="HERO_BANNER", imageUrl="...", sortOrder=0, isActive=true)
-SiteImage(slot="HOME_SPACE_1", imageUrl="...", sortOrder=1, ...)
-```
-→ Controller 는 `findBySlotAndIsActiveTrue(...)` 로 조회. admin 이 URL 만 교체하면 화면 반영.
+### 슬롯 기반 설계 패턴
+
+`SiteImage(slot, imageUrl, sortOrder, isActive)` — Controller 는 `findBySlotAndIsActiveTrue()` 로 조회, admin 이 URL 만 교체하면 화면 반영.
 
 ---
 
@@ -515,49 +438,34 @@ SiteImage(slot="HOME_SPACE_1", imageUrl="...", sortOrder=1, ...)
 | Claude Preview | `.claude/launch.json` | `preview_start(name: "youth-moa-e2e")` 로 bootRun 자동 기동 (H2+시드, 자격증명 불필요) 후 snapshot/inspect/console_logs/network 로 동적·시각 검증. 실 DB 필요 시 `youth-moa` 설정 (DATABASE_* 환경변수 필요) |
 | 확정 명세 큐 | `docs/specs/` | ym-spec 산출 + 사용자 결정 반영된 명세. `spec_confirmed` 상태면 ym-impl 이 바로 인계 가능. 병렬 실행 규칙은 `docs/specs/README.md` |
 
-화면 작업 표준 사이클: **ym-spec → 사용자 컨펌 → ym-impl → ym-qa → ym-verify → 머지**.
-선택 0단계 (사고): **ym-pm** — prototype·정책 검토, 대안 제시 후 ym-spec 인계.
-
-**계약이 있는 화면은 사이클이 짧아진다**: 계약 + 갭 리포트가 spec 역할을 하므로 ym-spec 을 건너뛰고 구현 → 계약 검사 갭 0 확인으로 끝낼 수 있다. 계약이 없는 화면은 위 전체 사이클을 따르되 **계약을 함께 신설**한다.
+- **표준 사이클**: ym-spec → 사용자 컨펌 → ym-impl → ym-qa → ym-verify → 머지. 선택 0단계: ym-pm (정책 검토)
+- **계약 있는 화면**: 계약 + 갭 리포트가 spec 역할 → ym-spec 스킵, 구현 후 계약 검사 갭 0 확인으로 종료. 없는 화면은 전체 사이클 + **계약 신설**
+- **에이전트 우선순위**: repo `.claude/agents/` > 전역 `~/.claude/agents/`. 원격 루틴(CCR)은 repo 판 필수
 
 참조 문서 지도:
 
 | 찾는 것 | 위치 |
 |---|---|
-| 화면이 어떻게 생겨야 하는가 | `docs/design-contracts/<screen>.md` + `e2e/contracts/<screen>.ts` |
-| 전 화면 공통 디자인 정책 | `docs/design-contracts/POLICY.md` |
-| 프레임워크 함정 (Thymeleaf·JPA·Boot 4) | `docs/patterns/` |
-| 과거 사고 경위 | `docs/postmortems/` |
-| 아키텍처 결정 근거 | `docs/adr/` |
+| 화면 스펙 | `docs/design-contracts/<screen>.md` + `e2e/contracts/<screen>.ts` |
+| 공통 디자인 정책 | `docs/design-contracts/POLICY.md` |
+| 프레임워크 함정 | `docs/patterns/` |
+| 사고 경위 | `docs/postmortems/` |
+| 아키텍처 결정 | `docs/adr/` |
 | 확정 명세 큐 | `docs/specs/` |
-| 현재 진행 상황 | `docs/STATE.md` (메모리 미러) |
-
-에이전트 파일 우선순위: repo `.claude/agents/` 가 전역 `~/.claude/agents/` 보다 우선. 같은 이름이면 repo 판이 채택됨. 원격 루틴(CCR) 은 전역을 못 보므로 repo 판이 필수.
+| 현재 진행 상황 | `docs/STATE.md` |
 
 ---
 
 ## 메모리 미러링 규칙
 
-로컬 메모리 파일은 PC 별로 존재하고 원격 루틴(claude.ai routines) 이 접근할 수 없다. 원격 세션이 진행 상황을 파악하려면 repo 내 파일 미러가 필요.
+원격 루틴(claude.ai routines) 은 로컬 메모리 파일에 접근 불가 → repo 미러 필요.
 
-- **원본** (로컬 전용): `~/.claude/projects/.../memory/project_youth_moa_java.md`
-- **미러** (repo 공유): `docs/STATE.md` — 전문 복사
-
-### 미러 시점
-세션 wrap-up 시 (사용자가 "커밋", "정리", "wrap-up" 등 마무리 명시할 때) 최신 메모리를 `docs/STATE.md` 로 전문 복사. 세션 중간에는 미러하지 않음 (다중 세션 동시 작업 시 충돌 방지).
-
-### 커밋 메시지 형식
-```
-YYMMDD_memory_mirror - STATE.md sync
-```
-
-### 원격 루틴에서 참조
-루틴 프롬프트는 `docs/STATE.md` 만 신뢰. 로컬 메모리 파일 경로는 언급하지 않음 (원격에서 접근 불가).
-
-### 이중 PC (Win ↔ Mac) 정책
-- 각 PC 의 로컬 메모리는 개별 유지 (자동 동기화 없음)
-- `docs/STATE.md` 만 git 을 통해 공유 — 다른 PC 는 pull 로 최신 상태 확보
-- 상충 시 파일 상단 `> 마지막 갱신: YYYY-MM-DD` 최신 값이 정답
+- **원본** (로컬): `~/.claude/projects/.../memory/project_youth_moa_java.md`
+- **미러** (repo): `docs/STATE.md` — 전문 복사
+- **미러 시점**: 세션 wrap-up 시만 ("커밋"/"정리"/"wrap-up" 명시). 중간 미러 금지 (다중 세션 충돌)
+- **커밋 메시지**: `YYMMDD_memory_mirror - STATE.md sync`
+- **원격 루틴**: `docs/STATE.md` 만 신뢰. 로컬 경로 언급 금지
+- **이중 PC**: 로컬 메모리는 개별 유지, `docs/STATE.md` 만 git 공유. 상충 시 `> 마지막 갱신: YYYY-MM-DD` 최신 값 우선
 
 ---
 
@@ -588,23 +496,6 @@ YYMMDD_memory_mirror - STATE.md sync
 2. 완료 응답 마지막에 `💡 다음에 더 빠르게` 별도 섹션으로 개선안 1~3개 제시
 3. 각 제안에 **근거 · 예상 이득 · 도입 방법** 명시
 4. **사용자 승인 없이 도입 금지** — 새 스킬·훅·워크플로우 파일 생성 전 반드시 컨펌
-
-### 예시
-
-```
-[작업 완료 응답 후]
-
-💡 다음에 더 빠르게
-
-1. **`/build-check` 후 자동 test**
-   - 근거: 최근 5회 대화에서 build-check 후 항상 test 를 이어서 실행함
-   - 방안: `.claude/hooks/post-build-check.sh` 로 자동 chaining
-   - 이득: 매 반복당 30초 절약
-
-2. **prototype gap 리포트 자동화**
-   - 근거: 매주 수동 갱신 관찰됨
-   - 방안: 이미 등록된 `prototype-gap.yml` workflow 재확인. 수동 실행 필요 시 `workflow_dispatch`
-```
 
 ---
 
