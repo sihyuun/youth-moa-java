@@ -15,8 +15,8 @@ import org.junit.jupiter.api.Test;
 /**
  * D-admin-calendar (2026-10-12): CalendarGridBuilder 공용 42셀 유틸 단위 테스트.
  *
- * <p>POLICY P-6 "월간 캘린더 42셀 6행 고정" 를 기계적으로 검증한다. ProgramCalendarService / AdminProgramCalendarService
- * 양쪽이 공유하는 지점.
+ * <p>POLICY P-6 "월간 캘린더 42셀 6행 고정" 를 기계적으로 검증한다. ProgramCalendarService /
+ * AdminProgramCalendarService 양쪽이 공유하는 지점.
  */
 class CalendarGridBuilderTest {
 
@@ -61,8 +61,7 @@ class CalendarGridBuilderTest {
   void today_flag_matches_cell_date() {
     LocalDate today = LocalDate.of(2026, 8, 15);
     List<CalendarViewDto.CalendarCell> cells =
-        CalendarGridBuilder.build42Cells(
-            YearMonth.of(2026, 8), today, Map.of(), c -> "open", 2);
+        CalendarGridBuilder.build42Cells(YearMonth.of(2026, 8), today, Map.of(), c -> "open", 2);
     // 15일 셀의 today 는 true, 나머지 inMonth 셀은 false
     long trueCount = cells.stream().filter(CalendarViewDto.CalendarCell::isToday).count();
     assertThat(trueCount).isEqualTo(1L);
@@ -100,8 +99,7 @@ class CalendarGridBuilderTest {
   void nearest_month_tie_break_prefers_future() {
     Optional<YearMonth> result =
         CalendarGridBuilder.nearestMonth(
-            List.of(LocalDate.of(2026, 6, 15), LocalDate.of(2026, 10, 15)),
-            YearMonth.of(2026, 8));
+            List.of(LocalDate.of(2026, 6, 15), LocalDate.of(2026, 10, 15)), YearMonth.of(2026, 8));
     assertThat(result).contains(YearMonth.of(2026, 10));
   }
 

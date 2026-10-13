@@ -100,7 +100,8 @@ public class AdminProgramCalendarService {
 
     // 42셀 산출 — CalendarGridBuilder 공용 유틸 (POLICY P-6)
     List<CalendarViewDto.CalendarCell> cells =
-        CalendarGridBuilder.build42Cells(ym, today, byDay, AdminProgramCalendarService::pillColorKind, MAX_PILLS);
+        CalendarGridBuilder.build42Cells(
+            ym, today, byDay, AdminProgramCalendarService::pillColorKind, MAX_PILLS);
 
     // panelData — dayOfMonth → 카드 리스트 (LinkedHashMap 순서 유지)
     Map<Integer, List<ProgramCardDto>> panelData = new LinkedHashMap<>(byDay);

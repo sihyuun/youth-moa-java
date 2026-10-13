@@ -152,8 +152,7 @@ class AdminProgramCalendarServiceTest {
     loginAsSysadmin();
     LocalDate today = LocalDate.now();
     CalendarViewDto dto =
-        service.calendar(
-            "존재하지않을검색어XYZ123", null, today.getYear(), today.getMonthValue());
+        service.calendar("존재하지않을검색어XYZ123", null, today.getYear(), today.getMonthValue());
     assertThat(dto.getTotalCount()).isZero();
     // nearestMonth 는 필터 결과도 0이므로 null
     assertThat(dto.getNearestMonth()).isNull();
