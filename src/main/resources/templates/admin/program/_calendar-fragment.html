@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!--
+    D-admin-calendar (2026-10-12): 관리자 프로그램 캘린더 뷰.
+    - 좌측 42셀 캘린더 grid (POLICY P-6, 7×6 고정)
+    - 우측 300px slide 패널 (HANDOFF L232 Google Calendar 패턴, 초기 hidden)
+    - 사용자용 CSS 재사용 (Q9) + admin 전용 class (admin-program-calendar-*) 로 네임스페이스 분리
+    - read-only (Q5): 셀/pill 클릭 시 상세 이동만, CRUD 없음
+-->
+<th:block th:fragment="calendar-region">
+
+  <div class="program-calendar-layout admin-program-calendar-layout"
+       th:with="cv=${calendarView}"
+       th:attr="data-today-year=${cv.today.year},data-today-month=${cv.today.monthValue},data-today-day=${cv.today.dayOfMonth},data-view-year=${cv.year},data-view-month=${cv.month}">
+
+    <!-- 좌측 메인 -->
+    <div class="program-calendar-main">
+
+      <!-- 툴바: [오늘] · ‹ YYYY년 M월 › -->
+      <div class="program-calendar-toolbar">
+        <button type="button" class="program-calendar-today-btn" data-calendar-today>
+          <svg th:replace="~{fragments/icons :: calendar(13, 'currentColor')}"></svg>
+          <span>오늘</span>
+        </button>
+        <div class="program-calendar-nav">
+          <a class="program-calendar-nav-arrow"
+             th:href="@{/admin/programs(view='calendar',year=${cv.prevYear},month=${cv.prevMonth},q=${filterQ},status=${filterStatus})}"
+             aria-label="이전 달">‹</a>
+          <span class="program-calendar-nav-title"
+                th:text="${cv.year} + '년 ' + ${cv.month} + '월'"
+                data-testid="admin-calendar-title">2026년 8월</span>
+          <a class="program-calendar-nav-arrow"
+             th:href="@{/admin/programs(view='calendar',year=${cv.nextYear},month=${cv.nextMonth},q=${filterQ},status=${filterStatus})}"
+             aria-label="다음 달">›</a>
+        </div>
+      </div>
+
+      <!-- 빈 달 배너 (totalCount == 0) -->
+      <div th:if="${cv.totalCount == 0}" class="program-calendar-empty-banner">
+        <span class="program-calendar-empty-banner-text"
+              th:if="${cv.nearestMonth != null}">
+          <span th:text="${cv.month} + '월에는 조건에 맞는 프로그램이 없어요.'">8월에는 조건에 맞는 프로그램이 없어요.</span>
+          <strong th:text="${cv.nearestMonth} + '월에 ' + ${cv.nearestCount} + '건 있어요.'">9월에 3건 있어요.</strong>
+        </span>
+        <span class="program-calendar-empty-banner-text"
+              th:if="${cv.nearestMonth == null}">
+          조건에 맞는 프로그램이 없어요.
+        </span>
+        <a th:if="${cv.nearestMonth != null}"
+           class="program-calendar-empty-banner-btn"
+           th:href="@{/admin/programs(view='calendar',year=${cv.nearestYear},month=${cv.nearestMonth},q=${filterQ},status=${filterStatus})}"
+           th:text="${cv.nearestMonth} + '월 보기'">9월 보기</a>
+      </div>
+
+      <!-- 요일 헤더 -->
+      <div class="program-calendar-dow">
+        <div class="program-calendar-dow-cell program-calendar-dow-cell--sun">일</div>
+        <div class="program-calendar-dow-cell">월</div>
+        <div class="program-calendar-dow-cell">화</div>
+        <div class="program-calendar-dow-cell">수</div>
+        <div class="program-calendar-dow-cell">목</div>
+        <div class="program-calendar-dow-cell">금</div>
+        <div class="program-calendar-dow-cell program-calendar-dow-cell--sat">토</div>
+      </div>
+
+      <!-- 42셀 grid (POLICY P-6) -->
+      <div class="program-calendar-grid" data-testid="admin-calendar-grid">
+        <div th:each="c : ${cv.cells}"
+             th:class="'program-calendar-cell'
+                       + (${c.inMonth} ? '' : ' program-calendar-cell--outside')
+                       + (${c.today} ? ' program-calendar-cell--today' : '')"
+             th:attr="data-day=${c.day},data-in-month=${c.inMonth}">
+          <div class="program-calendar-cell-head" th:if="${c.day != null}">
+            <span th:class="'program-calendar-cell-num'
+                            + (${c.dow == 0} ? ' program-calendar-cell-num--sun' : '')
+                            + (${c.dow == 6} ? ' program-calendar-cell-num--sat' : '')
+                            + (${c.today} ? ' program-calendar-cell-num--today' : '')"
+                  th:text="${c.day}">1</span>
+            <span th:if="${c.today}" class="program-calendar-cell-today-badge">오늘</span>
+          </div>
+          <div class="program-calendar-cell-body" th:if="${c.day != null}">
+            <!-- Q5 read-only: pill 클릭 시 /admin/programs/{id} 상세로 이동 -->
+            <a th:each="p : ${c.pills}"
+               th:href="@{/admin/programs/{id}(id=${p.id})}"
+               th:class="'program-calendar-pill program-calendar-pill--' + ${p.colorKind}"
+               data-calendar-pill
+               th:title="${p.title}">
+              <span class="program-calendar-pill-dot"></span>
+              <span class="program-calendar-pill-title" th:text="${p.title}">프로그램</span>
+            </a>
+            <span th:if="${c.moreCount > 0}"
+                  class="program-calendar-cell-more"
+                  th:text="'+' + ${c.moreCount} + '건 더'">+1건 더</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 범례 (4종 — admin 은 SUSPENDED 별도 라벨) -->
+      <div class="program-calendar-legend">
+        <div class="program-calendar-legend-item">
+          <span class="program-calendar-legend-dot program-calendar-legend-dot--upcoming"></span>
+          <span>진행예정</span>
+        </div>
+        <div class="program-calendar-legend-item">
+          <span class="program-calendar-legend-dot program-calendar-legend-dot--open"></span>
+          <span>모집중</span>
+        </div>
+        <div class="program-calendar-legend-item">
+          <span class="program-calendar-legend-dot program-calendar-legend-dot--ended"></span>
+          <span>종료 · 운영중단</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 우측 패널 (300px slide-in, 초기 hidden) -->
+    <aside class="program-calendar-panel admin-program-calendar-panel"
+           id="admin-program-calendar-panel"
+           hidden
+           data-testid="admin-calendar-panel">
+      <div class="program-calendar-panel-head">
+        <div class="program-calendar-panel-title">
+          <strong id="admin-program-calendar-panel-date"
+                  th:text="${cv.month} + '월 -일'">8월 -일</strong>
+          <span id="admin-program-calendar-panel-count"
+                class="program-calendar-panel-count">0건</span>
+        </div>
+        <button type="button"
+                class="program-calendar-panel-close"
+                data-calendar-close
+                aria-label="닫기">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke-width="1.5"
+               stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 6L6 18M6 6l12 12" stroke="currentColor"></path>
+          </svg>
+        </button>
+      </div>
+      <div class="program-calendar-panel-list">
+        <!-- panelData 를 사전 렌더 후 hidden; JS 가 선택 날짜만 노출 -->
+        <div th:each="entry : ${cv.panelData}"
+             class="program-calendar-panel-group"
+             th:attr="data-panel-day=${entry.key}"
+             hidden>
+          <a th:each="card : ${entry.value}"
+             th:href="@{/admin/programs/{id}(id=${card.id})}"
+             class="program-calendar-panel-card">
+            <div class="program-calendar-panel-card-thumb">
+              <img th:if="${card.imageUrl != null and !#strings.isEmpty(card.imageUrl)}"
+                   th:src="${card.imageUrl}" th:alt="${card.title}"
+                   loading="lazy" decoding="async" width="60" height="60"/>
+              <span th:unless="${card.imageUrl != null and !#strings.isEmpty(card.imageUrl)}">IMG</span>
+            </div>
+            <div class="program-calendar-panel-card-body">
+              <div class="program-calendar-panel-card-meta">
+                <span th:class="'program-calendar-legend-dot program-calendar-legend-dot--'
+                                + (${card.status.name() == 'SUSPENDED'} ? 'ended'
+                                  : (${card.status.name() == 'UPCOMING'} ? 'upcoming'
+                                    : (${card.status.name() == 'ENDED'} ? 'ended' : 'open')))"></span>
+                <span class="program-calendar-panel-card-org"
+                      th:text="${card.centerName}">청년센터</span>
+                <span th:if="${card.calendarChipLabel != null and !#strings.isEmpty(card.calendarChipLabel)}"
+                      th:class="'program-calendar-panel-card-chip program-calendar-panel-card-chip--' + ${card.calendarChipKind}"
+                      th:text="${card.calendarChipLabel}">D-3</span>
+              </div>
+              <div class="program-calendar-panel-card-title"
+                   th:text="${card.title}">프로그램 제목</div>
+              <div class="program-calendar-panel-card-capacity">
+                <div class="program-calendar-panel-card-bar">
+                  <div th:class="'program-calendar-panel-card-bar-fill program-calendar-panel-card-bar-fill--' + ${card.colorClass}"
+                       th:style="'width:' + ${card.pct} + '%'"></div>
+                </div>
+              </div>
+            </div>
+          </a>
+        </div>
+      </div>
+      <div id="admin-program-calendar-panel-empty"
+           class="program-calendar-panel-empty" hidden>
+        이 날에는 프로그램이 없어요.
+      </div>
+    </aside>
+  </div>
+
+</th:block>
+
+</body>
+</html>

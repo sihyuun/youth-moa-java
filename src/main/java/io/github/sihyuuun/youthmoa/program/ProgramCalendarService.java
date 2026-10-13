@@ -2,13 +2,14 @@ package io.github.sihyuuun.youthmoa.program;
 
 import io.github.sihyuuun.youthmoa.application.ApplicationRepository;
 import io.github.sihyuuun.youthmoa.application.ApplicationStatus;
+import io.github.sihyuuun.youthmoa.common.calendar.CalendarGridBuilder;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.TreeMap;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
@@ -102,91 +103,30 @@ public class ProgramCalendarService {
       byDay.computeIfAbsent(day, k -> new ArrayList<>()).add(card);
     }
 
-    // 42셀 산출
-    // Java DayOfWeek: 월=1..일=7. dc.html 은 일=0 기준 → firstDow = firstOfMonth.getDayOfWeek() % 7
-    int firstDow = firstOfMonth.getDayOfWeek().getValue() % 7;
-    int daysInMonth = ym.lengthOfMonth();
-
-    List<CalendarViewDto.CalendarCell> cells = new ArrayList<>(42);
-    for (int i = 0; i < 42; i++) {
-      int dayIdx = i - firstDow + 1;
-      int dow = i % 7;
-      if (dayIdx < 1 || dayIdx > daysInMonth) {
-        cells.add(
-            CalendarViewDto.CalendarCell.builder()
-                .day(null)
-                .dow(dow)
-                .inMonth(false)
-                .today(false)
-                .pills(List.of())
-                .moreCount(0)
-                .build());
-      } else {
-        List<ProgramCardDto> dayCards = byDay.getOrDefault(dayIdx, List.of());
-        List<CalendarViewDto.ProgramPill> pills = new ArrayList<>();
-        int limit = Math.min(MAX_PILLS, dayCards.size());
-        for (int j = 0; j < limit; j++) {
-          ProgramCardDto c = dayCards.get(j);
-          pills.add(
-              CalendarViewDto.ProgramPill.builder()
-                  .id(c.getId())
-                  .title(c.getTitle())
-                  .colorKind(pillColorKind(c))
-                  .build());
-        }
-        int more = Math.max(0, dayCards.size() - MAX_PILLS);
-        LocalDate cellDate = ym.atDay(dayIdx);
-        cells.add(
-            CalendarViewDto.CalendarCell.builder()
-                .day(dayIdx)
-                .dow(dow)
-                .inMonth(true)
-                .today(cellDate.equals(today))
-                .pills(pills)
-                .moreCount(more)
-                .build());
-      }
-    }
+    // 42셀 산출 — D-admin-calendar 리팩터 (2026-10-12): CalendarGridBuilder 공용 유틸 위임.
+    // POLICY P-6 "월간 캘린더 42셀 6행 고정" 를 공용 유틸이 보장.
+    List<CalendarViewDto.CalendarCell> cells =
+        CalendarGridBuilder.build42Cells(
+            ym, today, byDay, ProgramCalendarService::pillColorKind, MAX_PILLS);
 
     // panelData — dayOfMonth → 카드 리스트 (LinkedHashMap 순서 유지)
     Map<Integer, List<ProgramCardDto>> panelData = new LinkedHashMap<>(byDay);
 
-    // 빈 달 배너용 nearestMonth 조회
+    // 빈 달 배너용 nearestMonth 조회 — CalendarGridBuilder.nearestMonth 위임
     Integer nearestYear = null;
     Integer nearestMonth = null;
     long nearestCount = 0;
     if (monthPrograms.isEmpty()) {
-      // 필터 결과 전체에서 startDate 가 이번 달과 다른 프로그램들의 startDate max 를 찾음
-      // 우선 이번 달 이전에서 max, 없으면 이후에서 min
       List<Program> otherPrograms =
           programRepository.findAll(spec, Sort.by(Sort.Direction.ASC, "startDate"));
       if (!otherPrograms.isEmpty()) {
-        // 이번 달과 가장 가까운 (startDate 절대 거리) 프로그램의 월을 선택
-        // 동거리(예: 6월/10월 각 1건 in 8월 기준) tie-break: 미래(>=pivot) 우선 (스펙 §3-A #9)
-        YearMonth pivot = ym;
-        Program nearest =
-            otherPrograms.stream()
-                .filter(p -> p.getStartDate() != null)
-                .filter(
-                    p -> {
-                      YearMonth pym = YearMonth.from(p.getStartDate());
-                      return !pym.equals(pivot);
-                    })
-                .min(
-                    Comparator.<Program>comparingLong(
-                            p -> Math.abs(monthsBetween(YearMonth.from(p.getStartDate()), pivot)))
-                        .thenComparingInt(
-                            p ->
-                                monthsBetween(YearMonth.from(p.getStartDate()), pivot) >= 0
-                                    ? 0
-                                    : 1))
-                .orElse(null);
-        if (nearest != null) {
-          YearMonth nym = YearMonth.from(nearest.getStartDate());
-          nearestYear = nym.getYear();
-          nearestMonth = nym.getMonthValue();
-          // 해당 월 카운트
-          YearMonth n = nym;
+        List<LocalDate> candidateDates =
+            otherPrograms.stream().map(Program::getStartDate).filter(d -> d != null).toList();
+        Optional<YearMonth> nym = CalendarGridBuilder.nearestMonth(candidateDates, ym);
+        if (nym.isPresent()) {
+          YearMonth n = nym.get();
+          nearestYear = n.getYear();
+          nearestMonth = n.getMonthValue();
           Specification<Program> countSpec =
               spec.and(
                   (root, q, cb) ->
@@ -199,8 +139,8 @@ public class ProgramCalendarService {
       }
     }
 
-    YearMonth prev = ym.minusMonths(1);
-    YearMonth next = ym.plusMonths(1);
+    YearMonth prev = CalendarGridBuilder.prevMonth(ym);
+    YearMonth next = CalendarGridBuilder.nextMonth(ym);
 
     return CalendarViewDto.builder()
         .year(year)
@@ -217,10 +157,6 @@ public class ProgramCalendarService {
         .nearestCount(nearestCount)
         .panelData(panelData)
         .build();
-  }
-
-  private static long monthsBetween(YearMonth a, YearMonth b) {
-    return (a.getYear() - b.getYear()) * 12L + (a.getMonthValue() - b.getMonthValue());
   }
 
   /** dc.html §5a 3색 매핑. isFull 은 종료 회색 편입. */
