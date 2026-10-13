@@ -71,3 +71,7 @@ tools/audit-out/
 
 # A-admin-notice-attachment (2026-09-03): LocalFileStorage 기본 저장 경로
 storage/
+
+### Playwright / curl 작업 아티팩트 ###
+cookies.txt
+test-results/
