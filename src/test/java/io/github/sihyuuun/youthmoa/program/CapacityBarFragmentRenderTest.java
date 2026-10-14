@@ -193,7 +193,8 @@ class CapacityBarFragmentRenderTest {
   // ─── D5-Q3 (2026-10-14) showLabel 파라미터 ───
 
   @Test
-  @DisplayName("showLabel=false → .capacity-bar-label 0개 / bar 1개 (prototype L795~807 user 캘린더 미니 매칭)")
+  @DisplayName(
+      "showLabel=false → .capacity-bar-label 0개 / bar 1개 (prototype L795~807 user 캘린더 미니 매칭)")
   void render_showLabel_false_hidesLabelOnly() {
     String html = renderFragment(new ProgramCardDto(activeProgram(10), 5), false, true);
     // 라벨 wrap div 자체가 제거됨
