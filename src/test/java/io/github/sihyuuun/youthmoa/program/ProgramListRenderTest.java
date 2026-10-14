@@ -1,5 +1,6 @@
 package io.github.sihyuuun.youthmoa.program;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -174,6 +175,32 @@ class ProgramListRenderTest {
                 .param("month", String.valueOf(ym.getMonthValue())))
         .andExpect(status().isOk())
         .andExpect(content().string(containsString("program-calendar-panel-card-chip--ended")));
+  }
+
+  @Test
+  void 캘린더_패널_카드는_capacityBar_fragment_재사용_showLabel_false() throws Exception {
+    // D5-Q3 (2026-10-14): user 캘린더 패널 카드가 공용 capacityBar fragment 를 showLabel=false 로 호출.
+    // prototype.tsx L795~807 매칭. 이전 자체 네임스페이스 (program-calendar-panel-card-bar{,-fill})
+    // 참조는 user template 에서 제거됨 (CSS 정리는 FOLLOW 티켓).
+    String html =
+        mockMvc
+            .perform(get("/programs").param("view", "calendar"))
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+    // 패널 카드 영역 추출 — program-calendar-panel-card-capacity 블록 안쪽
+    int capStart = html.indexOf("program-calendar-panel-card-capacity");
+    assertThat(capStart).isGreaterThanOrEqualTo(0);
+
+    // 패널 카드 안에 공용 bar 네임스페이스(capacity-bar + capacity-bar-fill) 가 포함됨
+    assertThat(html).contains("capacity-bar-fill--");
+    // user template 은 더 이상 자체 네임스페이스를 참조하지 않음
+    assertThat(html).doesNotContain("program-calendar-panel-card-bar-fill");
+    assertThat(html)
+        .as("user _calendar-fragment.html 은 program-calendar-panel-card-bar 를 더 이상 직접 참조하지 않음")
+        .doesNotContain("<div class=\"program-calendar-panel-card-bar\">");
   }
 
   @Test

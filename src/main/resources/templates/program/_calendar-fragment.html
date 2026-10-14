@@ -172,10 +172,16 @@
               <div class="program-calendar-panel-card-title"
                    th:text="${card.title}">프로그램 제목</div>
               <div class="program-calendar-panel-card-capacity">
-                <div class="program-calendar-panel-card-bar">
-                  <div th:class="'program-calendar-panel-card-bar-fill program-calendar-panel-card-bar-fill--' + ${card.colorClass}"
-                       th:style="'width:' + ${card.pct} + '%'"></div>
-                </div>
+                <!-- D5-Q3 (2026-10-14): prototype.tsx L795~807 매칭 — 공용 capacityBar fragment 재사용 (showLabel=false, bar only).
+                     이전 자체 네임스페이스 (program-calendar-panel-card-bar{,-fill}) 는 admin 과 CSS 공유 중이라
+                     이 PR 에서는 user template 참조만 끊고, CSS 삭제는 FOLLOW-admin-calendar-panel-card-prototype-match 로 이월. -->
+                <div th:replace="~{fragments/capacity-bar :: capacityBar(
+                    pct=${card.pct},
+                    colorClass=${card.colorClass},
+                    primaryLabel='',
+                    secondaryLabel=null,
+                    showBar=true,
+                    showLabel=false)}"></div>
               </div>
             </div>
           </a>

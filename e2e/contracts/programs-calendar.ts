@@ -268,6 +268,17 @@ export const programsCalendarContract: ScreenContract = {
             severity: 'P2',
         },
         {
+            // D5-Q3 (2026-10-14): user 캘린더 패널 카드가 공용 capacityBar fragment 재사용 (showLabel=false).
+            // prototype.tsx L795~807 — <CapacityBar pg={pg} showLabel={false}/>. bar 만 노출, label 없음.
+            id: 'panel.card.capacity_bar.exists',
+            desc: '패널 카드에 공용 .capacity-bar 1개 이상 (prototype L795~807 매칭 · showLabel=false)',
+            selector: '.program-calendar-panel .capacity-bar',
+            kind: 'exists',
+            expected: true,
+            proto: 'prototype.tsx L795~807 (user 홈 캘린더 미니 카드) · D5-Q3 spec',
+            severity: 'P1',
+        },
+        {
             id: 'panel.group.allInitialHidden',
             desc: '모든 날짜 그룹 초기 hidden — JS 로 선택 날짜만 노출 (2026-08-31 사고 방지)',
             selector: '.program-calendar-panel-group:not([hidden])',

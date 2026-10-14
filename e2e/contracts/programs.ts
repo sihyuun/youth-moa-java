@@ -638,6 +638,17 @@ export const programsContract: ScreenContract = {
 
         // ── CapacityBar ──────────────────────────────────────────
         {
+            // D5-Q3 (2026-10-14) Q5=b 2중 방어: 기존 4곳 호출처 (home/favorites/search/list) 가
+            // showLabel 명시 true 전달로 regression 없음을 계약으로 보증. 목록 카드는 라벨 노출.
+            id: 'capacity.label.exists',
+            desc: 'CapacityBar 라벨 영역이 노출됨 (showLabel=true 명시 전달 — D5-Q3 regression 보호)',
+            selector: '.program-card .capacity-bar-label',
+            kind: 'exists',
+            expected: true,
+            proto: 'prototype.tsx L204~228 (default showLabel=true) · D5-Q3 spec Q5=b',
+            severity: 'P1',
+        },
+        {
             id: 'capacity.wrap.marginBottom',
             desc: 'CapacityBar 블록 하단 여백 10',
             selector: '.capacity-bar-wrap',

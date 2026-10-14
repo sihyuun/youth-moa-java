@@ -7,10 +7,11 @@
     CapacityBar fragment 모음. (D5 개편 — prototype.tsx 매칭)
     ============================================================
 
-    1) capacityBar(pct, colorClass, primaryLabel, secondaryLabel, showBar)
+    1) capacityBar(pct, colorClass, primaryLabel, secondaryLabel, showBar, showLabel)
        카드용 2-line (prototype L204~228 매칭)
-         [primaryLabel (colorClass 색)]      [secondaryLabel (textTri)]
+         [primaryLabel (colorClass 색)]      [secondaryLabel (textTri)]   ← showLabel=true 일 때만
          [━━━━━━ bar (colorClass 색, pct 폭) ━━━━━━]
+       - showLabel=false 는 prototype L795~807 사용자 홈 캘린더 미니 카드 매칭 (bar only).
 
     2) detailCapacityBar(pct, colorClass, headline, subtext, applied, capacity, emphasized)
        상세 페이지 확장형 (prototype L945~951 매칭)
@@ -21,9 +22,9 @@
 -->
 
 <!-- (1) 카드용 CapacityBar -->
-<th:block th:fragment="capacityBar(pct, colorClass, primaryLabel, secondaryLabel, showBar)">
+<th:block th:fragment="capacityBar(pct, colorClass, primaryLabel, secondaryLabel, showBar, showLabel)">
     <div class="capacity-bar-wrap">
-        <div class="capacity-bar-label">
+        <div th:if="${showLabel}" class="capacity-bar-label">
             <span class="capacity-bar-primary"
                   th:classappend="'capacity-bar-primary--' + ${colorClass}"
                   th:text="${primaryLabel}">정원 0/0명</span>
