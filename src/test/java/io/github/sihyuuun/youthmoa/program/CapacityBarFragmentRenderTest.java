@@ -33,6 +33,10 @@ class CapacityBarFragmentRenderTest {
   @Autowired MockMvc mockMvc;
 
   private String renderFragment(ProgramCardDto dto) {
+    return renderFragment(dto, true, dto.getCapacity() != null);
+  }
+
+  private String renderFragment(ProgramCardDto dto, boolean showLabel, boolean showBar) {
     // A7 (2026-09-30) 이후 mail 전용 TemplateEngine bean 이 추가되어 TemplateEngine 타입으로 조회하면
     // NoUniqueBeanDefinitionException. web 엔진(SpringTemplateEngine)만 명시 요청해 fragment 를 렌더한다.
     TemplateEngine engine = ctx.getBean(SpringTemplateEngine.class);
@@ -41,7 +45,8 @@ class CapacityBarFragmentRenderTest {
     c.setVariable("colorClass", dto.getColorClass());
     c.setVariable("primaryLabel", dto.getPrimaryLabel());
     c.setVariable("secondaryLabel", dto.getSecondaryLabel());
-    c.setVariable("showBar", dto.getCapacity() != null);
+    c.setVariable("showBar", showBar);
+    c.setVariable("showLabel", showLabel);
     return engine.process("fragments/capacity-bar", java.util.Set.of("capacityBar"), c);
   }
 
@@ -183,6 +188,40 @@ class CapacityBarFragmentRenderTest {
     assertThat(html).contains("종료된 프로그램");
     assertThat(html).doesNotContain("모집 마감");
     assertThat(html).doesNotContain("오픈</span>");
+  }
+
+  // ─── D5-Q3 (2026-10-14) showLabel 파라미터 ───
+
+  @Test
+  @DisplayName("showLabel=false → .capacity-bar-label 0개 / bar 1개 (prototype L795~807 user 캘린더 미니 매칭)")
+  void render_showLabel_false_hidesLabelOnly() {
+    String html = renderFragment(new ProgramCardDto(activeProgram(10), 5), false, true);
+    // 라벨 wrap div 자체가 제거됨
+    assertThat(html).doesNotContain("capacity-bar-label");
+    assertThat(html).doesNotContain("capacity-bar-primary");
+    assertThat(html).doesNotContain("capacity-bar-secondary");
+    // bar 는 그대로 렌더
+    assertThat(html).contains("capacity-bar-fill--primary");
+    assertThat(html).contains("width:50%");
+  }
+
+  @Test
+  @DisplayName("showLabel=true, showBar=false → label 1개 / bar 0개 (기존 경로 보존)")
+  void render_showLabel_true_showBar_false_keepsLabelOnly() {
+    String html = renderFragment(new ProgramCardDto(activeProgram(10), 5), true, false);
+    assertThat(html).contains("capacity-bar-label");
+    assertThat(html).contains("capacity-bar-primary");
+    // 라벨은 있지만 bar div 는 없음 (capacity-bar-fill 체크로 확인)
+    assertThat(html).doesNotContain("capacity-bar-fill");
+  }
+
+  @Test
+  @DisplayName("showLabel=true (default-equivalent) → label 1개 + bar 1개 (기존 4곳 호출처 명시 전달 경로)")
+  void render_showLabel_true_rendersBoth() {
+    String html = renderFragment(new ProgramCardDto(activeProgram(10), 5), true, true);
+    assertThat(html).contains("capacity-bar-label");
+    assertThat(html).contains("capacity-bar-primary--primary");
+    assertThat(html).contains("capacity-bar-fill--primary");
   }
 
   // ─── 상세 페이지 통합 ───

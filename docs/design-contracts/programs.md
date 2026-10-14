@@ -109,6 +109,7 @@
 - 날짜 클릭 시 slide-in. 헤더 `M월 D일` + `시작 N건` + 닫기(×)
 - 프로그램 없는 날짜 클릭 시: `#program-calendar-panel-empty` 노출 (`이 날에는 프로그램이 없어요`)
 - **`.program-calendar-panel-group`** 는 초기 `hidden`, JS 로 선택 날짜만 노출 (CSS `:not([hidden])` 로 `display: flex` 스코핑 — 2026-08-31 사고 방지)
+- **패널 카드 bar** 는 공용 `fragments/capacity-bar :: capacityBar(..., showLabel=false)` fragment 재사용 (prototype.tsx L795~807 매칭 — bar only, label 없음). 자체 네임스페이스 `program-calendar-panel-card-bar*` 는 D5-Q3 (2026-10-14) 이후 user template 에서 참조하지 않음 (admin 공유 CSS 는 FOLLOW 티켓이 정리).
 
 ### 5-G. 우측 패널 카드 chip 4종 매핑 (dc.html §5a `chipOf()`)
 
