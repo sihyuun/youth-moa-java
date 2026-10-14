@@ -1,6 +1,16 @@
 # FOLLOW: admin 캘린더 패널 카드 prototype 매칭 (bar 제거 + 진행/신청 기간·현황 텍스트)
 
-> **상태**: `spec_draft` — Q1~Q6 사용자 결정 후 `spec_confirmed` 로 전환
+> **상태**: `spec_confirmed` — Q1~Q6 사용자 결정 완료 (2026-10-14, 일괄 승인 + "디자인/UI 결정은 prototype 기준" 제약 적용)
+>
+> ## 사용자 결정 요약 (§7 Q1~Q6 재확정)
+>
+> - **Q1 = (b) 텍스트 전용** — prototype L1130 매칭 (추천안 (a) 이미지 우선은 prototype 이탈로 탈락). `thumbText` 산출 규칙은 "제목 첫 1 글자" (한글 1 자 또는 영문 1 자)
+> - **Q2 = (a) 버튼 명시 + 제목만 추가 링크** (prototype L1134, L1152 매칭). 카드 wrapper `<article>` 로 전환
+> - **Q3 = (a) 공용 `ProgramCardDto` 에 `applyPeriod`, `thumbText` getter 추가** (비파괴, LOC 작음)
+> - **Q4 = (a) `ProgramCardDto.formatRange(start, end)` 유틸 추출 후 양쪽 호출** (포매터 통일)
+> - **Q5 = (a) + (b)** prototype 그대로 "`{applied}/{capacity}명`" primary bold, capacity null 시 "제한 없음" fallback
+> - **Q5 연쇄 = chip 제거** — `calendarChipLabel/Kind` 삭제 (prototype 매칭)
+> - **Q6 = (a) 네이밍 유지** `FOLLOW-admin-calendar-panel-card-prototype-match`
 > **담당 사이클**: ym-spec (본 문서) → 사용자 Q 결정 → ym-impl → ym-qa → ym-verify
 > **선행 티켓**: `D5-Q3-capacity-bar-showLabel.md` (user 쪽 공용 fragment 전환) — **반드시 머지 후 착수**. CSS 공유 룰 cleanup 충돌을 피하기 위함
 > **원본 발견 경로**: 2026-10-14 D5-Q3 Q0 재검토 중 admin prototype L1125~1157 재분석. 현재 admin 구현 (`admin/program/_calendar-fragment.html` L168~174) 이 user prototype 패턴을 흉내낸 capacity bar 렌더 중이나, admin prototype 은 완전히 다른 디자인
