@@ -199,6 +199,27 @@ test.describe('프로그램 캘린더뷰 인터랙션', () => {
         await expect(secondInMonth).toHaveClass(/program-calendar-cell--selected/);
     });
 
+    test('셀 클릭 → 패널 카드 capacity-bar 는 fill width 적용 + label 미노출 (D5-Q3 showLabel=false 매칭)', async ({ page }) => {
+        // 명세 §5 인터랙션 요구 + prototype.tsx L805 <CapacityBar pg={pg} showLabel={false}/> 매칭
+        await gotoCalendar(page);
+        const pillCells = page.locator('.program-calendar-cell[data-in-month="true"]:has(.program-calendar-pill)');
+        const cellCount = await pillCells.count();
+        test.skip(cellCount === 0, '이번 달 pill 있는 셀 필요');
+        await pillCells.first().click();
+        const visibleGroup = page.locator('.program-calendar-panel-group:not([hidden])').first();
+        await expect(visibleGroup).toBeVisible();
+        // 패널 카드 안에 공용 capacity-bar fragment 존재 (관계 리팩터)
+        const panelCard = visibleGroup.locator('.program-calendar-panel-card').first();
+        await expect(panelCard.locator('.capacity-bar')).toBeVisible();
+        // showLabel=false 매칭 — label 미노출
+        await expect(panelCard.locator('.capacity-bar-label')).toHaveCount(0);
+        // fill inline style width 가 "0~100%" 형태로 적용 (card.pct 반영)
+        const fill = panelCard.locator('.capacity-bar-fill').first();
+        await expect(fill).toBeVisible();
+        const widthStyle = await fill.evaluate((el) => (el as HTMLElement).style.width);
+        expect(widthStyle).toMatch(/^\d{1,3}%$/);
+    });
+
     test('[오늘] 클릭 - 현재 월이면 오늘 셀 선택, 다른 월이면 오늘 월로 이동', async ({ page }) => {
         // 다른 달로 이동 (2020년 1월) → [오늘] 클릭 시 오늘 월로 이동
         await gotoCalendar(page, '/programs?view=calendar&year=2020&month=1');
