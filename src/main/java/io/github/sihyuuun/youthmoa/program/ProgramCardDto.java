@@ -1,5 +1,6 @@
 package io.github.sihyuuun.youthmoa.program;
 
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import lombok.Getter;
 
@@ -76,20 +77,8 @@ public class ProgramCardDto {
     ProgramStatus status = program.getStatus();
     Integer capacity = program.getCapacity();
 
-    // 기간 라벨 (prototype 매칭)
-    if (program.getStartDate() == null || program.getEndDate() == null) {
-      this.dateLabel = null;
-    } else if (program.getStartDate().getYear() == program.getEndDate().getYear()) {
-      this.dateLabel =
-          program.getStartDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
-              + "~"
-              + program.getEndDate().format(DateTimeFormatter.ofPattern("MM-dd"));
-    } else {
-      this.dateLabel =
-          program.getStartDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
-              + "~"
-              + program.getEndDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-    }
+    // 기간 라벨 (prototype 매칭) — formatRange 유틸로 통일 (FOLLOW-admin-calendar-prototype-match Q4=a)
+    this.dateLabel = formatRange(program.getStartDate(), program.getEndDate());
 
     if (status == ProgramStatus.UPCOMING) {
       this.pct = 0;
@@ -312,5 +301,39 @@ public class ProgramCardDto {
 
   public java.time.LocalDate getEndDate() {
     return program.getEndDate();
+  }
+
+  // ─── FOLLOW-admin-calendar-prototype-match (2026-10-14) ────────────────────
+  // admin 캘린더 패널 카드 신설 필드 (prototype L1125~1157 매칭).
+  // user 쪽은 호출하지 않으므로 비파괴 (Q3=a).
+
+  /**
+   * 공용 기간 포매터 (Q4=a). 같은 해 → {@code yyyy-MM-dd~MM-dd}, 다른 해 → {@code yyyy-MM-dd~yyyy-MM-dd}.
+   *
+   * <p>null-safe: start/end 중 하나라도 null 이면 {@code null} 반환.
+   */
+  public static String formatRange(LocalDate start, LocalDate end) {
+    if (start == null || end == null) return null;
+    DateTimeFormatter fullFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    if (start.getYear() == end.getYear()) {
+      return start.format(fullFormat) + "~" + end.format(DateTimeFormatter.ofPattern("MM-dd"));
+    }
+    return start.format(fullFormat) + "~" + end.format(fullFormat);
+  }
+
+  /** 신청 기간 라벨 (prototype L1145 매칭). applyStartDate ~ applyEndDate 를 {@link #formatRange} 로 포매팅. */
+  public String getApplyPeriod() {
+    return formatRange(program.getApplyStartDate(), program.getApplyEndDate());
+  }
+
+  /**
+   * 텍스트 전용 썸네일 글자 (prototype L1130 매칭). 제목 첫 1 글자 (한글 or 영문). 제목이 null/빈 문자열이면 공백.
+   *
+   * <p>Q1=b (텍스트 전용) 산출 규칙.
+   */
+  public String getThumbText() {
+    String title = program.getTitle();
+    if (title == null || title.isEmpty()) return "";
+    return title.substring(0, 1);
   }
 }

@@ -272,3 +272,63 @@ prototype L1148: 라벨 "신청 현황" (`#A6A3B3`), 값 `font-size:12px; font-w
 ## 9. 다음 단계
 
 사용자 Q1~Q6 결정 → 상태 `spec_confirmed` 전환 → ym-impl 호출. 예상 2 세션 (DTO·fragment 1 세션, 계약·테스트 1 세션).
+
+---
+
+## 10. 구현 매핑 (ym-impl 2026-10-14 완료)
+
+명세 §1 표의 각 라인 → 코드 위치 대조. ym-verify 가 행 단위 재검증.
+
+### prototype 라인 → 코드 파일
+
+| prototype 라인 | 명세 요구 | 코드 위치 |
+|---|---|---|
+| L1130 (썸네일 100%×100px, 32px 보라) | 텍스트 전용 썸네일 (Q1=b) | `_calendar-fragment.html:153~157` + `main.css:8555~8572` (`.admin-program-calendar-panel-card-thumb{,-text}`) |
+| L1134 (제목 14px/700 밑줄 anchor) | 제목만 상세 anchor (Q2=a) | `_calendar-fragment.html:163~166` + `main.css:8579~8594` |
+| L1135 (센터명 11px #6E6B82) | 센터명 라인 | `_calendar-fragment.html:167~168` + `main.css:8595~8598` |
+| L1137 (구분선 1px #F0EFF3) | 구분선 | `_calendar-fragment.html:172` + `main.css:8599~8602` |
+| L1139~1142 (진행 기간 라인) | dateLabel (기존) | `_calendar-fragment.html:176~179` + `ProgramCardDto.java` (기존 `dateLabel`) |
+| L1143~1146 (신청 기간 라인) | `applyPeriod` 신규 getter (Q3=a) | `_calendar-fragment.html:180~183` + `ProgramCardDto.java:328~331` (`getApplyPeriod()`) |
+| L1147~1150 (신청 현황 primary bold 12px) | "{applied}/{capacity}명" + null fallback (Q5=a+b) | `_calendar-fragment.html:184~189` + `main.css:8615~8619` (`.admin-program-calendar-panel-card-applied`) |
+| L1152~1155 (상세보기 버튼 primary bg + chevron) | detail button | `_calendar-fragment.html:194~202` + `main.css:8620~8635` |
+
+### DTO 매핑
+
+| 명세 요구 | 코드 위치 |
+|---|---|
+| Q3=a 공용 DTO 확장 (비파괴) | `ProgramCardDto.java:306` 이하 `FOLLOW` 섹션 |
+| Q4=a `formatRange` 공용 유틸 추출 | `ProgramCardDto.java:316~324` + 생성자 L80 재사용 |
+| `applyPeriod` getter | `ProgramCardDto.java:329~331` |
+| `thumbText` getter (제목 첫 1글자) | `ProgramCardDto.java:338~342` |
+
+### 계약 매핑 (`e2e/contracts/admin-programs-calendar.ts`)
+
+| 명세 요구 | check id |
+|---|---|
+| 썸네일 텍스트 전용 | `panel.card.thumb_text.exists` |
+| 제목 anchor | `panel.card.title.a.exists` |
+| 센터명 | `panel.card.center.exists` |
+| 구분선 | `panel.card.divider.exists` |
+| 정보 3라인 | `panel.card.info.rows.count` (min 3) |
+| 신청 현황 primary bold | `panel.card.applied.exists` |
+| 상세보기 버튼 | `panel.card.detail_btn.exists` |
+| capacity bar 재발 금지 | `panel.card.capacity_bar.absent` |
+| chip 재발 금지 | `panel.card.chip.absent` |
+
+### 테스트 매핑
+
+| 명세 요구 | 테스트 |
+|---|---|
+| 패널 카드 마크업 + regression | `AdminProgramCalendarRenderTest.admin_캘린더_패널_카드_prototype_매칭_마크업_렌더` |
+| 템플릿 SpEL 렌더 에러 없음 | `AdminProgramCalendarRenderTest.capacity_null_인_프로그램은_제한없음_fallback` |
+| 상세보기 버튼 클릭 → 상세 이동 | `admin-program-calendar.spec.ts` "FOLLOW: 패널 상세보기 버튼 클릭" |
+
+### CSS 삭제 범위 재판정
+
+명세 §3 "삭제" 요구: `.program-calendar-panel-card-{bar,chip,capacity,meta,thumb}` 등.
+
+**결정: 삭제하지 않음**. 이유:
+- user 쪽 `program/_calendar-fragment.html` 이 여전히 전 셀렉터 참조 중 (grep 전수 확인 완료)
+- admin 은 `admin-` 접두어 네임스페이스로 완전 분리 → 공유 CSS 와 충돌 없음
+- 명세 §5 safe-guard 조항 ("D5-Q3 가 보류한 경우 FOLLOW 가 삭제") 과 일치
+

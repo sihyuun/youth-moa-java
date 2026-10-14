@@ -1,7 +1,22 @@
 # 관리자 프로그램 캘린더 뷰 — 디자인 계약
 
 > 산출: D-admin-calendar (2026-10-12). ym-spec 결과 + 사용자 Q0~Q10 결정 반영.
+> 갱신: **FOLLOW-admin-calendar-panel-card-prototype-match (2026-10-14)** — 우측 패널 카드 구조를 admin prototype L1125~1157 매칭으로 전면 재작성.
 > 계약 코드: `e2e/contracts/admin-programs-calendar.ts`
+
+## FOLLOW 2026-10-14 — D5-Q3 와 결별
+
+**admin 캘린더 패널 카드는 capacity bar 를 사용하지 않는다.** admin prototype L1125~1157 은 전혀 다른 디자인이며:
+
+- 썸네일: 100% × 100px 보라 bg + 32px 보라 텍스트 (제목 첫 글자, Q1=b)
+- 제목: 밑줄 (`#E3E1E8`) 처리된 anchor + 아래 센터명 11px (Q2=a — article wrapper 안의 제목·버튼만 anchor)
+- 구분선 1px `#F0EFF3`
+- 정보 3라인 dl: "진행 기간" / "신청 기간" / "신청 현황" (Q3=a 공용 `ProgramCardDto` 확장 + Q4=a `formatRange` 공용 유틸)
+- "신청 현황" 값만 primary bold 12px (Q5=a — "{applied}/{capacity}명", capacity null → "제한 없음" Q5=b fallback)
+- 상세보기 버튼: full-width primary bg + chevron SVG
+- **chip / capacity bar 없음** — regression 방지용 negative check 2건 (`panel.card.capacity_bar.absent`, `panel.card.chip.absent`)
+
+user 쪽 (`program/_calendar-fragment.html`) 은 여전히 `program-calendar-panel-card-{bar,chip,capacity,meta,thumb}` 를 사용하므로 공유 CSS 는 유지. admin 은 `admin-program-calendar-panel-card-*` 네임스페이스로 완전 분리.
 
 ## 범위
 
