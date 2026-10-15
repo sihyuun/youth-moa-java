@@ -1,6 +1,16 @@
 # FOLLOW: admin 캘린더 패널 카드 prototype 매칭 (bar 제거 + 진행/신청 기간·현황 텍스트)
 
-> **상태**: `spec_draft` — Q1~Q6 사용자 결정 후 `spec_confirmed` 로 전환
+> **상태**: `spec_confirmed` — Q1~Q6 사용자 결정 완료 (2026-10-14, 일괄 승인 + "디자인/UI 결정은 prototype 기준" 제약 적용)
+>
+> ## 사용자 결정 요약 (§7 Q1~Q6 재확정)
+>
+> - **Q1 = (b) 텍스트 전용** — prototype L1130 매칭 (추천안 (a) 이미지 우선은 prototype 이탈로 탈락). `thumbText` 산출 규칙은 "제목 첫 1 글자" (한글 1 자 또는 영문 1 자)
+> - **Q2 = (a) 버튼 명시 + 제목만 추가 링크** (prototype L1134, L1152 매칭). 카드 wrapper `<article>` 로 전환
+> - **Q3 = (a) 공용 `ProgramCardDto` 에 `applyPeriod`, `thumbText` getter 추가** (비파괴, LOC 작음)
+> - **Q4 = (a) `ProgramCardDto.formatRange(start, end)` 유틸 추출 후 양쪽 호출** (포매터 통일)
+> - **Q5 = (a) + (b)** prototype 그대로 "`{applied}/{capacity}명`" primary bold, capacity null 시 "제한 없음" fallback
+> - **Q5 연쇄 = chip 제거** — `calendarChipLabel/Kind` 삭제 (prototype 매칭)
+> - **Q6 = (a) 네이밍 유지** `FOLLOW-admin-calendar-panel-card-prototype-match`
 > **담당 사이클**: ym-spec (본 문서) → 사용자 Q 결정 → ym-impl → ym-qa → ym-verify
 > **선행 티켓**: `D5-Q3-capacity-bar-showLabel.md` (user 쪽 공용 fragment 전환) — **반드시 머지 후 착수**. CSS 공유 룰 cleanup 충돌을 피하기 위함
 > **원본 발견 경로**: 2026-10-14 D5-Q3 Q0 재검토 중 admin prototype L1125~1157 재분석. 현재 admin 구현 (`admin/program/_calendar-fragment.html` L168~174) 이 user prototype 패턴을 흉내낸 capacity bar 렌더 중이나, admin prototype 은 완전히 다른 디자인
@@ -262,3 +272,63 @@ prototype L1148: 라벨 "신청 현황" (`#A6A3B3`), 값 `font-size:12px; font-w
 ## 9. 다음 단계
 
 사용자 Q1~Q6 결정 → 상태 `spec_confirmed` 전환 → ym-impl 호출. 예상 2 세션 (DTO·fragment 1 세션, 계약·테스트 1 세션).
+
+---
+
+## 10. 구현 매핑 (ym-impl 2026-10-14 완료)
+
+명세 §1 표의 각 라인 → 코드 위치 대조. ym-verify 가 행 단위 재검증.
+
+### prototype 라인 → 코드 파일
+
+| prototype 라인 | 명세 요구 | 코드 위치 |
+|---|---|---|
+| L1130 (썸네일 100%×100px, 32px 보라) | 텍스트 전용 썸네일 (Q1=b) | `_calendar-fragment.html:153~157` + `main.css:8555~8572` (`.admin-program-calendar-panel-card-thumb{,-text}`) |
+| L1134 (제목 14px/700 밑줄 anchor) | 제목만 상세 anchor (Q2=a) | `_calendar-fragment.html:163~166` + `main.css:8579~8594` |
+| L1135 (센터명 11px #6E6B82) | 센터명 라인 | `_calendar-fragment.html:167~168` + `main.css:8595~8598` |
+| L1137 (구분선 1px #F0EFF3) | 구분선 | `_calendar-fragment.html:172` + `main.css:8599~8602` |
+| L1139~1142 (진행 기간 라인) | dateLabel (기존) | `_calendar-fragment.html:176~179` + `ProgramCardDto.java` (기존 `dateLabel`) |
+| L1143~1146 (신청 기간 라인) | `applyPeriod` 신규 getter (Q3=a) | `_calendar-fragment.html:180~183` + `ProgramCardDto.java:328~331` (`getApplyPeriod()`) |
+| L1147~1150 (신청 현황 primary bold 12px) | "{applied}/{capacity}명" + null fallback (Q5=a+b) | `_calendar-fragment.html:184~189` + `main.css:8615~8619` (`.admin-program-calendar-panel-card-applied`) |
+| L1152~1155 (상세보기 버튼 primary bg + chevron) | detail button | `_calendar-fragment.html:194~202` + `main.css:8620~8635` |
+
+### DTO 매핑
+
+| 명세 요구 | 코드 위치 |
+|---|---|
+| Q3=a 공용 DTO 확장 (비파괴) | `ProgramCardDto.java:306` 이하 `FOLLOW` 섹션 |
+| Q4=a `formatRange` 공용 유틸 추출 | `ProgramCardDto.java:316~324` + 생성자 L80 재사용 |
+| `applyPeriod` getter | `ProgramCardDto.java:329~331` |
+| `thumbText` getter (제목 첫 1글자) | `ProgramCardDto.java:338~342` |
+
+### 계약 매핑 (`e2e/contracts/admin-programs-calendar.ts`)
+
+| 명세 요구 | check id |
+|---|---|
+| 썸네일 텍스트 전용 | `panel.card.thumb_text.exists` |
+| 제목 anchor | `panel.card.title.a.exists` |
+| 센터명 | `panel.card.center.exists` |
+| 구분선 | `panel.card.divider.exists` |
+| 정보 3라인 | `panel.card.info.rows.count` (min 3) |
+| 신청 현황 primary bold | `panel.card.applied.exists` |
+| 상세보기 버튼 | `panel.card.detail_btn.exists` |
+| capacity bar 재발 금지 | `panel.card.capacity_bar.absent` |
+| chip 재발 금지 | `panel.card.chip.absent` |
+
+### 테스트 매핑
+
+| 명세 요구 | 테스트 |
+|---|---|
+| 패널 카드 마크업 + regression | `AdminProgramCalendarRenderTest.admin_캘린더_패널_카드_prototype_매칭_마크업_렌더` |
+| 템플릿 SpEL 렌더 에러 없음 | `AdminProgramCalendarRenderTest.capacity_null_인_프로그램은_제한없음_fallback` |
+| 상세보기 버튼 클릭 → 상세 이동 | `admin-program-calendar.spec.ts` "FOLLOW: 패널 상세보기 버튼 클릭" |
+
+### CSS 삭제 범위 재판정
+
+명세 §3 "삭제" 요구: `.program-calendar-panel-card-{bar,chip,capacity,meta,thumb}` 등.
+
+**결정: 삭제하지 않음**. 이유:
+- user 쪽 `program/_calendar-fragment.html` 이 여전히 전 셀렉터 참조 중 (grep 전수 확인 완료)
+- admin 은 `admin-` 접두어 네임스페이스로 완전 분리 → 공유 CSS 와 충돌 없음
+- 명세 §5 safe-guard 조항 ("D5-Q3 가 보류한 경우 FOLLOW 가 삭제") 과 일치
+

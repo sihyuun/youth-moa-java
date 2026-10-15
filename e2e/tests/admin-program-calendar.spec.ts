@@ -82,6 +82,38 @@ test('패널 × 버튼 → 패널 close + 셀 선택 해제', async ({ page }) =
     await expect(page.locator('.program-calendar-cell--selected')).toHaveCount(0);
 });
 
+test('FOLLOW: 패널 "상세보기" 버튼 클릭 → /admin/programs/{id} 이동', async ({ page }) => {
+    await loginAdmin(page);
+    await page.goto('/admin/programs?view=calendar', { waitUntil: 'domcontentloaded' });
+
+    // 셀 중 pill 이 있는 것 (= panelData 보유) 을 찾아 클릭
+    const cellWithPill = page
+        .locator('.program-calendar-cell[data-in-month="true"]')
+        .filter({ has: page.locator('.program-calendar-pill') })
+        .first();
+
+    const cellCount = await cellWithPill.count();
+    if (cellCount === 0) {
+        test.skip(true, 'panelData 보유 셀 없음 (시드 데이터 월 범위 밖)');
+        return;
+    }
+
+    await cellWithPill.click();
+    const panel = page.locator('#admin-program-calendar-panel');
+    await expect(panel).toBeVisible();
+
+    // 상세보기 버튼 (admin prototype L1152~1155) — href = /admin/programs/{id}
+    const detailBtn = panel.locator('.admin-program-calendar-panel-card-detail-btn').first();
+    await expect(detailBtn).toBeVisible();
+    const href = await detailBtn.getAttribute('href');
+    expect(href).toMatch(/^\/admin\/programs\/\d+$/);
+
+    await detailBtn.click();
+    await page.waitForURL(/\/admin\/programs\/\d+$/);
+    // 상세 화면 로드 확인 (status 200)
+    expect(page.url()).toMatch(/\/admin\/programs\/\d+$/);
+});
+
 test('q·status URL 파라미터는 월 이동 nav 링크에 pass-through', async ({ page }) => {
     await loginAdmin(page);
     await page.goto(

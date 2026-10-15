@@ -138,41 +138,70 @@
       </div>
       <div class="program-calendar-panel-list">
         <!-- panelData 를 사전 렌더 후 hidden; JS 가 선택 날짜만 노출 -->
+        <!--
+          FOLLOW-admin-calendar-prototype-match (2026-10-14):
+          admin prototype L1125~1157 매칭. 텍스트 썸네일 + 진행/신청 기간 + 신청 현황 + 상세보기 버튼.
+          chip·capacity bar 제거 (prototype 에 없음).
+          anchor 중첩 회피를 위해 wrapper 는 <article>, 제목·버튼만 <a>.
+        -->
         <div th:each="entry : ${cv.panelData}"
              class="program-calendar-panel-group"
              th:attr="data-panel-day=${entry.key}"
              hidden>
-          <a th:each="card : ${entry.value}"
-             th:href="@{/admin/programs/{id}(id=${card.id})}"
-             class="program-calendar-panel-card">
-            <div class="program-calendar-panel-card-thumb">
-              <img th:if="${card.imageUrl != null and !#strings.isEmpty(card.imageUrl)}"
-                   th:src="${card.imageUrl}" th:alt="${card.title}"
-                   loading="lazy" decoding="async" width="60" height="60"/>
-              <span th:unless="${card.imageUrl != null and !#strings.isEmpty(card.imageUrl)}">IMG</span>
+          <article th:each="card : ${entry.value}"
+                   class="admin-program-calendar-panel-card">
+            <!-- 썸네일 (prototype L1130 — 100%×100px 보라 bg · 32px 보라 텍스트) -->
+            <div class="admin-program-calendar-panel-card-thumb">
+              <span class="admin-program-calendar-panel-card-thumb-text"
+                    th:text="${card.thumbText}">가</span>
             </div>
-            <div class="program-calendar-panel-card-body">
-              <div class="program-calendar-panel-card-meta">
-                <span th:class="'program-calendar-legend-dot program-calendar-legend-dot--'
-                                + (${card.status.name() == 'SUSPENDED'} ? 'ended'
-                                  : (${card.status.name() == 'UPCOMING'} ? 'upcoming'
-                                    : (${card.status.name() == 'ENDED'} ? 'ended' : 'open')))"></span>
-                <span class="program-calendar-panel-card-org"
+
+            <!-- Body -->
+            <div class="admin-program-calendar-panel-card-body">
+              <!-- 제목 (상세 이동 링크) + 센터명 (prototype L1134~1135) -->
+              <div class="admin-program-calendar-panel-card-head">
+                <h3 class="admin-program-calendar-panel-card-title">
+                  <a th:href="@{/admin/programs/{id}(id=${card.id})}"
+                     th:text="${card.title}">프로그램 제목</a>
+                </h3>
+                <span class="admin-program-calendar-panel-card-center"
                       th:text="${card.centerName}">청년센터</span>
-                <span th:if="${card.calendarChipLabel != null and !#strings.isEmpty(card.calendarChipLabel)}"
-                      th:class="'program-calendar-panel-card-chip program-calendar-panel-card-chip--' + ${card.calendarChipKind}"
-                      th:text="${card.calendarChipLabel}">D-3</span>
               </div>
-              <div class="program-calendar-panel-card-title"
-                   th:text="${card.title}">프로그램 제목</div>
-              <div class="program-calendar-panel-card-capacity">
-                <div class="program-calendar-panel-card-bar">
-                  <div th:class="'program-calendar-panel-card-bar-fill program-calendar-panel-card-bar-fill--' + ${card.colorClass}"
-                       th:style="'width:' + ${card.pct} + '%'"></div>
+
+              <!-- 구분선 (prototype L1137) -->
+              <div class="admin-program-calendar-panel-card-divider"></div>
+
+              <!-- 정보 3라인 (prototype L1139~1150) -->
+              <dl class="admin-program-calendar-panel-card-info">
+                <div class="admin-program-calendar-panel-card-info-row">
+                  <dt>진행 기간</dt>
+                  <dd th:text="${card.dateLabel}">2026-10-01~10-31</dd>
                 </div>
-              </div>
+                <div class="admin-program-calendar-panel-card-info-row">
+                  <dt>신청 기간</dt>
+                  <dd th:text="${card.applyPeriod}">2026-09-15~09-30</dd>
+                </div>
+                <div class="admin-program-calendar-panel-card-info-row">
+                  <dt>신청 현황</dt>
+                  <dd class="admin-program-calendar-panel-card-applied"
+                      th:text="${(card.capacity == null or card.capacity == 0)
+                                 ? '제한 없음'
+                                 : card.applicantCount + '/' + card.capacity + '명'}">8/20명</dd>
+                </div>
+              </dl>
+
+              <!-- 상세보기 버튼 (prototype L1152~1155 — primary bg + chevron) -->
+              <a class="admin-program-calendar-panel-card-detail-btn"
+                 th:href="@{/admin/programs/{id}(id=${card.id})}">
+                <span>상세보기</span>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2.5"
+                     aria-hidden="true">
+                  <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+              </a>
             </div>
-          </a>
+          </article>
         </div>
       </div>
       <div id="admin-program-calendar-panel-empty"

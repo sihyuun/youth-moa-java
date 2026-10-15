@@ -4,9 +4,13 @@
  * D-admin-calendar (2026-10-12) 산출. 사용자 F0f 캘린더(`programs-calendar.ts`) 패턴을
  * admin 네임스페이스로 포팅. POLICY P-6 (42셀 6행 고정) + Q1~Q10 결정 반영.
  *
- * 범위: 뷰 토글 세그먼트 · 42셀 grid · 월 이동 nav · 우측 300px slide 패널 · 범례.
- *   - 카드 뷰 placeholder 는 별도 계약 신설 안 함 (별 티켓에서 실 UI 신설 시 포함)
- *   - 주/리스트 뷰 없음 (Q4 MVP = 월간만)
+ * FOLLOW-admin-calendar-prototype-match (2026-10-14):
+ *   우측 패널 카드를 admin prototype L1125~1157 매칭으로 전면 재작성.
+ *   - 썸네일 100%×100px 보라 bg + 텍스트 (Q1=b)
+ *   - 제목 anchor + 센터명 (Q2=a)
+ *   - 진행 기간 / 신청 기간 / 신청 현황 3라인 (Q3·Q4)
+ *   - 상세보기 버튼 primary bg + chevron
+ *   - capacity bar / chip 제거 (negative check 로 regression 방지)
  */
 
 import type { ScreenContract } from './types';
@@ -14,7 +18,7 @@ import type { ScreenContract } from './types';
 export const adminProgramsCalendarContract: ScreenContract = {
     screen: 'admin-programs-calendar',
     path: '/admin/programs?view=calendar',
-    source: 'D-admin-calendar 2026-10-12 · POLICY P-6 · F0f CSS 재사용 (Q9)',
+    source: 'D-admin-calendar 2026-10-12 · FOLLOW-admin-calendar-prototype-match 2026-10-14 · POLICY P-6',
     viewport: { width: 1440, height: 900 },
     checks: [
         // ─── 뷰 토글 세그먼트 ───
@@ -126,6 +130,102 @@ export const adminProgramsCalendarContract: ScreenContract = {
             expected: true,
             proto: 'spec Q8',
             severity: 'P1',
+        },
+
+        // ─── FOLLOW-admin-calendar-prototype-match: 우측 패널 카드 구조 ───
+        // 패널은 초기 hidden 이지만 panelData 는 사전 렌더되어 DOM 에 존재한다.
+        // panel-group[hidden] 안에 카드가 들어가므로 count 는 그대로 세어진다.
+        {
+            id: 'panel.card.wrapper.exists',
+            desc: 'FOLLOW: 패널 카드 wrapper 는 <article> (anchor 중첩 회피)',
+            selector: '.admin-program-calendar-panel-card',
+            kind: 'exists',
+            expected: true,
+            proto: 'admin/prototype.html L1125 · spec Q2=a',
+            severity: 'P0',
+        },
+        {
+            id: 'panel.card.thumb_text.exists',
+            desc: 'FOLLOW: 텍스트 전용 썸네일 (제목 첫 글자 32px 보라)',
+            selector: '.admin-program-calendar-panel-card-thumb-text',
+            kind: 'exists',
+            expected: true,
+            proto: 'admin/prototype.html L1130 · spec Q1=b',
+            severity: 'P0',
+        },
+        {
+            id: 'panel.card.title.a.exists',
+            desc: 'FOLLOW: 제목 anchor (제목만 상세 링크)',
+            selector: '.admin-program-calendar-panel-card-title a[href^="/admin/programs/"]',
+            kind: 'exists',
+            expected: true,
+            proto: 'admin/prototype.html L1134 · spec Q2=a',
+            severity: 'P0',
+        },
+        {
+            id: 'panel.card.center.exists',
+            desc: 'FOLLOW: 센터명 라인 (11px #6E6B82)',
+            selector: '.admin-program-calendar-panel-card-center',
+            kind: 'exists',
+            expected: true,
+            proto: 'admin/prototype.html L1135',
+            severity: 'P1',
+        },
+        {
+            id: 'panel.card.divider.exists',
+            desc: 'FOLLOW: 구분선 (1px #F0EFF3)',
+            selector: '.admin-program-calendar-panel-card-divider',
+            kind: 'exists',
+            expected: true,
+            proto: 'admin/prototype.html L1137',
+            severity: 'P2',
+        },
+        {
+            id: 'panel.card.info.rows.count',
+            desc: 'FOLLOW: 정보 3라인 (진행 기간 / 신청 기간 / 신청 현황)',
+            selector: '.admin-program-calendar-panel-card-info-row',
+            kind: 'count-min',
+            expected: 3,
+            proto: 'admin/prototype.html L1139~1150',
+            severity: 'P0',
+        },
+        {
+            id: 'panel.card.applied.exists',
+            desc: 'FOLLOW: 신청 현황 값 (primary bold 12px)',
+            selector: '.admin-program-calendar-panel-card-applied',
+            kind: 'exists',
+            expected: true,
+            proto: 'admin/prototype.html L1148~1149 · spec Q5=a',
+            severity: 'P0',
+        },
+        {
+            id: 'panel.card.detail_btn.exists',
+            desc: 'FOLLOW: 상세보기 버튼 (primary bg + white)',
+            selector: '.admin-program-calendar-panel-card-detail-btn[href^="/admin/programs/"]',
+            kind: 'exists',
+            expected: true,
+            proto: 'admin/prototype.html L1152~1155',
+            severity: 'P0',
+        },
+
+        // ─── negative checks: regression 방지 ───
+        {
+            id: 'panel.card.capacity_bar.absent',
+            desc: 'FOLLOW: capacity bar 는 admin 캘린더 패널 카드에 없다 (prototype 매칭)',
+            selector: '.admin-program-calendar-panel-card .program-calendar-panel-card-bar',
+            kind: 'not-exists',
+            expected: true,
+            proto: 'admin/prototype.html L1125~1157 (bar 없음) · spec Q5 연쇄',
+            severity: 'P0',
+        },
+        {
+            id: 'panel.card.chip.absent',
+            desc: 'FOLLOW: chip (D-3 / 마감 / 종료) 는 admin 캘린더 패널 카드에 없다 (prototype 매칭)',
+            selector: '.admin-program-calendar-panel-card .program-calendar-panel-card-chip',
+            kind: 'not-exists',
+            expected: true,
+            proto: 'admin/prototype.html L1125~1157 (chip 없음) · spec Q5 연쇄',
+            severity: 'P0',
         },
     ],
 };
