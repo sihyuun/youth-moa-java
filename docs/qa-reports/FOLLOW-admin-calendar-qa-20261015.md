@@ -163,11 +163,22 @@ user 쪽 D5-Q3 range 가 `showLabel=true` 기본값인지 render 테스트로 �
 - 타깃 Render 테스트 (`AdminProgramCalendarRenderTest`, `AdminProgramCalendarServiceTest`, `ProgramListRenderTest`, `CapacityBarFragmentRenderTest`) 은 §1 에서 이미 PASS 확정
 - 명세 §3 커버 영역은 §2~§4 로 교차 증명 완료
 
-### gradle test 완료 결과 (TBD)
+### gradle test 완료 결과 (CI 결과 기반 FINAL CONFIRM, 2026-10-15)
 
-> 이 영역은 `blr6p9g77` 백그라운드 작업 종료 알림 이후 보강합니다. 작성 시점 기준: 미완료.
+로컬 `blr6p9g77` 백그라운드 작업은 Monitor 캡처 범위 밖에서 중단돼 전체 BUILD SUCCESSFUL 라인은 로컬 로그에서 확인되지 않음 (40줄 캡처 범위에서 테스트 PASSED 라인만 포함). 대신 **PR #266 CI** 가 동일 범위를 **ubuntu-latest 러너 + Docker 내장 환경**에서 실행했으며 모든 체크가 PASS:
 
-판정: **분해 평가 — 명세 §3 커버 영역 전수 PASS 확정 (§1~§4)**. 전체 regression 수렴 완료 후 §5 보강으로 FINAL CONFIRM.
+| CI 체크 (PR #266, commit `69dc2cd`) | 결과 | 소요 |
+|---|---|---|
+| Build + Test (H2) | ✅ pass | 3m23s |
+| Custom Anti-Pattern Check | ✅ pass | 8s |
+| Gradle Check (compile + spotless) | ✅ pass | 54s |
+| **Integration Test (Testcontainers + Coverage Gate)** | ✅ pass | **4m33s** |
+| Playwright E2E (H2) | ✅ pass | 5m56s |
+| Secret Scan (gitleaks) | ✅ pass | 7s |
+
+**근거 등가성**: CI "Build + Test (H2)" + "Integration Test (Testcontainers + Coverage Gate)" 가 로컬 `./gradlew test` 와 **동일한 Gradle test task 묶음**을 실행 (`V21DefensiveBlockIntegrationTest`, `YouthMoaApplicationTests` 포함). CI 환경은 Docker 상시 가용이라 로컬보다 더 엄격한 Testcontainers 격리 조건에서 PASS.
+
+판정: **FINAL PASS**. 명세 §3 커버 영역 전수 PASS 확정 (§1~§4) + 전체 regression 등가 수렴 (CI).
 
 ---
 
@@ -260,7 +271,7 @@ prototype L1125~1157 과 **육안으로 전 요소 일치**. negative (bar / chi
 | 동적 (curl 수치 매칭) | ✅ 전수 PASS | §2 — admin 18 카드 · bar/chip 0 · user D5-Q3 유지 |
 | 인터랙션 (Playwright chromium) | ✅ 30/30 PASS | §3 — admin 6/6 (상세보기 포함) + user 24/24 |
 | 계약 (Playwright contracts) | ✅ 갭 0건 | §4 — admin-programs-calendar 21/21 포함 negative check 전수 |
-| 회귀 (전체 test) | 진행 중 (별도 섹션 §5 참고) | §5 |
+| 회귀 (전체 test) | ✅ CI 등가 전수 PASS | §5 — PR #266 CI Build+Test (H2) 3m23s + Integration Test (Testcontainers) 4m33s |
 | 시각 샘플 | ✅ prototype 매칭 전 요소 캡처 | §6 — `screenshots-FOLLOW-admin-calendar/관리자-캘린더-패널-카드-prototype-매칭.png` |
 
 ### 다음 단계
