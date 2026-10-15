@@ -10,6 +10,12 @@
     <meta name="_csrf" th:content="${_csrf?.token}"/>
     <meta name="_csrf_header" th:content="${_csrf?.headerName}"/>
     <script th:src="@{/webjars/htmx.org/2.0.4/dist/htmx.min.js}" defer></script>
+    <!--
+      A7-realtime (2026-10-15): HTMX SSE 확장. self-host (webjar 미공개).
+      htmx 코어가 로드되기 전엔 htmx.defineExtension 이 undefined 이므로 반드시 htmx.min.js 뒤에 둠.
+      defer 순서는 선언 순서와 동일 → 안전.
+    -->
+    <script th:src="@{/js/htmx-ext-sse.js}" defer></script>
     <script th:src="@{/js/htmx-csrf.js}" defer></script>
     <script th:src="@{/js/common-ui.js}" defer></script>
 </th:block>

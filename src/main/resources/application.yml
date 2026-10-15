@@ -39,6 +39,12 @@ spring:
     suffix: .html
     enabled: true
 
+  # A7-realtime (2026-10-15): SSE emitter 가 30분까지 열려 있어야 하므로 async request timeout 상향.
+  # 기본 30s 는 SseEmitter 수명을 너무 짧게 끊음. -1 (무한) 은 리크 위험이라 명시적으로 넉넉히.
+  mvc:
+    async:
+      request-timeout: ${SPRING_MVC_ASYNC_TIMEOUT:1800000}
+
   # A7 admin-invitation-mail (2026-09-30 · SMTP 초대 메일):
   # - dev/local 기본: MailHog (localhost:1025, plain SMTP, 인증 없음).
   #   → docker run -p 1025:1025 -p 8025:8025 mailhog/mailhog 로 기동, http://localhost:8025 로 수신 확인.

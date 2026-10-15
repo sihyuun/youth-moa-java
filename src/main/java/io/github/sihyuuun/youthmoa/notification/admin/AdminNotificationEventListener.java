@@ -1,13 +1,16 @@
 package io.github.sihyuuun.youthmoa.notification.admin;
 
 import io.github.sihyuuun.youthmoa.application.event.ApplicationCreatedEvent;
+import io.github.sihyuuun.youthmoa.notification.Notification;
 import io.github.sihyuuun.youthmoa.notification.NotificationService;
 import io.github.sihyuuun.youthmoa.notification.NotificationType;
+import io.github.sihyuuun.youthmoa.notification.sse.NotificationBroadcastEvent;
 import io.github.sihyuuun.youthmoa.user.User;
 import io.github.sihyuuun.youthmoa.user.event.UserCreatedEvent;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -56,6 +59,14 @@ public class AdminNotificationEventListener {
   private final UserCreatedRecipientResolver userCreatedResolver;
 
   /**
+   * A7-realtime (2026-10-15): fan-out INSERT 완료 후 수신자별 SSE push 트리거. {@link
+   * NotificationBroadcastEvent} 를 발행하면 {@link
+   * io.github.sihyuuun.youthmoa.notification.sse.NotificationSseEventListener} 가 받아 활성 emitter 에게
+   * badge(+item) 를 전송한다.
+   */
+  private final ApplicationEventPublisher publisher;
+
+  /**
    * 신청 생성 시 (신규 or 재신청) admin 알림 발행. 수신자는 B-3 (A9-b): program.center.id 매칭 CENTER_ADMIN 만.
    *
    * <p>Qn-8 링크: {@code /admin/programs/{programId}/applications} (A4 신청 현황 화면).
@@ -80,8 +91,10 @@ public class AdminNotificationEventListener {
       for (User admin : recipients) {
         // 개별 실패가 다른 수신자에게 전파되지 않도록 try 안에서 각각 저장.
         try {
-          notificationService.createOrMerge(
-              admin.getId(), NotificationType.NEW_APPLICATION, dedupKey, title, message, link);
+          Notification saved =
+              notificationService.createOrMerge(
+                  admin.getId(), NotificationType.NEW_APPLICATION, dedupKey, title, message, link);
+          publishBroadcast(admin.getId(), saved);
         } catch (RuntimeException e) {
           log.error(
               "[A7] NEW_APPLICATION 개별 INSERT 실패 adminId={} applicationId={}",
@@ -119,8 +132,10 @@ public class AdminNotificationEventListener {
       String dedupKey = "NEW_USER:global";
       for (User admin : recipients) {
         try {
-          notificationService.createOrMerge(
-              admin.getId(), NotificationType.NEW_USER, dedupKey, title, message, link);
+          Notification saved =
+              notificationService.createOrMerge(
+                  admin.getId(), NotificationType.NEW_USER, dedupKey, title, message, link);
+          publishBroadcast(admin.getId(), saved);
         } catch (RuntimeException e) {
           log.error(
               "[A7] NEW_USER 개별 INSERT 실패 adminId={} userId={}", admin.getId(), event.userId(), e);
@@ -128,6 +143,26 @@ public class AdminNotificationEventListener {
       }
     } catch (RuntimeException e) {
       log.error("[A7] NEW_USER fan-out 실패 userId={}", event.userId(), e);
+    }
+  }
+
+  /**
+   * A7-realtime (2026-10-15): fan-out INSERT 완료 1건을 SSE push 로 중계.
+   *
+   * <p>Q2 결정: merged 여부는 {@code occurrenceCount > 1} 로 판정 (createOrMerge 가 신규 저장 시 count=1, 병합 시
+   * count++ 후 반환). 발행 실패해도 fan-out 자체는 성공 처리 — publisher 는 비동기/동기 모두 가능하지만 여기선 Spring 기본 동기 모드이므로
+   * Listener 예외는 try 로 삼킨다.
+   */
+  private void publishBroadcast(Long recipientUserId, Notification saved) {
+    try {
+      boolean merged = saved.getOccurrenceCount() > 1;
+      publisher.publishEvent(new NotificationBroadcastEvent(recipientUserId, saved, merged));
+    } catch (RuntimeException e) {
+      log.warn(
+          "[A7-sse] broadcast publish failed userId={} notificationId={}",
+          recipientUserId,
+          saved != null ? saved.getId() : null,
+          e);
     }
   }
 

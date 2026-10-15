@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<!--
+  A7-realtime (2026-10-15): SSE push 로 수신된 신규 알림을 드롭다운 리스트 상단에 prepend 하는 fragment.
+
+  · 기존 _notification-dropdown.html 의 <li> 구조와 동일 (CSS 재사용). 중복은 유지 비용이 작고,
+    SSE 라인 안에 <li> 하나만 들어가도록 분리하는 것이 포맷 단순화에 유리.
+  · `renderer.renderItem(notification)` 이 이 fragment 를 호출. 변수명 `n` 고정.
+  · unread dot 은 신규 발행 알림이라 항상 노출.
+  · occurrenceCount > 1 이면 "[n건] " 접두 — 사용자 트랙과 정합.
+-->
+<li th:fragment="item"
+    th:id="'admin-notif-item-' + ${n.id}"
+    class="admin-notif-item admin-notif-item--unread">
+    <a th:href="@{|/admin/notifications/${n.id}/read|}"
+       th:attr="hx-post=@{|/admin/notifications/${n.id}/read|}"
+       hx-swap="none"
+       class="admin-notif-item-link">
+        <span th:class="'admin-notif-icon admin-notif-icon--' + ${n.type.toneColor}"
+              aria-hidden="true">
+            <svg th:if="${n.type.iconName == 'bell'}" viewBox="0 0 24 24" width="15" height="15" fill="none"
+                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                <path d="M13.73 21a2 2 0 01-3.46 0"/>
+            </svg>
+            <svg th:if="${n.type.iconName == 'check'}" viewBox="0 0 24 24" width="15" height="15" fill="none"
+                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12"/>
+            </svg>
+            <svg th:if="${n.type.iconName == 'close'}" viewBox="0 0 24 24" width="15" height="15" fill="none"
+                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"/>
+                <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+            <svg th:if="${n.type.iconName == 'calendar'}" viewBox="0 0 24 24" width="15" height="15" fill="none"
+                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                <line x1="16" y1="2" x2="16" y2="6"/>
+                <line x1="8" y1="2" x2="8" y2="6"/>
+                <line x1="3" y1="10" x2="21" y2="10"/>
+            </svg>
+        </span>
+        <div class="admin-notif-body">
+            <div class="admin-notif-title"
+                 th:attr="data-count=${n.occurrenceCount}"
+                 th:text="${n.occurrenceCount > 1} ? ('[' + ${n.occurrenceCount} + '건] ' + ${n.title}) : ${n.title}">
+                알림 제목
+            </div>
+            <div class="admin-notif-message" th:text="${n.message}">알림 메시지</div>
+            <time class="admin-notif-time"
+                  th:datetime="${#temporals.format(n.lastOccurredAt, 'yyyy-MM-dd''T''HH:mm')}"
+                  th:text="${#temporals.format(n.lastOccurredAt, 'MM.dd HH:mm')}">10.15 12:34</time>
+        </div>
+        <div class="admin-notif-actions">
+            <button type="button"
+                    class="admin-notif-delete"
+                    aria-label="삭제"
+                    th:attr="hx-post=@{|/admin/notifications/${n.id}/delete|},hx-target='#admin-notif-item-' + ${n.id}"
+                    hx-swap="delete">
+                <svg viewBox="0 0 24 24" width="12" height="12" fill="none"
+                     stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+            </button>
+            <span class="admin-notif-unread-dot" aria-hidden="true"></span>
+        </div>
+    </a>
+</li>
+</body>
+</html>
