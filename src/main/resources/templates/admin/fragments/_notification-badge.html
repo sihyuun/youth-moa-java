@@ -18,6 +18,7 @@
 <span th:fragment="badge(count)"
       id="admin-notif-badge"
       class="admin-notif-badge"
+      sse-swap="notification-badge"
       th:data-notif-badge="${count}"
       th:hidden="${count == null or count &lt;= 0}"
       th:text="${count != null and count &gt; 0} ? ${count} : ''"

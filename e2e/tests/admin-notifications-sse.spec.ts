@@ -41,20 +41,23 @@ test.describe('A7-realtime admin 알림 SSE', () => {
             await login(userPage, userEmail);
             await resetApplications(userPage, { userEmail, programId: 2 });
 
-            // admin 로그인 후 SSE 연결 수립 대기 + 기준 배지 값 캡쳐
-            await loginAdmin(adminPage);
-            await adminPage.goto('/admin', { waitUntil: 'domcontentloaded' });
-
-            // htmx:sseOpen 이벤트 observe — 전역 플래그로 떨어뜨림
-            await adminPage.evaluate(() => {
+            // A7-realtime (2026-10-15 QA 완결): race condition 회피 —
+            // addInitScript 로 리스너를 goto 이전에 심어야 htmx:sseOpen 발화를 안전하게 포착.
+            // (loginAdmin → goto 사이에 이미 SSE open 이 끝나면 evaluate() 로 심은 리스너는 못 받음)
+            await adminPage.addInitScript(() => {
                 (window as unknown as { __sseOpenFired?: boolean }).__sseOpenFired = false;
                 document.addEventListener('htmx:sseOpen', () => {
                     (window as unknown as { __sseOpenFired: boolean }).__sseOpenFired = true;
                 });
             });
+
+            // admin 로그인 후 SSE 연결 수립 대기 + 기준 배지 값 캡쳐
+            await loginAdmin(adminPage);
+            await adminPage.goto('/admin', { waitUntil: 'domcontentloaded' });
+
             await adminPage.waitForFunction(
                 () => (window as unknown as { __sseOpenFired: boolean }).__sseOpenFired === true,
-                { timeout: 5000 },
+                { timeout: 10000 },
             );
 
             const beforeBadge = await adminPage.locator('#admin-notif-badge').getAttribute('data-notif-badge');
