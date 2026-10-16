@@ -28,9 +28,11 @@
 
 | 상태 | 트리거 | DOM 변화 |
 |---|---|---|
-| 초기 | 페이지 진입 | 벨 + 배지(unread=0 이면 hidden) + dropdown[hidden] |
+| 초기 | 페이지 진입 | 벨 + 배지(unread=0 이면 hidden) + dropdown[hidden] + EventSource(/admin/notifications/stream) 수립 |
 | 벨 클릭 | 사용자 | GET /admin/notifications/dropdown → panel innerHTML 삽입 · dropdown hidden 해제 (JS) |
-| 30s tick | polling | GET /admin/notifications/badge → #admin-notif-badge outerHTML swap |
+| sse event `notification-badge` | 서버 push | #admin-notif-badge outerHTML swap (A7-realtime, 2026-10-15 polling 치환) |
+| sse event `notification-item` | 서버 push (신규만) | 드롭다운 열려 있으면 .admin-notif-list 상단 prepend + 0.6s 벨 flash |
+| sse event `heartbeat` | 서버 25s 주기 | 클라 무시 (프록시 keep-alive) |
 | 개별 클릭 | 사용자 | POST /admin/notifications/{id}/read → HX-Redirect (A4/A5) |
 | 모두 읽음 | 사용자 | POST /admin/notifications/mark-all-read → panel innerHTML 재렌더 · unread=0 |
 | 삭제 | 사용자 | POST /admin/notifications/{id}/delete → item DOM 제거 + OOB 배지 갱신 |
@@ -61,6 +63,11 @@
 - P-1 카피: "새 신청이 접수됐어요" / "새 회원이 가입했어요" — 존댓말 (feedback_tone_jondaetmal)
 - 시간 표기: `MM.dd HH:mm` (사용자 트랙 정합, 상대 시간은 이월)
 - 배지 색상: `#E72D0F` (POLICY 대비 다크 헤더 위 유일 예외 컬러 — proto 정합)
+- P-5 신규 알림 수신 flash: SSE event 수신 시 배지 bg 0.6s 1회 flash (A7-realtime Q4, prototype 미명시 개선)
+
+## prototype 에 없는 구현 추가 요소 (POLICY P-5)
+
+- `admin-notif-badge--flash` 애니메이션 (SSE 수신 시 0.6s bg flash) — A7-realtime 티켓에서 추가. prototype 은 React re-render 로만 변화 표현.
 
 ## deviation / deferred
 
@@ -71,7 +78,6 @@
 | SYSTEM_ADMIN NEW_APPLICATION 수신 | deviation (QC B-1 결정) — A6 대시보드 카드로 커버 |
 | 승인/반려 admin 알림 | deviation (Qn-7) — 담당자 본인 처리라 재알림 불필요 |
 | rate limiting (5분 병합) | deferred — A7-rate-limit |
-| SSE / WebSocket 실시간 | deferred — A7-realtime |
 
 ## 실측 selector (§Qn-Δ)
 

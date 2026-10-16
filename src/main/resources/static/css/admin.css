@@ -3212,6 +3212,22 @@ body.admin-shell-body {
     pointer-events: none;
 }
 
+/*
+ * A7-realtime (2026-10-15) — Q4 신규 알림 수신 flash.
+ * SSE event "notification-badge" / "notification-item" 수신 시 header.html 의 JS 가
+ * .admin-notif-badge--flash 를 650ms 간 추가. 전환 종료 시 자동 제거.
+ * POLICY P-5 (prototype 미명시 개선) — 0.6s 1회성, 과도한 모션 아님.
+ */
+@keyframes admin-notif-flash {
+    0%   { background: #E72D0F; box-shadow: 0 0 0 0 rgba(231, 45, 15, 0.6); }
+    50%  { background: #FF6B4A; box-shadow: 0 0 0 6px rgba(231, 45, 15, 0.0); }
+    100% { background: #E72D0F; box-shadow: 0 0 0 0 rgba(231, 45, 15, 0); }
+}
+
+.admin-notif-badge--flash {
+    animation: admin-notif-flash 600ms ease-out 1;
+}
+
 /* 드롭다운 패널: 300px 라이트 카드 */
 .admin-notif-dropdown {
     position: absolute;

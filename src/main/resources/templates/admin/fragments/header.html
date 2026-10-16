@@ -95,12 +95,17 @@
         </form>
 
         <!--
-          A7 admin 헤더 알림 벨 (2026-09-17) — 실동작.
-          · 벨 클릭 시 hx-get 으로 최근 5건 드롭다운 fetch → #admin-notif-dropdown 대체.
-          · 30s polling wrapper 가 배지만 주기적으로 갱신 (드롭다운 트래픽 최소화, Qn-1).
-          · Qn-6: unread=0 이면 배지 자체를 hidden 속성으로 완전 숨김.
+          A7-realtime (2026-10-15) — 알림 벨 트랜스포트: HTMX polling 30s → SSE push.
+          · 벨 클릭 시 hx-get 으로 최근 5건 드롭다운 fetch → #admin-notif-dropdown 대체 (무변경).
+          · wrapper 에 hx-ext="sse" + sse-connect 로 /admin/notifications/stream 연결 1회 수립.
+          · 배지 span 은 sse-swap="notification-badge" 로 서버 push 받을 때마다 outerHTML 교체.
+          · 드롭다운 리스트는 sse-swap="notification-item" + hx-swap="afterbegin" — 열린 상태에서 상단 prepend.
+          · Q4 신규 수신 시 0.6s bg flash 애니메이션 (POLICY P-5 신설, prototype 미명시 deviation).
         -->
-        <div class="admin-header-notif" data-dropdown-trigger-wrap="admin-notif-dropdown">
+        <div class="admin-header-notif"
+             data-dropdown-trigger-wrap="admin-notif-dropdown"
+             hx-ext="sse"
+             sse-connect="/admin/notifications/stream">
             <button type="button"
                     class="admin-header-icon-btn admin-header-bell"
                     aria-label="알림"
@@ -118,19 +123,50 @@
                     <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/>
                     <path d="M13.73 21a2 2 0 01-3.46 0"/>
                 </svg>
-                <!--/* 초기 배지 — 이후 polling 이 outerHTML 로 교체. adminHeaderUnreadCount 는 AdminHeaderNotificationAdvice 가 주입 */-->
-                <div th:replace="~{admin/fragments/_notification-badge :: badge(${adminHeaderUnreadCount})}"></div>
+                <!--/*
+                  초기 배지 — 이후 SSE event "notification-badge" 로 outerHTML 교체.
+                  wrapper 에 올려둔 EventSource 가 bubble 하므로 span 자체가 sse-swap 대상이 될 수 있다.
+                */-->
+                <span sse-swap="notification-badge"
+                      hx-swap="outerHTML"
+                      th:replace="~{admin/fragments/_notification-badge :: badge(${adminHeaderUnreadCount})}"></span>
             </button>
-            <!--/* 30s polling — hx-swap="outerHTML" 로 이 wrapper 자체를 새 응답으로 교체하면 안 됨(hx-trigger 유실). span 만 대체하도록 badge fragment 를 target 삼는다. */-->
-            <div hx-get="/admin/notifications/badge"
-                 hx-trigger="every 30s"
-                 hx-target="#admin-notif-badge"
-                 hx-swap="outerHTML"
-                 hx-select="#admin-notif-badge"
-                 aria-hidden="true"
-                 style="display:none"></div>
-            <div id="admin-notif-dropdown" class="admin-notif-dropdown" role="menu" hidden></div>
+            <!--/*
+              드롭다운 리스트 target: SSE "notification-item" 이벤트 수신 시 <ul.admin-notif-list> 상단에 prepend.
+              닫혀 있을 때(innerHTML 비어있음)는 target .admin-notif-list 가 없어 sse-swap 이 no-op (안전).
+            */-->
+            <div id="admin-notif-dropdown"
+                 class="admin-notif-dropdown"
+                 role="menu"
+                 hidden
+                 sse-swap="notification-item"
+                 hx-target=".admin-notif-list"
+                 hx-swap="afterbegin"></div>
         </div>
+        <!--/*
+          A7-realtime (2026-10-15) — Q4 vb flash: SSE 수신 시 벨 배지에 0.6s bg flash.
+          wrapper 레벨에서 htmx:sseMessage 이벤트를 수신해 class toggle. 세션 당 1회 바인딩이면 충분.
+        */-->
+        <script th:inline="javascript">
+            (function () {
+                document.addEventListener('htmx:sseMessage', function (evt) {
+                    var ev = evt.detail && evt.detail.event;
+                    if (!ev || (ev.type !== 'notification-badge' && ev.type !== 'notification-item')) {
+                        return;
+                    }
+                    var badge = document.getElementById('admin-notif-badge');
+                    if (!badge) return;
+                    badge.classList.remove('admin-notif-badge--flash');
+                    // reflow 유도 — 연속 수신 시 애니메이션 재시작 보장
+                    void badge.offsetWidth;
+                    badge.classList.add('admin-notif-badge--flash');
+                    window.setTimeout(function () {
+                        var el = document.getElementById('admin-notif-badge');
+                        if (el) el.classList.remove('admin-notif-badge--flash');
+                    }, 650);
+                });
+            })();
+        </script>
 
         <!-- 유저 드롭다운 -->
         <div class="admin-header-user-menu">
