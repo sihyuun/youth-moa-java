@@ -10,6 +10,7 @@
 | 관리자 shell (다크 헤더) | `/admin` | `e2e/contracts/admin-shell.ts` | `docs/design-contracts/admin/shell.md` | A1 |
 | 대시보드 콘텐츠 | `/admin` | `e2e/contracts/admin-dashboard.ts` | `docs/design-contracts/admin/dashboard.md` | A1 |
 | 헤더 글로벌 검색 | `/admin` | `e2e/contracts/admin-search.ts` | `docs/design-contracts/admin/search.md` | A8-search (2026-10-01) |
+| 사용자 상세 (발급 직후 상태) | `/admin/users/{id}` *리다이렉트 상태* | `e2e/contracts/admin-user-detail-after-issue.ts` | `docs/design-contracts/admin/user-detail-after-issue.md` | A5-1-e2e Part 1 (2026-10-16) |
 
 ## prototype 출처
 

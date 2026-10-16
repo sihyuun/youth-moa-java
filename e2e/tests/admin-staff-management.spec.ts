@@ -130,59 +130,83 @@ test('임시 비밀번호 재발급 — 상세에서 재발급 버튼 → 메일
     await expect(page.locator(INITIAL_PW_CARD)).toHaveCount(0);
 });
 
-// A7 (2026-09-30, Q3=A) 이월: 메일 발송 성공 시 임시 비밀번호는 메일에만 담김 → 화면에서 tempPw 를
-// 얻어 스태프 재로그인하는 이 시나리오는 성립하지 않는다. fallback (메일 실패 강제) 경로가 도입되면
-// 그때 함께 되살린다. 별건 이월 (mock force-fail flag 신설 필요).
-test.skip('강제 비밀번호 변경 — 신규 관리자 첫 로그인 시 /password/change 강제 → 변경 후 정상 진입', async ({
+// A5-1-e2e Part 1 Q1 (2026-10-16, A안 재활성화): 메일 발송 성공 시 임시 비밀번호는 메일에만 담기므로
+// force-fail toggle ON → fallback password 카드에서 tempPw 추출 → force-fail OFF 복구 → 신규 관리자
+// 재로그인 → /password/change 강제 → 변경 → /logout → 새 PW 로 재로그인 → /admin 정상 진입 왕복을 검증한다.
+//
+// finally 블록이 반드시 force-fail OFF 복구를 수행 — 중간 실패 시 다음 spec 오염 차단.
+test('강제 비밀번호 변경 — 신규 관리자 첫 로그인 시 /password/change 강제 → 변경 후 정상 진입', async ({
     page,
     browser,
+    request,
 }) => {
     const email = uniqueEmail('force');
     const newPw = 'NewPass123';
 
-    // 1) SYSTEM_ADMIN 이 CENTER_ADMIN 스태프 발급 (강제 변경 flag 확정 대상)
-    await loginAdmin(page);
-    await page.goto('/admin/users/new', { waitUntil: 'domcontentloaded' });
-    await page.locator(EMAIL_INPUT).fill(email);
-    await page.locator(NAME_INPUT).fill('강제변경 대상');
-    await page.locator(ACCOUNT_TYPE_ADMIN).check();
-    await page.locator(ROLE_CENTER).check();
-    await page.locator(CENTER_SELECT).selectOption({ index: 1 });
-    await page.locator(SUBMIT).click();
-    await page.waitForURL(/\/admin\/users\/\d+/);
-    const tempPw = (await page.locator(INITIAL_PW_VALUE).textContent())?.trim();
-    expect(tempPw).toBeTruthy();
+    // 1) 강제 실패 mode ON — tempPw 를 화면 fallback 카드에서 획득하기 위함
+    let res = await request.post('/__test__/mail/force-fail?enabled=true');
+    expect(res.status()).toBe(204);
 
-    // 2) 발급된 스태프로 별도 컨텍스트에서 로그인 → 인터셉터가 /password/change 로 강제 이동
-    const ctx = await browser.newContext();
-    const staff = await ctx.newPage();
-    await abortExternal(staff);
-    await staff.goto('/admin/login', { waitUntil: 'domcontentloaded' });
-    await staff.locator('input[name="username"]').fill(email);
-    await staff.locator('input[name="password"]').fill(tempPw!);
-    await staff.locator('#adminLoginForm button[type="submit"]').click();
+    try {
+        // 2) SYSTEM_ADMIN 이 CENTER_ADMIN 스태프 발급 (강제 변경 flag 확정 대상)
+        await loginAdmin(page);
+        await page.goto('/admin/users/new', { waitUntil: 'domcontentloaded' });
+        await page.locator(EMAIL_INPUT).fill(email);
+        await page.locator(NAME_INPUT).fill('강제변경 대상');
+        await page.locator(ACCOUNT_TYPE_ADMIN).check();
+        await page.locator(ROLE_CENTER).check();
+        await page.locator(CENTER_SELECT).selectOption({ index: 1 });
+        await page.locator(SUBMIT).click();
+        await page.waitForURL(/\/admin\/users\/\d+/);
 
-    await staff.waitForURL('**/password/change');
-    await expect(staff.locator('[data-testid="password-change-force-notice"]')).toBeVisible();
+        // 3) fallback 카드에서 tempPw 추출 (메일 성공 경로에서는 노출되지 않음 — Q3 A 보안 정책)
+        await expect(page.locator(INITIAL_PW_CARD)).toBeVisible();
+        const tempPw = (await page.locator(INITIAL_PW_VALUE).textContent())?.trim();
+        expect(tempPw && tempPw.length >= 8).toBeTruthy();
 
-    // 3) 비밀번호 변경
-    await staff.locator('input[data-testid="password-change-current"]').fill(tempPw!);
-    await staff.locator('input[data-testid="password-change-new"]').fill(newPw);
-    await staff.locator('input[data-testid="password-change-confirm"]').fill(newPw);
-    await staff.locator('button[data-testid="password-change-submit"]').click();
+        // 4) 이후 로그인/재로그인 flow 는 메일 발송과 무관하므로 force-fail 복구 (여기서 조기 OFF)
+        res = await request.post('/__test__/mail/force-fail?enabled=false');
+        expect(res.status()).toBe(204);
 
-    // 성공 → /logout 경유. /password/change 를 벗어나면 성공.
-    await staff.waitForURL(url => !url.pathname.endsWith('/password/change'));
+        // 5) 발급된 스태프로 별도 컨텍스트에서 로그인 → 인터셉터가 /password/change 로 강제 이동
+        const ctx = await browser.newContext();
+        try {
+            const staff = await ctx.newPage();
+            await abortExternal(staff);
+            await staff.goto('/admin/login', { waitUntil: 'domcontentloaded' });
+            await staff.locator('input[name="username"]').fill(email);
+            await staff.locator('input[name="password"]').fill(tempPw!);
+            await staff.locator('#adminLoginForm button[type="submit"]').click();
 
-    // 4) 새 비밀번호로 재로그인 → /admin 정상 진입 (강제 리다이렉트 없음 = flag 해제 확인)
-    await staff.goto('/admin/login', { waitUntil: 'domcontentloaded' });
-    await staff.locator('input[name="username"]').fill(email);
-    await staff.locator('input[name="password"]').fill(newPw);
-    await staff.locator('#adminLoginForm button[type="submit"]').click();
-    await staff.waitForURL('**/admin');
-    expect(new URL(staff.url()).pathname).toMatch(/\/admin$/);
+            await staff.waitForURL('**/password/change');
+            await expect(
+                staff.locator('[data-testid="password-change-force-notice"]'),
+            ).toBeVisible();
 
-    await ctx.close();
+            // 6) 비밀번호 변경 → 성공 시 PasswordChangeController 가 redirect:/logout
+            await staff.locator('input[data-testid="password-change-current"]').fill(tempPw!);
+            await staff.locator('input[data-testid="password-change-new"]').fill(newPw);
+            await staff.locator('input[data-testid="password-change-confirm"]').fill(newPw);
+            await staff.locator('button[data-testid="password-change-submit"]').click();
+
+            // /password/change 를 벗어나면 성공 (POST 응답은 /logout 리다이렉트)
+            await staff.waitForURL(url => !url.pathname.endsWith('/password/change'));
+
+            // 7) 새 비밀번호로 재로그인 → /admin 정상 진입 (강제 리다이렉트 없음 = flag 해제 확인)
+            await staff.goto('/admin/login', { waitUntil: 'domcontentloaded' });
+            await staff.locator('input[name="username"]').fill(email);
+            await staff.locator('input[name="password"]').fill(newPw);
+            await staff.locator('#adminLoginForm button[type="submit"]').click();
+            await staff.waitForURL('**/admin');
+            expect(new URL(staff.url()).pathname).toMatch(/\/admin$/);
+        } finally {
+            await ctx.close();
+        }
+    } finally {
+        // 8) force-fail OFF 재확인 — 중간 조기 OFF 가 실패해도 반드시 OFF 상태로 종결
+        const cleanup = await request.post('/__test__/mail/force-fail?enabled=false');
+        expect(cleanup.status()).toBe(204);
+    }
 });
 
 test('USER 계정 발급 · 메일 실패 시 password 카드 fallback 노출 (Q3 A fallback)', async ({ page, request }) => {
