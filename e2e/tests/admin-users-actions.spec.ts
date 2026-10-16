@@ -59,7 +59,8 @@ test('차단 사유 필수 — 모달 열고 제출 → 302 redirect + 상태 �
     await page.locator('#deactivateModal form.admin-modal-form button[type="submit"]').click();
 
     await expect(page).toHaveURL(new RegExp(`/admin/users/${seedId}`));
-    await expect(page.locator('.admin-program-header .admin-user-status-badge')).toHaveText('차단');
+    // (2026-10-16) flash HTMX swap 후 badge 재렌더 race 완화 — CI 느린 환경에서 flaky 재발 방지
+    await expect(page.locator('.admin-program-header .admin-user-status-badge')).toHaveText('차단', { timeout: 15_000 });
     await expect(page.locator('.admin-flash--success')).toBeVisible();
 });
 
