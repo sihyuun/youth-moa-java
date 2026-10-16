@@ -6,7 +6,9 @@ originSessionId: 51da8e75-f7a2-4b05-b2b6-963ce41efb6a
 modified: 2026-09-18T00:00:00.000Z
 ---
 
-> **마지막 갱신**: 2026-09-18 (**admin 트랙 완결 페이즈 4 PR** — A6 stats · A7 header-live · A8 bulk/CSV · A5-1 staff-management. `/dev-cycle` 성숙 · Recovery 원인 패턴 축적).
+> **마지막 갱신**: 2026-10-16 (A5-1-e2e Part 1 impl — Q1 TC-6 재활성화 · Q3 발급 직후 상태 계약 신설 · Q6 Mock sender 단위 테스트. Part 2 (Q4 `/password/change` 계약) 는 pending)
+>
+> 이전 갱신: 2026-09-18 (**admin 트랙 완결 페이즈 4 PR** — A6 stats · A7 header-live · A8 bulk/CSV · A5-1 staff-management. `/dev-cycle` 성숙 · Recovery 원인 패턴 축적).
 
 ## 🟢 2026-09-17 ~ 2026-09-18 세션 — admin 트랙 완결 페이즈 (4 PR)
 
