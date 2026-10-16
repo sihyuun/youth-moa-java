@@ -71,8 +71,7 @@ class MockAdminInvitationMailSenderTest {
   void send_force_fail_enabled_returns_failure_result() {
     sender.setForceFail(true);
 
-    var invitation =
-        sender.sendInvitation("fail@youth-moa.test", "실패대상", "AnyPass12!", "테스트센터");
+    var invitation = sender.sendInvitation("fail@youth-moa.test", "실패대상", "AnyPass12!", "테스트센터");
     var reset = sender.sendPasswordReset("fail@youth-moa.test", "실패대상", "ResetPw34!", "sysadmin");
 
     assertThat(invitation.sent()).isFalse();
