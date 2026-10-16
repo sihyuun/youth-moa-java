@@ -342,8 +342,8 @@ A5-1 본체 그대로. **E2E 범위에서 RBAC 재검 TC 유지**:
 
 - 작업 ID: `A5-1-e2e-admin-staff-management`
 - 우선순위: admin 트랙 완결 (A5-1 이월 소진)
-- 추정 단위: **1 PR** (계약 신설 + skip 해제 + TC 보강)
-- 상태: **`spec_draft`** — Q1~Q6 결정 대기
+- 추정 단위: **2 PR** (Part 1 = Q1+Q3+Q6 · Part 2 = Q4)
+- 상태: **`spec_confirmed (Part 1)`** — Q1·Q3·Q6 결정 확정 (Part 1 구현 중/완료). Part 2 (Q4 /password/change 계약) 는 Q4 디자인 수령 후 승격
 
 ---
 
