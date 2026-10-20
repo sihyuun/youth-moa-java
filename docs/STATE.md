@@ -3,12 +3,110 @@ name: youth-moa-java 신규 프로젝트 (Spring Boot 4 + Java 21 + Thymeleaf)
 description: 기존 youth-moa(Next.js)를 Java 풀스택으로 재작성하는 학습/전환 프로젝트. 진행 상황·DB·다음 작업·열린 PR 메모
 type: project
 originSessionId: 51da8e75-f7a2-4b05-b2b6-963ce41efb6a
-modified: 2026-09-18T00:00:00.000Z
+modified: 2026-10-20T00:00:00.000Z
 ---
 
-> **마지막 갱신**: 2026-10-16 (A5-1-e2e Part 1 impl — Q1 TC-6 재활성화 · Q3 발급 직후 상태 계약 신설 · Q6 Mock sender 단위 테스트. Part 2 (Q4 `/password/change` 계약) 는 pending)
->
-> 이전 갱신: 2026-09-18 (**admin 트랙 완결 페이즈 4 PR** — A6 stats · A7 header-live · A8 bulk/CSV · A5-1 staff-management. `/dev-cycle` 성숙 · Recovery 원인 패턴 축적).
+> **마지막 갱신**: 2026-10-20 (**세션 wrap-up — Part 2-user 결정 대기 상태로 docs/ 브랜치 push**).
+
+## 🟡 2026-10-20 세션 종료 — Part 2-user 결정 대기
+
+### 현 상태
+- **브랜치**: `docs/a5-1-e2e-part2-user-spec` (push 완료, PR 미생성 — 결정 수령 후 ym-impl → PR)
+- **커밋**: `fb512d4` A7 verify 리포트 아카이빙 · `7af84db` Part 2-user spec investigation
+- **spec 상태**: `spec_investigation` — 사용자 결정 4건 대기 중 (Qa·Qb·Qc·Qd). 상세는 신규 메모리 `project_youth_moa_part2_user_pending.md`
+
+### 다음 세션 재개 절차
+1. `git checkout docs/a5-1-e2e-part2-user-spec`
+2. `project_youth_moa_part2_user_pending.md` 로 결정 사항 확인
+3. 사용자 응답 수령 → spec `spec_confirmed` 승격 → ym-impl → ym-qa → ym-verify → PR → 머지
+4. 완료 후 branch delete
+
+## 🟢 2026-10-15 ~ 10-16 세션 — admin 완결 7 PR
+
+### 머지 완료 (7 PR)
+| PR | 커밋 | 스코프 |
+|---|---|---|
+| **#262** | 41dd574 | D-admin-calendar verify 2차 리포트 |
+| **#263** | 24907d7 | docs/chore QA 아카이브 + gitignore |
+| **#264** | 7693290 | CLAUDE.md 598→504줄 압축 |
+| **#265** | 04ecb06 | D5-Q3 user 캘린더 패널 카드 capacity-bar fragment 재사용 (showLabel 추가) |
+| **#266** | 2fdc90b | FOLLOW admin 캘린더 panel card prototype L1125~1157 매칭 (bar 제거, 텍스트 기반) |
+| **#267** | 03c55c6 | A7-realtime admin 알림 벨 polling 30s → SSE push 전환 (sse-ext self-host, 25s heartbeat) |
+| **#268** | 9a486a0 | A5-1-e2e Part 1 (Q1 TC-6 재활성화 · Q3 admin-user-detail-after-issue 계약 · Q6 MockAdminInvitationMailSender 단위 테스트) |
+
+### 새 FOLLOW 티켓 (오픈 상태)
+- `FOLLOW-A7-sse-e2e-fixture-redesign` — CENTER_ADMIN fixture 재설계 (실 broadcast E2E)
+- `FOLLOW-admin-users-actions-ci-flaky` — 차단 사유 + 재활성화 2건 CI goto hang skip 처리됨. page.request.post 전환 또는 서버 측 원인 분석 필요
+
+### 신규 자산
+- `SseConnectionRegistry` + `NotificationSseController` (A7-realtime)
+- `admin-user-detail-after-issue.ts` + `.md` (deviation 전제 계약)
+- `MockAdminInvitationMailSenderTest` (Logback ListAppender 로 maskPassword 간접 검증)
+
+## 🟢 2026-09-22 ~ 2026-09-23 세션 — A9-a/b 축 완결 + notice fix
+
+## 🟢 2026-09-22 ~ 2026-09-23 세션 — A9-a/b 축 완결 + notice fix
+
+### 머지 완료
+
+| PR | 커밋 | 스코프 |
+|---|---|---|
+| **#223** A9-a | `b264683` | Program.center FK 병행 도입 (organization deprecated · Backfill · CENTER_ADMIN 격리 · A7 event.centerId · CSV centerName) |
+| **#225** A9-b | `981ee75` | Program.organization 완전 제거 (V21 NOT NULL 승격 + 방어 블록 · V22 DROP · 사용자 템플릿 18곳 리네임 · Bookmark/Application EAGER + @EntityGraph · N+1 회귀 감시 test · Playwright retries) |
+| **#226** fix/visual-admin-notice-goto | `0287d31` (merge 대기) | visual-admin-notice.spec.ts 3건 사전 fail 해소 (goto 누락 + runner not-exists/attr-not-empty kind 확장) |
+
+### verify 사이클 (총 8회)
+- A9-a: verify 2회 (원본 + UNVERIFIED 해소 재검증)
+- A9-b: verify 5회 (원본 · 강화 · MINOR 정리 · flaky 완화 · 최종 관문)
+- fix/visual-admin-notice: verify 생략 (로컬 43/43 회귀 확인 · CI 6/6 green)
+
+### 후속 자산 (다음 티켓 대비)
+- `AdminEagerFetchN1Test` — admin 계층 5 진입점 N+1 회귀 감시 (baseline 3/4/4/27/37 · 상한 6/8/8/35/48)
+- `V21DefensiveBlockIntegrationTest` — Testcontainers PG 로 Flyway 방어 블록 발화 검증 패턴
+- `testLogging events` — CI 로그 grep 로 개별 test 결과 확인 (build.gradle.kts)
+- `Playwright retries: process.env.CI ? 1 : 0` — CI-only 재시도 균형점 (playwright.config.ts)
+- contract runner `not-exists` · `attr-not-empty` kind 확장 (fix/visual-admin-notice)
+
+### 주요 학습·정착 (2026-09-22~23)
+1. **verify 반복 사이클 유효성** — impl → qa → verify 반복이 UNVERIFIED 를 실질 해소하는 방향으로 수렴. A9-b 는 verify 5회 통과 후 관문 완결
+2. **QA 리포트 정확성 검증 필요** — A9-a QA 가 `visual-admin-notice` 3 FAIL 을 오지목 · spotless 위반 누락. verify 가 이를 정정
+3. **Flaky 대응 패턴** — testLogging showStandardStreams=true 가 CI I/O 부하 → Playwright timeout. `retries: 1` + `showStandardStreams=false` 조합으로 안정화
+4. **worktree 정리 규칙** — 오래된 worktree 의 bootRun 프로세스가 포트 점유 지속 (2026-09-22 → 09-23 java pid 46804). 재기동 시 포트 확인 필수
+5. **spec 파일 사후 작성 관행** — A9-a spec 이 impl 후 사후 작성 (verify #1 UNVERIFIED). A9-b 는 impl 중 spec 파일 병행 작성. spec 파일이 verify 매핑 대조에 필수 자산
+
+### 다음 작업 큐 (top 5) — 2026-09-23 재정렬
+1. **A7-createdBy-recipient B-3** (Program.createdBy + watcher chain) — admin 트랙 후속 · A9-a/b 원 트리거
+2. **PR #226 merge** — 세션 재개 시 최우선 (CI 6/6 green · 실질 승인 완료 상태)
+3. **A6-followup** (`Program.viewCount` + admin-stats.spec.ts) — admin 완결
+4. **A7-e2e-suite · A8-followup · A5-1-e2e** — 계약 · 기능 E2E 통합
+5. **A9-c** (N+1 커버리지 확장 · baseline artifact 등) — verify 이월
+
+### 미정리 worktree
+- `C:/Users/User/IdeaProjects/youth-moa-java-noticefix` (PR #226 merge 후 제거)
+- `C:/Users/User/IdeaProjects/youth-moa-java-e2efix` (기존 · 미확인)
+
+---
+
+## 🟢 2026-09-21 세션 — A5-2 종결 판정
+
+## 🟢 2026-09-21 세션 — A5-2 종결 판정
+
+**결정**: A5-2 (사용자 프로필 편집) 티켓 종결. 코드 변경 없음.
+
+**근거 (ym-spec 실측)**:
+- 계약: `docs/design-contracts/mypage-profile-edit.md` §8 결정 5건 확정
+- 기계 계약: `e2e/contracts/mypage-profile-edit.ts` **27/27 통과, 갭 0건**
+- Controller: `MyPageController` Step1(재인증)/Step2(편집)/저장/탈퇴/관심편집 5 흐름 완비
+- prototype 요구 필드 전부 매핑 완료 · 신규 필드 없음
+- E2E: `visual-mypage-profile-edit.spec.ts` + `mypage-interactions.spec.ts` 존재
+
+**잔여 갭 (별건으로 이관)**:
+- R1: DataInitializer gender 시드 → 계약 27번째 check 활성 (P1, ~30 LOC · 추후 소규모 PR)
+- R2: phone 변경 시 재인증 강제 (deferred 파일 L106~119 이미 기록, `resetPhoneVerified` 는 구현됨 · UX 강제만 미결)
+
+**교훈 (반복 확인)**: 이월 착수 전 실측 검증 필수 (WelcomeScreen 30 지역 · alert 14곳 오해와 동일 패턴). ym-spec 을 "코드 변경 명세 산출" 이 아닌 **"실측 → 스코프 재정의"** 단계로 활용하는 것이 안전.
+
+---
 
 ## 🟢 2026-09-17 ~ 2026-09-18 세션 — admin 트랙 완결 페이즈 (4 PR)
 
@@ -57,13 +155,13 @@ modified: 2026-09-18T00:00:00.000Z
 **A8**: A8-reject-bulk (Applications reject bulk · 반려 사유 개별성) · A8-xlsx · A8-follow-async · A8-followup-403 (CENTER_ADMIN 타 센터 CSV UX) · A8-e2e-suite
 **A5-1**: A5-2 (사용자 프로필 편집 D1) · A5-1-e2e · SMTP invitation · 관리자 활동 로그 · MFA/SSO · 관리자 특화 컬럼
 
-### 다음 작업 큐 (top 5)
+### 다음 작업 큐 (top 5) — 2026-09-21 재정렬
 
-1. **A5-2** 사용자 프로필 편집 (A5 D1 이월 · 사용자 스코프 완결)
-2. **A9 Program-Center FK 정식 도입** (organization 문자열 → FK · A7-createdBy-recipient B-3 확장 트리거)
-3. **A7-e2e-suite · A8-followup · A5-1-e2e** — Playwright 기능 E2E · 계약 파일 신설 통합 티켓
-4. **A6-followup** — `Program.viewCount` 엔티티 · admin-stats.spec.ts
-5. **A7-rate-limit** — 성수기 반복 알림 병합 (실무 관찰 후 판단)
+1. **A9 Program-Center FK 정식 도입** (organization 문자열 → FK · A7-createdBy-recipient B-3 확장 트리거) ← **다음 착수**
+2. **A7-e2e-suite · A8-followup · A5-1-e2e** — Playwright 기능 E2E · 계약 파일 신설 통합 티켓
+3. **A6-followup** — `Program.viewCount` 엔티티 · admin-stats.spec.ts
+4. **A7-rate-limit** — 성수기 반복 알림 병합 (실무 관찰 후 판단)
+5. **A5-2 R1 (선택)** — DataInitializer gender 시드 · 계약 27번째 check 활성 (~30 LOC · 낮은 우선순위)
 
 ### 이전 이월 (변동 없음)
 
